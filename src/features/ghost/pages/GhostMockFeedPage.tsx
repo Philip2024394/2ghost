@@ -149,7 +149,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
               { icon: "🔒", title: "Total Privacy", desc: "Your identity stays hidden until a mutual match" },
               { icon: "👻", title: "Ghost IDs Only", desc: "Every profile is anonymous — Ghost-XXXX until you connect" },
               { icon: "📱", title: "Connect on Match", desc: "No in-app chat. Unlock their contact — WhatsApp, Telegram, WeChat, iMessage, any app they use" },
-              { icon: "🌍", title: "Members Worldwide", desc: "Indonesia, UK, Japan, Ireland, Australia and more" },
+              { icon: "🌍", title: "SEA House", desc: "Indonesia 🇮🇩 Philippines 🇵🇭 Thailand 🇹🇭 Singapore 🇸🇬 Malaysia 🇲🇾 Vietnam 🇻🇳 and beyond" },
             ].map((f) => (
               <div key={f.title} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                 <div style={{

@@ -1446,7 +1446,7 @@ function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
     { icon: "✨", title: "Ghost Match", desc: "When two ghosts like each other it becomes a mutual match. You'll get notified instantly." },
     { icon: "📱", title: "Connect on Match", desc: "After a mutual match, pay once to unlock their contact — WhatsApp, Telegram, WeChat, iMessage, any app they use. No in-app chat — real connection only." },
     { icon: "🚪", title: "Ghost Room", desc: "Your private vault. All your matches live here with a 48-hour countdown. Don't let them fade." },
-    { icon: "🌍", title: "Global House", desc: "Members from Indonesia, UK, Ireland, Japan, Australia and growing — your next match could be anywhere." },
+    { icon: "🌍", title: "Global House", desc: "Members from Indonesia, Philippines, Thailand, Singapore, Malaysia, Vietnam and beyond — your next match could be anywhere in SEA." },
     { icon: "👁️", title: "You're Invisible", desc: "Others only see your Ghost ID, photo, age, and city — nothing else — until you both connect." },
   ];
 
@@ -2797,12 +2797,12 @@ export default function GhostModePage() {
     return () => clearTimeout(t);
   }, [isGhost]);
 
-  // Base profiles with distance injected (Indonesian + international)
+  // Base profiles — all 6 SEA countries + international
   const allProfiles = useMemo<GhostProfile[]>(() => {
     const raw = generateIndonesianProfiles();
-    const indonesian: GhostProfile[] = raw.slice(0, 60).map((p) => {
-      const lat = (p as any).latitude ?? undefined;
-      const lng = (p as any).longitude ?? undefined;
+    const sea: GhostProfile[] = raw.map((p) => {
+      const lat = p.latitude ?? undefined;
+      const lng = p.longitude ?? undefined;
       const distanceKm =
         userLat !== null && userLon !== null && lat !== undefined && lng !== undefined
           ? haversineKm(userLat, userLon, lat, lng)
@@ -2812,10 +2812,10 @@ export default function GhostModePage() {
         name: p.name,
         age: p.age,
         city: p.city,
-        country: "Indonesia",
-        countryFlag: "🇮🇩",
-        image: (p as any).image || (p as any).avatar_url || "/placeholder.svg",
-        last_seen_at: (p as any).last_seen_at ?? null,
+        country: p.country,
+        countryFlag: p.countryFlag,
+        image: p.image || "/placeholder.svg",
+        last_seen_at: p.last_seen_at ?? null,
         gender: p.gender || "Female",
         latitude: lat,
         longitude: lng,
@@ -2824,9 +2824,9 @@ export default function GhostModePage() {
         isVerified: profileIsVerified(p.id),
       };
     });
-    // Merge international profiles (no GPS distance for these)
+    // Extra international profiles (Europe, Japan, etc.)
     const intl = INTL_PROFILES.map((p) => ({ ...p, lastActiveHoursAgo: activeHoursAgo(p.id), isVerified: profileIsVerified(p.id) }));
-    return [...indonesian, ...intl];
+    return [...sea, ...intl];
   }, [userLat, userLon]);
 
   // Filtered + sorted profiles (excludes passed/refused)
