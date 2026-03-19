@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 const GHOST_HERO = "https://ik.imagekit.io/7grri5v7d/find%20meddddd.png";
-const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 const AVATARS = Array.from({ length: 6 }, (_, i) => `https://i.pravatar.cc/80?img=${i + 1}`);
 
@@ -96,16 +95,6 @@ export default function GhostLandingPage() {
         >
 
           {/* Small label */}
-          <p style={{
-            margin: 0,
-            fontSize: 11, fontWeight: 800,
-            color: "#4ade80",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase" as const,
-          }}>
-            <img src={GHOST_LOGO} alt="" style={{ width: 48, height: 48, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> 2Ghost
-          </p>
-
           {/* Main heading */}
           <h1 style={{
             margin: 0,
@@ -114,7 +103,7 @@ export default function GhostLandingPage() {
             lineHeight: 1.1,
             letterSpacing: "-0.02em",
           }}>
-            Find Your Ghost
+            Find Your Boo
           </h1>
 
           {/* Subtext */}
@@ -149,7 +138,7 @@ export default function GhostLandingPage() {
               color: "rgba(255,255,255,0.45)",
               marginLeft: 10,
             }}>
-              +120 inside
+              +120.000 Profiles Indonesia
             </span>
           </div>
 
