@@ -1,5 +1,4 @@
-// ── 100 Indonesian mock profiles ──────────────────────────────────────────────
-// 80 Female · 20 Male · Each online ~16 h/day in blocks ≥ 30 min
+// ── 1200 mock profiles — 12 countries × 100 (75F + 25M) ──────────────────────
 
 export interface MockProfile {
   id: string;
@@ -24,7 +23,7 @@ function sr(s: number, lo: number, hi: number): number {
 function wm(m: number): number { return ((m % 1440) + 1440) % 1440; }
 
 function buildOffline(s: number): Array<[number, number]> {
-  // Main sleep block  21:00–02:00 start, 6–8 h duration
+  // Main sleep block 21:00–02:00 start, 6–8 h duration
   const ss = wm(sr(s, 1260, 1560));
   const se = wm(ss + sr(s + 1, 360, 480));
   const wins: Array<[number, number]> = [[ss, se]];
@@ -45,174 +44,148 @@ export function isOnlineNow(p: MockProfile): boolean {
   );
 }
 
-// ── Names ──────────────────────────────────────────────────────────────────────
-const FN: string[] = [
-  "Sari","Dewi","Rina","Ayu","Fitri","Nadia","Putri","Maya","Dina","Cinta",
-  "Reni","Lina","Hana","Wulan","Tari","Indah","Sinta","Mega","Yuni","Lia",
-  "Novi","Risa","Tika","Yeni","Desi","Rini","Nina","Eka","Sri","Dian",
-  "Ratna","Susi","Tuti","Mira","Evi","Lisa","Ira","Nita","Ani","Siti",
-  "Endah","Retno","Puji","Rahayu","Sekar","Cantika","Jasmine","Nadira","Zahra","Amira",
-  "Salwa","Rara","Bunga","Keisha","Tiara","Dinda","Farah","Gita","Hesti","Imelda",
-  "Juliana","Kartika","Layla","Meilani","Niken","Okta","Prita","Qonita","Rossa","Shinta",
-  "Triana","Ulan","Vika","Winda","Yessy","Zilvia","Alma","Belle","Chika","Dara",
-];
-const MN: string[] = [
-  "Bagas","Rizky","Andi","Danu","Fajar",
-  "Hendra","Iwan","Joko","Kevin","Lukman",
-  "Mario","Novan","Raka","Surya","Tegar",
-  "Vino","Wahyu","Yogi","Zaki","Budi",
+// ── Profile image slots — 200 slots cycling pravatar 1–70 ────────────────────
+export const PROFILE_IMAGES: string[] = Array.from({ length: 200 }, (_, i) => {
+  const imgIdx = (i % 70) + 1;
+  return `https://i.pravatar.cc/400?img=${imgIdx}`;
+});
+
+// ── Country data ──────────────────────────────────────────────────────────────
+
+interface CountryData {
+  key: string;
+  name: string;
+  flag: string;
+  distLo: number;
+  distHi: number;
+  cities: string[];
+  fn: string[];
+  mn: string[];
+}
+
+const COUNTRIES_DATA: CountryData[] = [
+  {
+    key: "id", name: "Indonesia", flag: "🇮🇩", distLo: 1, distHi: 200,
+    cities: ["Jakarta","Surabaya","Bandung","Bali","Yogyakarta","Medan","Semarang","Makassar","Malang","Batam"],
+    fn: ["Sari","Dewi","Rina","Ayu","Fitri","Nadia","Putri","Maya","Dina","Cinta","Reni","Lina","Hana","Wulan","Tari","Indah","Sinta","Mega","Yuni","Lia","Ratna","Devi","Novi","Endah","Rahma"],
+    mn: ["Bagas","Rizky","Andi","Danu","Fajar","Hendra","Iwan","Joko","Kevin","Lukman","Mario","Novan","Raka","Surya","Tegar","Budi","Dimas","Eko","Gilang","Hafiz","Irwan","Jamal","Kiki","Lukito","Manda"],
+  },
+  {
+    key: "ph", name: "Philippines", flag: "🇵🇭", distLo: 1, distHi: 300,
+    cities: ["Manila","Cebu","Davao","Makati","BGC","Quezon City","Pasig","Iloilo"],
+    fn: ["Ana","Maria","Rose","Joy","Angelica","Bea","Chloe","Jasmine","Kath","Lyn","Mia","Rica","Divine","Grace","Lovely","Angel","Trish","Nica","Lhea","Shiela","Danica","Ella","Fatima","Gina","Hazel"],
+    mn: ["Carlo","Miguel","Josh","Mark","Enzo","Ian","JC","Luis","Ken","Paolo","Ramon","Sergio","Tony","Ulysses","Vincent","Wil","Xavier","Yvan","Zack","Arvin","Bobbie","Chito","Dennis","Edgar","Francis"],
+  },
+  {
+    key: "th", name: "Thailand", flag: "🇹🇭", distLo: 1, distHi: 300,
+    cities: ["Bangkok","Chiang Mai","Phuket","Pattaya","Hua Hin","Koh Samui","Ayutthaya"],
+    fn: ["Ploy","Nook","Fon","Pim","Mint","Nam","Ning","Aon","Koi","Joy","Bow","Gift","Bell","May","Pam","Gam","Ice","Pink","Toon","Wan","Dao","Earn","Fang","Goy","Hana"],
+    mn: ["Arm","Bank","Big","Dome","Film","Golf","New","Oak","Top","Win","Aek","Boon","Chart","Din","Ekk","Fah","Gun","Hed","Ink","Jak","Kan","Lek","Mon","Nit","Om"],
+  },
+  {
+    key: "sg", name: "Singapore", flag: "🇸🇬", distLo: 1, distHi: 50,
+    cities: ["Singapore","Orchard","Marina Bay","Jurong","Tampines"],
+    fn: ["Jess","Adeline","Xinyi","Yiting","Cheryl","Melissa","Rachel","Sarah","Nicole","Winnie","Fiona","Jasmine","Karen","Lynn","Priya","Amanda","Becky","Celeste","Diana","Eunice","Gloria","Helena","Irene","Janet","Kayla"],
+    mn: ["Ethan","Bryan","Darren","Jason","Kevin","Marcus","Ryan","Sean","Aaron","Benjamin","Caleb","David","Elroy","Fabian","Gavin","Harris","Ivan","Jerome","Keith","Leonard","Martin","Nathan","Owen","Peter","Quentin"],
+  },
+  {
+    key: "my", name: "Malaysia", flag: "🇲🇾", distLo: 1, distHi: 200,
+    cities: ["Kuala Lumpur","Penang","Johor Bahru","Kota Kinabalu","Petaling Jaya","Ipoh","Shah Alam"],
+    fn: ["Nurul","Aisyah","Siti","Amira","Hafizah","Yee Ling","Mei","Lily","Amanda","Priya","Zara","Nadia","Elissa","Farhana","Qistina","Rania","Sasha","Tina","Uma","Vivian","Wai Ling","Xin Yi","Yanti","Zahra","Aida"],
+    mn: ["Haziq","Ariff","Syafiq","Daniel","Darren","Reza","Sam","Wei","Azlan","Boon","Chong","Dafi","Emir","Farid","Ghazi","Hafiz","Irfan","Jared","Kamil","Luqman","Musa","Nabil","Omar","Pang","Qayyum"],
+  },
+  {
+    key: "vn", name: "Vietnam", flag: "🇻🇳", distLo: 1, distHi: 300,
+    cities: ["Ho Chi Minh City","Hanoi","Da Nang","Nha Trang","Hoi An","Can Tho","Hue"],
+    fn: ["Linh","Huong","Lan","Hoa","Thu","Phuong","Yen","Chi","Ngoc","Ly","Thao","Van","Bich","Dung","Hien","Khanh","Mai","Ngan","Oanh","Quynh","Suong","Tuyen","Uyen","Xuan","Yen"],
+    mn: ["Minh","Tuan","Long","Duc","Hung","Nam","Phong","Quang","An","Binh","Cuong","Dang","Hieu","Kien","Loc","Manh","Nghia","Phuc","Quan","Son","Thai","Tien","Trung","Viet","Xuan"],
+  },
+  {
+    key: "gb", name: "United Kingdom", flag: "🇬🇧", distLo: 500, distHi: 9999,
+    cities: ["London","Manchester","Birmingham","Edinburgh","Liverpool","Bristol","Leeds","Glasgow"],
+    fn: ["Sophie","Emma","Charlotte","Olivia","Amelia","Isla","Poppy","Ava","Lily","Grace","Chloe","Hannah","Lucy","Mia","Ella","Freya","Imogen","Daisy","Phoebe","Zoe","Alice","Rosie","Florence","Evelyn","Harriet"],
+    mn: ["Jack","Oliver","Harry","George","Charlie","James","Alfie","Freddie","Oscar","Henry","Liam","Noah","Thomas","William","Edward","Samuel","Daniel","Joseph","Benjamin","Alexander","Luke","Ethan","Mason","Logan","Ryan"],
+  },
+  {
+    key: "au", name: "Australia", flag: "🇦🇺", distLo: 500, distHi: 9999,
+    cities: ["Sydney","Melbourne","Brisbane","Perth","Adelaide","Gold Coast","Canberra","Darwin"],
+    fn: ["Olivia","Charlotte","Amelia","Ava","Isla","Mia","Grace","Ruby","Zoe","Lily","Chloe","Sophie","Madison","Harper","Aria","Sienna","Willow","Luna","Aurora","Stella","Ivy","Hazel","Violet","Ellie","Jade"],
+    mn: ["Oliver","Noah","William","Jack","Lucas","James","Henry","Leo","Liam","Hugo","Charlie","Thomas","Ethan","Mason","Hunter","Bailey","Riley","Archie","Finn","Max","Cooper","Jasper","Eli","Caleb","Dylan"],
+  },
+  {
+    key: "us", name: "USA", flag: "🇺🇸", distLo: 500, distHi: 9999,
+    cities: ["New York","Los Angeles","Chicago","Houston","Miami","San Francisco","Seattle","Boston","Atlanta","Dallas"],
+    fn: ["Emma","Olivia","Ava","Isabella","Sophia","Mia","Charlotte","Amelia","Harper","Evelyn","Luna","Camila","Aria","Scarlett","Penelope","Layla","Chloe","Victoria","Madison","Eleanor","Ella","Nora","Hazel","Abigail","Emily"],
+    mn: ["Liam","Noah","Oliver","Elijah","James","Aiden","Lucas","Mason","Ethan","Logan","Jackson","Sebastian","Mateo","Jack","Owen","Ryan","Nathan","Isaiah","Hunter","Grayson","Jayden","Carter","Dylan","Connor","Zachary"],
+  },
+  {
+    key: "ie", name: "Ireland", flag: "🇮🇪", distLo: 500, distHi: 9999,
+    cities: ["Dublin","Cork","Galway","Limerick","Waterford","Killarney"],
+    fn: ["Aoife","Saoirse","Siobhan","Niamh","Caoimhe","Clodagh","Roisin","Orla","Ciara","Aisling","Mairead","Fionnuala","Dearbhla","Grainne","Eimear","Claire","Rachel","Sarah","Katie","Emily","Laura","Amy","Nicole","Jessica","Sinead"],
+    mn: ["Liam","Conor","Cian","Sean","Patrick","Oisin","Fionn","Darragh","Rory","Cormac","Eoin","Cathal","Declan","Ronan","Fergus","James","Shane","Kevin","Paul","David","Brendan","Michael","Daniel","Thomas","Colm"],
+  },
+  {
+    key: "fr", name: "France", flag: "🇫🇷", distLo: 500, distHi: 9999,
+    cities: ["Paris","Lyon","Marseille","Nice","Toulouse","Bordeaux","Strasbourg","Nantes"],
+    fn: ["Emma","Léa","Chloé","Camille","Manon","Julie","Marie","Laura","Sarah","Lucie","Inès","Alice","Jade","Clara","Margot","Louise","Elisa","Charlotte","Pauline","Océane","Lola","Zoé","Mathilde","Anaïs","Céline"],
+    mn: ["Lucas","Hugo","Nathan","Thomas","Théo","Maxime","Baptiste","Antoine","Clément","Julien","Alexandre","Nicolas","Pierre","Louis","Romain","Axel","Tristan","Guillaume","Adrien","Sébastien","Raphaël","Florian","Victor","Valentin","Mathis"],
+  },
+  {
+    key: "be", name: "Belgium", flag: "🇧🇪", distLo: 500, distHi: 9999,
+    cities: ["Brussels","Antwerp","Ghent","Liège","Bruges","Namur"],
+    fn: ["Emma","Julie","Sarah","Laura","Manon","Amelie","Charlotte","Elisa","Marie","Lisa","Axelle","Céline","Nathalie","Isabelle","Katrien","An","Lies","Sofie","Ines","Lien","Fien","Tine","Noor","Amber","Janne"],
+    mn: ["Nicolas","Thomas","Mathieu","Louis","Victor","Kevin","David","Michael","Simon","Robin","Pieter","Joris","Luca","Arthur","Milan","Tim","Tom","Sander","Axel","Ruben","Lars","Nils","Baptiste","Florian","Quentin"],
+  },
 ];
 
-const CITIES: string[] = [
-  "Jakarta","Surabaya","Bandung","Bali","Yogyakarta","Medan","Semarang",
-  "Makassar","Malang","Solo","Bogor","Depok","Bekasi","Tangerang","Batam",
-  "Palembang","Pekanbaru","Manado","Balikpapan","Samarinda","Lombok",
-  "Kupang","Jayapura","Ambon","Padang","Pontianak","Banjarmasin","Mataram",
-];
+// ── Build profiles — 75F + 25M per country = 1200 total ──────────────────────
 
-// ── Profile image slots ────────────────────────────────────────────────────────
-// Replace each URL with your ImageKit upload URL.
-// Female slots: PROFILE_IMAGES[0..79]  → upload as f_00.jpg … f_79.jpg
-// Male   slots: PROFILE_IMAGES[80..99] → upload as m_00.jpg … m_19.jpg
-export const PROFILE_IMAGES: string[] = [
-  // ── Female 0–79 ── (replace with ImageKit URLs)
-  "https://i.pravatar.cc/400?img=1",
-  "https://i.pravatar.cc/400?img=2",
-  "https://i.pravatar.cc/400?img=3",
-  "https://i.pravatar.cc/400?img=4",
-  "https://i.pravatar.cc/400?img=5",
-  "https://i.pravatar.cc/400?img=6",
-  "https://i.pravatar.cc/400?img=7",
-  "https://i.pravatar.cc/400?img=8",
-  "https://i.pravatar.cc/400?img=9",
-  "https://i.pravatar.cc/400?img=10",
-  "https://i.pravatar.cc/400?img=11",
-  "https://i.pravatar.cc/400?img=12",
-  "https://i.pravatar.cc/400?img=13",
-  "https://i.pravatar.cc/400?img=14",
-  "https://i.pravatar.cc/400?img=15",
-  "https://i.pravatar.cc/400?img=16",
-  "https://i.pravatar.cc/400?img=17",
-  "https://i.pravatar.cc/400?img=18",
-  "https://i.pravatar.cc/400?img=19",
-  "https://i.pravatar.cc/400?img=20",
-  "https://i.pravatar.cc/400?img=21",
-  "https://i.pravatar.cc/400?img=22",
-  "https://i.pravatar.cc/400?img=23",
-  "https://i.pravatar.cc/400?img=24",
-  "https://i.pravatar.cc/400?img=25",
-  "https://i.pravatar.cc/400?img=26",
-  "https://i.pravatar.cc/400?img=27",
-  "https://i.pravatar.cc/400?img=28",
-  "https://i.pravatar.cc/400?img=29",
-  "https://i.pravatar.cc/400?img=30",
-  "https://i.pravatar.cc/400?img=31",
-  "https://i.pravatar.cc/400?img=32",
-  "https://i.pravatar.cc/400?img=33",
-  "https://i.pravatar.cc/400?img=34",
-  "https://i.pravatar.cc/400?img=35",
-  "https://i.pravatar.cc/400?img=1",
-  "https://i.pravatar.cc/400?img=2",
-  "https://i.pravatar.cc/400?img=3",
-  "https://i.pravatar.cc/400?img=4",
-  "https://i.pravatar.cc/400?img=5",
-  "https://i.pravatar.cc/400?img=6",
-  "https://i.pravatar.cc/400?img=7",
-  "https://i.pravatar.cc/400?img=8",
-  "https://i.pravatar.cc/400?img=9",
-  "https://i.pravatar.cc/400?img=10",
-  "https://i.pravatar.cc/400?img=11",
-  "https://i.pravatar.cc/400?img=12",
-  "https://i.pravatar.cc/400?img=13",
-  "https://i.pravatar.cc/400?img=14",
-  "https://i.pravatar.cc/400?img=15",
-  "https://i.pravatar.cc/400?img=16",
-  "https://i.pravatar.cc/400?img=17",
-  "https://i.pravatar.cc/400?img=18",
-  "https://i.pravatar.cc/400?img=19",
-  "https://i.pravatar.cc/400?img=20",
-  "https://i.pravatar.cc/400?img=21",
-  "https://i.pravatar.cc/400?img=22",
-  "https://i.pravatar.cc/400?img=23",
-  "https://i.pravatar.cc/400?img=24",
-  "https://i.pravatar.cc/400?img=25",
-  "https://i.pravatar.cc/400?img=26",
-  "https://i.pravatar.cc/400?img=27",
-  "https://i.pravatar.cc/400?img=28",
-  "https://i.pravatar.cc/400?img=29",
-  "https://i.pravatar.cc/400?img=30",
-  "https://i.pravatar.cc/400?img=31",
-  "https://i.pravatar.cc/400?img=32",
-  "https://i.pravatar.cc/400?img=33",
-  "https://i.pravatar.cc/400?img=34",
-  "https://i.pravatar.cc/400?img=35",
-  "https://i.pravatar.cc/400?img=1",
-  "https://i.pravatar.cc/400?img=2",
-  "https://i.pravatar.cc/400?img=3",
-  "https://i.pravatar.cc/400?img=4",
-  "https://i.pravatar.cc/400?img=5",
-  "https://i.pravatar.cc/400?img=6",
-  "https://i.pravatar.cc/400?img=7",
-  "https://i.pravatar.cc/400?img=8",
-  "https://i.pravatar.cc/400?img=9",
-  "https://i.pravatar.cc/400?img=10",
-  // ── Male 80–99 ── (replace with ImageKit URLs)
-  "https://i.pravatar.cc/400?img=52",
-  "https://i.pravatar.cc/400?img=53",
-  "https://i.pravatar.cc/400?img=54",
-  "https://i.pravatar.cc/400?img=55",
-  "https://i.pravatar.cc/400?img=56",
-  "https://i.pravatar.cc/400?img=57",
-  "https://i.pravatar.cc/400?img=58",
-  "https://i.pravatar.cc/400?img=59",
-  "https://i.pravatar.cc/400?img=60",
-  "https://i.pravatar.cc/400?img=61",
-  "https://i.pravatar.cc/400?img=62",
-  "https://i.pravatar.cc/400?img=63",
-  "https://i.pravatar.cc/400?img=64",
-  "https://i.pravatar.cc/400?img=65",
-  "https://i.pravatar.cc/400?img=66",
-  "https://i.pravatar.cc/400?img=67",
-  "https://i.pravatar.cc/400?img=68",
-  "https://i.pravatar.cc/400?img=69",
-  "https://i.pravatar.cc/400?img=70",
-  "https://i.pravatar.cc/400?img=52",
-];
+function buildCountryProfiles(c: CountryData, baseImgOffset: number, baseSeed: number): MockProfile[] {
+  const profiles: MockProfile[] = [];
 
-// ── Build profiles ─────────────────────────────────────────────────────────────
-export const MOCK_PROFILES: MockProfile[] = [
-  ...Array.from({ length: 80 }, (_, i) => {
-    const s = i * 13 + 7;
-    return {
-      id: `f${i}`,
-      name: FN[i],
+  // 75 female profiles
+  for (let i = 0; i < 75; i++) {
+    const s = baseSeed + i * 13 + 7;
+    const imgIdx = ((baseImgOffset + i) % 70) + 1;
+    profiles.push({
+      id: `${c.key}-f${i}`,
+      name: c.fn[i % c.fn.length],
       age: sr(s, 19, 34),
-      city: CITIES[sr(s + 1, 0, CITIES.length - 1)],
-      country: "Indonesia",
-      countryFlag: "🇮🇩",
+      city: c.cities[sr(s + 1, 0, c.cities.length - 1)],
+      country: c.name,
+      countryFlag: c.flag,
       gender: "Female" as const,
-      image: PROFILE_IMAGES[i],
-      distanceKm: sr(s + 2, 1, 48),
-      isVip: sr(s + 3, 0, 4) === 0,          // ~20% have VIP
-      offlineWindows: buildOffline(s),
-    };
-  }),
-  ...Array.from({ length: 20 }, (_, i) => {
-    const s = (i + 80) * 13 + 7;
-    return {
-      id: `m${i}`,
-      name: MN[i],
-      age: sr(s, 21, 38),
-      city: CITIES[sr(s + 1, 0, CITIES.length - 1)],
-      country: "Indonesia",
-      countryFlag: "🇮🇩",
-      gender: "Male" as const,
-      image: PROFILE_IMAGES[80 + i],
-      distanceKm: sr(s + 2, 1, 48),
+      image: `https://i.pravatar.cc/400?img=${imgIdx}`,
+      distanceKm: sr(s + 2, c.distLo, c.distHi),
       isVip: sr(s + 3, 0, 4) === 0,
       offlineWindows: buildOffline(s),
-    };
-  }),
-];
+    });
+  }
+
+  // 25 male profiles
+  for (let i = 0; i < 25; i++) {
+    const s = baseSeed + (i + 75) * 13 + 7;
+    const imgIdx = ((baseImgOffset + 40 + i) % 70) + 1;
+    profiles.push({
+      id: `${c.key}-m${i}`,
+      name: c.mn[i % c.mn.length],
+      age: sr(s, 21, 38),
+      city: c.cities[sr(s + 1, 0, c.cities.length - 1)],
+      country: c.name,
+      countryFlag: c.flag,
+      gender: "Male" as const,
+      image: `https://i.pravatar.cc/400?img=${imgIdx}`,
+      distanceKm: sr(s + 2, c.distLo, c.distHi),
+      isVip: sr(s + 3, 0, 4) === 0,
+      offlineWindows: buildOffline(s),
+    });
+  }
+
+  return profiles;
+}
+
+export const MOCK_PROFILES: MockProfile[] = COUNTRIES_DATA.flatMap((c, idx) =>
+  buildCountryProfiles(c, (idx * 5) % 70, idx * 10000)
+);
 
 export default MOCK_PROFILES;
