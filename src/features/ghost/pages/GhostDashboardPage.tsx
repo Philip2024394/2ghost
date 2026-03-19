@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft, LogOut, Edit2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getPlatform } from "../data/connectPlatforms";
 
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
@@ -54,8 +55,8 @@ const FEATURES = [
   },
   {
     icon: "📱",
-    title: "WhatsApp Connect",
-    desc: "After a mutual match, unlock their real WhatsApp number with a single payment. No monthly subscription needed — you only pay when you genuinely connect. Real connections, not endless swiping.",
+    title: "Connect on Match",
+    desc: "After a mutual match, unlock their real contact with a single payment — WhatsApp, Telegram, WeChat, iMessage, Line, Instagram or any app you both use. You only pay when you genuinely connect.",
     badge: "PAY PER CONNECT",
   },
   {
@@ -77,12 +78,6 @@ const FEATURES = [
     badge: "FREE",
   },
   {
-    icon: "🚀",
-    title: "Boost",
-    desc: "Push your profile to the top of every feed for 24 hours. More visibility, more likes, more chances. One-time purchase per boost — no subscription.",
-    badge: "PREMIUM",
-  },
-  {
     icon: "🛡️",
     title: "Shield & Block",
     desc: "See someone giving bad energy? Block them instantly. They vanish from your feed and yours from theirs — permanently. The house self-cleanses. Your peace is protected.",
@@ -102,9 +97,51 @@ const FEATURES = [
   },
 ];
 
+// ── Daily activity helpers ────────────────────────────────────────────────
+const TODAY_KEY = () => `ghost_likes_today_${new Date().toISOString().slice(0, 10)}`;
+function getLikesToday(): number {
+  try { return parseInt(localStorage.getItem(TODAY_KEY()) ?? "0", 10) || 0; } catch { return 0; }
+}
+function getStreak(): number {
+  try { return parseInt(localStorage.getItem("ghost_streak") ?? "0", 10) || 0; } catch { return 0; }
+}
+
 export default function GhostDashboardPage() {
   const navigate = useNavigate();
   const [quickExit, setQuickExit] = useState(false);
+
+  // First-entry welcome popup
+  const [showDashWelcome, setShowDashWelcome] = useState(false);
+  useEffect(() => {
+    if (!sessionStorage.getItem("ghost_dash_welcome_seen")) {
+      const t = setTimeout(() => {
+        setShowDashWelcome(true);
+        sessionStorage.setItem("ghost_dash_welcome_seen", "1");
+      }, 600);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
+  // Profile data for "How I Connect" section
+  const profileData = (() => {
+    try { const r = localStorage.getItem("ghost_profile"); return r ? JSON.parse(r) : null; } catch { return null; }
+  })();
+  const connectPlatform = profileData?.connectPlatform ?? "whatsapp";
+  const connectHandle = profileData?.connectHandle ?? null;
+  const interests: string[] = profileData?.interests ?? [];
+  const platform = getPlatform(connectPlatform);
+
+  // Activity
+  const [likesToday] = useState(getLikesToday);
+  const [streak] = useState(getStreak);
+  const savedMatchCount = (() => {
+    try {
+      const raw = localStorage.getItem("ghost_matches");
+      if (!raw) return 0;
+      const all = JSON.parse(raw);
+      return all.filter((m: { matchedAt: number }) => Date.now() - m.matchedAt < 48 * 3600000).length;
+    } catch { return 0; }
+  })();
 
   const [foundBoo, setFoundBoo] = useState<FoundBooData | null>(() => {
     try {
@@ -283,7 +320,89 @@ export default function GhostDashboardPage() {
             </AnimatePresence>
           </motion.div>
 
-          {/* ── Section 2: How 2Ghost Works ── */}
+          {/* ── Section 2: Activity Today ── */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+            <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>
+              Activity Today
+            </p>
+            <div style={{ display: "flex", gap: 8 }}>
+              {[
+                { label: "Likes Sent", value: likesToday, icon: "❤️", color: "#ec4899" },
+                { label: "Day Streak", value: streak, icon: "🔥", color: "#f97316" },
+                { label: "Matches", value: savedMatchCount, icon: "✨", color: "#4ade80" },
+              ].map(({ label, value, icon, color }) => (
+                <div key={label} style={{
+                  flex: 1, ...CARD,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                  padding: "14px 8px",
+                }}>
+                  <span style={{ fontSize: 20 }}>{icon}</span>
+                  <span style={{ fontSize: 22, fontWeight: 900, color }}>{value}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>{label}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* ── Section 3: How I Connect ── */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>
+                How I Connect
+              </p>
+              <button
+                onClick={() => navigate("/ghost/setup")}
+                style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: "rgba(74,222,128,0.7)", fontSize: 11, fontWeight: 700, padding: 0 }}
+              >
+                <Edit2 size={11} /> Change
+              </button>
+            </div>
+            <div style={{ ...CARD }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: connectHandle || interests.length > 0 ? 12 : 0 }}>
+                <span style={{ fontSize: 32 }}>{platform.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 15, fontWeight: 800, color: platform.color, margin: "0 0 2px" }}>{platform.label}</p>
+                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>
+                    {connectHandle ? (
+                      <span>{platform.inputType === "phone" ? "📞" : "@"} {connectHandle}</span>
+                    ) : (
+                      <span style={{ color: "rgba(255,165,0,0.7)" }}>No handle set — <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => navigate("/ghost/setup")}>add one</span></span>
+                    )}
+                  </p>
+                </div>
+                <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.06)", borderRadius: 6, padding: "3px 8px" }}>
+                  {platform.reach}
+                </span>
+              </div>
+
+              {interests.length > 0 && (
+                <>
+                  <div style={{ height: 1, background: "rgba(255,255,255,0.05)", marginBottom: 10 }} />
+                  <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>Your Interests</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {interests.map((tag) => (
+                      <span key={tag} style={{
+                        fontSize: 11, fontWeight: 700,
+                        background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)",
+                        borderRadius: 50, padding: "3px 10px", color: "rgba(74,222,128,0.8)",
+                      }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Platform coverage hint */}
+            <div style={{ marginTop: 8, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "8px 12px" }}>
+              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0, lineHeight: 1.55 }}>
+                2Ghost supports WhatsApp · Telegram · WeChat · iMessage · Line · Instagram · Signal · Viber · Messenger · KakaoTalk · Zalo · SMS — covering 8 billion people worldwide.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* ── Section 4: How 2Ghost Works ── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>
               How 2Ghost Works
@@ -319,7 +438,7 @@ export default function GhostDashboardPage() {
             </div>
           </motion.div>
 
-          {/* ── Section 3: Why 2Ghost? ── */}
+          {/* ── Section 5: Why 2Ghost? ── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
             <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>
               Why 2Ghost?
@@ -340,7 +459,7 @@ export default function GhostDashboardPage() {
             </div>
           </motion.div>
 
-          {/* ── Section 4: Quick Actions ── */}
+          {/* ── Section 6: Quick Actions ── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
             <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>
               Quick Actions
@@ -388,6 +507,105 @@ export default function GhostDashboardPage() {
 
         </div>
       </div>
+
+      {/* ── First-entry welcome popup ── */}
+      <AnimatePresence>
+        {showDashWelcome && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowDashWelcome(false)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 200,
+              background: "rgba(0,0,0,0.75)",
+              backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+            }}
+          >
+            <motion.div
+              initial={{ y: "100%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "100%", maxWidth: 480,
+                background: "rgba(4,8,4,0.97)",
+                borderRadius: "24px 24px 0 0",
+                border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none",
+                padding: "0 22px max(36px, env(safe-area-inset-bottom, 36px))",
+                boxShadow: "0 -24px 80px rgba(0,0,0,0.7)",
+              }}
+            >
+              <div style={{ height: 3, background: "linear-gradient(90deg, #15803d, #4ade80, #22c55e)", marginLeft: -22, marginRight: -22 }} />
+              <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 18px" }}>
+                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
+              </div>
+
+              <motion.h2
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.35 }}
+                style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.2, letterSpacing: "-0.02em", margin: "0 0 6px" }}
+              >
+                Your Ghost Dashboard
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.18, duration: 0.35 }}
+                style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, margin: "0 0 18px" }}
+              >
+                Everything about your 2Ghost life in one quiet place. No noise — just what matters.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.26, duration: 0.4 }}
+                style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}
+              >
+                {[
+                  { icon: "👻", text: "Ghost Identity — your anonymous card, your Ghost ID, your presence" },
+                  { icon: "❤️", text: "Like & Match — browse free, pay only when you genuinely connect on WhatsApp" },
+                  { icon: "🚪", text: "Found Boo — when you connect, your profile auto-pauses so the relationship has space" },
+                  { icon: "🌙", text: "Tonight Mode — tell the house you're available right now, resets at midnight" },
+                  { icon: "🛡️", text: "Shield & Block — protect your peace, block numbers and entire countries" },
+                  { icon: "🔒", text: "Total privacy — no social sign-in, no real name stored, no trail" },
+                ].map(({ icon, text }) => (
+                  <div key={text} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1.5 }}>{icon}</span>
+                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.55 }}>{text}</p>
+                  </div>
+                ))}
+              </motion.div>
+
+              <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.15), transparent)", marginBottom: 18 }} />
+
+              <motion.button
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.38, duration: 0.3 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setShowDashWelcome(false)}
+                style={{
+                  width: "100%", height: 52, borderRadius: 50, border: "none",
+                  background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                  color: "#fff", fontSize: 15, fontWeight: 900,
+                  cursor: "pointer", letterSpacing: "0.03em",
+                  boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 24px rgba(34,197,94,0.4)",
+                  position: "relative", overflow: "hidden",
+                }}
+              >
+                <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
+                Got it →
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

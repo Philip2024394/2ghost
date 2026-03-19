@@ -1,11 +1,19 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Camera, MapPin, User, Globe, Zap, Target, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Camera, MapPin, User, Globe, Zap, Target, ShieldCheck, Tag, Smartphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { WORLD_COUNTRIES } from "../data/worldCountries";
+import { CONNECT_PLATFORMS, getPlatform } from "../data/connectPlatforms";
 
 const GHOST_PROFILE_KEY = "ghost_profile";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
+
+const INTEREST_TAGS = [
+  "Coffee ☕", "Travel ✈️", "Fitness 💪", "Music 🎵", "Food 🍜", "Art 🎨",
+  "Gaming 🎮", "Hiking 🏔️", "Yoga 🧘", "Movies 🎬", "Books 📚", "Photography 📷",
+  "Dancing 💃", "Cooking 🍳", "Tech 💻", "Business 📈", "Fashion 👗", "Sports ⚽",
+  "Beaches 🏖️", "Nightlife 🌃", "Meditation 🌿", "Motorcycles 🏍️", "Pets 🐾", "Anime 🎌",
+];
 
 const OUTCOMES = [
   { key: "serious",     icon: "💍", label: "Something Serious",  tag: "Serious" },
@@ -71,6 +79,10 @@ export default function GhostSetupPage() {
   const [outcome, setOutcome] = useState("");
   const [showOutcomePicker, setShowOutcomePicker] = useState(false);
   const [bio, setBio] = useState("");
+  const [interests, setInterests] = useState<string[]>([]);
+  const [connectPlatform, setConnectPlatform] = useState("whatsapp");
+  const [connectHandle, setConnectHandle] = useState("");
+  const [showPlatformSheet, setShowPlatformSheet] = useState(false);
 
   // Photo verification
   const selfieRef = useRef<HTMLInputElement>(null);
@@ -154,6 +166,9 @@ export default function GhostSetupPage() {
           outcome: selectedOutcome ? { key: selectedOutcome.key, icon: selectedOutcome.icon, label: selectedOutcome.label, tag: selectedOutcome.tag } : null,
           idVerified,
           bio: bio.trim() || null,
+          interests: interests.length > 0 ? interests : null,
+          connectPlatform,
+          connectHandle: connectHandle.trim() || null,
         })
       );
       // Store interest separately so GhostModePage can read it for default feed filter
@@ -611,6 +626,91 @@ export default function GhostSetupPage() {
           </p>
         </div>
 
+        {/* Interest Tags */}
+        <div style={{ marginBottom: 28 }}>
+          <label style={labelStyle}>
+            <Tag size={10} style={{ display: "inline", marginRight: 5 }} />
+            Your Interests <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>(pick up to 3 · shown on Reveal)</span>
+          </label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {INTEREST_TAGS.map((tag) => {
+              const selected = interests.includes(tag);
+              const maxed = interests.length >= 3 && !selected;
+              return (
+                <button
+                  key={tag}
+                  onClick={() => {
+                    if (maxed) return;
+                    setInterests(selected ? interests.filter((t) => t !== tag) : [...interests, tag]);
+                  }}
+                  style={{
+                    height: 34, borderRadius: 50, padding: "0 12px",
+                    background: selected ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
+                    border: selected ? "1px solid rgba(74,222,128,0.45)" : "1px solid rgba(255,255,255,0.09)",
+                    color: selected ? "rgba(74,222,128,0.95)" : maxed ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.65)",
+                    fontSize: 12, fontWeight: 700, cursor: maxed ? "default" : "pointer",
+                    transition: "all 0.15s",
+                    boxShadow: selected ? "0 0 10px rgba(74,222,128,0.15)" : "none",
+                  }}
+                >
+                  {tag}
+                </button>
+              );
+            })}
+          </div>
+          {interests.length > 0 && (
+            <p style={{ fontSize: 10, color: "rgba(74,222,128,0.6)", margin: "6px 0 0", fontWeight: 600 }}>
+              {3 - interests.length} more {3 - interests.length === 1 ? "tag" : "tags"} available
+              {interests.length === 3 && " · 3/3 selected"}
+            </p>
+          )}
+        </div>
+
+        {/* Connect Platform */}
+        {(() => {
+          const p = getPlatform(connectPlatform);
+          return (
+            <div style={{ marginBottom: 28 }}>
+              <label style={labelStyle}>
+                <Smartphone size={10} style={{ display: "inline", marginRight: 5 }} />
+                How People Reach You <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>(shared only on mutual match)</span>
+              </label>
+
+              {/* Platform selector */}
+              <button
+                onClick={() => setShowPlatformSheet(true)}
+                style={{
+                  width: "100%", height: 48, borderRadius: 12, marginBottom: 10,
+                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "0 14px",
+                }}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 20 }}>{p.emoji}</span>
+                  <span style={{ color: p.color }}>{p.label}</span>
+                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>{p.reach}</span>
+                </span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>▾ Change</span>
+              </button>
+
+              {/* Handle input */}
+              <input
+                style={inputStyle}
+                placeholder={p.placeholder}
+                value={connectHandle}
+                maxLength={80}
+                onChange={(e) => setConnectHandle(e.target.value)}
+              />
+              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "6px 0 0", lineHeight: 1.5 }}>
+                {p.inputType === "phone" ? "Enter your number with country code. Only shared with your mutual matches." :
+                 `Your ${p.label} ${p.inputType}. Only shared with your mutual matches.`}
+              </p>
+            </div>
+          );
+        })()}
+
         {/* Profile preview */}
         {photo && name && age && city && country && (
           <motion.div
@@ -692,6 +792,74 @@ export default function GhostSetupPage() {
           </p>
         )}
       </div>
+      {/* ── Platform picker bottom sheet ── */}
+      <AnimatePresence>
+        {showPlatformSheet && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowPlatformSheet(false)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 100,
+              background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+            }}
+          >
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "100%", maxWidth: 480,
+                background: "rgba(6,6,12,0.98)", backdropFilter: "blur(40px)",
+                borderRadius: "20px 20px 0 0",
+                border: "1px solid rgba(255,255,255,0.08)", borderBottom: "none",
+                maxHeight: "80dvh", display: "flex", flexDirection: "column",
+              }}
+            >
+              <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)" }} />
+              <div style={{ padding: "16px 18px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0, textAlign: "center" }}>
+                  How People Reach You
+                </p>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "4px 0 0", textAlign: "center" }}>
+                  Covering 8 billion people — pick the app you live on
+                </p>
+              </div>
+              <div style={{ overflowY: "auto", padding: "14px 16px max(20px, env(safe-area-inset-bottom, 20px))" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {CONNECT_PLATFORMS.map((p) => (
+                    <motion.button
+                      key={p.key}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => { setConnectPlatform(p.key); setConnectHandle(""); setShowPlatformSheet(false); }}
+                      style={{
+                        width: "100%", height: 58, borderRadius: 14, padding: "0 16px",
+                        background: connectPlatform === p.key ? "rgba(74,222,128,0.08)" : "rgba(255,255,255,0.03)",
+                        border: connectPlatform === p.key ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.07)",
+                        cursor: "pointer",
+                        display: "flex", alignItems: "center", gap: 14,
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      <span style={{ fontSize: 24, flexShrink: 0 }}>{p.emoji}</span>
+                      <div style={{ flex: 1, textAlign: "left" }}>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: connectPlatform === p.key ? p.color : "#fff", margin: 0 }}>
+                          {p.label}
+                        </p>
+                        <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>{p.reach}</p>
+                      </div>
+                      {connectPlatform === p.key && (
+                        <span style={{ fontSize: 16, color: "rgba(74,222,128,0.9)" }}>✓</span>
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Outcome picker bottom sheet ── */}
       <AnimatePresence>
         {showOutcomePicker && (

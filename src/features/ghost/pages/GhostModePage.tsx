@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Heart, X, MessageCircle, Settings, Navigation, Globe, Clock, Gift, Check, Eye, Moon, Zap, LogOut, SlidersHorizontal, LayoutDashboard } from "lucide-react";
+import { getConnectLink, getPlatform } from "../data/connectPlatforms";
 import { useNavigate } from "react-router-dom";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/Ghostly%20figure%20with%20a%20glowing%20shield.png";
@@ -27,6 +28,9 @@ type GhostProfile = {
   lastActiveHoursAgo?: number; // 24h active window
   isVerified?: boolean;
   bio?: string | null;
+  interests?: string[] | null;
+  connectPlatform?: string;
+  connectHandle?: string | null;
 };
 
 type GhostMatch = {
@@ -541,6 +545,8 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
 }) {
   const firstName = profile.name.split(" ")[0];
   const ghostId = toGhostId(profile.id);
+  // Use the profile's chosen platform, fallback to WhatsApp
+  const platform = getPlatform(profile.connectPlatform ?? "whatsapp");
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -580,14 +586,25 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: "0 0 6px" }}>
             <span>{profile.age} · {profile.city} {profile.countryFlag}</span>
           </p>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 22px", lineHeight: 1.55 }}>
-            <span>You both liked each other! {isSubscribed ? "Connect now on WhatsApp." : "Unlock their WhatsApp to connect for real."}</span>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 8px", lineHeight: 1.55 }}>
+            <span>You both liked each other! {isSubscribed ? `Connect now on ${platform.label}.` : `Unlock their ${platform.label} to connect for real.`}</span>
           </p>
+          {/* Show their interests if available */}
+          {profile.interests && profile.interests.length > 0 && (
+            <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 5, marginBottom: 16 }}>
+              {profile.interests.map((tag) => (
+                <span key={tag} style={{ fontSize: 10, fontWeight: 700, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)", borderRadius: 50, padding: "2px 8px", color: "rgba(74,222,128,0.8)" }}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
           <button
             onClick={onConnectWhatsApp}
             style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 4px 24px rgba(34,197,94,0.4)" }}
           >
-            <MessageCircle size={18} /> {isSubscribed ? "Open WhatsApp" : "Connect on WhatsApp"}
+            <span style={{ fontSize: 18 }}>{platform.emoji}</span>
+            {isSubscribed ? `Open ${platform.label}` : `Connect on ${platform.label}`}
           </button>
           <button onClick={onClose} style={{ display: "block", margin: "12px auto 0", background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer" }}>
             Keep browsing
@@ -980,6 +997,21 @@ function GhostCard({
               </div>
             );
           })()}
+
+          {/* Interest tags */}
+          {profile.interests && profile.interests.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 5 }}>
+              {profile.interests.map((tag) => (
+                <span key={tag} style={{
+                  fontSize: 10, fontWeight: 700,
+                  background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)",
+                  borderRadius: 50, padding: "2px 8px", color: "rgba(74,222,128,0.75)",
+                }}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Activity */}
           <div style={{ width: "100%" }}>
@@ -2240,6 +2272,11 @@ export default function GhostModePage() {
     };
     try { localStorage.setItem("ghost_found_boo", JSON.stringify(data)); } catch {}
     setFoundBoo(data);
+    // Open the correct connect platform
+    const link = getConnectLink(profile.connectPlatform ?? "whatsapp", profile.connectHandle ?? "");
+    if (link) {
+      setTimeout(() => window.open(link, "_blank"), 200);
+    }
   };
 
   // Flag / Report state
@@ -2311,6 +2348,18 @@ export default function GhostModePage() {
   const [quickExit, setQuickExit] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
+
+  // First-entry welcome popup — fires once per session
+  const [showModeWelcome, setShowModeWelcome] = useState(false);
+  useEffect(() => {
+    if (!sessionStorage.getItem("ghost_mode_welcome_seen")) {
+      const t = setTimeout(() => {
+        setShowModeWelcome(true);
+        sessionStorage.setItem("ghost_mode_welcome_seen", "1");
+      }, 800);
+      return () => clearTimeout(t);
+    }
+  }, []);
 
   // Filter button randomly cycling glow
   const FILTER_GLOWS = [
@@ -2561,6 +2610,21 @@ export default function GhostModePage() {
     const newLiked = new Set(likedIds);
     newLiked.add(profile.id);
     setLikedIds(newLiked);
+    // Track daily likes for dashboard
+    try {
+      const key = `ghost_likes_today_${new Date().toISOString().slice(0, 10)}`;
+      localStorage.setItem(key, String((parseInt(localStorage.getItem(key) ?? "0") || 0) + 1));
+      // Bump streak if first like today
+      const streakKey = "ghost_streak";
+      const lastKey = "ghost_streak_last_day";
+      const today = new Date().toISOString().slice(0, 10);
+      const last = localStorage.getItem(lastKey);
+      if (last !== today) {
+        const streak = parseInt(localStorage.getItem(streakKey) ?? "0") || 0;
+        localStorage.setItem(streakKey, String(last === new Date(Date.now() - 86400000).toISOString().slice(0, 10) ? streak + 1 : 1));
+        localStorage.setItem(lastKey, today);
+      }
+    } catch {}
 
     // ⚡ Flash: user is live + profile is Flash-active → instant WhatsApp, no waiting
     if (isFlashActive && isFlashProfile(profile.id)) {
@@ -3372,6 +3436,104 @@ export default function GhostModePage() {
               >
                 Cancel
               </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── First-entry welcome popup ── */}
+      <AnimatePresence>
+        {showModeWelcome && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowModeWelcome(false)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 200,
+              background: "rgba(0,0,0,0.75)",
+              backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+            }}
+          >
+            <motion.div
+              initial={{ y: "100%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "100%", maxWidth: 480,
+                background: "rgba(4,8,4,0.97)",
+                borderRadius: "24px 24px 0 0",
+                border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none",
+                padding: "0 22px max(36px, env(safe-area-inset-bottom, 36px))",
+                boxShadow: "0 -24px 80px rgba(0,0,0,0.7)",
+              }}
+            >
+              <div style={{ height: 3, background: "linear-gradient(90deg, #15803d, #4ade80, #22c55e)", marginLeft: -22, marginRight: -22 }} />
+              <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 18px" }}>
+                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
+              </div>
+
+              <motion.h2
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12, duration: 0.35 }}
+                style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.2, letterSpacing: "-0.02em", margin: "0 0 6px" }}
+              >
+                You're in the Ghost House.
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.35 }}
+                style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, margin: "0 0 18px" }}
+              >
+                Anonymous until you match. Real people. Real chemistry. No followers, no stories — just connection.
+              </motion.p>
+
+              {/* Feature bullets */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.28, duration: 0.4 }}
+                style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}
+              >
+                {[
+                  { icon: "👆", text: "Tap a card to flip it — reveal their bio, activity, and intentions" },
+                  { icon: "❤️", text: "Like freely. When they like back it's a mutual match — no one-sided alerts" },
+                  { icon: "🌙", text: "Tonight Mode — signal you're available right now until midnight" },
+                  { icon: "🛡️", text: "Shield blocks unwanted numbers and entire countries from reaching you" },
+                  { icon: "🚩", text: "Flag any profile — our team investigates quietly within 24 hours" },
+                ].map(({ icon, text }) => (
+                  <div key={text} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1.5 }}>{icon}</span>
+                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.55 }}>{text}</p>
+                  </div>
+                ))}
+              </motion.div>
+
+              <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.15), transparent)", marginBottom: 18 }} />
+
+              <motion.button
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.3 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setShowModeWelcome(false)}
+                style={{
+                  width: "100%", height: 52, borderRadius: 50, border: "none",
+                  background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                  color: "#fff", fontSize: 15, fontWeight: 900,
+                  cursor: "pointer", letterSpacing: "0.03em",
+                  boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 24px rgba(34,197,94,0.4)",
+                  position: "relative", overflow: "hidden",
+                }}
+              >
+                <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
+                Enter Ghost Mode →
+              </motion.button>
             </motion.div>
           </motion.div>
         )}
