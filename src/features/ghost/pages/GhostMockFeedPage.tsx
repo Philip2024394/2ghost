@@ -18,14 +18,59 @@ const MOCK_IMAGES = PROFILE_IMAGES;
 
 const BASE_ONLINE = 127;
 
+// ~30% of profiles deterministically show "Tonight" available
+function isProfileTonight(id: string): boolean {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) { h = Math.imul(47, h) + id.charCodeAt(i) | 0; }
+  return Math.abs(h) % 10 < 3;
+}
+
 // ── Members-only popup ────────────────────────────────────────────────────────
 function MembersPopup({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
 
   const PLANS = [
-    { key: "founding", emoji: "🔥", name: "Founding Ghost", idr: "49,000", usd: "~$3", period: "3 months · locks forever", color: "#f97316", border: "rgba(251,146,60,0.4)", bg: "rgba(249,115,22,0.08)", gradient: "linear-gradient(to bottom, #fb923c, #f97316, #ea580c)", glow: "rgba(249,115,22,0.4)" },
-    { key: "monthly",  emoji: "👻", name: "Ghost Monthly",  idr: "69,000", usd: "~$4.50", period: "per month · cancel anytime", color: "#22c55e", border: "rgba(74,222,128,0.4)",  bg: "rgba(34,197,94,0.07)",  gradient: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)", glow: "rgba(34,197,94,0.4)" },
-    { key: "bundle",   emoji: "⭐", name: "Ghost + VIP",    idr: "99,000", usd: "~$6.50", period: "per month · best value",     color: "#a855f7", border: "rgba(168,85,247,0.4)", bg: "rgba(168,85,247,0.07)", gradient: "linear-gradient(to bottom, #c084fc, #a855f7, #9333ea)", glow: "rgba(168,85,247,0.4)" },
+    {
+      key: "women",
+      emoji: "👩",
+      name: "Women — Free Forever",
+      idr: "0",
+      usd: "Free",
+      period: "Browse · Like · Match · Connect — all free",
+      color: "#4ade80",
+      border: "rgba(74,222,128,0.45)",
+      bg: "rgba(74,222,128,0.09)",
+      gradient: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
+      glow: "rgba(34,197,94,0.4)",
+      badge: "WOMEN FREE",
+    },
+    {
+      key: "founding",
+      emoji: "🔥",
+      name: "Founding Ghost",
+      idr: "49,000",
+      usd: "~$3",
+      period: "3 months · locks forever at this price",
+      color: "#f97316",
+      border: "rgba(251,146,60,0.4)",
+      bg: "rgba(249,115,22,0.08)",
+      gradient: "linear-gradient(to bottom, #fb923c, #f97316, #ea580c)",
+      glow: "rgba(249,115,22,0.4)",
+      badge: "BEST VALUE",
+    },
+    {
+      key: "monthly",
+      emoji: "👻",
+      name: "Ghost Monthly",
+      idr: "29,000",
+      usd: "~$2",
+      period: "per month · cancel anytime",
+      color: "#22c55e",
+      border: "rgba(74,222,128,0.4)",
+      bg: "rgba(34,197,94,0.07)",
+      gradient: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
+      glow: "rgba(34,197,94,0.4)",
+    },
   ];
 
   return (
@@ -100,6 +145,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
             display: "flex", flexDirection: "column", gap: 12,
           }}>
             {[
+              { icon: "👩", title: "Women Always Free", desc: "Women join, browse, like and connect — 100% free" },
               { icon: "🔒", title: "Total Privacy", desc: "Your identity stays hidden until a mutual match" },
               { icon: "👻", title: "Ghost IDs Only", desc: "Every profile is anonymous — Ghost-XXXX until you connect" },
               { icon: "📱", title: "WhatsApp on Match", desc: "No in-app chat. Connect directly when both sides like" },
@@ -142,10 +188,17 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
                   display: "flex", alignItems: "center", justifyContent: "space-between",
                 }}
               >
-                <div>
-                  <p style={{ fontSize: 14, fontWeight: 800, color: "#fff", margin: "0 0 1px" }}>
-                    <span>{p.emoji === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle", marginRight: 4 }} /> : p.emoji} {p.name}</span>
-                  </p>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 1 }}>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: "#fff", margin: 0 }}>
+                      <span>{p.emoji === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle", marginRight: 4 }} /> : p.emoji} {p.name}</span>
+                    </p>
+                    {"badge" in p && p.badge && (
+                      <span style={{ fontSize: 8, fontWeight: 900, color: p.color, background: p.bg, border: `1px solid ${p.border}`, borderRadius: 4, padding: "1px 5px", letterSpacing: "0.06em", flexShrink: 0 }}>
+                        {p.badge}
+                      </span>
+                    )}
+                  </div>
                   <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>
                     <span>{p.period}</span>
                   </p>
@@ -153,7 +206,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ textAlign: "right" }}>
                     <p style={{ fontSize: 16, fontWeight: 900, color: p.color, margin: 0 }}>
-                      <span>{p.idr} IDR</span>
+                      <span>{p.idr === "0" ? "FREE" : `${p.idr} IDR`}</span>
                     </p>
                     <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", margin: 0 }}>
                       <span>{p.usd}</span>
@@ -192,14 +245,16 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
 // ── Locked profile card (mirrors real GhostCard exactly) ─────────────────────
 function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => void }) {
   const ghostId = toGhostId(profile.id);
+  const isTonight = isProfileTonight(profile.id);
   return (
     <motion.div
       whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
       onClick={onTap}
       style={{
         borderRadius: 16, overflow: "hidden", cursor: "pointer", position: "relative",
-        border: "1px solid rgba(255,255,255,0.07)",
+        border: isTonight ? "1.5px solid rgba(74,222,128,0.5)" : "1px solid rgba(255,255,255,0.07)",
         background: "rgba(255,255,255,0.03)",
+        boxShadow: isTonight ? "0 0 12px rgba(74,222,128,0.2)" : undefined,
       }}
     >
       <div style={{ position: "relative", aspectRatio: "3/4" }}>
@@ -210,9 +265,9 @@ function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => voi
         />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 55%)" }} />
 
-        {/* Ghost badge */}
+        {/* Ghost / Tonight badge */}
         <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "3px 7px", fontSize: 8, fontWeight: 700, color: "rgba(74,222,128,0.85)" }}>
-          <img src={GHOST_LOGO} alt="ghost" style={{ width: 30, height: 30, objectFit: "contain" }} />
+          {isTonight ? "🌙 Tonight" : <img src={GHOST_LOGO} alt="ghost" style={{ width: 30, height: 30, objectFit: "contain" }} />}
         </div>
 
         {/* VIP badge */}
@@ -641,6 +696,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
                   { icon: "👀", text: "You can browse — but can't like, message or connect" },
                   { icon: "✅", text: "Join Ghost to unlock everything instantly" },
                   { icon: "👩 Free", text: "Women join completely free — no payment needed" },
+                  { icon: "🌙", text: "Tonight Mode — see who's ready to meet right now" },
                 ].map((item) => (
                   <div key={item.icon} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <span style={{

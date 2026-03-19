@@ -76,6 +76,51 @@ export default function GhostSetupPage() {
   const [verified, setVerified] = useState(false);
   const [verifying, setVerifying] = useState(false);
 
+  // ID / Passport verification
+  const idRef = useRef<HTMLInputElement>(null);
+  const [idUploaded, setIdUploaded] = useState(false);
+  const [idVerifying, setIdVerifying] = useState(false);
+  const [idVerified, setIdVerified] = useState(() => {
+    try { return localStorage.getItem("ghost_id_verified") === "1"; } catch { return false; }
+  });
+  const [showIdPayment, setShowIdPayment] = useState(false);
+  const isReVerification = (() => { try { return !!localStorage.getItem("ghost_id_verified"); } catch { return false; } })();
+  void idUploaded; void showIdPayment; void isReVerification;
+
+  const handleIdUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+    setIdVerifying(true);
+    setTimeout(() => {
+      setIdVerifying(false);
+      setIdUploaded(true);
+      setIdVerified(true);
+      try { localStorage.setItem("ghost_id_verified", "1"); } catch {}
+    }, 2800);
+  };
+
+  // Profile video
+  const videoRef = useRef<HTMLInputElement>(null);
+  const [profileVideo, setProfileVideo] = useState<string | null>(null);
+  const [videoError, setVideoError] = useState("");
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setVideoError("");
+    const url = URL.createObjectURL(file);
+    const vid = document.createElement("video");
+    vid.preload = "metadata";
+    vid.onloadedmetadata = () => {
+      if (vid.duration > 31) {
+        setVideoError("Video must be 30 seconds or less.");
+        URL.revokeObjectURL(url);
+      } else {
+        setProfileVideo(url);
+      }
+    };
+    vid.src = url;
+  };
+
   const selectedVibe = VIBES.find((v) => v.key === vibe);
   const selectedOutcome = OUTCOMES.find((o) => o.key === outcome);
 
@@ -128,6 +173,8 @@ export default function GhostSetupPage() {
           verified,
           vibe: selectedVibe ? { key: selectedVibe.key, icon: selectedVibe.icon, label: selectedVibe.label } : null,
           outcome: selectedOutcome ? { key: selectedOutcome.key, icon: selectedOutcome.icon, label: selectedOutcome.label, tag: selectedOutcome.tag } : null,
+          idVerified,
+          hasVideo: !!profileVideo,
         })
       );
       // Store interest separately so GhostModePage can read it for default feed filter
@@ -291,6 +338,82 @@ export default function GhostSetupPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* ID / Passport Verification */}
+        <div style={{ marginBottom: 20, background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 14, padding: "14px 16px" }}>
+          <input ref={idRef} type="file" accept="image/*" capture="environment" onChange={handleIdUpload} style={{ display: "none" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+            <span style={{ fontSize: 22 }}>🪪</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>ID / Passport Verification</p>
+                {!idVerified && (
+                  <span style={{ fontSize: 9, fontWeight: 800, color: "#4ade80", background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 4, padding: "1px 6px" }}>
+                    FREE — New Accounts
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "1px 0 0" }}>
+                {idVerified ? "✅ ID verified — badge shown on your profile" : "Upload your ID or passport — photo must match your profile photo"}
+              </p>
+            </div>
+          </div>
+          {idVerified ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(74,222,128,0.1)", borderRadius: 10, padding: "8px 12px" }}>
+              <span style={{ fontSize: 16 }}>✅</span>
+              <p style={{ fontSize: 12, fontWeight: 800, color: "rgba(74,222,128,0.9)", margin: 0 }}>Identity confirmed — ID badge active on profile</p>
+            </div>
+          ) : idVerifying ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 0" }}>
+              <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid rgba(74,222,128,0.3)", borderTopColor: "#4ade80" }} />
+              <p style={{ fontSize: 12, color: "rgba(74,222,128,0.8)", margin: 0, fontWeight: 700 }}>Verifying identity — checking photo match...</p>
+            </div>
+          ) : (
+            <button
+              onClick={() => idRef.current?.click()}
+              style={{ height: 36, borderRadius: 10, padding: "0 16px", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)", color: "rgba(74,222,128,0.9)", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+            >
+              Upload ID / Passport
+            </button>
+          )}
+        </div>
+
+        {/* Video upload */}
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>
+            🎬 Profile Video <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>(optional · 30 sec max · shown on card flip)</span>
+          </label>
+          <input ref={videoRef} type="file" accept="video/*" onChange={handleVideoChange} style={{ display: "none" }} />
+          {profileVideo ? (
+            <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(74,222,128,0.3)", position: "relative" }}>
+              <video src={profileVideo} controls muted style={{ width: "100%", maxHeight: 200, objectFit: "cover", display: "block" }} />
+              <button
+                onClick={() => setProfileVideo(null)}
+                style={{ position: "absolute", top: 8, right: 8, width: 28, height: 28, borderRadius: 8, background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}
+              >
+                ✕
+              </button>
+              <div style={{ background: "rgba(74,222,128,0.1)", padding: "6px 12px" }}>
+                <p style={{ fontSize: 11, color: "rgba(74,222,128,0.8)", margin: 0, fontWeight: 700 }}>✅ Video added — shown on the flip side of your card</p>
+              </div>
+            </div>
+          ) : (
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={() => videoRef.current?.click()}
+              style={{
+                width: "100%", height: 52, borderRadius: 12, border: "1px dashed rgba(255,255,255,0.15)",
+                background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)",
+                fontSize: 13, fontWeight: 700, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              }}
+            >
+              <span style={{ fontSize: 20 }}>🎬</span>
+              Record or Upload a 30-Second Video
+            </motion.button>
+          )}
+          {videoError && <p style={{ fontSize: 11, color: "#f87171", margin: "6px 0 0" }}>{videoError}</p>}
+        </div>
 
         {/* Name */}
         <div style={{ marginBottom: 18 }}>

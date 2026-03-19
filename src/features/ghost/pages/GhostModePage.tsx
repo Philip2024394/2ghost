@@ -120,6 +120,14 @@ function fmtRemaining(until: number): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
+// ── Flag / Report helpers ────────────────────────────────────────────────────
+function getFlaggedProfiles(): Record<string, { reason: string; at: number }> {
+  try { return JSON.parse(localStorage.getItem("ghost_flagged_profiles") || "{}"); } catch { return {}; }
+}
+function saveFlaggedProfiles(obj: Record<string, { reason: string; at: number }>) {
+  try { localStorage.setItem("ghost_flagged_profiles", JSON.stringify(obj)); } catch {}
+}
+
 // ── International mock Ghost profiles ───────────────────────────────────────
 const INTL_PROFILES: GhostProfile[] = [
   { id: "intl-1",  name: "Aoife",    age: 26, city: "Dublin",      country: "Ireland",        countryFlag: "🇮🇪", image: "https://i.pravatar.cc/400?img=47", gender: "Female", last_seen_at: null },
@@ -706,10 +714,12 @@ function InboundLikePopup({
 // ── Profile mini card ───────────────────────────────────────────────────────
 function GhostCard({
   profile, liked, onClick, isRevealed, onReveal, canReveal, isTonight, houseTier,
+  isFlagged, onFlagOpen,
 }: {
   profile: GhostProfile; liked: boolean; onClick: () => void;
   isRevealed: boolean; onReveal: () => void; canReveal: boolean;
   isTonight?: boolean; houseTier?: "black" | "house" | null;
+  isFlagged?: boolean; onFlagOpen?: () => void;
 }) {
   const online = isOnline(profile.last_seen_at);
   const ghostId = toGhostId(profile.id);
@@ -851,6 +861,43 @@ function GhostCard({
           >
             <Eye size={11} color={canReveal || isRevealed ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.3)"} />
           </button>
+        )}
+
+        {/* Flag button */}
+        {onFlagOpen && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onFlagOpen(); }}
+            style={{
+              position: "absolute", bottom: 8, right: 8,
+              width: 24, height: 24, borderRadius: 6,
+              background: isFlagged ? "rgba(239,68,68,0.3)" : "rgba(0,0,0,0.45)",
+              border: isFlagged ? "1px solid rgba(239,68,68,0.6)" : "1px solid rgba(255,255,255,0.1)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", backdropFilter: "blur(4px)",
+              fontSize: 11,
+            }}
+            title="Report this profile"
+          >
+            🚩
+          </button>
+        )}
+
+        {/* Under Investigation overlay */}
+        {isFlagged && (
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "rgba(239,68,68,0.18)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            zIndex: 5,
+          }}>
+            <div style={{
+              background: "rgba(0,0,0,0.75)", borderRadius: 8, padding: "6px 10px",
+              border: "1px solid rgba(239,68,68,0.4)", textAlign: "center",
+            }}>
+              <p style={{ fontSize: 10, fontWeight: 800, color: "#f87171", margin: 0 }}>🔍 Under Investigation</p>
+              <p style={{ fontSize: 8, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Cannot interact</p>
+            </div>
+          </div>
         )}
       </motion.div>
 
@@ -2154,6 +2201,20 @@ export default function GhostModePage() {
     setFoundBoo(data);
   };
 
+  // Flag / Report state
+  const [flaggedProfiles, setFlaggedProfiles] = useState<Record<string, { reason: string; at: number }>>(getFlaggedProfiles);
+  const [flagSheet, setFlagSheet] = useState<{ profileId: string; ghostId: string } | null>(null);
+  const [flagReason, setFlagReason] = useState("");
+
+  const handleFlag = () => {
+    if (!flagSheet || !flagReason) return;
+    const next = { ...flaggedProfiles, [flagSheet.profileId]: { reason: flagReason, at: Date.now() } };
+    setFlaggedProfiles(next);
+    saveFlaggedProfiles(next);
+    setFlagSheet(null);
+    setFlagReason("");
+  };
+
   const [selectedProfile, setSelectedProfile] = useState<GhostProfile | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [matchProfile, setMatchProfile] = useState<GhostProfile | null>(null);
@@ -2177,16 +2238,32 @@ export default function GhostModePage() {
     try { const v = Number(localStorage.getItem("ghost_tonight_until") || 0); return v > Date.now() ? v : 0; } catch { return 0; }
   });
   const isTonightMode = tonightUntil > Date.now();
+
+  // Tonight active toggle — user-facing live indicator
+  const [tonightActive, setTonightActive] = useState(() => {
+    try { return localStorage.getItem("ghost_tonight_active") === "1"; } catch { return false; }
+  });
+  const toggleTonightActive = () => {
+    const next = !tonightActive;
+    setTonightActive(next);
+    try { localStorage.setItem("ghost_tonight_active", next ? "1" : "0"); } catch {}
+  };
+
   const toggleTonight = () => {
     if (isTonightMode) {
       try { localStorage.removeItem("ghost_tonight_until"); } catch {}
       setTonightUntil(0);
+      setTonightActive(false);
+      try { localStorage.setItem("ghost_tonight_active", "0"); } catch {}
     } else {
       const until = tonightMidnight();
       try { localStorage.setItem("ghost_tonight_until", String(until)); } catch {}
       setTonightUntil(until);
+      setTonightActive(true);
+      try { localStorage.setItem("ghost_tonight_active", "1"); } catch {}
     }
   };
+  void toggleTonightActive; // kept for external use
 
   // Ghost Boost — 24h
   const [boostedUntil, setBoostedUntil] = useState<number>(() => {
@@ -2587,10 +2664,26 @@ export default function GhostModePage() {
 
           {/* Tonight */}
           <button onClick={toggleTonight}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px", position: "relative" }}
           >
-            <Moon size={22} color={isTonightMode ? "#4ade80" : "rgba(255,255,255,0.55)"} fill={isTonightMode ? "rgba(74,222,128,0.35)" : "none"} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: isTonightMode ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)" }}>Tonight</span>
+            <div style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+              <Moon size={22} color={isTonightMode ? "#4ade80" : "rgba(255,255,255,0.55)"} fill={isTonightMode ? "rgba(74,222,128,0.35)" : "none"} />
+              {isTonightMode && (
+                <motion.span
+                  animate={{ opacity: [1, 0.3, 1], scale: [1, 1.3, 1] }}
+                  transition={{ duration: 1.2, repeat: Infinity }}
+                  style={{
+                    position: "absolute", top: -3, right: -3,
+                    width: 7, height: 7, borderRadius: "50%",
+                    background: "#4ade80", display: "block",
+                    boxShadow: "0 0 6px rgba(74,222,128,0.9)",
+                  }}
+                />
+              )}
+            </div>
+            <span style={{ fontSize: 10, fontWeight: 700, color: isTonightMode ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)" }}>
+              {isTonightMode ? "LIVE" : "Tonight"}
+            </span>
           </button>
 
           {/* Boost */}
@@ -2898,6 +2991,8 @@ export default function GhostModePage() {
               canReveal={isGhost || isFemale}
               isTonight={isProfileTonight(profile.id)}
               houseTier={profileHouseTier(profile.id)}
+              isFlagged={!!flaggedProfiles[profile.id]}
+              onFlagOpen={() => { const gId = toGhostId(profile.id); setFlagSheet({ profileId: profile.id, ghostId: gId }); }}
             />
           ))}
         </div>
@@ -3195,6 +3290,89 @@ export default function GhostModePage() {
               )}
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Flag / Report sheet ── */}
+      <AnimatePresence>
+        {flagSheet && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => { setFlagSheet(null); setFlagReason(""); }}
+            style={{
+              position: "fixed", inset: 0, zIndex: 500,
+              background: "rgba(0,0,0,0.78)", backdropFilter: "blur(12px)",
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+            }}
+          >
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "100%", maxWidth: 480,
+                background: "rgba(8,6,6,0.98)",
+                borderRadius: "20px 20px 0 0",
+                border: "1px solid rgba(239,68,68,0.2)", borderBottom: "none",
+                padding: "0 18px max(28px, env(safe-area-inset-bottom, 28px))",
+              }}
+            >
+              <div style={{ height: 3, background: "linear-gradient(90deg, #ef4444, #f87171)", borderRadius: "4px 4px 0 0" }} />
+              <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 16px" }}>
+                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
+              </div>
+              <h3 style={{ fontSize: 16, fontWeight: 900, margin: "0 0 4px" }}>Report {flagSheet.ghostId}</h3>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: "0 0 16px" }}>
+                Select a reason. This profile will be flagged for admin review and frozen until investigated.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+                {[
+                  { key: "spam", label: "Spam or repeated harassment", icon: "🚫" },
+                  { key: "fake", label: "Fake profile or catfishing", icon: "🎭" },
+                  { key: "inappropriate", label: "Inappropriate content", icon: "⚠️" },
+                  { key: "threatening", label: "Threatening or abusive behaviour", icon: "🛑" },
+                  { key: "underage", label: "Appears to be underage", icon: "🔞" },
+                ].map((r) => (
+                  <button
+                    key={r.key}
+                    onClick={() => setFlagReason(r.key)}
+                    style={{
+                      width: "100%", height: 46, borderRadius: 12, padding: "0 14px",
+                      background: flagReason === r.key ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.04)",
+                      border: flagReason === r.key ? "1px solid rgba(239,68,68,0.5)" : "1px solid rgba(255,255,255,0.08)",
+                      color: flagReason === r.key ? "#f87171" : "rgba(255,255,255,0.7)",
+                      fontSize: 13, fontWeight: 600, cursor: "pointer",
+                      display: "flex", alignItems: "center", gap: 10, textAlign: "left",
+                    }}
+                  >
+                    <span>{r.icon}</span>
+                    <span>{r.label}</span>
+                  </button>
+                ))}
+              </div>
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={handleFlag}
+                disabled={!flagReason}
+                style={{
+                  width: "100%", height: 48, borderRadius: 50, border: "none",
+                  background: flagReason ? "linear-gradient(to bottom, #f87171, #ef4444)" : "rgba(255,255,255,0.07)",
+                  color: flagReason ? "#fff" : "rgba(255,255,255,0.3)",
+                  fontSize: 14, fontWeight: 900, cursor: flagReason ? "pointer" : "default",
+                  boxShadow: flagReason ? "0 4px 16px rgba(239,68,68,0.4)" : "none",
+                  marginBottom: 10,
+                }}
+              >
+                Submit Report
+              </motion.button>
+              <button
+                onClick={() => { setFlagSheet(null); setFlagReason(""); }}
+                style={{ width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 12, cursor: "pointer", padding: "4px 0" }}
+              >
+                Cancel
+              </button>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
