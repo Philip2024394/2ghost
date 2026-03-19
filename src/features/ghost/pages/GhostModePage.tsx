@@ -26,6 +26,7 @@ type GhostProfile = {
   distanceKm?: number;
   lastActiveHoursAgo?: number; // 24h active window
   isVerified?: boolean;
+  bio?: string | null;
 };
 
 type GhostMatch = {
@@ -711,6 +712,33 @@ function InboundLikePopup({
   );
 }
 
+// ── Mock one-line bios (deterministic per profile id) ────────────────────────
+const MOCK_BIOS = [
+  "Here for a real conversation, not a highlight reel.",
+  "Quiet person looking for someone louder than me.",
+  "Cafés, late nights, and zero small talk.",
+  "Still figuring it out — maybe you can help.",
+  "Serious about the right person. Casual about everything else.",
+  "I'll tell you my name when it feels right.",
+  "Looking for someone to get lost with.",
+  "Bad at bios. Good at showing up.",
+  "Not here to swipe. Here to actually meet.",
+  "More interesting in person than on paper.",
+  "Fluent in silence and sarcasm.",
+  "Tired of apps. Giving this one last try.",
+  "Looking for low drama, high chemistry.",
+  "Let's skip the small talk — ask me anything.",
+  "Simple life. Deep conversations.",
+  "I make good coffee. That's a start.",
+  "Looking for my person, not my audience.",
+  "Will match, then probably overthink it.",
+];
+function mockBio(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) { h = Math.imul(61, h) + id.charCodeAt(i) | 0; }
+  return MOCK_BIOS[Math.abs(h) % MOCK_BIOS.length];
+}
+
 // ── Profile mini card ───────────────────────────────────────────────────────
 function GhostCard({
   profile, liked, onClick, isRevealed, onReveal, canReveal, isTonight, houseTier,
@@ -936,6 +964,22 @@ function GhostCard({
               <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(74,222,128,0.95)" }}>{outcomeTag}</span>
             </div>
           </div>
+
+          {/* Bio */}
+          {(() => {
+            const bioText = profile.bio || mockBio(profile.id);
+            return (
+              <div style={{
+                width: "100%", background: "rgba(74,222,128,0.06)",
+                border: "1px solid rgba(74,222,128,0.15)",
+                borderRadius: 10, padding: "8px 10px", textAlign: "center",
+              }}>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>
+                  "{bioText}"
+                </p>
+              </div>
+            );
+          })()}
 
           {/* Activity */}
           <div style={{ width: "100%" }}>

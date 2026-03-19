@@ -70,6 +70,7 @@ export default function GhostSetupPage() {
   const [showVibePicker, setShowVibePicker] = useState(false);
   const [outcome, setOutcome] = useState("");
   const [showOutcomePicker, setShowOutcomePicker] = useState(false);
+  const [bio, setBio] = useState("");
 
   // Photo verification
   const selfieRef = useRef<HTMLInputElement>(null);
@@ -152,6 +153,7 @@ export default function GhostSetupPage() {
           vibe: selectedVibe ? { key: selectedVibe.key, icon: selectedVibe.icon, label: selectedVibe.label } : null,
           outcome: selectedOutcome ? { key: selectedOutcome.key, icon: selectedOutcome.icon, label: selectedOutcome.label, tag: selectedOutcome.tag } : null,
           idVerified,
+          bio: bio.trim() || null,
         })
       );
       // Store interest separately so GhostModePage can read it for default feed filter
@@ -583,6 +585,32 @@ export default function GhostSetupPage() {
           )}
         </div>
 
+        {/* One-line bio */}
+        <div style={{ marginBottom: 28 }}>
+          <label style={labelStyle}>
+            One Line About You <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>(optional)</span>
+          </label>
+          <div style={{ position: "relative" }}>
+            <input
+              style={{ ...inputStyle, paddingRight: 48 }}
+              placeholder="e.g. Loves late nights and bad ideas"
+              value={bio}
+              maxLength={72}
+              onChange={(e) => setBio(e.target.value)}
+            />
+            <span style={{
+              position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
+              fontSize: 10, color: bio.length > 60 ? "rgba(251,191,36,0.7)" : "rgba(255,255,255,0.2)",
+              fontWeight: 700, pointerEvents: "none",
+            }}>
+              {72 - bio.length}
+            </span>
+          </div>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "6px 0 0", lineHeight: 1.5 }}>
+            One sentence. Your words. No prompts — just say something real.
+          </p>
+        </div>
+
         {/* Profile preview */}
         {photo && name && age && city && country && (
           <motion.div
@@ -626,6 +654,11 @@ export default function GhostSetupPage() {
                 </div>
               </div>
             </div>
+            {bio.trim() && (
+              <div style={{ marginTop: 12, background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 8, padding: "8px 10px" }}>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", margin: 0, fontStyle: "italic" }}>"{bio.trim()}"</p>
+              </div>
+            )}
           </motion.div>
         )}
 
