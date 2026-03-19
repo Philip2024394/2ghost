@@ -11,6 +11,7 @@ import { isOnline } from "@/shared/hooks/useOnlineStatus";
 import { useGhostMode } from "../hooks/useGhostMode";
 import { WORLD_COUNTRIES } from "../data/worldCountries";
 import GhostInstallBanner from "../components/GhostInstallBanner";
+import { detectIpCountry, getCachedIpCountry, getCountryProximity, type IpCountryResult } from "@/shared/hooks/useIpCountry";
 
 type GhostProfile = {
   id: string;
@@ -2487,6 +2488,14 @@ export default function GhostModePage() {
   const navigate = useNavigate();
   const { isGhost, plan, activate, deactivate } = useGhostMode();
 
+  // IP country detection — runs once, cached 24h
+  const [ipCountry, setIpCountry] = useState<IpCountryResult | null>(() => getCachedIpCountry());
+  useEffect(() => {
+    if (!ipCountry) {
+      detectIpCountry().then((result) => { if (result) setIpCountry(result); });
+    }
+  }, []);
+
   const hasGhostProfile = (() => {
     try { return !!localStorage.getItem("ghost_profile"); } catch { return false; }
   })();
@@ -2797,7 +2806,7 @@ export default function GhostModePage() {
     return () => clearTimeout(t);
   }, [isGhost]);
 
-  // Base profiles — all 6 SEA countries + international
+  // Base profiles — all 6 SEA countries + international, sorted by IP proximity
   const allProfiles = useMemo<GhostProfile[]>(() => {
     const raw = generateIndonesianProfiles();
     const sea: GhostProfile[] = raw.map((p) => {
@@ -2826,8 +2835,19 @@ export default function GhostModePage() {
     });
     // Extra international profiles (Europe, Japan, etc.)
     const intl = INTL_PROFILES.map((p) => ({ ...p, lastActiveHoursAgo: activeHoursAgo(p.id), isVerified: profileIsVerified(p.id) }));
-    return [...sea, ...intl];
-  }, [userLat, userLon]);
+    const merged = [...sea, ...intl];
+
+    // Sort by IP country proximity — same country first, then neighbors
+    if (ipCountry?.countryCode) {
+      const userCC = ipCountry.countryCode;
+      merged.sort((a, b) => {
+        const aCC = a.countryFlag ? Object.entries({ ID:"🇮🇩",PH:"🇵🇭",TH:"🇹🇭",SG:"🇸🇬",MY:"🇲🇾",VN:"🇻🇳" }).find(([,f])=>f===a.countryFlag)?.[0] ?? "ZZ" : "ZZ";
+        const bCC = b.countryFlag ? Object.entries({ ID:"🇮🇩",PH:"🇵🇭",TH:"🇹🇭",SG:"🇸🇬",MY:"🇲🇾",VN:"🇻🇳" }).find(([,f])=>f===b.countryFlag)?.[0] ?? "ZZ" : "ZZ";
+        return getCountryProximity(userCC, aCC) - getCountryProximity(userCC, bCC);
+      });
+    }
+    return merged;
+  }, [userLat, userLon, ipCountry]);
 
   // Filtered + sorted profiles (excludes passed/refused)
   const profiles = useMemo(() => {
@@ -3190,12 +3210,17 @@ export default function GhostModePage() {
       {/* ── Ghost Pulse row — hidden when Flash is active ── */}
       {!isFlashActive && <GhostPulseRow profiles={profiles} onSelect={(p) => setSelectedProfile(p)} />}
 
-      {/* ── Active today banner ── */}
+      {/* ── Active today banner + IP location indicator ── */}
       <div style={{ margin: "10px 14px 0", background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.1)", borderRadius: 10, padding: "6px 12px", display: "flex", alignItems: "center", gap: 6 }}>
         <Clock size={11} color="rgba(74,222,128,0.7)" />
-        <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600 }}>
+        <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600, flex: 1 }}>
           <span>Profiles refresh daily — <strong>{profiles.length}</strong> active today</span>
         </p>
+        {ipCountry && (
+          <span style={{ fontSize: 10, color: "rgba(74,222,128,0.5)", fontWeight: 600, flexShrink: 0 }}>
+            📍 {ipCountry.countryName}
+          </span>
+        )}
       </div>
 
       {/* ── Active matches row (48h expiry) ── */}

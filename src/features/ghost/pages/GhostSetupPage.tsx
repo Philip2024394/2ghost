@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Camera, MapPin, User, Globe, Zap, Target, ShieldCheck, Tag, Smartphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { WORLD_COUNTRIES } from "../data/worldCountries";
 import { PHONE_APPS, USERNAME_PLATFORMS } from "../data/connectPlatforms";
+import { detectIpCountry, getCachedIpCountry, COUNTRY_PLATFORM_DEFAULTS, COUNTRY_PHONE_PREFIX } from "@/shared/hooks/useIpCountry";
 
 const GHOST_PROFILE_KEY = "ghost_profile";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
@@ -84,6 +85,38 @@ export default function GhostSetupPage() {
   const [connectAlt, setConnectAlt] = useState("");       // username platform key
   const [connectAltHandle, setConnectAltHandle] = useState("");
   const [showAltSheet, setShowAltSheet] = useState(false);
+  const [detectedCountry, setDetectedCountry] = useState(() => getCachedIpCountry());
+
+  // Detect country from IP and pre-fill phone prefix + suggest platform
+  useEffect(() => {
+    const cached = getCachedIpCountry();
+    if (cached) {
+      setDetectedCountry(cached);
+      if (!connectPhone) {
+        const prefix = COUNTRY_PHONE_PREFIX[cached.countryCode];
+        if (prefix) setConnectPhone(prefix + " ");
+      }
+      // Suggest username platform for countries where it's dominant
+      const suggested = COUNTRY_PLATFORM_DEFAULTS[cached.countryCode];
+      if (!connectAlt && suggested && !["whatsapp","imessage","signal","viber","zalo","sms"].includes(suggested)) {
+        setConnectAlt(suggested);
+      }
+    } else {
+      detectIpCountry().then((result) => {
+        if (!result) return;
+        setDetectedCountry(result);
+        if (!connectPhone) {
+          const prefix = COUNTRY_PHONE_PREFIX[result.countryCode];
+          if (prefix) setConnectPhone(prefix + " ");
+        }
+        const suggested = COUNTRY_PLATFORM_DEFAULTS[result.countryCode];
+        if (!connectAlt && suggested && !["whatsapp","imessage","signal","viber","zalo","sms"].includes(suggested)) {
+          setConnectAlt(suggested);
+        }
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Photo verification
   const selfieRef = useRef<HTMLInputElement>(null);
@@ -706,6 +739,11 @@ export default function GhostSetupPage() {
           />
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "6px 0 0", lineHeight: 1.5 }}>
             Include your country code. Only your mutual matches see this.
+            {detectedCountry && (
+              <span style={{ color: "rgba(74,222,128,0.5)", marginLeft: 6 }}>
+                · Detected: {detectedCountry.countryName} {detectedCountry.callingCode}
+              </span>
+            )}
           </p>
 
           {/* Optional: username-based second app */}
