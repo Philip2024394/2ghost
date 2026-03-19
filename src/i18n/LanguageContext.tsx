@@ -1,78 +1,79 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { translations, Locale, TranslationKey } from "./translations";
+import { detectIpCountry, getCachedIpCountry } from "@/shared/hooks/useIpCountry";
 
 interface LanguageContextType {
   locale: Locale;
-  setLocale: (locale: Locale) => void;
   t: (key: TranslationKey, replacements?: Record<string, string>) => string;
-  toggleLocale: () => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
-const STORAGE_KEY = "2dateme-locale";
+const STORAGE_KEY = "ghost_locale";
 
-async function detectCountryByIP(): Promise<string | null> {
+// Country code → app locale (silent, no picker)
+const COUNTRY_TO_LOCALE: Record<string, Locale> = {
+  ID: "id",
+  TH: "th",
+  VN: "vi",
+  MY: "ms",
+  FR: "fr",
+  BE: "fr",
+  // Everything else (PH, SG, GB, AU, US, IE, etc.) → "en"
+};
+
+function resolveLocale(countryCode: string): Locale {
+  return COUNTRY_TO_LOCALE[countryCode.toUpperCase()] ?? "en";
+}
+
+function getSavedLocale(): Locale | null {
   try {
-    const res = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3000) });
-    const data = await res.json();
-    return data.country_code || null;
-  } catch {
-    return null;
-  }
+    const v = localStorage.getItem(STORAGE_KEY);
+    if (v === "en" || v === "id" || v === "th" || v === "vi" || v === "ms" || v === "fr") return v as Locale;
+  } catch {}
+  return null;
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === "id" || saved === "en") return saved;
-    return "id"; // default: Indonesian (second: English)
-  });
-  const [initialized, setInitialized] = useState(false);
+  const [locale, setLocale] = useState<Locale>(() => getSavedLocale() ?? "en");
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setInitialized(true);
+    // If already saved, honour it
+    if (getSavedLocale()) return;
+
+    // Try cached IP detection first (no network hit)
+    const cached = getCachedIpCountry();
+    if (cached?.countryCode) {
+      const resolved = resolveLocale(cached.countryCode);
+      setLocale(resolved);
+      try { localStorage.setItem(STORAGE_KEY, resolved); } catch {}
       return;
     }
-    // Auto-detect by IP; if not Indonesia, still default to Indonesian (id)
-    detectCountryByIP().then((countryCode) => {
-      if (countryCode === "ID") {
-        setLocaleState("id");
-        localStorage.setItem(STORAGE_KEY, "id");
-      } else {
-        // Default to Indonesian; user can switch to EN via header
-        setLocaleState("id");
-        localStorage.setItem(STORAGE_KEY, "id");
+
+    // Fall back to fresh IP detection
+    detectIpCountry().then((result) => {
+      if (result?.countryCode) {
+        const resolved = resolveLocale(result.countryCode);
+        setLocale(resolved);
+        try { localStorage.setItem(STORAGE_KEY, resolved); } catch {}
       }
-      setInitialized(true);
     });
   }, []);
 
-  const setLocale = useCallback((newLocale: Locale) => {
-    setLocaleState(newLocale);
-    localStorage.setItem(STORAGE_KEY, newLocale);
-  }, []);
-
-  const toggleLocale = useCallback(() => {
-    setLocale(locale === "en" ? "id" : "en");
-  }, [locale, setLocale]);
-
   const t = useCallback((key: TranslationKey, replacements?: Record<string, string>): string => {
-    const entry = translations[key];
+    const entry = translations[key] as Record<string, string> | undefined;
     if (!entry) return key as string;
-    let text: string = entry[locale] || entry.id || entry.en;
+    let text = entry[locale] ?? entry["en"] ?? key as string;
     if (replacements) {
-      Object.entries(replacements).forEach(([k, v]) => {
+      for (const [k, v] of Object.entries(replacements)) {
         text = text.replace(`{${k}}`, v);
-      });
+      }
     }
     return text;
   }, [locale]);
 
   return (
-    <LanguageContext.Provider value={{ locale, setLocale, t, toggleLocale }}>
+    <LanguageContext.Provider value={{ locale, t }}>
       {children}
     </LanguageContext.Provider>
   );

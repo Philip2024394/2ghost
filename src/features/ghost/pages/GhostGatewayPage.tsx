@@ -2,6 +2,7 @@ import { useState, useEffect, Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import GhostMockFeedPage from "./GhostMockFeedPage";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
@@ -29,6 +30,7 @@ const HOW_IT_WORKS = [
 const PREVIEW_AVATARS = Array.from({ length: 8 }, (_, i) => `https://i.pravatar.cc/80?img=${i + 1}`);
 
 function WelcomeModal({ onAccept }: { onAccept: () => void }) {
+  const { t } = useLanguage();
   return (
     <div
       style={{
@@ -63,11 +65,8 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
 
           {/* Ghost hero */}
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 900, color: "#fff", margin: "0 0 10px", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
-              Welcome to{" "}
-              <span style={{ background: "linear-gradient(135deg, #4ade80, #22c55e)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                My House
-              </span>
+            <h1 style={{ fontSize: 24, fontWeight: 900, margin: "0 0 10px", letterSpacing: "-0.02em", lineHeight: 1.2, background: "linear-gradient(135deg, #fff 40%, #4ade80)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              {t("gateway.welcome")}
             </h1>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7, maxWidth: 320, marginInline: "auto" }}>
               Before you settle in, we have some{" "}
@@ -103,7 +102,7 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
           {/* House Rules */}
           <div style={{ marginBottom: 26 }}>
             <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(74,222,128,0.6)", textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px" }}>
-              🏠 The House Rules
+              🏠 {t("gateway.houseRules")}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {RULES.map((rule) => (
@@ -126,7 +125,7 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
           {/* How it works */}
           <div style={{ marginBottom: 28 }}>
             <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(74,222,128,0.6)", textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px" }}>
-              ⚙️ How the House Works
+              ⚙️ {t("gateway.howItWorks")}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {HOW_IT_WORKS.map((item) => (
@@ -158,7 +157,7 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
             }}
           >
             <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
-            <img src={GHOST_LOGO} alt="" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> I accept 2Ghost Rules
+            <img src={GHOST_LOGO} alt="" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> {t("gateway.accept")}
           </motion.button>
 
           <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "12px 0 0", lineHeight: 1.6 }}>
@@ -177,6 +176,7 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
  * On accept: 3-second pause → mock slides left → live page revealed.
  */
 export default function GhostGatewayPage() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [unlocking, setUnlocking] = useState(false);
   const [done, setDone] = useState(false);
@@ -278,7 +278,7 @@ export default function GhostGatewayPage() {
                 <img src={GHOST_LOGO} alt="ghost" style={{ width: 156, height: 156, objectFit: "contain" }} />
               </motion.div>
               <p style={{ fontSize: 14, fontWeight: 800, color: "rgba(74,222,128,0.9)", letterSpacing: "0.08em", margin: 0 }}>
-                Entering Ghost Mode...
+                {t("gateway.entering")}
               </p>
             </motion.div>
           )}

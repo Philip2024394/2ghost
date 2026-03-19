@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Lock, Settings, ArrowRight, X, SlidersHorizontal } from "lucide-react";
 import { MOCK_PROFILES, PROFILE_IMAGES, isOnlineNow, type MockProfile } from "../../../data/mockProfiles";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/Ghostly%20figure%20with%20a%20glowing%20shield.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
@@ -244,6 +245,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
 
 // ── Locked profile card (mirrors real GhostCard exactly) ─────────────────────
 function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => void }) {
+  const { t } = useLanguage();
   const ghostId = toGhostId(profile.id);
   const isTonight = isProfileTonight(profile.id);
   return (
@@ -267,7 +269,7 @@ function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => voi
 
         {/* Ghost / Tonight badge */}
         <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "3px 7px", fontSize: 8, fontWeight: 700, color: "rgba(74,222,128,0.85)" }}>
-          {isTonight ? "🌙 Tonight" : <img src={GHOST_LOGO} alt="ghost" style={{ width: 30, height: 30, objectFit: "contain" }} />}
+          {isTonight ? `🌙 ${t("card.tonight")}` : <img src={GHOST_LOGO} alt="ghost" style={{ width: 30, height: 30, objectFit: "contain" }} />}
         </div>
 
         {/* VIP badge */}
@@ -292,7 +294,7 @@ function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => voi
           border: "1px solid rgba(255,255,255,0.12)",
         }}>
           <Lock size={8} style={{ color: "#fff" }} />
-          <span style={{ fontSize: 7, fontWeight: 800, color: "#fff", letterSpacing: "0.06em" }}>MEMBERS</span>
+          <span style={{ fontSize: 7, fontWeight: 800, color: "#fff", letterSpacing: "0.06em" }}>{t("card.members")}</span>
         </div>
 
         {/* Online dot */}
@@ -369,6 +371,7 @@ function LockedFilterSheet({ onClose, onTap }: { onClose: () => void; onTap: () 
 
 // ── Main mock feed page ───────────────────────────────────────────────────────
 export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: () => void }) {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
   const [onlineCount, setOnlineCount] = useState(BASE_ONLINE);
@@ -438,7 +441,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
             <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Ghost Mode</h1>
           </div>
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>
-            <span>Members only · Join to explore</span>
+            <span>{t("nav.membersOnly")}</span>
           </p>
         </div>
 
@@ -544,7 +547,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
             ))}
           </div>
           <p style={{ fontSize: 12, color: "rgba(74,222,128,0.9)", margin: 0, fontWeight: 700 }}>
-            <span>{onlineCount} Ghost members active near you</span>
+            <span>{onlineCount} {t("feed.activeNear")}</span>
           </p>
         </div>
       </motion.div>
@@ -552,9 +555,9 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
       {/* ── Stats row (mirrors real feed) ── */}
       <div style={{ display: "flex", gap: 8, padding: "10px 14px 0" }}>
         {[
-          { label: "Profiles", value: MOCK_PROFILES.length },
-          { label: "Online now", value: onlineProfiles },
-          { label: "Countries", value: 12 },
+          { label: t("feed.profiles"), value: MOCK_PROFILES.length },
+          { label: t("feed.onlineNow"), value: onlineProfiles },
+          { label: t("feed.countries"), value: 12 },
         ].map(({ label, value }) => (
           <div
             key={label}
@@ -726,7 +729,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
                   background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)",
                   borderRadius: "50px 50px 60% 60%", pointerEvents: "none",
                 }} />
-                Join Ghost — Unlock Now
+                {t("btn.joinGhost")} — Unlock Now
               </motion.button>
 
               <button
@@ -737,7 +740,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
                   fontSize: 13, fontWeight: 600, cursor: "pointer",
                 }}
               >
-                Just browsing for now
+                {t("btn.justBrowsing")}
               </button>
             </motion.div>
           </motion.div>
