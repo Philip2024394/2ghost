@@ -10,6 +10,11 @@ import { useLanguage } from "@/i18n/LanguageContext";
 const GHOST_PROFILE_KEY = "ghost_profile";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
+const RELIGIONS = [
+  "Muslim 🌙", "Christian ✝️", "Catholic ✝️", "Buddhist ☸️",
+  "Hindu 🕉️", "Jewish ✡️", "Spiritual 🌿", "Not religious 🙂",
+];
+
 const INTEREST_TAGS = [
   "Coffee ☕", "Travel ✈️", "Fitness 💪", "Music 🎵", "Food 🍜", "Art 🎨",
   "Gaming 🎮", "Hiking 🏔️", "Yoga 🧘", "Movies 🎬", "Books 📚", "Photography 📷",
@@ -83,6 +88,7 @@ export default function GhostSetupPage() {
   const [showOutcomePicker, setShowOutcomePicker] = useState(false);
   const [bio, setBio] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
+  const [religion, setReligion] = useState<string>("");
   const [connectPhone, setConnectPhone] = useState("");
   const [connectAlt, setConnectAlt] = useState("");       // username platform key
   const [connectAltHandle, setConnectAltHandle] = useState("");
@@ -203,6 +209,7 @@ export default function GhostSetupPage() {
           idVerified,
           bio: bio.trim() || null,
           interests: interests.length > 0 ? interests : null,
+          religion: religion || null,
           connectPhone: connectPhone.trim() || null,
           connectAlt: connectAlt || null,
           connectAltHandle: connectAltHandle.trim() || null,
@@ -701,6 +708,35 @@ export default function GhostSetupPage() {
               {interests.length === 3 && " · 3/3 selected"}
             </p>
           )}
+        </div>
+
+        {/* Religion (optional) */}
+        <div style={{ marginBottom: 28 }}>
+          <label style={labelStyle}>
+            <span style={{ marginRight: 5 }}>🕊️</span>
+            Religion <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>(optional · shown on Reveal)</span>
+          </label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {RELIGIONS.map((r) => {
+              const selected = religion === r;
+              return (
+                <button
+                  key={r}
+                  onClick={() => setReligion(selected ? "" : r)}
+                  style={{
+                    height: 34, borderRadius: 50, padding: "0 14px",
+                    background: selected ? "rgba(168,85,247,0.12)" : "rgba(255,255,255,0.04)",
+                    border: selected ? "1px solid rgba(168,85,247,0.45)" : "1px solid rgba(255,255,255,0.09)",
+                    color: selected ? "rgba(168,85,247,0.95)" : "rgba(255,255,255,0.65)",
+                    fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 0.15s",
+                    boxShadow: selected ? "0 0 10px rgba(168,85,247,0.15)" : "none",
+                  }}
+                >
+                  {r}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* How people reach you */}

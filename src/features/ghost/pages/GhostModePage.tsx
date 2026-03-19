@@ -31,6 +31,7 @@ type GhostProfile = {
   isVerified?: boolean;
   bio?: string | null;
   interests?: string[] | null;
+  religion?: string | null;
   connectPhone?: string | null;
   connectAlt?: string | null;
   connectAltHandle?: string | null;
@@ -1145,6 +1146,19 @@ function GhostCard({
                   {tag}
                 </span>
               ))}
+            </div>
+          )}
+
+          {/* Religion */}
+          {profile.religion && (
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <span style={{
+                fontSize: 10, fontWeight: 700,
+                background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.22)",
+                borderRadius: 50, padding: "3px 10px", color: "rgba(168,85,247,0.85)",
+              }}>
+                {profile.religion}
+              </span>
             </div>
           )}
 
