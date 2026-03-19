@@ -148,7 +148,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
               { icon: "👩", title: "Women — Free to Join", desc: "Browse, like, match and connect free. Ghost Room (media sharing) is 19k IDR/month for everyone." },
               { icon: "🔒", title: "Total Privacy", desc: "Your identity stays hidden until a mutual match" },
               { icon: "👻", title: "Ghost IDs Only", desc: "Every profile is anonymous — Ghost-XXXX until you connect" },
-              { icon: "📱", title: "WhatsApp on Match", desc: "No in-app chat. Connect directly when both sides like" },
+              { icon: "📱", title: "Connect on Match", desc: "No in-app chat. Unlock their contact — WhatsApp, Telegram, WeChat, iMessage, any app they use" },
               { icon: "🌍", title: "Members Worldwide", desc: "Indonesia, UK, Japan, Ireland, Australia and more" },
             ].map((f) => (
               <div key={f.title} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>

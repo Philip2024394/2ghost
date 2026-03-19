@@ -19,7 +19,7 @@ const RULES = [
 const HOW_IT_WORKS = [
   { icon: "❤️", title: "Like for Free", desc: "Browse every profile and like as many as you want — completely free, no subscription needed." },
   { icon: "✨", title: "Ghost Match", desc: "When two ghosts like each other it becomes a mutual match. You'll get notified instantly." },
-  { icon: "📱", title: "WhatsApp on Match", desc: "After a mutual match, pay once to unlock their real WhatsApp number. Real connection only." },
+  { icon: "📱", title: "Connect on Match", desc: "After a mutual match, pay once to unlock their real contact — WhatsApp, Telegram, WeChat, iMessage, any app they use. Real connection only." },
   { icon: "🚪", title: "Ghost Room", desc: "Your private vault. All your matches live here with a 48-hour countdown. Don't let them fade." },
   { icon: "🌍", title: "Global House", desc: "Members from Indonesia, UK, Ireland, Japan, Australia and growing — your next match could be anywhere." },
   { icon: "👁️", title: "You're Invisible", desc: "Others only see your Ghost ID, photo, age, and city — nothing else — until you both connect." },

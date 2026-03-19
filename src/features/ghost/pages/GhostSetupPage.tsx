@@ -239,7 +239,7 @@ export default function GhostSetupPage() {
         }}>
           <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>🔒</span>
           <p style={{ fontSize: 11, color: "rgba(74,222,128,0.8)", margin: 0, lineHeight: 1.55 }}>
-            Your Ghost profile shows <strong>photo, name, age, city &amp; country only</strong>. Like a ghost and start chatting on WhatsApp — private. No trail or records stored.
+            Your Ghost profile shows <strong>photo, name, age, city &amp; country only</strong>. On a mutual match, your contact is shared privately — no trail, no records stored.
           </p>
         </div>
 

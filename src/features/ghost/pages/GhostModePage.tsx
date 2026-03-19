@@ -782,7 +782,7 @@ function InboundLikePopup({
               <span>A Ghost Has Appeared — and liked you</span>
             </h3>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.6 }}>
-              <span>Like back to reveal their real name and connect on WhatsApp — or pass.</span>
+              <span>Like back to reveal their real name and connect — or pass.</span>
             </p>
           </div>
 
@@ -1218,7 +1218,7 @@ function MatchPaywallModal({
           </div>
 
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: "0 0 16px", lineHeight: 1.5 }}>
-            <span>You both liked each other. Liking is free — pay once to unlock their WhatsApp and connect for real.</span>
+            <span>You both liked each other. Liking is free — pay once to unlock their contact and connect for real.</span>
           </p>
 
           {/* Plans */}
@@ -1261,7 +1261,7 @@ function MatchPaywallModal({
           </div>
 
           <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.18)", marginTop: 12, marginBottom: 0 }}>
-            <span>🔒 Private · No public profile · WhatsApp on match only</span>
+            <span>🔒 Private · No public profile · contact shared on match only</span>
           </p>
         </div>
       </motion.div>
@@ -1282,7 +1282,7 @@ function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
   const HOW_IT_WORKS = [
     { icon: "❤️", title: "Like for Free", desc: "Browse every profile and like as many as you want — completely free, no subscription needed." },
     { icon: "✨", title: "Ghost Match", desc: "When two ghosts like each other it becomes a mutual match. You'll get notified instantly." },
-    { icon: "📱", title: "WhatsApp on Match", desc: "After a mutual match, pay once to unlock their real WhatsApp number. No in-app chat — real connection only." },
+    { icon: "📱", title: "Connect on Match", desc: "After a mutual match, pay once to unlock their contact — WhatsApp, Telegram, WeChat, iMessage, any app they use. No in-app chat — real connection only." },
     { icon: "🚪", title: "Ghost Room", desc: "Your private vault. All your matches live here with a 48-hour countdown. Don't let them fade." },
     { icon: "🌍", title: "Global House", desc: "Members from Indonesia, UK, Ireland, Japan, Australia and growing — your next match could be anywhere." },
     { icon: "👁️", title: "You're Invisible", desc: "Others only see your Ghost ID, photo, age, and city — nothing else — until you both connect." },

@@ -124,7 +124,7 @@ export default function GhostLandingPage() {
             color: "rgba(255,255,255,0.5)",
             lineHeight: 1.6,
           }}>
-            Anonymous connections. Real chemistry. WhatsApp when you match.
+            Anonymous connections. Real chemistry. Connect your way when you match.
           </p>
 
           {/* Avatar row */}
@@ -258,7 +258,7 @@ export default function GhostLandingPage() {
                   lineHeight: 1.75, margin: "0 0 6px",
                 }}
               >
-                2Ghost was built for people tired of performative dating. No followers. No stories. No dopamine loops. Just two people, a mutual choice, and a private WhatsApp chat.
+                2Ghost was built for people tired of performative dating. No followers. No stories. No dopamine loops. Just two people, a mutual choice, and a private conversation on the app you already use.
               </motion.p>
 
               <motion.p

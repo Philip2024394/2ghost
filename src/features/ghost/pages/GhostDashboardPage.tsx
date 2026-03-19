@@ -92,7 +92,7 @@ const FEATURES = [
   {
     icon: "🔒",
     title: "Total Privacy",
-    desc: "No social sign-in required. No real name stored. No trail, no records. Your WhatsApp is only shared once — directly, privately, between two people who chose each other. 2Ghost stores nothing about your conversations.",
+    desc: "No social sign-in required. No real name stored. No trail, no records. Your contact is only shared once — directly, privately, between two people who chose each other. 2Ghost stores nothing about your conversations.",
     badge: "ALWAYS ON",
   },
 ];
@@ -479,7 +479,7 @@ export default function GhostDashboardPage() {
                 "Tomorrow's dating app isn't louder — it's quieter."
               </p>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: "0 0 16px", lineHeight: 1.65 }}>
-                2Ghost was built for people tired of performative dating. No followers. No stories. No dopamine loops. Just two people, a mutual choice, and a private WhatsApp chat. The future of dating is anonymous until it's real.
+                2Ghost was built for people tired of performative dating. No followers. No stories. No dopamine loops. Just two people, a mutual choice, and a private conversation on the app you already use. The future of dating is anonymous until it's real.
               </p>
               <p style={{ fontSize: 11, color: "rgba(74,222,128,0.6)", margin: 0, fontWeight: 700 }}>— 2Ghost.com</p>
             </div>
@@ -594,7 +594,7 @@ export default function GhostDashboardPage() {
               >
                 {[
                   { icon: "👻", text: "Ghost Identity — your anonymous card, your Ghost ID, your presence" },
-                  { icon: "❤️", text: "Like & Match — browse free, pay only when you genuinely connect on WhatsApp" },
+                  { icon: "❤️", text: "Like & Match — browse free, pay only when you genuinely connect" },
                   { icon: "🚪", text: "Found Boo — when you connect, your profile auto-pauses so the relationship has space" },
                   { icon: "🌙", text: "Tonight Mode — tell the house you're available right now, resets at midnight" },
                   { icon: "🛡️", text: "Shield & Block — protect your peace, block numbers and entire countries" },
