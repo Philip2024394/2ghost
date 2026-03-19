@@ -1,0 +1,59 @@
+{
+  "name": "2Ghost — Discreet Dating",
+  "short_name": "2Ghost",
+  "description": "The world's most discreet dating app. Anonymous profiles. Instant connections. Ghost Room private vault.",
+  "start_url": "/ghost/mock",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#050508",
+  "theme_color": "#050508",
+  "categories": ["social", "lifestyle", "entertainment"],
+  "lang": "en",
+  "dir": "ltr",
+  "id": "2ghost-app",
+  "icons": [
+    { "src": "/icons/icon-72.png",  "sizes": "72x72",   "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-96.png",  "sizes": "96x96",   "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-128.png", "sizes": "128x128", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-152.png", "sizes": "152x152", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "2Ghost feed — swipe discreet profiles"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "2Ghost desktop — full experience"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ghost Feed",
+      "short_name": "Feed",
+      "description": "Go straight to the Ghost feed",
+      "url": "/ghost",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Ghost Room",
+      "short_name": "My Room",
+      "description": "Open your private Ghost Room",
+      "url": "/ghost/room",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false
+}
