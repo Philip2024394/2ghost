@@ -140,18 +140,26 @@ const INTL_GHOST_KEY = "ghost_intl_sub_until";
 const INTL_GHOST_COUNTRIES_KEY = "ghost_intl_countries";
 
 const SEA_COUNTRY_LIST = [
-  { code: "ID", name: "Indonesia",   flag: "🇮🇩" },
-  { code: "PH", name: "Philippines", flag: "🇵🇭" },
-  { code: "TH", name: "Thailand",    flag: "🇹🇭" },
-  { code: "SG", name: "Singapore",   flag: "🇸🇬" },
-  { code: "MY", name: "Malaysia",    flag: "🇲🇾" },
-  { code: "VN", name: "Vietnam",     flag: "🇻🇳" },
+  { code: "ID", name: "Indonesia",      flag: "🇮🇩" },
+  { code: "PH", name: "Philippines",   flag: "🇵🇭" },
+  { code: "TH", name: "Thailand",      flag: "🇹🇭" },
+  { code: "SG", name: "Singapore",     flag: "🇸🇬" },
+  { code: "MY", name: "Malaysia",      flag: "🇲🇾" },
+  { code: "VN", name: "Vietnam",       flag: "🇻🇳" },
+  { code: "GB", name: "United Kingdom",flag: "🇬🇧" },
+  { code: "AU", name: "Australia",     flag: "🇦🇺" },
+  { code: "US", name: "USA",           flag: "🇺🇸" },
+  { code: "IE", name: "Ireland",       flag: "🇮🇪" },
+  { code: "FR", name: "France",        flag: "🇫🇷" },
+  { code: "BE", name: "Belgium",       flag: "🇧🇪" },
 ];
 
 // flag emoji → country code lookup
 const FLAG_TO_CODE: Record<string, string> = {
   "🇮🇩": "ID", "🇵🇭": "PH", "🇹🇭": "TH",
   "🇸🇬": "SG", "🇲🇾": "MY", "🇻🇳": "VN",
+  "🇬🇧": "GB", "🇦🇺": "AU", "🇺🇸": "US",
+  "🇮🇪": "IE", "🇫🇷": "FR", "🇧🇪": "BE",
 };
 
 function hasIntlGhost(): boolean {
