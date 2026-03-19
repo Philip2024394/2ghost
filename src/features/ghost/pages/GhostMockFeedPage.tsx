@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Lock, Settings, Shield, ArrowRight, X, MapPin, Heart, Navigation, Globe } from "lucide-react";
+import { Lock, Settings, Shield, ArrowRight, X, SlidersHorizontal } from "lucide-react";
 
 // ── Ghost ID helper (same algorithm as real feed) ─────────────────────────────
 function toGhostId(id: string): string {
@@ -292,51 +292,66 @@ function LockedCard({ profile, onTap }: { profile: typeof MOCK_PROFILES[0]; onTa
   );
 }
 
-// ── Locked filter bar ─────────────────────────────────────────────────────────
-function LockedFilterBar({ onTap }: { onTap: () => void }) {
+// ── Locked filter slide-up sheet ──────────────────────────────────────────────
+function LockedFilterSheet({ onClose, onTap }: { onClose: () => void; onTap: () => void }) {
   return (
-    <div style={{
-      padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.05)",
-      background: "rgba(5,5,8,0.8)", backdropFilter: "blur(12px)",
-      display: "flex", gap: 6, overflowX: "auto",
-    }}>
-      {/* Gender pills */}
-      {["All", "Women", "Men"].map((g, i) => (
-        <button
-          key={g}
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+    >
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: "100%", maxWidth: 480, background: "rgba(8,10,14,0.99)", borderRadius: "20px 20px 0 0", border: "1px solid rgba(255,255,255,0.08)", borderBottom: "none", padding: "6px 20px max(32px,env(safe-area-inset-bottom,32px))" }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 18px" }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
+        </div>
+        <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 16px" }}>Filters</p>
+        {[
+          { label: "Gender", value: "All" },
+          { label: "Age range", value: "18 – 45" },
+          { label: "Distance", value: "Any" },
+          { label: "Country", value: "World" },
+        ].map(({ label, value }) => (
+          <div key={label} onClick={onTap} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", cursor: "pointer" }}>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>{label}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(74,222,128,0.9)" }}>{value}</span>
+              <Lock size={12} color="rgba(255,255,255,0.2)" />
+            </div>
+          </div>
+        ))}
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           onClick={onTap}
-          style={{
-            height: 30, borderRadius: 50, padding: "0 12px", flexShrink: 0,
-            background: i === 0 ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
-            border: i === 0 ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.08)",
-            color: i === 0 ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.35)",
-            fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
-          }}
+          style={{ width: "100%", height: 48, borderRadius: 50, border: "none", marginTop: 20, background: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 20px rgba(34,197,94,0.4)" }}
         >
-          <span>{g}</span>
-        </button>
-      ))}
-      {/* Age pill */}
-      <button onClick={onTap} style={{ height: 30, borderRadius: 50, padding: "0 12px", flexShrink: 0, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
-        <span>18–45</span>
-      </button>
-      {/* Distance pill */}
-      <button onClick={onTap} style={{ height: 30, borderRadius: 50, padding: "0 10px", flexShrink: 0, display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-        <Navigation size={10} /><span>Any</span>
-      </button>
-      {/* Country pill */}
-      <button onClick={onTap} style={{ height: 30, borderRadius: 50, padding: "0 10px", flexShrink: 0, display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-        <Globe size={10} /><span>World</span>
-      </button>
-    </div>
+          Apply Filters
+        </motion.button>
+      </motion.div>
+    </motion.div>
   );
 }
 
 // ── Main mock feed page ───────────────────────────────────────────────────────
-export default function GhostMockFeedPage({ onUnlock }: { onUnlock: () => void }) {
+export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: () => void }) {
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
   const [onlineCount, setOnlineCount] = useState(BASE_ONLINE);
+  const hasWhatsApp = (() => { try { return !!localStorage.getItem("ghost_room_whatsapp"); } catch { return false; } })();
+  const [showFilters, setShowFilters] = useState(false);
+  const [ctaSecs, setCtaSecs] = useState(600); // 10-minute urgency countdown
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try { return !sessionStorage.getItem("ghost_preview_seen"); } catch { return true; }
+  });
+
+  const dismissWelcome = () => {
+    try { sessionStorage.setItem("ghost_preview_seen", "1"); } catch {}
+    setShowWelcome(false);
+  };
 
   // Fluctuating online counter
   useEffect(() => {
@@ -345,6 +360,13 @@ export default function GhostMockFeedPage({ onUnlock }: { onUnlock: () => void }
     }, 4000);
     return () => clearInterval(t);
   }, []);
+
+  // CTA urgency countdown (10 min → 0)
+  useEffect(() => {
+    if (ctaSecs <= 0) return;
+    const t = setInterval(() => setCtaSecs((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(t);
+  }, [ctaSecs]);
 
   const lock = () => setShowPopup(true);
 
@@ -362,17 +384,10 @@ export default function GhostMockFeedPage({ onUnlock }: { onUnlock: () => void }
         paddingTop: "max(12px, env(safe-area-inset-top, 12px))",
         display: "flex", alignItems: "center", gap: 12,
       }}>
-        <button onClick={() => navigate("/ghost/auth")} style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.7)", flexShrink: 0 }}>
-          ←
-        </button>
-
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 16 }}>👻</span>
             <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Ghost Mode</h1>
-            <span style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "1px 6px", fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em" }}>
-              PREVIEW
-            </span>
           </div>
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>
             <span>Members only · Join to explore</span>
@@ -406,8 +421,46 @@ export default function GhostMockFeedPage({ onUnlock }: { onUnlock: () => void }
         </div>
       </div>
 
-      {/* ── Filter bar (locked) ── */}
-      <LockedFilterBar onTap={lock} />
+      {/* ── Action strip: Ghost Room · VIP Profile · Flash Date · Filter ── */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px 0", overflowX: "auto", scrollbarWidth: "none" }}>
+        {[
+          { icon: "🚪", label: "Ghost Room", color: "rgba(74,222,128,0.9)", border: "rgba(74,222,128,0.25)", bg: "rgba(74,222,128,0.08)", action: () => navigate("/ghost/room") },
+          { icon: "👻", label: "Ghosted", color: "rgba(168,85,247,0.9)", border: "rgba(168,85,247,0.25)", bg: "rgba(168,85,247,0.08)", action: lock },
+          { icon: "⚡", label: "Flash Date",  color: "rgba(251,191,36,0.9)", border: "rgba(251,191,36,0.25)", bg: "rgba(251,191,36,0.08)", action: lock },
+          { icon: "🗺️", label: "Ghost Map",   color: "rgba(147,197,253,0.9)", border: "rgba(147,197,253,0.25)", bg: "rgba(147,197,253,0.08)", action: () => navigate("/ghost/map") },
+        ].map(({ icon, label, color, border, bg, action }) => (
+          <motion.button
+            key={label}
+            whileTap={{ scale: 0.93 }}
+            onClick={action}
+            style={{
+              flexShrink: 0, height: 34, borderRadius: 50, padding: "0 12px",
+              background: bg, border: `1px solid ${border}`,
+              display: "flex", alignItems: "center", gap: 5,
+              cursor: "pointer",
+            }}
+          >
+            <span style={{ fontSize: 13 }}>{icon}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color, whiteSpace: "nowrap" }}>{label}</span>
+          </motion.button>
+        ))}
+
+        {/* Spacer pushes filter to the right */}
+        <div style={{ flex: 1 }} />
+
+        <motion.button
+          whileTap={{ scale: 0.92 }}
+          onClick={() => setShowFilters(true)}
+          style={{
+            flexShrink: 0, width: 34, height: 34, borderRadius: "50%",
+            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", color: "rgba(255,255,255,0.6)",
+          }}
+        >
+          <SlidersHorizontal size={15} />
+        </motion.button>
+      </div>
 
       {/* ── Ghost info banner ── */}
       <motion.div
@@ -469,14 +522,20 @@ export default function GhostMockFeedPage({ onUnlock }: { onUnlock: () => void }
       }}>
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={lock}
+          onClick={() => hasWhatsApp ? lock() : navigate("/ghost/setup")}
+          animate={ctaSecs === 0 ? { scale: [1, 1.03, 1] } : {}}
+          transition={ctaSecs === 0 ? { duration: 1.2, repeat: Infinity } : {}}
           style={{
-            width: "100%", height: 52, borderRadius: 50, border: "none",
-            background: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
-            color: "#fff", fontSize: 15, fontWeight: 900,
-            letterSpacing: "0.04em", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px rgba(34,197,94,0.5)",
+            width: "100%", borderRadius: 50, border: "none",
+            background: ctaSecs === 0
+              ? "linear-gradient(to bottom, #f97316, #ea580c)"
+              : "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
+            color: "#fff", cursor: "pointer",
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            gap: 1, padding: "10px 20px",
+            boxShadow: ctaSecs === 0
+              ? "0 8px 32px rgba(249,115,22,0.55)"
+              : "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px rgba(34,197,94,0.5)",
             position: "relative", overflow: "hidden",
           }}
         >
@@ -485,14 +544,155 @@ export default function GhostMockFeedPage({ onUnlock }: { onUnlock: () => void }
             background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)",
             borderRadius: "50px 50px 60% 60%", pointerEvents: "none",
           }} />
-          <Lock size={16} strokeWidth={2.5} />
-          <span>Join the Ghost House — from 49k IDR</span>
+          {hasWhatsApp ? (
+            <>
+              <Lock size={14} strokeWidth={2.5} />
+              <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: "0.04em" }}>Join the Ghost House — from 49k IDR</span>
+            </>
+          ) : (
+            <>
+              <span style={{ fontSize: 15, fontWeight: 900, letterSpacing: "0.04em" }}>
+                {ctaSecs === 0 ? "Last Chance — Join Free Now" : "Free Membership"}
+              </span>
+              <span style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
+                color: ctaSecs === 0 ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.7)",
+              }}>
+                {ctaSecs === 0
+                  ? "Offer expired — sign up anyway"
+                  : `Offer ends in ${Math.floor(ctaSecs / 60)}:${String(ctaSecs % 60).padStart(2, "0")}`}
+              </span>
+            </>
+          )}
         </motion.button>
       </div>
+
+      {/* ── Welcome / preview explanation banner ── */}
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={dismissWelcome}
+            style={{
+              position: "fixed", inset: 0, zIndex: 300,
+              background: "rgba(0,0,0,0.72)",
+              backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+            }}
+          >
+            <motion.div
+              initial={{ y: 60, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 60, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 280, damping: 28, delay: 0.08 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "100%", maxWidth: 480,
+                background: "rgba(8,10,14,0.98)",
+                backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
+                borderRadius: "22px 22px 0 0",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderBottom: "none",
+                padding: "6px 20px max(28px, env(safe-area-inset-bottom, 28px))",
+              }}
+            >
+              {/* Handle */}
+              <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 16px" }}>
+                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)" }} />
+              </div>
+
+              {/* Icon + heading */}
+              <div style={{ textAlign: "center", marginBottom: 18 }}>
+                <motion.div
+                  animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
+                  transition={{ duration: 1.2, delay: 0.4 }}
+                  style={{ fontSize: 48, lineHeight: 1, marginBottom: 12 }}
+                >
+                  👻
+                </motion.div>
+                <h2 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.01em" }}>
+                  You're in Preview Mode
+                </h2>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.6 }}>
+                  This is a live preview of Ghost Mode.<br />
+                  Profiles and features are locked until you join.
+                </p>
+              </div>
+
+              {/* Explanation points */}
+              <div style={{
+                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
+                borderRadius: 14, padding: "12px 14px", marginBottom: 16,
+                display: "flex", flexDirection: "column", gap: 10,
+              }}>
+                {[
+                  { icon: "🔒", text: "All buttons and profiles are locked in preview" },
+                  { icon: "👀", text: "You can browse — but can't like, message or connect" },
+                  { icon: "✅", text: "Join Ghost to unlock everything instantly" },
+                  { icon: "👩 Free", text: "Women join completely free — no payment needed" },
+                ].map((item) => (
+                  <div key={item.icon} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span style={{
+                      fontSize: 11, fontWeight: 800, color: "rgba(74,222,128,0.9)",
+                      background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)",
+                      borderRadius: 8, padding: "4px 8px", flexShrink: 0, whiteSpace: "nowrap",
+                    }}>{item.icon}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => { dismissWelcome(); setShowPopup(true); }}
+                style={{
+                  width: "100%", height: 50, borderRadius: 50, border: "none",
+                  background: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
+                  color: "#fff", fontSize: 15, fontWeight: 900,
+                  cursor: "pointer", marginBottom: 10,
+                  boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 24px rgba(34,197,94,0.45)",
+                  position: "relative", overflow: "hidden",
+                }}
+              >
+                <div style={{
+                  position: "absolute", top: 0, left: "10%", right: "10%", height: "45%",
+                  background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)",
+                  borderRadius: "50px 50px 60% 60%", pointerEvents: "none",
+                }} />
+                Join Ghost — Unlock Now
+              </motion.button>
+
+              <button
+                onClick={dismissWelcome}
+                style={{
+                  width: "100%", height: 40, borderRadius: 50, border: "none",
+                  background: "transparent", color: "rgba(255,255,255,0.3)",
+                  fontSize: 13, fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                Just browsing for now
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Members-only popup ── */}
       <AnimatePresence>
         {showPopup && <MembersPopup onClose={() => setShowPopup(false)} />}
+      </AnimatePresence>
+
+      {/* ── Filter slide-up sheet ── */}
+      <AnimatePresence>
+        {showFilters && (
+          <LockedFilterSheet
+            onClose={() => setShowFilters(false)}
+            onTap={() => { setShowFilters(false); lock(); }}
+          />
+        )}
       </AnimatePresence>
 
     </div>

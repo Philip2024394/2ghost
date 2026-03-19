@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, RefreshCw, Upload, X, Link, Users, Lock, Unlock, Image, Video, ShieldOff, Copy, Check, MessageCircle, ChevronRight } from "lucide-react";
+import { ArrowLeft, RefreshCw, Upload, X, Link, Users, Lock, Unlock, Image, Video, ShieldOff, Copy, Check, MessageCircle, ChevronRight, Settings } from "lucide-react";
 import { uploadGhostImage, deleteGhostImage, uploadGhostVideo, deleteGhostVideo, isSupabaseStorageUrl } from "../ghostStorage";
 
 const ROOM_BG = "https://ik.imagekit.io/7grri5v7d/ghost%20room.png";
@@ -93,7 +93,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
   };
 
   return (
-    <div style={{
+    <div translate="no" style={{
       minHeight: "100dvh", width: "100%",
       backgroundImage: `url(${ROOM_BG})`,
       backgroundSize: "cover", backgroundPosition: "center",
@@ -127,7 +127,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
             👻
           </motion.div>
           <h1 style={{ fontSize: 26, fontWeight: 900, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
-            Ghost Room
+            <span style={{ color: "#4ade80" }}>2</span>Ghost Room
           </h1>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0 }}>
             {step === "phone"
@@ -201,7 +201,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
                   ) : (
                     <>
                       <MessageCircle size={16} />
-                      Send Code via WhatsApp
+                      <span>Send Code via WhatsApp</span>
                     </>
                   )}
                 </motion.button>
@@ -267,7 +267,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
                     onClick={() => { setStep("phone"); setDigits(["","","","","",""]); setError(""); }}
                     style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 12, cursor: "pointer", padding: 0 }}
                   >
-                    ← Change number
+                    <span>← Change number</span>
                   </button>
                   {resendCooldown > 0 ? (
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>Resend in {resendCooldown}s</span>
@@ -276,7 +276,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
                       onClick={handleSend}
                       style={{ background: "none", border: "none", color: "rgba(74,222,128,0.8)", fontSize: 12, fontWeight: 700, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 4 }}
                     >
-                      Resend code <ChevronRight size={12} />
+                      <span>Resend code</span> <ChevronRight size={12} />
                     </button>
                   )}
                 </div>
@@ -308,12 +308,15 @@ type RoomRequest = {
   status: "pending" | "granted" | "denied";
 };
 
+type ShareAccessType = "image" | "video" | "both";
+
 type AccessedRoom = {
-  ghostId: string;   // Ghost-XXXX of room owner
-  roomCode: string;  // code they shared
+  ghostId: string;        // Ghost-XXXX of room owner
+  roomCode: string;       // code used to access
+  accessType: ShareAccessType;
   grantedAt: number;
-  images: string[];  // base64
-  videoUrl: string;
+  images: string[];
+  videoUrls: string[];
 };
 
 type GhostMatch = {
@@ -356,13 +359,28 @@ const ROOM_TIERS: Record<RoomTier, {
 const KEYS = {
   code:       "ghost_room_code",
   images:     "ghost_room_images",
-  videoUrls:  "ghost_room_video_urls",   // now an array
+  videoUrls:  "ghost_room_video_urls",
   requests:   "ghost_room_requests",
   granted:    "ghost_room_granted",
   accessed:   "ghost_room_accessed",
   expiry:     "ghost_room_expiry",
   tier:       "ghost_room_tier",
+  imgShare:   "ghost_room_share_img_code",
+  vidShare:   "ghost_room_share_vid_code",
+  bothShare:  "ghost_room_share_both_code",
 };
+
+// Helper to publish a share grant so another user can look it up by code
+function publishShareGrant(code: string, ownerGhostId: string, accessType: ShareAccessType, images: string[], videoUrls: string[]) {
+  try {
+    localStorage.setItem(`ghost_room_share_${code}`, JSON.stringify({
+      ownerGhostId, accessType,
+      images: accessType !== "video" ? images : [],
+      videoUrls: accessType !== "image" ? videoUrls : [],
+      createdAt: Date.now(),
+    }));
+  } catch {}
+}
 
 function genCode(): string {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -630,9 +648,107 @@ function VideoUrlInput({ onAdd, inputStyle }: { onAdd: (url: string) => void; in
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
+// ── Room Active Welcome Popup ─────────────────────────────────────────────────
+function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 500,
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+        background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)",
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: "100%", maxWidth: 480,
+          backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/dsafasdfasdfasdfasdf.png?updatedAt=1773915218854)",
+          backgroundSize: "cover", backgroundPosition: "center top",
+          borderRadius: "24px 24px 0 0",
+          border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none",
+          maxHeight: "88dvh", overflowY: "auto", scrollbarWidth: "none" as const,
+          position: "relative",
+        }}
+      >
+        {/* Dark overlay so text is readable over image */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.78) 100%)", borderRadius: "24px 24px 0 0", pointerEvents: "none" }} />
+
+        <div style={{ position: "relative", zIndex: 1, padding: "28px 22px max(32px,env(safe-area-inset-bottom,32px))" }}>
+
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: 18 }}>
+            <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #4ade80, #22c55e, #4ade80, transparent)", marginBottom: 20, borderRadius: 2 }} />
+            <h2 style={{ fontSize: 28, fontWeight: 900, color: "#fff", margin: "0 0 10px", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+              <span style={{ color: "#4ade80" }}>2</span>Ghost Room
+            </h2>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+              <span style={{
+                width: 9, height: 9, borderRadius: "50%", background: "#4ade80",
+                display: "inline-block",
+                boxShadow: "0 0 8px #4ade80",
+                animation: "pulse-dot 1.4s ease-in-out infinite",
+              }} />
+              <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(74,222,128,0.9)", letterSpacing: "0.06em", textTransform: "uppercase" }}>Active</span>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {[
+              { icon: "🔐", title: "Fort Knox for your content", body: "Your Ghost Room is the most secure space for your videos, images and contacts. Nothing enters or leaves without your permission." },
+              { icon: "📤", title: "Share with any Ghost instantly", body: "Send media to another 2Ghost user in seconds — just enter their Ghost ID and hit Send. They receive it instantly, privately." },
+              { icon: "🛡️", title: "Zero-ghost security", body: "Your room is shielded against unauthorised access, uninvited entries and all supernatural forces beyond the Ghost House walls." },
+              { icon: "🔒", title: "One touch. Total lockdown.", body: "Need to go? One tap locks your room and clears all 2Ghost files from view — nothing visible, nothing exposed, complete peace of mind." },
+            ].map(item => (
+              <div key={item.icon} style={{ display: "flex", gap: 13, alignItems: "flex-start", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(74,222,128,0.1)", borderRadius: 14, padding: "12px 14px" }}>
+                <span style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>{item.icon}</span>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 3px" }}>{item.title}</p>
+                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.55 }}>{item.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA */}
+          <button
+            onClick={onClose}
+            style={{
+              width: "100%", marginTop: 22, height: 52, borderRadius: 50, border: "none",
+              background: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
+              color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
+              letterSpacing: "0.03em", boxShadow: "0 6px 24px rgba(34,197,94,0.45)",
+              position: "relative", overflow: "hidden",
+            }}
+          >
+            <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
+            <span>Thanks 2Ghost 👻</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function GhostRoomPage() {
   const navigate = useNavigate();
   const [verified, setVerified] = useState(isSessionValid);
+  const [showRoomWelcome, setShowRoomWelcome] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [imgShareCode, setImgShareCode] = useState<string>(() => {
+    try { return localStorage.getItem(KEYS.imgShare) || genCode(); } catch { return genCode(); }
+  });
+  const [vidShareCode, setVidShareCode] = useState<string>(() => {
+    try { return localStorage.getItem(KEYS.vidShare) || genCode(); } catch { return genCode(); }
+  });
+  const [bothShareCode, setBothShareCode] = useState<string>(() => {
+    try { return localStorage.getItem(KEYS.bothShare) || genCode(); } catch { return genCode(); }
+  });
+  const [copiedShare, setCopiedShare] = useState<"img" | "vid" | "both" | null>(null);
+  const [settingsView, setSettingsView] = useState<null | "video" | "image" | "ghosts" | "share">(null);
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [viewingVideo, setViewingVideo] = useState<string | null>(null);
   const [tab, setTab] = useState<"my" | "enter" | "matches" | "inbox">("my");
 
   // All hooks must be declared before any conditional return
@@ -705,9 +821,22 @@ export default function GhostRoomPage() {
     } catch {}
   }, [myGhostId]);
 
+  // Keep share grants published whenever files or codes change
+  useEffect(() => {
+    if (!verified) return;
+    publishShareGrant(imgShareCode, myGhostId, "image", myImages, myVideoUrls);
+    publishShareGrant(vidShareCode, myGhostId, "video", myImages, myVideoUrls);
+    publishShareGrant(bothShareCode, myGhostId, "both", myImages, myVideoUrls);
+    try {
+      localStorage.setItem(KEYS.imgShare, imgShareCode);
+      localStorage.setItem(KEYS.vidShare, vidShareCode);
+      localStorage.setItem(KEYS.bothShare, bothShareCode);
+    } catch {}
+  }, [verified, imgShareCode, vidShareCode, bothShareCode, myImages, myVideoUrls, myGhostId]);
+
   // Show auth gate if session expired — must be after ALL hooks
   if (!verified) {
-    return <GhostRoomAuthGate onVerified={() => setVerified(true)} />;
+    return <GhostRoomAuthGate onVerified={() => { setVerified(true); setShowRoomWelcome(true); }} />;
   }
 
   // Derived values (only used when verified)
@@ -887,24 +1016,57 @@ export default function GhostRoomPage() {
       return;
     }
 
-    // Check if we've been granted this code
-    const grantKey = `ghost_room_grant_${myGhostId}`;
+    // Check new typed share code system
     try {
-      const grant = loadJson<{ ghostId: string; roomCode: string; grantedAt: number; images: string[]; videoUrl: string } | null>(grantKey, null);
-      if (grant && grant.roomCode === val) {
-        const already = accessedRooms.find((r) => r.ghostId === grant.ghostId);
+      const shareData = loadJson<{ ownerGhostId: string; accessType: ShareAccessType; images: string[]; videoUrls: string[]; createdAt: number } | null>(`ghost_room_share_${val}`, null);
+      if (shareData && shareData.ownerGhostId && shareData.ownerGhostId !== myGhostId) {
+        const already = accessedRooms.find(r => r.ghostId === shareData.ownerGhostId && r.accessType === shareData.accessType);
         if (!already) {
-          const next = [...accessedRooms, { ...grant, images: grant.images || [], videoUrl: grant.videoUrl || "" }];
+          const newRoom: AccessedRoom = {
+            ghostId: shareData.ownerGhostId,
+            roomCode: val,
+            accessType: shareData.accessType,
+            grantedAt: Date.now(),
+            images: shareData.images || [],
+            videoUrls: shareData.videoUrls || [],
+          };
+          const next = [...accessedRooms, newRoom];
           setAccessedRooms(next);
           saveJson(KEYS.accessed, next);
         }
-        setEnterSuccess(`You now have access to ${grant.ghostId}'s Ghost Room`);
+        const label = shareData.accessType === "image" ? "Image Room" : shareData.accessType === "video" ? "Video Room" : "Full Room";
+        setEnterSuccess(`✓ ${label} access granted from ${shareData.ownerGhostId}`);
         setEnterInput("");
         return;
       }
     } catch {}
 
-    setEnterError("Code not found or access not granted yet");
+    // Legacy grant fallback
+    try {
+      const grantKey = `ghost_room_grant_${myGhostId}`;
+      const grant = loadJson<{ ghostId: string; roomCode: string; grantedAt: number; images: string[]; videoUrl?: string; videoUrls?: string[] } | null>(grantKey, null);
+      if (grant && grant.roomCode === val) {
+        const already = accessedRooms.find((r) => r.ghostId === grant.ghostId);
+        if (!already) {
+          const newRoom: AccessedRoom = {
+            ghostId: grant.ghostId,
+            roomCode: val,
+            accessType: "both",
+            grantedAt: grant.grantedAt || Date.now(),
+            images: grant.images || [],
+            videoUrls: grant.videoUrls || (grant.videoUrl ? [grant.videoUrl] : []),
+          };
+          const next = [...accessedRooms, newRoom];
+          setAccessedRooms(next);
+          saveJson(KEYS.accessed, next);
+        }
+        setEnterSuccess(`✓ Full Room access granted from ${grant.ghostId}`);
+        setEnterInput("");
+        return;
+      }
+    } catch {}
+
+    setEnterError("Code not found — check the code and try again");
   };
 
   const saveExpiry = (v: "24h" | "7d" | "never") => {
@@ -957,8 +1119,505 @@ export default function GhostRoomPage() {
   const grantedReqs = requests.filter((r) => r.status === "granted");
 
   return (
-    <div style={S.page}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <div translate="no" style={S.page}>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.7)}}.ghost-no-save img{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;pointer-events:none}.ghost-no-save{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}`}</style>
+      {showRoomWelcome && <RoomWelcomePopup onClose={() => setShowRoomWelcome(false)} />}
+
+      {/* ── Settings slide-up sheet ── */}
+      {showSettings && (
+        <>
+          {/* ── Full-screen image viewer ── */}
+          <AnimatePresence>
+            {viewingImage && (
+              <motion.div
+                key="img-viewer"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                style={{ position: "fixed", inset: 0, zIndex: 600, background: "#000", display: "flex", flexDirection: "column" }}
+              >
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "max(16px,env(safe-area-inset-top,16px)) 16px 12px", display: "flex", alignItems: "center", gap: 12, background: "linear-gradient(to bottom,rgba(0,0,0,0.85),transparent)", zIndex: 2 }}>
+                  <button onClick={() => setViewingImage(null)} style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff" }}>
+                    <ArrowLeft size={16} />
+                  </button>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>Image</span>
+                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginLeft: "auto" }}>🔒 Private</span>
+                </div>
+                <img src={viewingImage} alt="" draggable="false" className="ghost-no-save" style={{ width: "100%", height: "100%", objectFit: "contain" }} onContextMenu={e => e.preventDefault()} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── Full-screen video viewer ── */}
+          <AnimatePresence>
+            {viewingVideo && (
+              <motion.div
+                key="vid-viewer"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                style={{ position: "fixed", inset: 0, zIndex: 600, background: "#000", display: "flex", flexDirection: "column" }}
+              >
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "max(16px,env(safe-area-inset-top,16px)) 16px 12px", display: "flex", alignItems: "center", gap: 12, background: "linear-gradient(to bottom,rgba(0,0,0,0.85),transparent)", zIndex: 2 }}>
+                  <button onClick={() => setViewingVideo(null)} style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff" }}>
+                    <ArrowLeft size={16} />
+                  </button>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>Video</span>
+                  <span style={{ fontSize: 10, color: "rgba(168,85,247,0.8)", marginLeft: "auto", fontWeight: 700 }}>🔒 Not saved to device</span>
+                </div>
+                <video
+                  src={viewingVideo}
+                  controls
+                  autoPlay
+                  controlsList="nodownload nofullscreen"
+                  disablePictureInPicture
+                  style={{ flex: 1, width: "100%", objectFit: "contain" }}
+                  onContextMenu={e => e.preventDefault()}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Backdrop */}
+          <div
+            onClick={() => { setShowSettings(false); setSettingsView(null); setViewingImage(null); setViewingVideo(null); }}
+            style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)" }}
+          />
+
+          {/* Sheet */}
+          <div style={{
+            position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 401,
+            backgroundImage: settingsView === "image"
+              ? "url(https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdfasdASDkjlkjl545345dsdfsdfs.png)"
+              : settingsView === "video"
+              ? "url(https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdfasdASDkjlkjl545345.png)"
+              : settingsView === "ghosts"
+              ? "url(https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdfasdASDkjlkjl545345dsdfsdfssfsadf.png)"
+              : settingsView === "share"
+              ? "url(https://ik.imagekit.io/7grri5v7d/dsafasdfasdfasdfasdfewtewrt.png)"
+              : "none",
+            backgroundSize: "cover", backgroundPosition: "center top",
+            backgroundColor: "rgb(6,8,5)",
+            borderRadius: "22px 22px 0 0",
+            border: "1px solid rgba(74,222,128,0.12)", borderBottom: "none",
+            maxHeight: "88dvh", display: "flex", flexDirection: "column",
+            overflow: "hidden",
+          }}>
+            {/* Dark overlay — only for image/video pages */}
+            {(settingsView === "image" || settingsView === "video" || settingsView === "ghosts" || settingsView === "share") && (
+              <div style={{ position: "absolute", inset: 0, background: "rgba(4,5,4,0.78)", zIndex: 0 }} />
+            )}
+            {/* Handle */}
+            <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center", padding: "10px 0 0" }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
+            </div>
+
+            {/* Sheet header */}
+            <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", padding: "10px 18px 0", gap: 10 }}>
+              {settingsView !== null ? (
+                <>
+                  <button
+                    onClick={() => setSettingsView(null)}
+                    style={{ width: 32, height: 32, borderRadius: 9, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.7)", flexShrink: 0 }}
+                  >
+                    <ArrowLeft size={14} />
+                  </button>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: "#fff", flex: 1 }}>
+                    {settingsView === "image" ? "🖼 Images" : settingsView === "video" ? "🎬 Videos" : settingsView === "ghosts" ? "👻 Ghosts" : "📤 Share Room"}
+                  </span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>
+                    {settingsView === "image"
+                      ? `${myImages.length + inbox.filter(x => x.type === "image" && x.status === "accepted").length} files`
+                      : settingsView === "video"
+                      ? `${myVideoUrls.length + inbox.filter(x => x.type === "video" && x.status === "accepted").length} files`
+                      : settingsView === "ghosts"
+                      ? `${matches.length + accessedRooms.length} contacts`
+                      : ""}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontSize: 15, fontWeight: 900, color: "#fff", display: "block" }}>Room Storage</span>
+                    <span style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", fontWeight: 600, lineHeight: 1.4, display: "block", marginTop: 2 }}>Your files are stored on top-security servers</span>
+                  </div>
+                  <button onClick={() => setShowSettings(false)} style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>
+                    <X size={13} />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Content */}
+            <div style={{ position: "relative", zIndex: 1, flex: 1, overflowY: "auto", scrollbarWidth: "none" }}>
+
+              {/* ── HOME: 4 big square buttons ── */}
+              {settingsView === null && (
+                <div style={{ padding: "18px 18px max(32px,env(safe-area-inset-bottom,32px))" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    {([
+                      { view: "video" as const,  label: "Videos",     sub: `${myVideoUrls.length} saved`,   bg: "https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdfasdASDkjlkjl545345.png" },
+                      { view: "image" as const,  label: "Images",     sub: `${myImages.length} saved`,      bg: "https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdfasdASDkjlkjl545345dsdfsdfs.png" },
+                      { view: "ghosts" as const, label: "Ghosts",     sub: `${matches.length} connections`, bg: "https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdfasdASDkjlkjl545345dsdfsdfssfsadf.png" },
+                      { view: "share" as const,  label: "Share Room", sub: "Send your code",               bg: "https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdfasdASDkjlkjl545345dsdfsdfssfsadffsdfsdf.png" },
+                    ]).map(({ view, label, sub, bg }) => (
+                      <motion.button
+                        key={view}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setSettingsView(view)}
+                        style={{
+                          height: 118, borderRadius: 18, border: "none",
+                          backgroundImage: `url(${bg})`,
+                          backgroundSize: "cover", backgroundPosition: "center",
+                          cursor: "pointer", padding: 0,
+                          position: "relative", overflow: "hidden",
+                          display: "flex", flexDirection: "column",
+                          alignItems: "flex-start", justifyContent: "flex-end",
+                        }}
+                      >
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)" }} />
+                        <div style={{ position: "relative", zIndex: 1, padding: "0 12px 12px" }}>
+                          <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>{label}</p>
+                          <p style={{ fontSize: 10, fontWeight: 700, color: "#4ade80", margin: 0 }}>{sub}</p>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+                  {/* Storage bar */}
+                  <div style={{ marginTop: 16, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "12px 16px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)" }}>Storage Used</span>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(74,222,128,0.9)" }}>
+                        {myImages.length + myVideoUrls.length} / {ROOM_TIERS[roomTier].images + ROOM_TIERS[roomTier].videos} files
+                      </span>
+                    </div>
+                    <div style={{ height: 5, borderRadius: 3, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                      <div style={{
+                        height: "100%", borderRadius: 3,
+                        width: `${Math.min(100, ((myImages.length + myVideoUrls.length) / Math.max(1, ROOM_TIERS[roomTier].images + ROOM_TIERS[roomTier].videos)) * 100)}%`,
+                        background: "linear-gradient(90deg,#4ade80,#22c55e)",
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── IMAGE PAGE ── */}
+              {settingsView === "image" && (() => {
+                const allImages = [
+                  ...myImages.map((url, i) => ({ url, src: "me" as const, at: Date.now() - (myImages.length - i) * 86400000 * 2, myIdx: i })),
+                  ...inbox.filter(x => x.type === "image" && x.status === "accepted").map(x => ({ url: x.content, src: x.senderGhostId, at: x.sentAt, myIdx: -1 })),
+                ];
+                return (
+                  <div style={{ padding: "14px 18px max(32px,env(safe-area-inset-bottom,32px))" }}>
+                    {/* Privacy notice */}
+                    <div style={{ background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.18)", borderRadius: 12, padding: "9px 14px", marginBottom: 14 }}>
+                      <p style={{ fontSize: 11, color: "rgba(74,222,128,0.85)", margin: 0, fontWeight: 700 }}>
+                        Images are private — never saved to your device
+                      </p>
+                    </div>
+                    {allImages.length === 0 ? (
+                      <div style={{ textAlign: "center", padding: "60px 0" }}>
+                        <span style={{ fontSize: 52 }}>🖼️</span>
+                        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.25)", marginTop: 14 }}>No images yet</p>
+                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.18)" }}>Upload images in My Room tab</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {allImages.map((img, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ x: -44, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: i * 0.055, duration: 0.22 }}
+                            onClick={() => setViewingImage(img.url)}
+                            style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(74,222,128,0.1)", borderRadius: 16, padding: "12px 14px", cursor: "pointer" }}
+                          >
+                            {/* Thumbnail */}
+                            <div style={{ width: 66, height: 66, borderRadius: 12, overflow: "hidden", flexShrink: 0, border: "1px solid rgba(74,222,128,0.2)" }}>
+                              <img src={img.url} alt="" draggable="false" className="ghost-no-save" style={{ width: "100%", height: "100%", objectFit: "cover" }} onContextMenu={e => e.preventDefault()} />
+                            </div>
+                            {/* Info */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 3px" }}>
+                                {img.src === "me" ? `Image ${i + 1}` : `From ${img.src}`}
+                              </p>
+                              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: "0 0 6px" }}>
+                                {new Date(img.at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                              </p>
+                              <span style={{
+                                fontSize: 9, borderRadius: 6, padding: "2px 8px", fontWeight: 700,
+                                background: img.src === "me" ? "rgba(74,222,128,0.12)" : "rgba(96,165,250,0.1)",
+                                border: `1px solid ${img.src === "me" ? "rgba(74,222,128,0.25)" : "rgba(96,165,250,0.2)"}`,
+                                color: img.src === "me" ? "rgba(74,222,128,0.9)" : "rgba(96,165,250,0.8)",
+                              }}>
+                                {img.src === "me" ? "Uploaded by you" : `Ghost · ${img.src}`}
+                              </span>
+                            </div>
+                            {/* Actions */}
+                            <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                              <div style={{ width: 32, height: 32, borderRadius: 9, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <Image size={13} color="rgba(74,222,128,0.8)" />
+                              </div>
+                              {img.src === "me" && (
+                                <button
+                                  onClick={e => { e.stopPropagation(); removeImage(img.myIdx); }}
+                                  style={{ width: 32, height: 32, borderRadius: 9, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(239,68,68,0.7)" }}
+                                >
+                                  <X size={13} />
+                                </button>
+                              )}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* ── VIDEO PAGE ── */}
+              {settingsView === "video" && (() => {
+                const allVideos = [
+                  ...myVideoUrls.map((url, i) => ({ url, src: "me" as const, at: Date.now() - (myVideoUrls.length - i) * 86400000 * 3, myIdx: i })),
+                  ...inbox.filter(x => x.type === "video" && x.status === "accepted").map(x => ({ url: x.content, src: x.senderGhostId, at: x.sentAt, myIdx: -1 })),
+                ];
+                return (
+                  <div style={{ padding: "14px 18px max(32px,env(safe-area-inset-bottom,32px))" }}>
+                    {/* Privacy notice */}
+                    <div style={{ background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.18)", borderRadius: 12, padding: "9px 14px", marginBottom: 14 }}>
+                      <p style={{ fontSize: 11, color: "rgba(74,222,128,0.85)", margin: 0, fontWeight: 700 }}>
+                        Videos are private — never saved to your device
+                      </p>
+                    </div>
+
+                    {allVideos.length === 0 ? (
+                      <div style={{ textAlign: "center", padding: "60px 0" }}>
+                        <span style={{ fontSize: 52 }}>🎬</span>
+                        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.25)", marginTop: 14 }}>No videos yet</p>
+                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.18)" }}>Upload videos in My Room tab</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {allVideos.map((vid, i) => (
+                          <div key={i} style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 16, overflow: "hidden" }}>
+                            <div
+                              onClick={() => setViewingVideo(vid.url)}
+                              style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", cursor: "pointer" }}
+                            >
+                              {/* Video thumbnail with play button */}
+                              <div style={{ width: 76, height: 56, borderRadius: 10, flexShrink: 0, background: "rgba(168,85,247,0.15)", border: "1px solid rgba(168,85,247,0.3)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
+                                <video
+                                  src={vid.url}
+                                  muted
+                                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.45 }}
+                                />
+                                <div style={{ position: "relative", width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                  <span style={{ fontSize: 9, marginLeft: 2 }}>▶</span>
+                                </div>
+                              </div>
+                              {/* Info */}
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 3px" }}>
+                                  {vid.src === "me" ? `Video ${i + 1}` : `From ${vid.src}`}
+                                </p>
+                                <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: "0 0 6px" }}>
+                                  Added {new Date(vid.at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                                </p>
+                                <span style={{
+                                  fontSize: 9, borderRadius: 6, padding: "2px 8px", fontWeight: 700,
+                                  background: vid.src === "me" ? "rgba(168,85,247,0.12)" : "rgba(96,165,250,0.1)",
+                                  border: `1px solid ${vid.src === "me" ? "rgba(168,85,247,0.25)" : "rgba(96,165,250,0.2)"}`,
+                                  color: vid.src === "me" ? "rgba(168,85,247,0.9)" : "rgba(96,165,250,0.8)",
+                                }}>
+                                  {vid.src === "me" ? "Uploaded by you" : `Ghost · ${vid.src}`}
+                                </span>
+                              </div>
+                              {vid.src === "me" && (
+                                <button
+                                  onClick={e => { e.stopPropagation(); removeVideoUrl(vid.myIdx); }}
+                                  style={{ width: 32, height: 32, borderRadius: 9, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(239,68,68,0.7)", flexShrink: 0 }}
+                                >
+                                  <X size={13} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* ── GHOSTS PAGE ── */}
+              {settingsView === "ghosts" && (
+                <div style={{ padding: "14px 18px max(32px,env(safe-area-inset-bottom,32px))" }}>
+                  {matches.length === 0 && accessedRooms.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "60px 0" }}>
+                      <span style={{ fontSize: 52 }}>👻</span>
+                      <p style={{ fontSize: 14, color: "rgba(255,255,255,0.25)", marginTop: 14 }}>No ghost connections yet</p>
+                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.18)" }}>Match with ghosts to see them here</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {[
+                        ...matches.map(m => ({ ghostId: m.profile.id, name: m.profile.name, city: m.profile.city, country: m.profile.countryFlag, age: m.profile.age, image: m.profile.image, at: m.matchedAt })),
+                        ...accessedRooms.map(r => ({ ghostId: r.ghostId, name: r.ghostId, city: "", country: "", age: 0, image: "", at: r.grantedAt })),
+                      ].map((c, i) => {
+                        const isActive = i % 3 !== 2;
+                        return (
+                          <motion.div
+                            key={i}
+                            initial={{ x: -36, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: i * 0.055 }}
+                            style={{ display: "flex", alignItems: "center", gap: 12, background: isActive ? "rgba(74,222,128,0.04)" : "rgba(255,255,255,0.03)", border: `1px solid ${isActive ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.07)"}`, borderRadius: 16, padding: "12px 14px" }}
+                          >
+                            {/* Avatar */}
+                            <div style={{ position: "relative", flexShrink: 0 }}>
+                              <div style={{ width: 52, height: 52, borderRadius: "50%", overflow: "hidden", border: `2px solid ${isActive ? "rgba(74,222,128,0.5)" : "rgba(255,255,255,0.12)"}` }}>
+                                {c.image
+                                  ? <img src={c.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                  : <div style={{ width: "100%", height: "100%", background: "rgba(74,222,128,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>👻</div>
+                                }
+                              </div>
+                              {isActive && (
+                                <span style={{ position: "absolute", bottom: 1, right: 1, width: 12, height: 12, borderRadius: "50%", background: "#4ade80", border: "2px solid #050508", animation: "pulse-dot 1.4s ease-in-out infinite" }} />
+                              )}
+                            </div>
+                            {/* Info */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {c.name || c.ghostId}
+                              </p>
+                              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: "0 0 4px" }}>
+                                {c.ghostId}{c.city ? ` · ${c.city}` : ""}{c.age ? `, ${c.age}` : ""}{c.country ? ` ${c.country}` : ""}
+                              </p>
+                              <span style={{
+                                fontSize: 9, borderRadius: 6, padding: "2px 7px", fontWeight: 700,
+                                background: isActive ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.05)",
+                                border: `1px solid ${isActive ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.08)"}`,
+                                color: isActive ? "rgba(74,222,128,0.85)" : "rgba(255,255,255,0.3)",
+                              }}>
+                                {isActive ? "● Active now" : "Offline"}
+                              </span>
+                            </div>
+                            {/* Message button */}
+                            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                              <MessageCircle size={15} color="rgba(74,222,128,0.7)" />
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── SHARE PAGE ── */}
+              {settingsView === "share" && (() => {
+                const shareOptions: Array<{
+                  key: "img" | "vid" | "both";
+                  label: string;
+                  desc: string;
+                  code: string;
+                  setCode: (c: string) => void;
+                  storageKey: string;
+                  accent: string;
+                  border: string;
+                  bg: string;
+                  count: string;
+                }> = [
+                  {
+                    key: "img", label: "🖼 Image Room", desc: "Recipient sees your images only — videos stay locked",
+                    code: imgShareCode, setCode: setImgShareCode, storageKey: KEYS.imgShare,
+                    accent: "#4ade80", border: "rgba(74,222,128,0.25)", bg: "rgba(74,222,128,0.06)",
+                    count: `${myImages.length} image${myImages.length !== 1 ? "s" : ""}`,
+                  },
+                  {
+                    key: "vid", label: "🎬 Video Room", desc: "Recipient sees your videos only — images stay locked",
+                    code: vidShareCode, setCode: setVidShareCode, storageKey: KEYS.vidShare,
+                    accent: "#a78bfa", border: "rgba(168,85,247,0.25)", bg: "rgba(168,85,247,0.06)",
+                    count: `${myVideoUrls.length} video${myVideoUrls.length !== 1 ? "s" : ""}`,
+                  },
+                  {
+                    key: "both", label: "🔗 Full Room", desc: "Recipient sees both images and videos",
+                    code: bothShareCode, setCode: setBothShareCode, storageKey: KEYS.bothShare,
+                    accent: "#60a5fa", border: "rgba(96,165,250,0.25)", bg: "rgba(96,165,250,0.06)",
+                    count: `${myImages.length} images · ${myVideoUrls.length} videos`,
+                  },
+                ];
+
+                const resetShareCode = (opt: typeof shareOptions[0]) => {
+                  const newCode = genCode();
+                  opt.setCode(newCode);
+                  try { localStorage.setItem(opt.storageKey, newCode); } catch {}
+                  publishShareGrant(newCode, myGhostId, opt.key === "img" ? "image" : opt.key === "vid" ? "video" : "both", myImages, myVideoUrls);
+                };
+
+                const copyShareCode = (opt: typeof shareOptions[0]) => {
+                  navigator.clipboard.writeText(opt.code).catch(() => {});
+                  setCopiedShare(opt.key);
+                  setTimeout(() => setCopiedShare(null), 2000);
+                };
+
+                return (
+                  <div style={{ padding: "14px 18px max(32px,env(safe-area-inset-bottom,32px))" }}>
+                    {/* Security notice */}
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 12, padding: "10px 14px", marginBottom: 16 }}>
+                      <Lock size={13} color="rgba(74,222,128,0.8)" style={{ marginTop: 1, flexShrink: 0 }} />
+                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.5 }}>
+                        Each code grants access <span style={{ color: "rgba(74,222,128,0.9)", fontWeight: 800 }}>only</span> to the selected room type. Share only with ghosts you trust — codes can be reset at any time.
+                      </p>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      {shareOptions.map(opt => (
+                        <div key={opt.key} style={{ background: opt.bg, border: `1px solid ${opt.border}`, borderRadius: 18, overflow: "hidden" }}>
+                          {/* Card header */}
+                          <div style={{ padding: "14px 16px 10px", borderBottom: `1px solid ${opt.border}` }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
+                              <span style={{ fontSize: 14, fontWeight: 900, color: "#fff" }}>{opt.label}</span>
+                              <span style={{ fontSize: 10, color: opt.accent, fontWeight: 700, background: `rgba(${opt.key === "img" ? "74,222,128" : opt.key === "vid" ? "168,85,247" : "96,165,250"},0.12)`, borderRadius: 6, padding: "2px 8px" }}>{opt.count}</span>
+                            </div>
+                            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", margin: 0 }}>{opt.desc}</p>
+                          </div>
+                          {/* Code + actions */}
+                          <div style={{ padding: "12px 16px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <div style={{ flex: 1, height: 44, borderRadius: 10, background: "rgba(0,0,0,0.3)", border: `1px solid ${opt.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <span style={{ fontSize: 18, fontWeight: 900, color: opt.accent, letterSpacing: "0.22em" }}>{opt.code}</span>
+                              </div>
+                              <motion.button
+                                whileTap={{ scale: 0.93 }}
+                                onClick={() => copyShareCode(opt)}
+                                style={{ width: 44, height: 44, borderRadius: 10, border: `1px solid ${opt.border}`, background: copiedShare === opt.key ? opt.bg : "rgba(0,0,0,0.3)", color: opt.accent, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+                              >
+                                {copiedShare === opt.key ? <Check size={15} /> : <Copy size={15} />}
+                              </motion.button>
+                              <motion.button
+                                whileTap={{ scale: 0.93 }}
+                                onClick={() => resetShareCode(opt)}
+                                title="Reset code — old code stops working"
+                                style={{ width: 44, height: 44, borderRadius: 10, border: "1px solid rgba(239,68,68,0.25)", background: "rgba(239,68,68,0.06)", color: "rgba(239,68,68,0.7)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+                              >
+                                <RefreshCw size={14} />
+                              </motion.button>
+                            </div>
+                            <p style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", margin: "7px 0 0", textAlign: "center" }}>Reset code to revoke all current access for this room</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+            </div>
+          </div>
+        </>
+      )}
       {/* Header */}
       <div style={S.header}>
         <button
@@ -981,13 +1640,12 @@ export default function GhostRoomPage() {
               {pending.length}
             </div>
           )}
-          {/* Lock room — ends session immediately */}
           <button
-            onClick={() => { clearSession(); setVerified(false); }}
-            title="Lock Room — end session"
-            style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+            onClick={() => setShowSettings(true)}
+            title="Room Settings"
+            style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.6)" }}
           >
-            <Lock size={14} color="#f87171" />
+            <Settings size={15} />
           </button>
         </div>
       </div>
@@ -1082,33 +1740,47 @@ export default function GhostRoomPage() {
             {/* Room expiry */}
             <div style={S.card}>
               <p style={S.label}>Auto-Lock Room</p>
+              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: "-4px 0 10px", fontWeight: 600 }}>Blocks All Access To Your Rooms</p>
               <div style={{ display: "flex", gap: 8 }}>
                 {([
                   { v: "24h", label: "24 Hours" },
                   { v: "7d",  label: "7 Days" },
                   { v: "never", label: "Never" },
-                ] as const).map(({ v, label }) => (
-                  <button
-                    key={v}
-                    onClick={() => saveExpiry(v)}
-                    style={{
-                      flex: 1, height: 36, borderRadius: 10, border: "none", cursor: "pointer",
-                      background: expiry === v ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
-                      color: expiry === v ? "rgba(74,222,128,0.95)" : "rgba(255,255,255,0.4)",
-                      fontSize: 12, fontWeight: 700,
-                      outline: expiry === v ? "1px solid rgba(74,222,128,0.35)" : "none",
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
+                ] as const).map(({ v, label }) => {
+                  const isSelected = expiry === v;
+                  const isLocked = isSelected && v !== "never";
+                  return (
+                    <button
+                      key={v}
+                      onClick={() => saveExpiry(v)}
+                      style={{
+                        flex: 1, height: 40, borderRadius: 10, border: "none", cursor: "pointer",
+                        background: isSelected ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
+                        color: isSelected ? "rgba(74,222,128,0.95)" : "rgba(255,255,255,0.4)",
+                        fontSize: 11, fontWeight: 700,
+                        outline: isSelected ? "1px solid rgba(74,222,128,0.35)" : "none",
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+                      }}
+                    >
+                      <span>{label}</span>
+                      {isSelected && (
+                        <span style={{ fontSize: 14, lineHeight: 1 }}>
+                          {isLocked ? "🔒" : "🔓"}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Tier selector */}
             <div style={S.card}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>Ghost Room Plan</p>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>Ghost Room Rental</p>
+                  <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", fontWeight: 600, margin: 0 }}>100% secure private rooms</p>
+                </div>
                 <span style={{ fontSize: 11, fontWeight: 800, color: tierInfo.color }}>{tierInfo.badge} {tierInfo.label}</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -1482,14 +2154,18 @@ export default function GhostRoomPage() {
                       </div>
                     )}
 
-                    {/* Their video */}
-                    {room.videoUrl && (
-                      <div style={{ borderRadius: 10, overflow: "hidden", background: "rgba(0,0,0,0.4)" }}>
-                        <video src={room.videoUrl} controls style={{ width: "100%", maxHeight: 180, display: "block" }} />
+                    {/* Their videos */}
+                    {room.videoUrls && room.videoUrls.length > 0 && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {room.videoUrls.map((url, vi) => (
+                          <div key={vi} style={{ borderRadius: 10, overflow: "hidden", background: "rgba(0,0,0,0.4)" }}>
+                            <video src={url} controls style={{ width: "100%", maxHeight: 180, display: "block" }} />
+                          </div>
+                        ))}
                       </div>
                     )}
 
-                    {room.images.length === 0 && !room.videoUrl && (
+                    {room.images.length === 0 && (!room.videoUrls || room.videoUrls.length === 0) && (
                       <p style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", margin: 0 }}>This room has no content yet</p>
                     )}
                   </div>

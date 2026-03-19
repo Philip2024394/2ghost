@@ -113,7 +113,7 @@ export default function GhostAuthPage() {
         localStorage.setItem("ghost_gender", gender);
         localStorage.setItem("ghost_phone", countryCode.code + cleanPhone);
       } catch {}
-      navigate(gender === "Female" ? "/ghost/setup" : "/ghost/mock");
+      navigate("/ghost");
     }, 1000);
   };
 
@@ -216,37 +216,52 @@ export default function GhostAuthPage() {
                 style={{ display: "flex", flexDirection: "column", gap: 11 }}
               >
                 {/* ── Gender toggle ── */}
-                <div style={{
-                  display: "flex", borderRadius: 50,
-                  background: "rgba(0,0,0,0.45)",
-                  backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  padding: 3, gap: 3,
-                }}>
-                  {(["Female", "Male"] as const).map((g) => (
-                    <button
-                      key={g}
-                      onClick={() => setGender(g)}
-                      style={{
-                        flex: 1, height: 38, borderRadius: 50, border: "none",
-                        background: gender === g
-                          ? g === "Female"
-                            ? "linear-gradient(to bottom, #f472b6, #ec4899)"
-                            : "linear-gradient(to bottom, #60a5fa, #3b82f6)"
-                          : "transparent",
-                        color: gender === g ? "#fff" : "rgba(255,255,255,0.35)",
-                        fontSize: 13, fontWeight: 800, cursor: "pointer",
-                        transition: "all 0.2s",
-                        boxShadow: gender === g
-                          ? g === "Female"
-                            ? "0 4px 14px rgba(236,72,153,0.4)"
-                            : "0 4px 14px rgba(59,130,246,0.4)"
-                          : "none",
-                      }}
-                    >
-                      <span>{g === "Female" ? "👩 I'm a Woman" : "👨 I'm a Man"}</span>
-                    </button>
-                  ))}
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <div style={{ display: "flex", justifyContent: "flex-end", paddingRight: "4%" }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, color: "rgba(74,222,128,0.85)",
+                      letterSpacing: "0.04em",
+                      display: "flex", alignItems: "center", gap: 4,
+                    }}>
+                      <span style={{
+                        width: 6, height: 6, borderRadius: "50%",
+                        background: "#4ade80",
+                        boxShadow: "0 0 6px rgba(74,222,128,0.8)",
+                        display: "inline-block", flexShrink: 0,
+                      }} />
+                      58.382 Online Now
+                    </span>
+                  </div>
+                  <div style={{
+                    display: "flex", borderRadius: 50,
+                    background: "rgba(0,0,0,0.45)",
+                    backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    padding: 3, gap: 3,
+                  }}>
+                    {(["Female", "Male"] as const).map((g) => (
+                      <button
+                        key={g}
+                        onClick={() => setGender(g)}
+                        style={{
+                          flex: 1, height: 38, borderRadius: 50, border: "none",
+                          background: gender === g
+                            ? g === "Female"
+                              ? "linear-gradient(to bottom, #4ade80, #22c55e)"
+                              : "linear-gradient(to bottom, #22c55e, #16a34a)"
+                            : "transparent",
+                          color: gender === g ? "#fff" : "rgba(255,255,255,0.35)",
+                          fontSize: 13, fontWeight: 800, cursor: "pointer",
+                          transition: "all 0.2s",
+                          boxShadow: gender === g
+                            ? "0 4px 14px rgba(34,197,94,0.4)"
+                            : "none",
+                        }}
+                      >
+                        <span>{g === "Female" ? "👩 I'm a Woman" : "👨 I'm a Man"}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* ── Free badge for women ── */}
@@ -257,12 +272,12 @@ export default function GhostAuthPage() {
                     exit={{ opacity: 0, height: 0 }}
                     style={{
                       textAlign: "center",
-                      background: "rgba(236,72,153,0.08)",
-                      border: "1px solid rgba(236,72,153,0.25)",
+                      background: "rgba(34,197,94,0.08)",
+                      border: "1px solid rgba(34,197,94,0.25)",
                       borderRadius: 10, padding: "7px 14px", overflow: "hidden",
                     }}
                   >
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(244,114,182,0.9)" }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(74,222,128,0.9)" }}>
                       <span>🎁 Women join free — pay only when you connect</span>
                     </span>
                   </motion.div>

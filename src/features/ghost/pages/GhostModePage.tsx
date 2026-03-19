@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Heart, X, MessageCircle, Settings, Navigation, Globe, Shield, Clock, Gift, Check, Eye, Moon, Zap, LogOut } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, X, MessageCircle, Settings, Navigation, Globe, Shield, Clock, Gift, Check, Eye, Moon, Zap, LogOut, SlidersHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { generateIndonesianProfiles } from "@/data/indonesianProfiles";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
@@ -232,9 +232,10 @@ function FilterBar({
   gender, setGender,
   ageMin, ageMax, setAgeMin, setAgeMax,
   maxKm, setMaxKm,
-  locationLoading, hasLocation,
-  onRequestLocation,
+  locationLoading, hasLocation, onRequestLocation,
   filterCountry, setFilterCountry,
+  onlineOnly, setOnlineOnly,
+  lookingFor, setLookingFor,
 }: {
   gender: GenderFilter; setGender: (g: GenderFilter) => void;
   ageMin: number; ageMax: number;
@@ -243,6 +244,8 @@ function FilterBar({
   locationLoading: boolean; hasLocation: boolean;
   onRequestLocation: () => void;
   filterCountry: string; setFilterCountry: (c: string) => void;
+  onlineOnly: boolean; setOnlineOnly: (v: boolean) => void;
+  lookingFor: string; setLookingFor: (v: string) => void;
 }) {
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [countryQuery, setCountryQuery] = useState("");
@@ -257,146 +260,86 @@ function FilterBar({
     { label: "Any", value: 9999 },
   ];
 
-  return (
-    <div style={{
-      margin: "10px 14px 0",
-      background: "rgba(255,255,255,0.03)",
-      border: "1px solid rgba(255,255,255,0.07)",
-      borderRadius: 14, padding: "12px 14px",
-      display: "flex", flexDirection: "column", gap: 10,
-    }}>
-      {/* Row 1: Gender + Distance */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {/* Gender */}
-        <div style={{ display: "flex", gap: 4, flex: 1 }}>
-          {(["all", "Female", "Male"] as GenderFilter[]).map((g) => (
-            <button
-              key={g}
-              onClick={() => setGender(g)}
-              style={{
-                flex: 1, height: 30, borderRadius: 8, border: "none",
-                background: gender === g ? "linear-gradient(135deg, #16a34a, #22c55e)" : "rgba(255,255,255,0.06)",
-                color: gender === g ? "#fff" : "rgba(255,255,255,0.5)",
-                fontSize: 11, fontWeight: 700, cursor: "pointer",
-                transition: "all 0.15s",
-              }}
-            >
-              {g === "all" ? "All" : g === "Female" ? "Women" : "Men"}
-            </button>
-          ))}
-        </div>
+  const S = {
+    label: { fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.35)", textTransform: "uppercase" as const, letterSpacing: "0.1em", margin: "0 0 8px" },
+    divider: { height: 1, background: "rgba(255,255,255,0.05)", margin: "16px 0" },
+    chip: (active: boolean): React.CSSProperties => ({
+      flex: 1, height: 34, borderRadius: 10, border: "none",
+      background: active ? "linear-gradient(135deg, #16a34a, #22c55e)" : "rgba(255,255,255,0.06)",
+      color: active ? "#fff" : "rgba(255,255,255,0.45)",
+      fontSize: 12, fontWeight: 700, cursor: "pointer",
+    }),
+  };
 
-        {/* Location button */}
-        <button
-          onClick={onRequestLocation}
-          style={{
-            height: 30, paddingInline: 10, borderRadius: 8,
-            border: hasLocation ? "1px solid rgba(74,222,128,0.3)" : "1px solid transparent",
-            background: hasLocation ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.06)",
-            color: hasLocation ? "rgba(74,222,128,0.9)" : locationLoading ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.5)",
-            fontSize: 11, fontWeight: 700, cursor: "pointer",
-            display: "flex", alignItems: "center", gap: 4,
-          }}
-        >
-          <Navigation size={11} />
-          {locationLoading ? "..." : hasLocation ? "On" : "GPS"}
-        </button>
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+
+      {/* ── Gender ── */}
+      <p style={S.label}>Show me</p>
+      <div style={{ display: "flex", gap: 6 }}>
+        {(["all", "Female", "Male"] as GenderFilter[]).map((g) => (
+          <button key={g} onClick={() => setGender(g)} style={S.chip(gender === g)}>
+            {g === "all" ? "Everyone" : g === "Female" ? "👩 Women" : "👨 Men"}
+          </button>
+        ))}
       </div>
 
-      {/* Row 2: Distance chips (only when location active) */}
-      {hasLocation && (
-        <div style={{ display: "flex", gap: 4 }}>
-          {KM_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setMaxKm(opt.value)}
-              style={{
-                flex: 1, height: 26, borderRadius: 7,
-                border: maxKm === opt.value ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.06)",
-                background: maxKm === opt.value ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.04)",
-                color: maxKm === opt.value ? "rgba(74,222,128,0.95)" : "rgba(255,255,255,0.4)",
-                fontSize: 10, fontWeight: 700, cursor: "pointer",
-                transition: "all 0.15s",
-              }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <div style={S.divider} />
 
-      {/* Row 3: Country filter */}
-      <div style={{ position: "relative" }}>
-        <button
-          onClick={() => setShowCountryPicker(!showCountryPicker)}
-          style={{
-            width: "100%", height: 30, borderRadius: 8, cursor: "pointer",
-            background: filterCountry ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.04)",
-            border: filterCountry ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.08)",
-            color: filterCountry ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.4)",
-            fontSize: 11, fontWeight: 700,
-            display: "flex", alignItems: "center", justifyContent: "space-between", paddingInline: 10,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <Globe size={11} />
-            {filterCountry ? (
-              <span>
-                {WORLD_COUNTRIES.find((c) => c.name === filterCountry)?.flag} {filterCountry}
-              </span>
-            ) : (
-              <span>All Countries</span>
-            )}
-          </div>
-          <span style={{ fontSize: 9, opacity: 0.5 }}>{showCountryPicker ? "▲" : "▼"}</span>
+      {/* ── Age range ── */}
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+        <p style={{ ...S.label, margin: 0 }}>Age range</p>
+        <span style={{ fontSize: 12, fontWeight: 800, color: "rgba(74,222,128,0.9)" }}>{ageMin} – {ageMax} yrs</span>
+      </div>
+      <div style={{ position: "relative", height: 24, display: "flex", alignItems: "center" }}>
+        <div style={{ position: "absolute", left: 0, right: 0, height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2 }} />
+        <div style={{ position: "absolute", left: `${((ageMin - 18) / (60 - 18)) * 100}%`, right: `${100 - ((ageMax - 18) / (60 - 18)) * 100}%`, height: 4, background: "linear-gradient(90deg, #16a34a, #4ade80)", borderRadius: 2 }} />
+        <input type="range" min={18} max={60} value={ageMin} onChange={(e) => { const v = parseInt(e.target.value); if (v < ageMax - 1) setAgeMin(v); }} style={{ position: "absolute", width: "100%", opacity: 0, cursor: "pointer", height: 24, zIndex: 2 }} />
+        <input type="range" min={18} max={60} value={ageMax} onChange={(e) => { const v = parseInt(e.target.value); if (v > ageMin + 1) setAgeMax(v); }} style={{ position: "absolute", width: "100%", opacity: 0, cursor: "pointer", height: 24, zIndex: 3 }} />
+        <div style={{ position: "absolute", left: `calc(${((ageMin - 18) / (60 - 18)) * 100}% - 9px)`, width: 18, height: 18, borderRadius: "50%", background: "#22c55e", border: "2px solid #050508", boxShadow: "0 0 10px rgba(34,197,94,0.5)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", left: `calc(${((ageMax - 18) / (60 - 18)) * 100}% - 9px)`, width: 18, height: 18, borderRadius: "50%", background: "#22c55e", border: "2px solid #050508", boxShadow: "0 0 10px rgba(34,197,94,0.5)", pointerEvents: "none" }} />
+      </div>
+
+      <div style={S.divider} />
+
+      {/* ── Distance ── */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+        <p style={{ ...S.label, margin: 0 }}>Distance</p>
+        <button onClick={onRequestLocation} style={{ height: 26, paddingInline: 10, borderRadius: 8, border: hasLocation ? "1px solid rgba(74,222,128,0.3)" : "1px solid rgba(255,255,255,0.1)", background: hasLocation ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.06)", color: hasLocation ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+          <Navigation size={10} /> {locationLoading ? "..." : hasLocation ? "📍 GPS On" : "Enable GPS"}
         </button>
+      </div>
+      <div style={{ display: "flex", gap: 5 }}>
+        {KM_OPTIONS.map((opt) => (
+          <button key={opt.value} onClick={() => setMaxKm(opt.value)} style={{ flex: 1, height: 32, borderRadius: 9, border: maxKm === opt.value ? "1px solid rgba(74,222,128,0.4)" : "1px solid rgba(255,255,255,0.07)", background: maxKm === opt.value ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)", color: maxKm === opt.value ? "rgba(74,222,128,0.95)" : "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+            {opt.label}
+          </button>
+        ))}
+      </div>
 
+      <div style={S.divider} />
+
+      {/* ── Country ── */}
+      <p style={S.label}>Country</p>
+      <div style={{ position: "relative" }}>
+        <button onClick={() => setShowCountryPicker(!showCountryPicker)} style={{ width: "100%", height: 38, borderRadius: 10, cursor: "pointer", background: filterCountry ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.05)", border: filterCountry ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.08)", color: filterCountry ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "space-between", paddingInline: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Globe size={13} />
+            <span>{filterCountry ? `${WORLD_COUNTRIES.find(c => c.name === filterCountry)?.flag} ${filterCountry}` : "All Countries"}</span>
+          </div>
+          <span style={{ fontSize: 10, opacity: 0.4 }}>{showCountryPicker ? "▲" : "▼"}</span>
+        </button>
         {showCountryPicker && (
-          <div style={{
-            position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 100,
-            background: "rgba(8,8,14,0.98)", backdropFilter: "blur(24px)",
-            border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12,
-            overflow: "hidden",
-          }}>
+          <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 100, background: "rgba(8,8,14,0.99)", backdropFilter: "blur(24px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, overflow: "hidden" }}>
             <div style={{ padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <input
-                autoFocus
-                placeholder="Search country..."
-                value={countryQuery}
-                onChange={(e) => setCountryQuery(e.target.value)}
-                style={{
-                  width: "100%", height: 32, borderRadius: 8,
-                  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
-                  color: "#fff", fontSize: 12, padding: "0 10px", outline: "none", boxSizing: "border-box",
-                }}
-              />
+              <input autoFocus placeholder="Search country..." value={countryQuery} onChange={(e) => setCountryQuery(e.target.value)} style={{ width: "100%", height: 32, borderRadius: 8, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#fff", fontSize: 12, padding: "0 10px", outline: "none", boxSizing: "border-box" }} />
             </div>
-            <div style={{ maxHeight: 200, overflowY: "auto" }}>
-              <button
-                onClick={() => { setFilterCountry(""); setShowCountryPicker(false); setCountryQuery(""); }}
-                style={{
-                  width: "100%", padding: "9px 12px", background: !filterCountry ? "rgba(74,222,128,0.1)" : "none",
-                  border: "none", color: !filterCountry ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)",
-                  fontSize: 12, textAlign: "left", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.04)",
-                  display: "flex", alignItems: "center", gap: 8,
-                }}
-              >
+            <div style={{ maxHeight: 180, overflowY: "auto" }}>
+              <button onClick={() => { setFilterCountry(""); setShowCountryPicker(false); setCountryQuery(""); }} style={{ width: "100%", padding: "9px 12px", background: !filterCountry ? "rgba(74,222,128,0.1)" : "none", border: "none", color: !filterCountry ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)", fontSize: 12, textAlign: "left", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: 8 }}>
                 <Globe size={13} /> All Countries
               </button>
               {filteredCountries.map((c) => (
-                <button
-                  key={c.code}
-                  onClick={() => { setFilterCountry(c.name); setShowCountryPicker(false); setCountryQuery(""); }}
-                  style={{
-                    width: "100%", padding: "9px 12px",
-                    background: filterCountry === c.name ? "rgba(74,222,128,0.1)" : "none",
-                    border: "none",
-                    color: filterCountry === c.name ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.65)",
-                    fontSize: 12, textAlign: "left", cursor: "pointer",
-                    borderBottom: "1px solid rgba(255,255,255,0.04)",
-                    display: "flex", alignItems: "center", gap: 8,
-                  }}
-                >
+                <button key={c.code} onClick={() => { setFilterCountry(c.name); setShowCountryPicker(false); setCountryQuery(""); }} style={{ width: "100%", padding: "9px 12px", background: filterCountry === c.name ? "rgba(74,222,128,0.1)" : "none", border: "none", color: filterCountry === c.name ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.65)", fontSize: 12, textAlign: "left", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 16 }}>{c.flag}</span> {c.name}
                 </button>
               ))}
@@ -405,55 +348,37 @@ function FilterBar({
         )}
       </div>
 
-      {/* Row 4: Age range */}
-      <div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>Age</span>
-          <span style={{ fontSize: 10, color: "rgba(74,222,128,0.8)", fontWeight: 700 }}>{ageMin} – {ageMax}</span>
-        </div>
-        <div style={{ position: "relative", height: 20, display: "flex", alignItems: "center" }}>
-          {/* Track */}
-          <div style={{
-            position: "absolute", left: 0, right: 0, height: 3,
-            background: "rgba(255,255,255,0.1)", borderRadius: 2,
-          }} />
-          {/* Active track */}
-          <div style={{
-            position: "absolute",
-            left: `${((ageMin - 18) / (60 - 18)) * 100}%`,
-            right: `${100 - ((ageMax - 18) / (60 - 18)) * 100}%`,
-            height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80)", borderRadius: 2,
-          }} />
-          {/* Min thumb */}
-          <input
-            type="range" min={18} max={60} value={ageMin}
-            onChange={(e) => { const v = parseInt(e.target.value); if (v < ageMax - 1) setAgeMin(v); }}
-            style={{ position: "absolute", width: "100%", opacity: 0, cursor: "pointer", height: 20, zIndex: 2 }}
-          />
-          {/* Max thumb */}
-          <input
-            type="range" min={18} max={60} value={ageMax}
-            onChange={(e) => { const v = parseInt(e.target.value); if (v > ageMin + 1) setAgeMax(v); }}
-            style={{ position: "absolute", width: "100%", opacity: 0, cursor: "pointer", height: 20, zIndex: 3 }}
-          />
-          {/* Visible min thumb */}
-          <div style={{
-            position: "absolute",
-            left: `calc(${((ageMin - 18) / (60 - 18)) * 100}% - 8px)`,
-            width: 16, height: 16, borderRadius: "50%",
-            background: "#22c55e", border: "2px solid #050508",
-            boxShadow: "0 0 8px rgba(34,197,94,0.5)", pointerEvents: "none",
-          }} />
-          {/* Visible max thumb */}
-          <div style={{
-            position: "absolute",
-            left: `calc(${((ageMax - 18) / (60 - 18)) * 100}% - 8px)`,
-            width: 16, height: 16, borderRadius: "50%",
-            background: "#22c55e", border: "2px solid #050508",
-            boxShadow: "0 0 8px rgba(34,197,94,0.5)", pointerEvents: "none",
-          }} />
-        </div>
+      <div style={S.divider} />
+
+      {/* ── Online status ── */}
+      <p style={S.label}>Availability</p>
+      <div style={{ display: "flex", gap: 6 }}>
+        {[{ val: false, label: "🌐 All Members" }, { val: true, label: "🟢 Online Now" }].map(({ val, label }) => (
+          <button key={String(val)} onClick={() => setOnlineOnly(val)} style={S.chip(onlineOnly === val)}>
+            {label}
+          </button>
+        ))}
       </div>
+
+      <div style={S.divider} />
+
+      {/* ── Looking for ── */}
+      <p style={S.label}>Looking for</p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+        {[
+          { val: "all",         label: "✨ Open to all"    },
+          { val: "relationship",label: "💍 Relationship"   },
+          { val: "casual",      label: "🌊 Casual dating"  },
+          { val: "friends",     label: "🤝 Just friends"   },
+          { val: "tonight",     label: "🌙 Free tonight"   },
+          { val: "travel",      label: "✈️ Travel partner" },
+        ].map(({ val, label }) => (
+          <button key={val} onClick={() => setLookingFor(val)} style={{ ...S.chip(lookingFor === val), height: 38, fontSize: 11 }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
     </div>
   );
 }
@@ -596,7 +521,12 @@ function GhostProfilePopup({
 }
 
 // ── Match popup ─────────────────────────────────────────────────────────────
-function GhostMatchPopup({ profile, onClose }: { profile: GhostProfile; onClose: () => void }) {
+function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: {
+  profile: GhostProfile;
+  onClose: () => void;
+  isSubscribed: boolean;
+  onConnectWhatsApp: () => void;
+}) {
   const firstName = profile.name.split(" ")[0];
   const ghostId = toGhostId(profile.id);
   return (
@@ -639,13 +569,13 @@ function GhostMatchPopup({ profile, onClose }: { profile: GhostProfile; onClose:
             <span>{profile.age} · {profile.city} {profile.countryFlag}</span>
           </p>
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 22px", lineHeight: 1.55 }}>
-            <span>You both liked each other. Connect now on WhatsApp and start a real conversation.</span>
+            <span>You both liked each other! {isSubscribed ? "Connect now on WhatsApp." : "Unlock their WhatsApp to connect for real."}</span>
           </p>
           <button
-            onClick={onClose}
+            onClick={onConnectWhatsApp}
             style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 4px 24px rgba(34,197,94,0.4)" }}
           >
-            <MessageCircle size={18} /> Open WhatsApp
+            <MessageCircle size={18} /> {isSubscribed ? "Open WhatsApp" : "Connect on WhatsApp"}
           </button>
           <button onClick={onClose} style={{ display: "block", margin: "12px auto 0", background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer" }}>
             Keep browsing
@@ -991,7 +921,7 @@ function GhostCard({
   );
 }
 
-// ── Match paywall for unsubscribed women ─────────────────────────────────────
+// ── Match paywall — pay to unlock WhatsApp on mutual match ───────────────────
 function MatchPaywallModal({
   profile, onPay, onClose,
 }: {
@@ -1033,7 +963,7 @@ function MatchPaywallModal({
           borderBottom: "none", overflow: "hidden",
         }}
       >
-        <div style={{ height: 3, background: "linear-gradient(90deg, #ec4899, #a855f7, #22c55e)" }} />
+        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)" }} />
 
         <div style={{ padding: "20px 18px 32px", position: "relative" }}>
           {/* Close */}
@@ -1052,7 +982,7 @@ function MatchPaywallModal({
                 src={profile.image} alt={profile.name}
                 style={{
                   width: 60, height: 60, borderRadius: "50%", objectFit: "cover",
-                  border: "2px solid rgba(236,72,153,0.5)",
+                  border: "2px solid rgba(74,222,128,0.5)",
                   filter: "blur(6px)",
                 }}
                 onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
@@ -1064,8 +994,8 @@ function MatchPaywallModal({
               }}>❤️</div>
             </div>
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(244,114,182,0.8)", margin: "0 0 4px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                <span>It's a match!</span>
+              <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(74,222,128,0.9)", margin: "0 0 4px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                <span>👻 Ghost Match!</span>
               </p>
               <h3 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>
                 <span>{profile.name}, {profile.age}</span>
@@ -1077,7 +1007,7 @@ function MatchPaywallModal({
           </div>
 
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: "0 0 16px", lineHeight: 1.5 }}>
-            <span>Unlock their WhatsApp to start a real conversation. One time — yours forever.</span>
+            <span>You both liked each other. Liking is free — pay once to unlock their WhatsApp and connect for real.</span>
           </p>
 
           {/* Plans */}
@@ -1121,6 +1051,208 @@ function MatchPaywallModal({
 
           <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.18)", marginTop: 12, marginBottom: 0 }}>
             <span>🔒 Private · No public profile · WhatsApp on match only</span>
+          </p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ── Ghost House Welcome Modal (kept for reference — rendered in GhostGatewayPage) ──
+function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
+  const RULES = [
+    { icon: "🤝", title: "Respect Every Ghost", desc: "No harassment, hate, or disrespect. Every person here deserves dignity — no exceptions." },
+    { icon: "🔒", title: "Privacy is Sacred", desc: "Never share another member's identity, photos, or location outside the House." },
+    { icon: "🚫", title: "No Bad Energy", desc: "No spam, scams, or fake profiles. Genuine connections only — the House self-cleanses." },
+    { icon: "👻", title: "Stay Anonymous Until Ready", desc: "Your Ghost ID protects you. Only reveal yourself when you're truly comfortable." },
+    { icon: "💚", title: "Good Vibes Only", desc: "Bring curiosity, openness, and warmth. The energy you put in is the energy you get back." },
+  ];
+
+  const HOW_IT_WORKS = [
+    { icon: "❤️", title: "Like for Free", desc: "Browse every profile and like as many as you want — completely free, no subscription needed." },
+    { icon: "✨", title: "Ghost Match", desc: "When two ghosts like each other it becomes a mutual match. You'll get notified instantly." },
+    { icon: "📱", title: "WhatsApp on Match", desc: "After a mutual match, pay once to unlock their real WhatsApp number. No in-app chat — real connection only." },
+    { icon: "🚪", title: "Ghost Room", desc: "Your private vault. All your matches live here with a 48-hour countdown. Don't let them fade." },
+    { icon: "🌍", title: "Global House", desc: "Members from Indonesia, UK, Ireland, Japan, Australia and growing — your next match could be anywhere." },
+    { icon: "👁️", title: "You're Invisible", desc: "Others only see your Ghost ID, photo, age, and city — nothing else — until you both connect." },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{
+        position: "fixed", inset: 0, zIndex: 9999,
+        background: "rgba(0,0,0,0.88)",
+        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+        overflowY: "auto",
+      }}
+    >
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", stiffness: 260, damping: 30 }}
+        style={{
+          width: "100%", maxWidth: 480,
+          background: "linear-gradient(180deg, rgba(5,8,5,0.99) 0%, rgba(8,12,8,0.99) 100%)",
+          backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
+          borderRadius: "24px 24px 0 0",
+          border: "1px solid rgba(74,222,128,0.12)",
+          borderBottom: "none",
+          maxHeight: "94dvh", overflowY: "auto",
+          scrollbarWidth: "none",
+        }}
+      >
+        {/* Top accent bar */}
+        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e, #4ade80, #16a34a)" }} />
+
+        {/* Handle */}
+        <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 0" }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
+        </div>
+
+        <div style={{ padding: "20px 22px max(36px, env(safe-area-inset-bottom, 36px))" }}>
+
+          {/* Ghost hero */}
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
+            <motion.div
+              animate={{
+                y: [0, -12, 0],
+                filter: [
+                  "drop-shadow(0 0 16px rgba(74,222,128,0.4))",
+                  "drop-shadow(0 0 32px rgba(74,222,128,0.8))",
+                  "drop-shadow(0 0 16px rgba(74,222,128,0.4))",
+                ],
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              style={{ fontSize: 72, lineHeight: 1, display: "inline-block", marginBottom: 16 }}
+            >
+              👻
+            </motion.div>
+            <h1 style={{
+              fontSize: 24, fontWeight: 900, color: "#fff", margin: "0 0 10px",
+              letterSpacing: "-0.02em", lineHeight: 1.2,
+            }}>
+              Welcome to{" "}
+              <span style={{
+                background: "linear-gradient(135deg, #4ade80, #22c55e)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              }}>
+                My House
+              </span>
+            </h1>
+            <p style={{
+              fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7,
+              maxWidth: 320, marginInline: "auto",
+            }}>
+              Before you settle in, we have some{" "}
+              <span style={{ color: "rgba(74,222,128,0.85)", fontWeight: 700 }}>house rules</span>{" "}
+              that we must all abide by — to keep our house free from bad energies entering.
+            </p>
+          </div>
+
+          {/* Divider */}
+          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.2), transparent)", marginBottom: 22 }} />
+
+          {/* House Rules */}
+          <div style={{ marginBottom: 26 }}>
+            <p style={{
+              fontSize: 10, fontWeight: 800, color: "rgba(74,222,128,0.6)",
+              textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px",
+            }}>🏠 The House Rules</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {RULES.map((rule) => (
+                <div
+                  key={rule.title}
+                  style={{
+                    display: "flex", gap: 14, alignItems: "flex-start",
+                    background: "rgba(74,222,128,0.04)", border: "1px solid rgba(74,222,128,0.08)",
+                    borderRadius: 14, padding: "12px 14px",
+                  }}
+                >
+                  <div style={{
+                    width: 38, height: 38, borderRadius: 12, flexShrink: 0,
+                    background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.18)",
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
+                  }}>
+                    {rule.icon}
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 3px" }}>
+                      {rule.title}
+                    </p>
+                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.42)", margin: 0, lineHeight: 1.5 }}>
+                      {rule.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.2), transparent)", marginBottom: 22 }} />
+
+          {/* How it works */}
+          <div style={{ marginBottom: 28 }}>
+            <p style={{
+              fontSize: 10, fontWeight: 800, color: "rgba(74,222,128,0.6)",
+              textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px",
+            }}>⚙️ How the House Works</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {HOW_IT_WORKS.map((item) => (
+                <div key={item.title} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                  <div style={{
+                    width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                    background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16,
+                  }}>
+                    {item.icon}
+                  </div>
+                  <div style={{ paddingTop: 2 }}>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>
+                      {item.title}
+                    </p>
+                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>
+                      {item.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA */}
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            whileHover={{ y: -2 }}
+            onClick={onAccept}
+            style={{
+              width: "100%", height: 54, borderRadius: 50, border: "none",
+              background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+              color: "#fff", fontSize: 15, fontWeight: 900,
+              cursor: "pointer", letterSpacing: "0.03em",
+              boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px rgba(34,197,94,0.5)",
+              position: "relative", overflow: "hidden",
+            }}
+          >
+            <div style={{
+              position: "absolute", top: 0, left: "10%", right: "10%", height: "45%",
+              background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)",
+              borderRadius: "50px 50px 60% 60%", pointerEvents: "none",
+            }} />
+            👻 I Accept the House Rules — Enter Ghost Mode
+          </motion.button>
+
+          <p style={{
+            textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.2)",
+            margin: "12px 0 0", lineHeight: 1.6,
+          }}>
+            By entering you agree to the house rules above and our{" "}
+            <span style={{ color: "rgba(255,255,255,0.35)" }}>Privacy Policy</span>
           </p>
         </div>
       </motion.div>
@@ -1937,6 +2069,8 @@ export default function GhostModePage() {
 
   // Quick Exit — renders a blank screen instantly
   const [quickExit, setQuickExit] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+
 
   // Ghost Flash — 60-minute live pool
   const FLASH_CONTACT_LIMIT = 3;
@@ -2022,6 +2156,8 @@ export default function GhostModePage() {
   const [ageMax, setAgeMax] = useState(45);
   const [maxKm, setMaxKm] = useState<KmFilter>(9999);
   const [filterCountry, setFilterCountry] = useState("");
+  const [onlineOnly, setOnlineOnly] = useState(false);
+  const [lookingFor, setLookingFor] = useState<string>("all");
 
   // Inbound like notification (simulated cross-country interest)
   const [inboundLike, setInboundLike] = useState<InboundLike | null>(null);
@@ -2051,16 +2187,16 @@ export default function GhostModePage() {
     requestLocation();
   }, [requestLocation]);
 
-  // Redirect to setup if subscribed but no ghost profile — must be in effect, not render
+  // Redirect to setup if no ghost profile — must browse/like, but need a profile first
   useEffect(() => {
-    if (isGhost && !hasGhostProfile) {
+    if (!hasGhostProfile) {
       navigate("/ghost/setup");
     }
-  }, [isGhost, hasGhostProfile, navigate]);
+  }, [hasGhostProfile, navigate]);
 
   // Simulate an inbound international like after 18s (demo — fires once per session)
   useEffect(() => {
-    if (inboundShownRef.current || !isGhost) return;
+    if (inboundShownRef.current || !hasGhostProfile) return;
     const t = setTimeout(() => {
       if (inboundShownRef.current) return;
       inboundShownRef.current = true;
@@ -2112,13 +2248,14 @@ export default function GhostModePage() {
         if (p.age < ageMin || p.age > ageMax) return false;
         if (maxKm !== 9999 && p.distanceKm !== undefined && p.distanceKm > maxKm) return false;
         if (filterCountry && p.country !== filterCountry) return false;
+        if (onlineOnly && !isOnline(p.last_seen_at)) return false;
         return true;
       })
       .sort((a, b) => {
         if (a.distanceKm !== undefined && b.distanceKm !== undefined) return a.distanceKm - b.distanceKm;
         return 0;
       });
-  }, [allProfiles, gender, ageMin, ageMax, maxKm, filterCountry, passedIds]);
+  }, [allProfiles, gender, ageMin, ageMax, maxKm, filterCountry, onlineOnly, passedIds]);
 
   const saveMatch = (profile: GhostProfile) => {
     const next = [
@@ -2159,11 +2296,8 @@ export default function GhostModePage() {
       setTimeout(() => {
         setSelectedProfile(null);
         saveMatch(profile);
-        if (isFemale && !isGhost) {
-          setMatchPaywallProfile(profile);
-        } else {
-          setMatchProfile(profile);
-        }
+        // Everyone sees the match celebration — paywall only triggers on "Connect WhatsApp"
+        setMatchProfile(profile);
       }, 600);
     } else {
       setTimeout(() => setSelectedProfile(null), 400);
@@ -2188,197 +2322,6 @@ export default function GhostModePage() {
     );
   }
 
-  if (!isGhost && !isFemale) {
-    const previewProfiles = allProfiles.slice(0, 8);
-    const handleSubscribe = (planType: "ghost" | "bundle") => {
-      activate(planType);
-      navigate("/ghost/setup");
-    };
-
-    return (
-      <div style={{ minHeight: "100dvh", background: "#050508", position: "relative", overflow: "hidden" }}>
-        <GhostParticles />
-
-        {/* ── Blurred profile grid in background ── */}
-        <div style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none" }}>
-          <div style={{
-            display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 6,
-            padding: "10px 10px",
-            filter: "blur(5px)", transform: "scale(1.04)",
-            opacity: 0.7,
-          }}>
-            {previewProfiles.map((p) => (
-              <div key={p.id} style={{ aspectRatio: "3/4", borderRadius: 14, overflow: "hidden", background: "#111" }}>
-                <img src={p.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)" }} />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Dark overlay ── */}
-        <div style={{ position: "absolute", inset: 0, zIndex: 2, background: "linear-gradient(to bottom, rgba(5,5,8,0.55) 0%, rgba(5,5,8,0.78) 100%)" }} />
-
-        {/* ── Centered paywall card ── */}
-        <div style={{
-          position: "absolute", inset: 0, zIndex: 3,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          padding: "20px 20px",
-          overflowY: "auto",
-        }}>
-          <div style={{
-            width: "100%", maxWidth: 390,
-            background: "rgba(6,6,10,0.90)",
-            backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
-            borderRadius: 22,
-            border: "1px solid rgba(74,222,128,0.22)",
-            overflow: "hidden",
-            boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 40px rgba(74,222,128,0.08)",
-          }}>
-            {/* Top accent bar */}
-            <div style={{ height: 3, background: "linear-gradient(90deg, #22c55e, #4ade80, #22c55e)" }} />
-
-            <div style={{ padding: "18px 20px 24px" }}>
-              {/* Back button */}
-              <button
-                onClick={() => navigate("/")}
-                style={{
-                  background: "none", border: "none", color: "rgba(255,255,255,0.35)",
-                  fontSize: 12, cursor: "pointer", padding: 0, marginBottom: 14,
-                  display: "flex", alignItems: "center", gap: 5,
-                }}
-              >
-                ← Back
-              </button>
-
-              {/* Header */}
-              <div style={{ textAlign: "center", marginBottom: 18 }}>
-                <div style={{ fontSize: 50, lineHeight: 1, marginBottom: 8 }}>👻</div>
-                <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(74,222,128,0.8)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 6px" }}>
-                  2dateme
-                </p>
-                <h2 style={{
-                  fontSize: 22, fontWeight: 900, margin: "0 0 8px",
-                  background: "linear-gradient(135deg, #4ade80, #22c55e, #86efac)",
-                  WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                }}>
-                  Ghost Mode
-                </h2>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.55 }}>
-                  Your secret dating space. Invisible to the world.<br />
-                  Only photo, name, age &amp; city — nothing more.
-                </p>
-              </div>
-
-              {/* How it works */}
-              <div style={{
-                background: "rgba(255,255,255,0.03)", borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.06)",
-                padding: "12px 14px", marginBottom: 16,
-                display: "flex", flexDirection: "column", gap: 8,
-              }}>
-                {[
-                  { icon: "🔒", text: "Hidden from the map & regular dating feed" },
-                  { icon: "👤", text: "Profile shows photo · name · age · city only" },
-                  { icon: "💚", text: "Mutual like required — no unsolicited contact" },
-                  { icon: "📱", text: "Match = instant WhatsApp connection" },
-                  { icon: "👁️‍🗨️", text: "Only Ghost Mode members can see you here" },
-                ].map(({ icon, text }) => (
-                  <div key={text} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                    <span style={{ fontSize: 14, flexShrink: 0, lineHeight: 1.4 }}>{icon}</span>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.45 }}>{text}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Plan cards */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-
-                {/* Ghost Mode $9.99 */}
-                <div style={{
-                  background: "rgba(74,222,128,0.06)",
-                  border: "1px solid rgba(74,222,128,0.28)",
-                  borderRadius: 16, padding: "14px 16px",
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div>
-                      <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: 0 }}>👻 Ghost Mode</p>
-                      <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: "3px 0 0", fontWeight: 600 }}>Private dating · Ghost feed only</p>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <p style={{ fontSize: 20, fontWeight: 900, color: "#4ade80", margin: 0 }}>$9.99</p>
-                      <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: 0 }}>/month</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleSubscribe("ghost")}
-                    style={{
-                      width: "100%", height: 44, borderRadius: 12, border: "none",
-                      background: "linear-gradient(135deg, #16a34a, #22c55e)",
-                      color: "#fff", fontWeight: 800, fontSize: 13,
-                      cursor: "pointer",
-                      boxShadow: "0 4px 20px rgba(34,197,94,0.35)",
-                    }}
-                  >
-                    Start Ghost Mode — $9.99/mo
-                  </button>
-                </div>
-
-                {/* Ghost + VIP Bundle $14.99 */}
-                <div style={{
-                  background: "rgba(236,72,153,0.06)",
-                  border: "1px solid rgba(236,72,153,0.35)",
-                  borderRadius: 16, padding: "14px 16px",
-                  position: "relative", overflow: "hidden",
-                }}>
-                  <div style={{
-                    position: "absolute", top: 10, right: 10,
-                    background: "rgba(236,72,153,0.85)", borderRadius: 6,
-                    padding: "2px 8px", fontSize: 9, fontWeight: 800, color: "#fff", letterSpacing: "0.07em",
-                  }}>
-                    BEST VALUE
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <div>
-                      <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: 0 }}>👻 Ghost + VIP</p>
-                      <p style={{ fontSize: 10, color: "rgba(236,72,153,0.75)", margin: "3px 0 0", fontWeight: 600 }}>Ghost Mode + VIP on regular feed</p>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <p style={{ fontSize: 20, fontWeight: 900, color: "#f472b6", margin: 0 }}>$14.99</p>
-                      <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: 0 }}>/month</p>
-                    </div>
-                  </div>
-                  {/* What VIP adds */}
-                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "0 0 8px", lineHeight: 1.5 }}>
-                    VIP gives you priority on the <em>regular</em> 2dateme feed — unlimited likes, 5 super likes/mo &amp; VIP badge.
-                  </p>
-                  <button
-                    onClick={() => handleSubscribe("bundle")}
-                    style={{
-                      width: "100%", height: 44, borderRadius: 12, border: "none",
-                      background: "linear-gradient(135deg, #be185d, #ec4899)",
-                      color: "#fff", fontWeight: 800, fontSize: 13,
-                      cursor: "pointer",
-                      boxShadow: "0 4px 20px rgba(236,72,153,0.35)",
-                    }}
-                  >
-                    Ghost + VIP Bundle — $14.99/mo
-                  </button>
-                </div>
-              </div>
-
-              {/* People count teaser */}
-              <p style={{ textAlign: "center", fontSize: 11, color: "rgba(74,222,128,0.55)", marginTop: 14, marginBottom: 0 }}>
-                👻 {previewProfiles.length}+ people are already in Ghost Mode near you
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     /* Desktop: centred column, max 480px, fills viewport height */
     <div style={{ minHeight: "100dvh", background: "#050508", display: "flex", justifyContent: "center" }}>
@@ -2389,134 +2332,204 @@ export default function GhostModePage() {
       {/* Header */}
       <div style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(5,5,8,0.92)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+        background: "rgba(5,5,8,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
         borderBottom: "1px solid rgba(255,255,255,0.06)",
-        padding: "12px 16px",
         paddingTop: `max(12px, env(safe-area-inset-top, 12px))`,
-        display: "flex", alignItems: "center", gap: 12,
       }}>
-        <button onClick={() => navigate("/")} style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.7)", flexShrink: 0 }}>
-          <ArrowLeft size={16} />
-        </button>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 16 }}>👻</span>
-            <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Ghost Mode</h1>
-            <span style={{ background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 6, padding: "1px 6px", fontSize: 9, fontWeight: 700, color: "rgba(74,222,128,0.9)", letterSpacing: "0.08em" }}>
-              {plan === "bundle" ? "GHOST + VIP" : "ACTIVE"}
-            </span>
+        {/* Top row: title + primary actions */}
+        <div style={{ padding: "0 16px 10px", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 26, lineHeight: 1 }}>👻</span>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <h1 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>Ghost Mode</h1>
+                <span style={{ background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 6, padding: "1px 6px", fontSize: 9, fontWeight: 700, color: "rgba(74,222,128,0.9)", letterSpacing: "0.08em" }}>
+                  {plan === "bundle" ? "GHOST + VIP" : "ACTIVE"}
+                </span>
+              </div>
+              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", margin: 0 }}>Invisible · Photo · Name · Age · City only</p>
+            </div>
           </div>
-          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>Invisible · Photo · Name · Age · City only</p>
+          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+            <motion.button
+              onClick={() => setShowFilters(true)}
+              whileTap={{ scale: 0.93 }}
+              style={{
+                height: 34, paddingInline: 12, borderRadius: 10, border: "1px solid rgba(74,222,128,0.3)",
+                background: "rgba(74,222,128,0.1)",
+                color: "rgba(74,222,128,0.9)", fontSize: 12, fontWeight: 700,
+                display: "flex", alignItems: "center", gap: 5, cursor: "pointer",
+              }}
+            >
+              <SlidersHorizontal size={13} />
+              Filter
+            </motion.button>
+            <button
+              onClick={() => setQuickExit(true)}
+              title="Quick Exit"
+              style={{
+                width: 34, height: 34, borderRadius: 10,
+                background: "rgba(255,59,48,0.06)", border: "1px solid rgba(255,59,48,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", color: "rgba(255,99,88,0.7)",
+              }}
+            >
+              <LogOut size={15} />
+            </button>
+            <button
+              onClick={() => { if (confirm("Deactivate Ghost Mode?")) deactivate(); }}
+              style={{
+                width: 34, height: 34, borderRadius: 10,
+                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", color: "rgba(255,255,255,0.3)",
+              }}
+            >
+              <Settings size={15} />
+            </button>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 5 }}>
-          {/* Ghost Room */}
-          <motion.button
-            onClick={() => navigate("/ghost/room")}
-            title="Ghost Room — private vault"
-            style={{
-              width: 34, height: 34, borderRadius: 10,
-              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", fontSize: 15,
-            }}
-          >
-            🚪
-          </motion.button>
 
-          {/* Ghost House */}
+        {/* Feature strip */}
+        <div style={{ padding: "0 14px 10px", display: "flex", gap: 6, overflowX: "auto", scrollbarWidth: "none" }}>
+          <button
+            onClick={() => navigate("/ghost/room")}
+            style={{ flexShrink: 0, height: 28, paddingInline: 10, borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.55)", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
+          >
+            🚪 Room
+          </button>
           <motion.button
             onClick={() => setShowHouseModal(true)}
-            animate={houseTier === "black" ? { boxShadow: ["0 0 0px rgba(212,175,55,0)", "0 0 10px rgba(212,175,55,0.6)", "0 0 0px rgba(212,175,55,0)"] } : houseTier === "house" ? { boxShadow: ["0 0 0px rgba(74,222,128,0)", "0 0 8px rgba(74,222,128,0.4)", "0 0 0px rgba(74,222,128,0)"] } : {}}
+            animate={houseTier === "black" ? { boxShadow: ["0 0 0px rgba(212,175,55,0)", "0 0 8px rgba(212,175,55,0.6)", "0 0 0px rgba(212,175,55,0)"] } : houseTier === "house" ? { boxShadow: ["0 0 0px rgba(74,222,128,0)", "0 0 6px rgba(74,222,128,0.4)", "0 0 0px rgba(74,222,128,0)"] } : {}}
             transition={{ duration: 2.2, repeat: Infinity }}
-            title={houseTier === "black" ? "Ghost Black · Tap to view" : houseTier === "house" ? "Ghost House Member · Tap to view" : "Ghost House Membership"}
             style={{
-              width: 34, height: 34, borderRadius: 10,
-              background: houseTier === "black" ? "rgba(212,175,55,0.12)" : houseTier === "house" ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.05)",
+              flexShrink: 0, height: 28, paddingInline: 10, borderRadius: 8,
+              background: houseTier === "black" ? "rgba(212,175,55,0.12)" : houseTier === "house" ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.04)",
               border: houseTier === "black" ? "1px solid rgba(212,175,55,0.45)" : houseTier === "house" ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.07)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", fontSize: 16,
+              color: houseTier === "black" ? "rgba(212,175,55,0.9)" : houseTier === "house" ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.55)",
+              fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
             }}
           >
-            {houseTier ? (houseTier === "black" ? "🖤" : "🏠") : <span style={{ fontSize: 13 }}>🏠</span>}
+            {houseTier === "black" ? "🖤 Black" : "🏠 House"}
           </motion.button>
-
-          {/* Tonight Mode toggle */}
           <motion.button
             onClick={toggleTonight}
-            animate={isTonightMode ? { boxShadow: ["0 0 0px rgba(74,222,128,0)", "0 0 10px rgba(74,222,128,0.5)", "0 0 0px rgba(74,222,128,0)"] } : {}}
+            animate={isTonightMode ? { boxShadow: ["0 0 0px rgba(74,222,128,0)", "0 0 8px rgba(74,222,128,0.5)", "0 0 0px rgba(74,222,128,0)"] } : {}}
             transition={{ duration: 2, repeat: Infinity }}
-            title={isTonightMode ? "Tonight Mode ON — tap to turn off" : "Tonight Mode — I'm available tonight"}
             style={{
-              width: 34, height: 34, borderRadius: 10,
-              background: isTonightMode ? "rgba(74,222,128,0.18)" : "rgba(255,255,255,0.05)",
-              border: isTonightMode ? "1px solid rgba(74,222,128,0.5)" : "1px solid rgba(255,255,255,0.07)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer",
+              flexShrink: 0, height: 28, paddingInline: 10, borderRadius: 8,
+              background: isTonightMode ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
+              border: isTonightMode ? "1px solid rgba(74,222,128,0.4)" : "1px solid rgba(255,255,255,0.07)",
+              color: isTonightMode ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.55)",
+              fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
             }}
           >
-            <Moon size={15} color={isTonightMode ? "#4ade80" : "rgba(255,255,255,0.4)"} fill={isTonightMode ? "rgba(74,222,128,0.4)" : "none"} />
+            <Moon size={12} color={isTonightMode ? "#4ade80" : "rgba(255,255,255,0.55)"} fill={isTonightMode ? "rgba(74,222,128,0.4)" : "none"} />
+            Tonight
           </motion.button>
-
-          {/* Ghost Boost */}
           <motion.button
             onClick={() => setShowBoostModal(true)}
-            animate={isBoosted ? { boxShadow: ["0 0 0px rgba(74,222,128,0)", "0 0 10px rgba(74,222,128,0.5)", "0 0 0px rgba(74,222,128,0)"] } : {}}
+            animate={isBoosted ? { boxShadow: ["0 0 0px rgba(74,222,128,0)", "0 0 8px rgba(74,222,128,0.5)", "0 0 0px rgba(74,222,128,0)"] } : {}}
             transition={{ duration: 1.8, repeat: Infinity }}
-            title={isBoosted ? `Boosted · ${fmtRemaining(boostedUntil)} left` : "Ghost Boost — appear first for 24h"}
             style={{
-              width: 34, height: 34, borderRadius: 10,
-              background: isBoosted ? "rgba(74,222,128,0.18)" : "rgba(255,255,255,0.05)",
-              border: isBoosted ? "1px solid rgba(74,222,128,0.5)" : "1px solid rgba(255,255,255,0.07)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer",
+              flexShrink: 0, height: 28, paddingInline: 10, borderRadius: 8,
+              background: isBoosted ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
+              border: isBoosted ? "1px solid rgba(74,222,128,0.4)" : "1px solid rgba(255,255,255,0.07)",
+              color: isBoosted ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.55)",
+              fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
             }}
           >
-            <Zap size={15} color={isBoosted ? "#4ade80" : "rgba(255,255,255,0.4)"} fill={isBoosted ? "rgba(74,222,128,0.3)" : "none"} />
+            <Zap size={12} color={isBoosted ? "#4ade80" : "rgba(255,255,255,0.55)"} fill={isBoosted ? "rgba(74,222,128,0.3)" : "none"} />
+            Boost
           </motion.button>
-
-          {/* Ghost Shield */}
           <button
             onClick={() => navigate("/ghost/block")}
             style={{
-              width: 34, height: 34, borderRadius: 10,
-              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", color: "rgba(255,255,255,0.4)",
-            }}
-            title="Ghost Shield"
-          >
-            <Shield size={15} />
-          </button>
-
-          {/* Quick Exit */}
-          <button
-            onClick={() => setQuickExit(true)}
-            title="Quick Exit — hides the app instantly"
-            style={{
-              width: 34, height: 34, borderRadius: 10,
-              background: "rgba(255,59,48,0.06)", border: "1px solid rgba(255,59,48,0.15)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", color: "rgba(255,99,88,0.7)",
+              flexShrink: 0, height: 28, paddingInline: 10, borderRadius: 8,
+              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
+              color: "rgba(255,255,255,0.55)", fontSize: 11, fontWeight: 700, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 5,
             }}
           >
-            <LogOut size={15} />
-          </button>
-
-          <button onClick={() => { if (confirm("Deactivate Ghost Mode?")) deactivate(); }} style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.3)" }}>
-            <Settings size={15} />
+            <Shield size={12} color="rgba(255,255,255,0.55)" /> Shield
           </button>
         </div>
       </div>
 
-      {/* Filter bar */}
-      <FilterBar
-        gender={gender} setGender={setGender}
-        ageMin={ageMin} ageMax={ageMax} setAgeMin={setAgeMin} setAgeMax={setAgeMax}
-        maxKm={maxKm} setMaxKm={setMaxKm}
-        locationLoading={locationLoading} hasLocation={userLat !== null}
-        onRequestLocation={requestLocation}
-        filterCountry={filterCountry} setFilterCountry={setFilterCountry}
-      />
+      {/* Filter slide-up sheet */}
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowFilters(false)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 200,
+              background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)",
+            }}
+          >
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 32 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: "absolute", bottom: 0, left: 0, right: 0,
+                background: "rgba(8,8,14,0.98)", backdropFilter: "blur(30px)",
+                borderRadius: "22px 22px 0 0",
+                border: "1px solid rgba(255,255,255,0.08)",
+                paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))",
+                maxHeight: "85dvh", overflowY: "auto",
+              }}
+            >
+              {/* Handle */}
+              <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
+                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)" }} />
+              </div>
+              {/* Sheet header */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 18px 14px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <SlidersHorizontal size={16} color="rgba(74,222,128,0.9)" />
+                  <span style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>Filters</span>
+                </div>
+                <button
+                  onClick={() => setShowFilters(false)}
+                  style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: 8, width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.5)", fontSize: 16, fontWeight: 700 }}
+                >
+                  ✕
+                </button>
+              </div>
+              <div style={{ padding: "0 18px" }}>
+                <FilterBar
+                  gender={gender} setGender={setGender}
+                  ageMin={ageMin} ageMax={ageMax} setAgeMin={setAgeMin} setAgeMax={setAgeMax}
+                  maxKm={maxKm} setMaxKm={setMaxKm}
+                  locationLoading={locationLoading} hasLocation={userLat !== null}
+                  onRequestLocation={requestLocation}
+                  filterCountry={filterCountry} setFilterCountry={setFilterCountry}
+                  onlineOnly={onlineOnly} setOnlineOnly={setOnlineOnly}
+                  lookingFor={lookingFor} setLookingFor={setLookingFor}
+                />
+              </div>
+              <div style={{ padding: "14px 18px 0" }}>
+                <button
+                  onClick={() => setShowFilters(false)}
+                  style={{
+                    width: "100%", height: 44, borderRadius: 12, border: "none",
+                    background: "linear-gradient(to bottom, #4ade80, #22c55e)",
+                    color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer",
+                    boxShadow: "0 4px 16px rgba(34,197,94,0.35)",
+                  }}
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Ghost banner */}
       <div style={{ margin: "10px 14px 0", background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 12, padding: "7px 14px", display: "flex", alignItems: "center", gap: 8 }}>
@@ -2707,10 +2720,26 @@ export default function GhostModePage() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {matchProfile && <GhostMatchPopup profile={matchProfile} onClose={() => setMatchProfile(null)} />}
+        {matchProfile && (
+          <GhostMatchPopup
+            profile={matchProfile}
+            isSubscribed={isGhost}
+            onClose={() => setMatchProfile(null)}
+            onConnectWhatsApp={() => {
+              if (isGhost) {
+                // Subscriber — open WhatsApp directly
+                setMatchProfile(null);
+              } else {
+                // Free user — show subscription plans
+                setMatchPaywallProfile(matchProfile);
+                setMatchProfile(null);
+              }
+            }}
+          />
+        )}
       </AnimatePresence>
 
-      {/* ── Match paywall for unsubscribed women ── */}
+      {/* ── Subscription plans — shown when free user taps "Connect on WhatsApp" ── */}
       <AnimatePresence>
         {matchPaywallProfile && (
           <MatchPaywallModal
@@ -2722,7 +2751,6 @@ export default function GhostModePage() {
               } catch {}
               activate(planKey as "ghost" | "bundle");
               setMatchPaywallProfile(null);
-              setMatchProfile(matchPaywallProfile);
             }}
             onClose={() => setMatchPaywallProfile(null)}
           />
@@ -2791,12 +2819,8 @@ export default function GhostModePage() {
               };
               saveMatch(matched);
               setInboundLike(null);
-              // Unsubscribed women see paywall before WhatsApp is released
-              if (isFemale && !isGhost) {
-                setMatchPaywallProfile(matched);
-              } else {
-                setMatchProfile(matched);
-              }
+              // Everyone sees the match celebration — paywall only triggers on "Connect WhatsApp"
+              setMatchProfile(matched);
             }}
             onPass={() => setInboundLike(null)}
           />

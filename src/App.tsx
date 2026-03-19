@@ -9,10 +9,11 @@ const GhostMockFeedPage = lazy(() => import("./features/ghost/pages/GhostMockFee
 const GhostPricingPage  = lazy(() => import("./features/ghost/pages/GhostPricingPage"));
 const GhostBlockPage    = lazy(() => import("./features/ghost/pages/GhostBlockPage"));
 const GhostRoomPage     = lazy(() => import("./features/ghost/pages/GhostRoomPage"));
+const GhostMapPage      = lazy(() => import("./features/ghost/pages/GhostMapPage"));
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Suspense fallback={null}>
         <Routes>
           <Route path="/"            element={<Navigate to="/ghost" replace />} />
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/ghost/pricing" element={<GhostPricingPage />} />
           <Route path="/ghost/block" element={<GhostBlockPage />} />
           <Route path="/ghost/room"  element={<GhostRoomPage />} />
+          <Route path="/ghost/map"   element={<GhostMapPage />} />
           <Route path="*"            element={<Navigate to="/ghost" replace />} />
         </Routes>
       </Suspense>
