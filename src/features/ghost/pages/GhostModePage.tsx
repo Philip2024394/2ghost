@@ -135,6 +135,38 @@ function saveFlaggedProfiles(obj: Record<string, { reason: string; at: number }>
   try { localStorage.setItem("ghost_flagged_profiles", JSON.stringify(obj)); } catch {}
 }
 
+// ── International Ghost ───────────────────────────────────────────────────────
+const INTL_GHOST_KEY = "ghost_intl_sub_until";
+const INTL_GHOST_COUNTRIES_KEY = "ghost_intl_countries";
+
+const SEA_COUNTRY_LIST = [
+  { code: "ID", name: "Indonesia",   flag: "🇮🇩" },
+  { code: "PH", name: "Philippines", flag: "🇵🇭" },
+  { code: "TH", name: "Thailand",    flag: "🇹🇭" },
+  { code: "SG", name: "Singapore",   flag: "🇸🇬" },
+  { code: "MY", name: "Malaysia",    flag: "🇲🇾" },
+  { code: "VN", name: "Vietnam",     flag: "🇻🇳" },
+];
+
+// flag emoji → country code lookup
+const FLAG_TO_CODE: Record<string, string> = {
+  "🇮🇩": "ID", "🇵🇭": "PH", "🇹🇭": "TH",
+  "🇸🇬": "SG", "🇲🇾": "MY", "🇻🇳": "VN",
+};
+
+function hasIntlGhost(): boolean {
+  try { return Number(localStorage.getItem(INTL_GHOST_KEY) || 0) > Date.now(); } catch { return false; }
+}
+function activateIntlGhost() {
+  try { localStorage.setItem(INTL_GHOST_KEY, String(Date.now() + 30 * 24 * 60 * 60 * 1000)); } catch {}
+}
+function getIntlCountries(): string[] {
+  try { return JSON.parse(localStorage.getItem(INTL_GHOST_COUNTRIES_KEY) || "[]"); } catch { return []; }
+}
+function saveIntlCountries(codes: string[]) {
+  try { localStorage.setItem(INTL_GHOST_COUNTRIES_KEY, JSON.stringify(codes)); } catch {}
+}
+
 // ── International mock Ghost profiles ───────────────────────────────────────
 const INTL_PROFILES: GhostProfile[] = [
   { id: "intl-1",  name: "Aoife",    age: 26, city: "Dublin",      country: "Ireland",        countryFlag: "🇮🇪", image: "https://i.pravatar.cc/400?img=47", gender: "Female", last_seen_at: null },
@@ -2483,6 +2515,195 @@ function FoundBooBanner({
   );
 }
 
+// ── Country tab bar ───────────────────────────────────────────────────────────
+function CountryTabBar({ homeCode, homeName, homeFlag, activeCode, onChange }: {
+  homeCode: string;
+  homeName: string;
+  homeFlag: string;
+  activeCode: string | null; // null = home country
+  onChange: (code: string | null) => void;
+}) {
+  const others = SEA_COUNTRY_LIST.filter((c) => c.code !== homeCode);
+  return (
+    <div style={{
+      display: "flex", overflowX: "auto", gap: 8, padding: "10px 14px",
+      scrollbarWidth: "none",
+    }}>
+      {/* Home country tab */}
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        onClick={() => onChange(null)}
+        style={{
+          flexShrink: 0, height: 34, borderRadius: 50, padding: "0 14px",
+          background: activeCode === null ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.05)",
+          border: activeCode === null ? "1px solid rgba(74,222,128,0.5)" : "1px solid rgba(255,255,255,0.1)",
+          color: activeCode === null ? "rgba(74,222,128,0.95)" : "rgba(255,255,255,0.6)",
+          fontSize: 12, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap",
+          display: "flex", alignItems: "center", gap: 6,
+        }}
+      >
+        <span>{homeFlag}</span>
+        <span>{homeName}</span>
+      </motion.button>
+
+      {/* Other SEA countries */}
+      {others.map((c) => (
+        <motion.button
+          key={c.code}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => onChange(c.code)}
+          style={{
+            flexShrink: 0, height: 34, borderRadius: 50, padding: "0 14px",
+            background: activeCode === c.code ? "rgba(99,102,241,0.15)" : "rgba(255,255,255,0.04)",
+            border: activeCode === c.code ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.08)",
+            color: activeCode === c.code ? "#818cf8" : "rgba(255,255,255,0.5)",
+            fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+            display: "flex", alignItems: "center", gap: 6,
+          }}
+        >
+          <span>{c.flag}</span>
+          <span>{c.name}</span>
+        </motion.button>
+      ))}
+    </div>
+  );
+}
+
+// ── International Ghost paywall ───────────────────────────────────────────────
+function InternationalGhostModal({ userCountryCode, isFemale, onActivate, onClose }: {
+  userCountryCode: string;
+  isFemale: boolean;
+  onActivate: (countries: string[]) => void;
+  onClose: () => void;
+}) {
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  const available = SEA_COUNTRY_LIST.filter((c) => c.code !== userCountryCode);
+
+  const toggle = (code: string) => {
+    setSelectedCountries((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+    );
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 400,
+        background: "rgba(0,0,0,0.88)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+      }}
+    >
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", stiffness: 280, damping: 28 }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%", maxWidth: 480,
+          background: "rgba(4,6,16,0.98)", backdropFilter: "blur(40px)",
+          borderRadius: "24px 24px 0 0",
+          border: "1px solid rgba(99,102,241,0.3)", borderBottom: "none",
+          padding: "0 22px max(40px, env(safe-area-inset-bottom, 40px))",
+          boxShadow: "0 -28px 80px rgba(0,0,0,0.8)",
+        }}
+      >
+        <div style={{ height: 4, background: "linear-gradient(90deg, #4f46e5, #818cf8, #6366f1)", marginLeft: -22, marginRight: -22 }} />
+        <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 6px" }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
+        </div>
+
+        <div style={{ textAlign: "center", marginBottom: 20 }}>
+          <div style={{ fontSize: 40, marginBottom: 8 }}>🌍</div>
+          <h2 style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
+            International Ghost
+          </h2>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: "0 0 4px", lineHeight: 1.55 }}>
+            List your profile in other countries — appear in their local feed.
+          </p>
+          {isFemale ? (
+            <div style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 10, padding: "8px 12px", marginTop: 10 }}>
+              <p style={{ fontSize: 12, color: "rgba(74,222,128,0.9)", margin: 0, fontWeight: 700 }}>
+                Women list internationally free — no charge 🎁
+              </p>
+            </div>
+          ) : (
+            <div style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)", borderRadius: 10, padding: "8px 12px", marginTop: 10 }}>
+              <p style={{ fontSize: 18, fontWeight: 900, color: "#818cf8", margin: 0 }}>$9.99 <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.7 }}>/ month</span></p>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>List in up to 5 countries · cancel anytime</p>
+            </div>
+          )}
+        </div>
+
+        <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>
+          Choose countries to list in
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+          {available.map((c) => {
+            const selected = selectedCountries.includes(c.code);
+            return (
+              <motion.button
+                key={c.code}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => toggle(c.code)}
+                style={{
+                  width: "100%", height: 52, borderRadius: 14, padding: "0 16px",
+                  background: selected ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.03)",
+                  border: selected ? "1px solid rgba(99,102,241,0.5)" : "1px solid rgba(255,255,255,0.07)",
+                  cursor: "pointer", display: "flex", alignItems: "center", gap: 14,
+                  transition: "all 0.15s",
+                }}
+              >
+                <span style={{ fontSize: 28 }}>{c.flag}</span>
+                <div style={{ flex: 1, textAlign: "left" }}>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: selected ? "#818cf8" : "#fff", margin: 0 }}>{c.name}</p>
+                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>Local Ghost House · {c.flag} feed</p>
+                </div>
+                <div style={{
+                  width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                  background: selected ? "#6366f1" : "rgba(255,255,255,0.08)",
+                  border: selected ? "none" : "1px solid rgba(255,255,255,0.15)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  {selected && <span style={{ fontSize: 12, color: "#fff", fontWeight: 900 }}>✓</span>}
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          disabled={selectedCountries.length === 0}
+          onClick={() => {
+            if (selectedCountries.length === 0) return;
+            if (!isFemale) activateIntlGhost();
+            saveIntlCountries(selectedCountries);
+            onActivate(selectedCountries);
+          }}
+          style={{
+            width: "100%", height: 52, borderRadius: 50, border: "none",
+            background: selectedCountries.length > 0
+              ? "linear-gradient(135deg, #4f46e5, #6366f1, #818cf8)"
+              : "rgba(255,255,255,0.06)",
+            color: selectedCountries.length > 0 ? "#fff" : "rgba(255,255,255,0.2)",
+            fontSize: 15, fontWeight: 900, cursor: selectedCountries.length > 0 ? "pointer" : "default",
+            boxShadow: selectedCountries.length > 0 ? "0 6px 28px rgba(99,102,241,0.4)" : "none",
+            marginBottom: 12,
+          }}
+        >
+          {isFemale
+            ? `List free in ${selectedCountries.length || "..."} ${selectedCountries.length === 1 ? "country" : "countries"} →`
+            : `Pay $9.99 · List in ${selectedCountries.length || "..."} ${selectedCountries.length === 1 ? "country" : "countries"} →`}
+        </motion.button>
+        <button onClick={onClose} style={{ width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 13, cursor: "pointer", padding: "8px 0" }}>
+          Maybe later
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ── Main page ───────────────────────────────────────────────────────────────
 export default function GhostModePage() {
   const navigate = useNavigate();
@@ -2495,6 +2716,19 @@ export default function GhostModePage() {
       detectIpCountry().then((result) => { if (result) setIpCountry(result); });
     }
   }, []);
+
+  // International Ghost state
+  const [isIntlGhost, setIsIntlGhost] = useState(hasIntlGhost);
+  const [intlCountries, setIntlCountries] = useState<string[]>(getIntlCountries);
+  const [showIntlModal, setShowIntlModal] = useState(false);
+
+  // Country tab — null means home country
+  const homeCountryCode = ipCountry?.countryCode ?? "ID";
+  const homeCountryName = ipCountry?.countryName ?? "Indonesia";
+  const homeFlag = SEA_COUNTRY_LIST.find((c) => c.code === homeCountryCode)?.flag ?? "🇮🇩";
+  const [browsingCountryCode, setBrowsingCountryCode] = useState<string | null>(null);
+  // When browsing another country: filter to that country's profiles
+  // null = home country
 
   const hasGhostProfile = (() => {
     try { return !!localStorage.getItem("ghost_profile"); } catch { return false; }
@@ -2858,15 +3092,23 @@ export default function GhostModePage() {
         if (gender !== "all" && p.gender !== gender) return false;
         if (p.age < ageMin || p.age > ageMax) return false;
         if (maxKm !== 9999 && p.distanceKm !== undefined && p.distanceKm > maxKm) return false;
-        if (filterCountry && p.country !== filterCountry) return false;
         if (onlineOnly && !isOnline(p.last_seen_at)) return false;
+        // Country tab filter takes priority over old filterCountry
+        if (browsingCountryCode) {
+          // Browsing another country: only show profiles from that country
+          const cc = FLAG_TO_CODE[p.countryFlag ?? ""] ?? "";
+          if (cc !== browsingCountryCode) return false;
+        } else {
+          // Home country: show home country profiles + International Ghosts listed here
+          if (filterCountry && p.country !== filterCountry) return false;
+        }
         return true;
       })
       .sort((a, b) => {
         if (a.distanceKm !== undefined && b.distanceKm !== undefined) return a.distanceKm - b.distanceKm;
         return 0;
       });
-  }, [allProfiles, gender, ageMin, ageMax, maxKm, filterCountry, onlineOnly, passedIds]);
+  }, [allProfiles, gender, ageMin, ageMax, maxKm, filterCountry, onlineOnly, passedIds, browsingCountryCode]);
 
   const saveMatch = (profile: GhostProfile) => {
     const next = [
@@ -3209,6 +3451,37 @@ export default function GhostModePage() {
 
       {/* ── Ghost Pulse row — hidden when Flash is active ── */}
       {!isFlashActive && <GhostPulseRow profiles={profiles} onSelect={(p) => setSelectedProfile(p)} />}
+
+      {/* ── Country tab bar ── */}
+      <CountryTabBar
+        homeCode={homeCountryCode}
+        homeName={homeCountryName}
+        homeFlag={homeFlag}
+        activeCode={browsingCountryCode}
+        onChange={setBrowsingCountryCode}
+      />
+
+      {/* ── Browsing another country notice ── */}
+      {browsingCountryCode && (() => {
+        const c = SEA_COUNTRY_LIST.find((x) => x.code === browsingCountryCode)!;
+        return (
+          <div style={{ margin: "0 14px 8px", background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 20 }}>{c.flag}</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 12, fontWeight: 800, color: "#818cf8", margin: 0 }}>Browsing {c.name} Ghost House</p>
+              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>Liking and matching works across countries</p>
+            </div>
+            {!isIntlGhost && !isFemale && (
+              <button
+                onClick={() => setShowIntlModal(true)}
+                style={{ height: 30, borderRadius: 50, padding: "0 12px", background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.4)", color: "#818cf8", fontSize: 11, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap" }}
+              >
+                List here $9.99
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Active today banner + IP location indicator ── */}
       <div style={{ margin: "10px 14px 0", background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.1)", borderRadius: 10, padding: "6px 12px", display: "flex", alignItems: "center", gap: 6 }}>
@@ -3830,6 +4103,22 @@ export default function GhostModePage() {
               </motion.button>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── International Ghost modal ── */}
+      <AnimatePresence>
+        {showIntlModal && (
+          <InternationalGhostModal
+            userCountryCode={homeCountryCode}
+            isFemale={isFemale}
+            onActivate={(countries) => {
+              setIntlCountries(countries);
+              setIsIntlGhost(true);
+              setShowIntlModal(false);
+            }}
+            onClose={() => setShowIntlModal(false)}
+          />
         )}
       </AnimatePresence>
 
