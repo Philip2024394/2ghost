@@ -9,6 +9,14 @@ const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,
 const SESSION_KEY   = "ghost_room_session_until";
 const SESSION_TTL   = 24 * 60 * 60 * 1000; // 24 hours
 const WA_STORED_KEY = "ghost_room_whatsapp";
+const ROOM_SUB_KEY  = "ghost_room_sub_until";
+
+function hasRoomSub(): boolean {
+  try { return Number(localStorage.getItem(ROOM_SUB_KEY) || 0) > Date.now(); } catch { return false; }
+}
+function activateRoomSub() {
+  try { localStorage.setItem(ROOM_SUB_KEY, String(Date.now() + 30 * 24 * 60 * 60 * 1000)); } catch {}
+}
 
 function isSessionValid(): boolean {
   try { return Number(localStorage.getItem(SESSION_KEY) || 0) > Date.now(); } catch { return false; }
@@ -28,6 +36,93 @@ function mockSendOtp(phone: string): string {
   const seed = phone + String(Math.floor(Date.now() / 60000)); // changes every minute
   for (let i = 0; i < seed.length; i++) { h = Math.imul(31, h) + seed.charCodeAt(i) | 0; }
   return String(100000 + Math.abs(h) % 900000);
+}
+
+// ── Ghost Room subscription paywall ──────────────────────────────────────────
+function RoomPaywall({ onPaid }: { onPaid: () => void }) {
+  const navigate = useNavigate();
+  return (
+    <div style={{
+      minHeight: "100dvh", width: "100%",
+      backgroundImage: `url(${ROOM_BG})`,
+      backgroundSize: "cover", backgroundPosition: "center",
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end",
+      padding: "0 16px max(36px, env(safe-area-inset-bottom, 36px))",
+    }}>
+      <div style={{ position: "fixed", inset: 0, background: "rgba(4,5,8,0.82)", zIndex: 0 }} />
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        style={{
+          position: "relative", zIndex: 1,
+          width: "100%", maxWidth: 480,
+          background: "rgba(4,6,4,0.97)",
+          border: "1px solid rgba(74,222,128,0.2)",
+          borderRadius: 24, padding: "28px 22px 24px",
+          backdropFilter: "blur(20px)",
+          boxShadow: "0 0 60px rgba(74,222,128,0.08)",
+          marginBottom: 8,
+        }}
+      >
+        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: "4px 4px 0 0", marginLeft: -22, marginRight: -22, marginTop: -28, marginBottom: 24 }} />
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+          <img src={GHOST_LOGO} alt="ghost" style={{ width: 52, height: 52, objectFit: "contain" }} />
+          <div>
+            <h2 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0 }}>Ghost Room</h2>
+            <p style={{ fontSize: 11, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600 }}>Private shared space · media storage</p>
+          </div>
+        </div>
+
+        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 0 18px" }}>
+          Ghost Room stores your shared photos and videos on secure private servers. Storage has a real cost — so Ghost Room requires a small subscription for everyone, including women.
+        </p>
+
+        <div style={{ background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 12, padding: "12px 14px", marginBottom: 20 }}>
+          {[
+            "Private photo & video sharing with your match",
+            "Files auto-delete — nothing stored permanently",
+            "End-to-end private — no one else can access",
+            "One room per connection — clean and simple",
+          ].map((t) => (
+            <div key={t} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
+              <span style={{ color: "#4ade80", fontSize: 12, marginTop: 1, flexShrink: 0 }}>✓</span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>{t}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 20 }}>
+          <span style={{ fontSize: 28, fontWeight: 900, color: "#4ade80" }}>19,000</span>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>IDR / month</span>
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginLeft: 4 }}>· ~$1.20 · everyone pays</span>
+        </div>
+
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => { activateRoomSub(); onPaid(); }}
+          style={{
+            width: "100%", height: 52, borderRadius: 50, border: "none",
+            background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+            color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
+            boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 28px rgba(34,197,94,0.45)",
+            position: "relative", overflow: "hidden", marginBottom: 12,
+          }}
+        >
+          <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
+          Unlock Ghost Room — 19,000 IDR
+        </motion.button>
+
+        <button
+          onClick={() => navigate(-1)}
+          style={{ width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 12, cursor: "pointer", padding: "4px 0" }}
+        >
+          Go back
+        </button>
+      </motion.div>
+    </div>
+  );
 }
 
 // ── WhatsApp Auth Gate ────────────────────────────────────────────────────────
@@ -734,6 +829,7 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
 
 export default function GhostRoomPage() {
   const navigate = useNavigate();
+  const [hasSub, setHasSub] = useState(hasRoomSub);
   const [verified, setVerified] = useState(isSessionValid);
   const [showRoomWelcome, setShowRoomWelcome] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -1118,6 +1214,8 @@ export default function GhostRoomPage() {
 
   const pending = requests.filter((r) => r.status === "pending");
   const grantedReqs = requests.filter((r) => r.status === "granted");
+
+  if (!hasSub) return <RoomPaywall onPaid={() => setHasSub(true)} />;
 
   return (
     <div translate="no" style={S.page}>

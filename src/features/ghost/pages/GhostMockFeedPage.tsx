@@ -36,7 +36,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
       name: "Women — Free Forever",
       idr: "0",
       usd: "Free",
-      period: "Browse · Like · Match · Connect — all free",
+      period: "Browse · Like · Match · Connect — all free · Ghost Room 19k IDR",
       color: "#4ade80",
       border: "rgba(74,222,128,0.45)",
       bg: "rgba(74,222,128,0.09)",
@@ -133,8 +133,8 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
               }}>Ghost House</span>
             </h2>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.6 }}>
-              <span>2Ghost is a private members club.</span><br />
-              <span>Only paying members can explore and connect.</span>
+              <span>Women join free. Men subscribe to connect.</span><br />
+              <span>Ghost Room (media sharing) is paid for everyone.</span>
             </p>
           </div>
 
@@ -145,7 +145,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
             display: "flex", flexDirection: "column", gap: 12,
           }}>
             {[
-              { icon: "👩", title: "Women Always Free", desc: "Women join, browse, like and connect — 100% free" },
+              { icon: "👩", title: "Women — Free to Join", desc: "Browse, like, match and connect free. Ghost Room (media sharing) is 19k IDR/month for everyone." },
               { icon: "🔒", title: "Total Privacy", desc: "Your identity stays hidden until a mutual match" },
               { icon: "👻", title: "Ghost IDs Only", desc: "Every profile is anonymous — Ghost-XXXX until you connect" },
               { icon: "📱", title: "WhatsApp on Match", desc: "No in-app chat. Connect directly when both sides like" },
