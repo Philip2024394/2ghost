@@ -1309,14 +1309,12 @@ function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
 function DevPanel({
   isTonightMode, toggleTonight,
   isFlashActive, enterFlash, exitFlash,
-  isBoosted, handleBoost,
   houseTier, setHouseTier,
   activate, deactivate,
   onTriggerFlashMatch, onTriggerMatch, onTriggerInbound,
 }: {
   isTonightMode: boolean; toggleTonight: () => void;
   isFlashActive: boolean; enterFlash: () => void; exitFlash: () => void;
-  isBoosted: boolean; handleBoost: () => void;
   houseTier: "black" | "house" | null; setHouseTier: (t: "black" | "house" | null) => void;
   activate: (p: "ghost" | "bundle") => void; deactivate: () => void;
   onTriggerFlashMatch: () => void; onTriggerMatch: () => void; onTriggerInbound: () => void;
@@ -1468,7 +1466,6 @@ function DevPanel({
                 <div style={{ display: "flex", gap: 5 }}>
                   <button style={btn(isTonightMode)} onClick={toggleTonight}>🌙 Tonight</button>
                   <button style={btn(isFlashActive)} onClick={isFlashActive ? exitFlash : enterFlash}>⚡ Flash</button>
-                  <button style={btn(isBoosted)} onClick={isBoosted ? () => {} : handleBoost}>🚀 Boost</button>
                 </div>
               </div>
 
@@ -2265,18 +2262,6 @@ export default function GhostModePage() {
   };
   void toggleTonightActive; // kept for external use
 
-  // Ghost Boost — 24h
-  const [boostedUntil, setBoostedUntil] = useState<number>(() => {
-    try { const v = Number(localStorage.getItem("ghost_boost_until") || 0); return v > Date.now() ? v : 0; } catch { return 0; }
-  });
-  const isBoosted = boostedUntil > Date.now();
-  const [showBoostModal, setShowBoostModal] = useState(false);
-  const handleBoost = () => {
-    const until = Date.now() + 24 * 60 * 60 * 1000;
-    try { localStorage.setItem("ghost_boost_until", String(until)); } catch {}
-    setBoostedUntil(until);
-    setShowBoostModal(false);
-  };
 
   // Quick Exit — renders a blank screen instantly
   const [quickExit, setQuickExit] = useState(false);
@@ -2686,14 +2671,6 @@ export default function GhostModePage() {
             </span>
           </button>
 
-          {/* Boost */}
-          <button onClick={() => setShowBoostModal(true)}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
-          >
-            <Zap size={22} color={isBoosted ? "#4ade80" : "rgba(255,255,255,0.55)"} fill={isBoosted ? "rgba(74,222,128,0.3)" : "none"} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: isBoosted ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)" }}>Boost</span>
-          </button>
-
           {/* Shield */}
           <button onClick={() => navigate("/ghost/block")}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
@@ -2819,21 +2796,6 @@ export default function GhostModePage() {
             <Moon size={12} color="rgba(74,222,128,0.9)" fill="rgba(74,222,128,0.3)" />
             <p style={{ fontSize: 11, color: "rgba(74,222,128,0.9)", margin: 0, fontWeight: 700 }}>
               <span>Tonight Mode is ON · resets at midnight</span>
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Boost active banner */}
-      <AnimatePresence>
-        {isBoosted && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-            style={{ margin: "8px 14px 0", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 10, padding: "7px 12px", display: "flex", alignItems: "center", gap: 8, overflow: "hidden" }}
-          >
-            <Zap size={12} color="rgba(74,222,128,0.9)" fill="rgba(74,222,128,0.3)" />
-            <p style={{ fontSize: 11, color: "rgba(74,222,128,0.9)", margin: 0, fontWeight: 700 }}>
-              <span>⚡ Boost active · {fmtRemaining(boostedUntil)} remaining · you're appearing first</span>
             </p>
           </motion.div>
         )}
@@ -3158,11 +3120,6 @@ export default function GhostModePage() {
         )}
       </AnimatePresence>
 
-      {/* ── Boost modal ── */}
-      <AnimatePresence>
-        {showBoostModal && <BoostModal onClose={() => setShowBoostModal(false)} onBoost={handleBoost} />}
-      </AnimatePresence>
-
       <AnimatePresence>
         {inboundLike && (
           <InboundLikePopup
@@ -3383,8 +3340,6 @@ export default function GhostModePage() {
         isFlashActive={isFlashActive}
         enterFlash={enterFlash}
         exitFlash={exitFlash}
-        isBoosted={isBoosted}
-        handleBoost={handleBoost}
         houseTier={houseTier}
         setHouseTier={setHouseTier}
         activate={activate}

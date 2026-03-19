@@ -475,7 +475,6 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
           { icon: "🚪", label: "Ghost Room", color: "rgba(74,222,128,0.9)", border: "rgba(74,222,128,0.25)", bg: "rgba(74,222,128,0.08)", action: () => navigate("/ghost/room") },
           { icon: "👻", label: "Ghosted", color: "rgba(168,85,247,0.9)", border: "rgba(168,85,247,0.25)", bg: "rgba(168,85,247,0.08)", action: lock },
           { icon: "⚡", label: "Flash Date",  color: "rgba(251,191,36,0.9)", border: "rgba(251,191,36,0.25)", bg: "rgba(251,191,36,0.08)", action: lock },
-          { icon: "🗺️", label: "Ghost Map",   color: "rgba(147,197,253,0.9)", border: "rgba(147,197,253,0.25)", bg: "rgba(147,197,253,0.08)", action: () => navigate("/ghost/map") },
         ].map(({ icon, label, color, border, bg, action }) => (
           <motion.button
             key={label}

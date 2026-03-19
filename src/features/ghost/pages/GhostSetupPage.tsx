@@ -98,28 +98,6 @@ export default function GhostSetupPage() {
     }, 2800);
   };
 
-  // Profile video
-  const videoRef = useRef<HTMLInputElement>(null);
-  const [profileVideo, setProfileVideo] = useState<string | null>(null);
-  const [videoError, setVideoError] = useState("");
-
-  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setVideoError("");
-    const url = URL.createObjectURL(file);
-    const vid = document.createElement("video");
-    vid.preload = "metadata";
-    vid.onloadedmetadata = () => {
-      if (vid.duration > 31) {
-        setVideoError("Video must be 30 seconds or less.");
-        URL.revokeObjectURL(url);
-      } else {
-        setProfileVideo(url);
-      }
-    };
-    vid.src = url;
-  };
 
   const selectedVibe = VIBES.find((v) => v.key === vibe);
   const selectedOutcome = OUTCOMES.find((o) => o.key === outcome);
@@ -174,7 +152,6 @@ export default function GhostSetupPage() {
           vibe: selectedVibe ? { key: selectedVibe.key, icon: selectedVibe.icon, label: selectedVibe.label } : null,
           outcome: selectedOutcome ? { key: selectedOutcome.key, icon: selectedOutcome.icon, label: selectedOutcome.label, tag: selectedOutcome.tag } : null,
           idVerified,
-          hasVideo: !!profileVideo,
         })
       );
       // Store interest separately so GhostModePage can read it for default feed filter
@@ -376,43 +353,6 @@ export default function GhostSetupPage() {
               Upload ID / Passport
             </button>
           )}
-        </div>
-
-        {/* Video upload */}
-        <div style={{ marginBottom: 20 }}>
-          <label style={labelStyle}>
-            🎬 Profile Video <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>(optional · 30 sec max · shown on card flip)</span>
-          </label>
-          <input ref={videoRef} type="file" accept="video/*" onChange={handleVideoChange} style={{ display: "none" }} />
-          {profileVideo ? (
-            <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(74,222,128,0.3)", position: "relative" }}>
-              <video src={profileVideo} controls muted style={{ width: "100%", maxHeight: 200, objectFit: "cover", display: "block" }} />
-              <button
-                onClick={() => setProfileVideo(null)}
-                style={{ position: "absolute", top: 8, right: 8, width: 28, height: 28, borderRadius: 8, background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}
-              >
-                ✕
-              </button>
-              <div style={{ background: "rgba(74,222,128,0.1)", padding: "6px 12px" }}>
-                <p style={{ fontSize: 11, color: "rgba(74,222,128,0.8)", margin: 0, fontWeight: 700 }}>✅ Video added — shown on the flip side of your card</p>
-              </div>
-            </div>
-          ) : (
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              onClick={() => videoRef.current?.click()}
-              style={{
-                width: "100%", height: 52, borderRadius: 12, border: "1px dashed rgba(255,255,255,0.15)",
-                background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)",
-                fontSize: 13, fontWeight: 700, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              }}
-            >
-              <span style={{ fontSize: 20 }}>🎬</span>
-              Record or Upload a 30-Second Video
-            </motion.button>
-          )}
-          {videoError && <p style={{ fontSize: 11, color: "#f87171", margin: "6px 0 0" }}>{videoError}</p>}
         </div>
 
         {/* Name */}
