@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/Ghostly%20figure%20with%20a%20glowing%20shield.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 import { generateIndonesianProfiles } from "@/data/indonesianProfiles";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
 import { useGhostMode } from "../hooks/useGhostMode";
 import { WORLD_COUNTRIES } from "../data/worldCountries";
@@ -447,6 +448,7 @@ function GhostProfilePopup({
 }: {
   profile: GhostProfile; liked: boolean; onLike: () => void; onClose: () => void; onPass: () => void;
 }) {
+  const { t } = useLanguage();
   const online = isOnline(profile.last_seen_at);
   const ghostId = toGhostId(profile.id);
 
@@ -509,11 +511,11 @@ function GhostProfilePopup({
                   fontSize: 10, fontWeight: 800, background: "rgba(74,222,128,0.2)",
                   border: "1px solid rgba(74,222,128,0.5)", borderRadius: 5,
                   padding: "1px 6px", color: "rgba(74,222,128,0.95)",
-                }}>✅ Verified</span>
+                }}>✅ {t("card.verified")}</span>
               )}
             </div>
             <p style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 4px", textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}>
-              <span>{profile.age} · {profile.gender === "Female" ? "Woman" : "Man"}</span>
+              <span>{profile.age} · {profile.gender === "Female" ? t("card.woman") : t("card.man")}</span>
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -585,6 +587,7 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
   isSubscribed: boolean;
   onConnectWhatsApp: () => void;
 }) {
+  const { t } = useLanguage();
   const firstName = profile.name.split(" ")[0];
   const ghostId = toGhostId(profile.id);
   const altPlatform = profile.connectAlt ? getUsernamePlatform(profile.connectAlt) : undefined;
@@ -622,7 +625,7 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "0 0 2px", letterSpacing: "0.05em" }}>
             <span>{ghostId} is revealed as</span>
           </p>
-          <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(74,222,128,0.8)", letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 4px" }}>Ghost Match</p>
+          <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(74,222,128,0.8)", letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 4px" }}>{t("match.title")}</p>
           <h2 style={{ fontSize: 22, fontWeight: 900, margin: "0 0 4px", background: "linear-gradient(135deg, #4ade80, #22c55e)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             <span>{firstName}! 🎉</span>
           </h2>
@@ -706,7 +709,7 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
                   onClick={onConnectWhatsApp}
                   style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 4px 24px rgba(34,197,94,0.4)" }}
                 >
-                  <MessageCircle size={18} /> Connect Now
+                  <MessageCircle size={18} /> {t("match.connectNow")}
                 </button>
               )}
             </>
@@ -732,7 +735,7 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
                 onClick={onConnectWhatsApp}
                 style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 4px 24px rgba(34,197,94,0.4)" }}
               >
-                <MessageCircle size={18} /> Unlock to Connect
+                <MessageCircle size={18} /> {t("btn.unlock")}
               </button>
             </>
           )}
@@ -897,6 +900,7 @@ function GhostCard({
   isTonight?: boolean; houseTier?: "black" | "house" | null;
   isFlagged?: boolean; onFlagOpen?: () => void;
 }) {
+  const { t } = useLanguage();
   const online = isOnline(profile.last_seen_at);
   const ghostId = toGhostId(profile.id);
   const [flipped, setFlipped] = useState(false);
@@ -960,7 +964,7 @@ function GhostCard({
 
         {/* Ghost badge */}
         <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "3px 7px", fontSize: 8, fontWeight: 700, color: "rgba(74,222,128,0.85)" }}>
-          {isTonight ? "🌙 Tonight" : <img src={GHOST_LOGO} alt="ghost" style={{ width: 42, height: 42, objectFit: "contain" }} />}
+          {isTonight ? `🌙 ${t("card.tonight")}` : <img src={GHOST_LOGO} alt="ghost" style={{ width: 42, height: 42, objectFit: "contain" }} />}
         </div>
 
         {/* Online dot */}
@@ -997,7 +1001,7 @@ function GhostCard({
               <span>{ghostId}</span>
             </p>
             {profile.isVerified && (
-              <span title="Verified" style={{
+              <span title={t("card.verified")} style={{
                 fontSize: 9, fontWeight: 800, background: "rgba(74,222,128,0.2)",
                 border: "1px solid rgba(74,222,128,0.4)", borderRadius: 4,
                 padding: "1px 4px", color: "rgba(74,222,128,0.95)", lineHeight: 1,
@@ -1005,7 +1009,7 @@ function GhostCard({
             )}
           </div>
           <p style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)", margin: "0 0 2px", lineHeight: 1 }}>
-            <span>{profile.age} · {profile.gender === "Female" ? "Woman" : "Man"}</span>
+            <span>{profile.age} · {profile.gender === "Female" ? t("card.woman") : t("card.man")}</span>
           </p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
@@ -1175,6 +1179,7 @@ function GhostCard({
 
 // ── Post-payment connect screen ──────────────────────────────────────────────
 function ConnectNowPopup({ profile, onDone }: { profile: GhostProfile; onDone: () => void }) {
+  const { t } = useLanguage();
   const firstName = profile.name.split(" ")[0];
   const altPlatform = profile.connectAlt ? getUsernamePlatform(profile.connectAlt) : undefined;
   const hasPhone = !!profile.connectPhone;
@@ -1223,7 +1228,7 @@ function ConnectNowPopup({ profile, onDone }: { profile: GhostProfile; onDone: (
             🎉
           </motion.div>
           <h2 style={{ fontSize: 24, fontWeight: 900, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
-            You're Connected!
+            {t("match.connected")}
           </h2>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.5 }}>
             {firstName}'s contact is now unlocked. Pick the app you have and start chatting.
@@ -1343,6 +1348,7 @@ function MatchPaywallModal({
   onPay: (plan: string) => void;
   onClose: () => void;
 }) {
+  const { t } = useLanguage();
   const PLANS = [
     { key: "founding", emoji: "🔥", name: "Founding Ghost", idr: "49,000", usd: "~$3", period: "3 months · locks forever", color: "#f97316", gradient: "linear-gradient(to bottom, #fb923c, #f97316, #ea580c)", glow: "rgba(249,115,22,0.45)", border: "rgba(251,146,60,0.4)" },
     { key: "monthly",  emoji: "👻", name: "Ghost Monthly",  idr: "69,000", usd: "~$4.50", period: "per month · cancel anytime", color: "#22c55e", gradient: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)", glow: "rgba(34,197,94,0.45)",  border: "rgba(74,222,128,0.4)" },
@@ -1421,7 +1427,7 @@ function MatchPaywallModal({
           </div>
 
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: "0 0 16px", lineHeight: 1.5 }}>
-            <span>You both liked each other. Liking is free — pay once to unlock their contact and connect for real.</span>
+            <span>{t("match.likedEachOther")}</span>
           </p>
 
           {/* Plans */}
@@ -2584,6 +2590,7 @@ function InternationalGhostModal({ userCountryCode, isFemale, onActivate, onClos
   onActivate: (countries: string[]) => void;
   onClose: () => void;
 }) {
+  const { t } = useLanguage();
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const available = SEA_COUNTRY_LIST.filter((c) => c.code !== userCountryCode);
 
@@ -2624,7 +2631,7 @@ function InternationalGhostModal({ userCountryCode, isFemale, onActivate, onClos
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <div style={{ fontSize: 40, marginBottom: 8 }}>🌍</div>
           <h2 style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
-            International Ghost
+            {t("intl.title")}
           </h2>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: "0 0 4px", lineHeight: 1.55 }}>
             List your profile in other countries — appear in their local feed.
@@ -2632,12 +2639,12 @@ function InternationalGhostModal({ userCountryCode, isFemale, onActivate, onClos
           {isFemale ? (
             <div style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 10, padding: "8px 12px", marginTop: 10 }}>
               <p style={{ fontSize: 12, color: "rgba(74,222,128,0.9)", margin: 0, fontWeight: 700 }}>
-                Women list internationally free — no charge 🎁
+                {t("intl.freeForWomen")} 🎁
               </p>
             </div>
           ) : (
             <div style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)", borderRadius: 10, padding: "8px 12px", marginTop: 10 }}>
-              <p style={{ fontSize: 18, fontWeight: 900, color: "#818cf8", margin: 0 }}>$9.99 <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.7 }}>/ month</span></p>
+              <p style={{ fontSize: 18, fontWeight: 900, color: "#818cf8", margin: 0 }}>{t("intl.perMonth")}</p>
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>List in up to 5 countries · cancel anytime</p>
             </div>
           )}
@@ -2705,7 +2712,7 @@ function InternationalGhostModal({ userCountryCode, isFemale, onActivate, onClos
             : `Pay $9.99 · List in ${selectedCountries.length || "..."} ${selectedCountries.length === 1 ? "country" : "countries"} →`}
         </motion.button>
         <button onClick={onClose} style={{ width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 13, cursor: "pointer", padding: "8px 0" }}>
-          Maybe later
+          {t("match.later")}
         </button>
       </motion.div>
     </motion.div>
@@ -2715,6 +2722,7 @@ function InternationalGhostModal({ userCountryCode, isFemale, onActivate, onClos
 // ── Main page ───────────────────────────────────────────────────────────────
 export default function GhostModePage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { isGhost, plan, activate, deactivate } = useGhostMode();
 
   // IP country detection — runs once, cached 24h
@@ -3484,7 +3492,7 @@ export default function GhostModePage() {
                 onClick={() => setShowIntlModal(true)}
                 style={{ height: 30, borderRadius: 50, padding: "0 12px", background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.4)", color: "#818cf8", fontSize: 11, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap" }}
               >
-                List here $9.99
+                {t("feed.listHere")}
               </button>
             )}
           </div>
@@ -3495,7 +3503,7 @@ export default function GhostModePage() {
       <div style={{ margin: "10px 14px 0", background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.1)", borderRadius: 10, padding: "6px 12px", display: "flex", alignItems: "center", gap: 6 }}>
         <Clock size={11} color="rgba(74,222,128,0.7)" />
         <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600, flex: 1 }}>
-          <span>Profiles refresh daily — <strong>{profiles.length}</strong> active today</span>
+          <span>{t("feed.activeToday")} — <strong>{profiles.length}</strong></span>
         </p>
         {ipCountry && (
           <span style={{ fontSize: 10, color: "rgba(74,222,128,0.5)", fontWeight: 600, flexShrink: 0 }}>

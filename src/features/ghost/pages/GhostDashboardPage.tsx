@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, LogOut, Edit2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PHONE_APPS, getUsernamePlatform } from "../data/connectPlatforms";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
@@ -108,6 +109,7 @@ function getStreak(): number {
 
 export default function GhostDashboardPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [quickExit, setQuickExit] = useState(false);
 
   // First-entry welcome popup
@@ -225,7 +227,7 @@ export default function GhostDashboardPage() {
             <ArrowLeft size={16} />
           </button>
           <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>My Dashboard</h1>
+            <h1 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>{t("dash.title")}</h1>
             <p style={{ fontSize: 11, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600 }}>2Ghost.com</p>
           </div>
           <img src={GHOST_LOGO} alt="ghost" style={{ width: 72, height: 72, objectFit: "contain" }} />
@@ -324,13 +326,13 @@ export default function GhostDashboardPage() {
           {/* ── Section 2: Activity Today ── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
             <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>
-              Activity Today
+              {t("dash.activityToday")}
             </p>
             <div style={{ display: "flex", gap: 8 }}>
               {[
-                { label: "Likes Sent", value: likesToday, icon: "❤️", color: "#ec4899" },
-                { label: "Day Streak", value: streak, icon: "🔥", color: "#f97316" },
-                { label: "Matches", value: savedMatchCount, icon: "✨", color: "#4ade80" },
+                { label: t("dash.likesToday"), value: likesToday, icon: "❤️", color: "#ec4899" },
+                { label: t("dash.streak"), value: streak, icon: "🔥", color: "#f97316" },
+                { label: t("dash.matches"), value: savedMatchCount, icon: "✨", color: "#4ade80" },
               ].map(({ label, value, icon, color }) => (
                 <div key={label} style={{
                   flex: 1, ...CARD,
@@ -349,7 +351,7 @@ export default function GhostDashboardPage() {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
               <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>
-                How I Connect
+                {t("dash.howIConnect")}
               </p>
               <button
                 onClick={() => navigate("/ghost/setup")}

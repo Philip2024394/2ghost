@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { WORLD_COUNTRIES } from "../data/worldCountries";
 import { PHONE_APPS, USERNAME_PLATFORMS } from "../data/connectPlatforms";
 import { detectIpCountry, getCachedIpCountry, COUNTRY_PLATFORM_DEFAULTS, COUNTRY_PHONE_PREFIX } from "@/shared/hooks/useIpCountry";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const GHOST_PROFILE_KEY = "ghost_profile";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
@@ -63,6 +64,7 @@ const VIBES = [
 
 export default function GhostSetupPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [photo, setPhoto] = useState<string | null>(null);
@@ -254,7 +256,7 @@ export default function GhostSetupPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <img src={GHOST_LOGO} alt="ghost" style={{ width: 45, height: 45, objectFit: "contain" }} />
-            <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Set Up Ghost Profile</h1>
+            <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>{t("setup.title")}</h1>
           </div>
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>Photo · Name · Age · City · Country</p>
         </div>
@@ -272,7 +274,7 @@ export default function GhostSetupPage() {
         }}>
           <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>🔒</span>
           <p style={{ fontSize: 11, color: "rgba(74,222,128,0.8)", margin: 0, lineHeight: 1.55 }}>
-            Your Ghost profile shows <strong>photo, name, age, city &amp; country only</strong>. On a mutual match, your contact is shared privately — no trail, no records stored.
+            {t("setup.privacy")}
           </p>
         </div>
 
@@ -411,7 +413,7 @@ export default function GhostSetupPage() {
         <div style={{ marginBottom: 18 }}>
           <label style={labelStyle}>
             <User size={10} style={{ display: "inline", marginRight: 5 }} />
-            First Name Only
+            {t("setup.name")}
           </label>
           <input
             style={inputStyle}
@@ -424,7 +426,7 @@ export default function GhostSetupPage() {
 
         {/* Age */}
         <div style={{ marginBottom: 18 }}>
-          <label style={labelStyle}>Age</label>
+          <label style={labelStyle}>{t("setup.age")}</label>
           <input
             style={inputStyle}
             type="number" min={18} max={80}
@@ -496,7 +498,7 @@ export default function GhostSetupPage() {
         <div style={{ marginBottom: 18 }}>
           <label style={labelStyle}>
             <MapPin size={10} style={{ display: "inline", marginRight: 5 }} />
-            City
+            {t("setup.city")}
           </label>
           <input
             style={inputStyle}
@@ -508,7 +510,7 @@ export default function GhostSetupPage() {
 
         {/* Gender */}
         <div style={{ marginBottom: 18 }}>
-          <label style={labelStyle}>I am a</label>
+          <label style={labelStyle}>{t("setup.gender")}</label>
           <div style={{ display: "flex", gap: 10 }}>
             {(["Female", "Male"] as const).map((g) => (
               <button
@@ -522,7 +524,7 @@ export default function GhostSetupPage() {
                   fontSize: 14, fontWeight: 700, transition: "all 0.15s",
                 }}
               >
-                {g === "Female" ? "👩 Woman" : "👨 Man"}
+                {g === "Female" ? `👩 ${t("setup.woman")}` : `👨 ${t("setup.man")}`}
               </button>
             ))}
           </div>
@@ -665,7 +667,7 @@ export default function GhostSetupPage() {
         <div style={{ marginBottom: 28 }}>
           <label style={labelStyle}>
             <Tag size={10} style={{ display: "inline", marginRight: 5 }} />
-            Your Interests <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>(pick up to 3 · shown on Reveal)</span>
+            {t("setup.interests")} <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>(pick up to 3 · shown on Reveal)</span>
           </label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {INTEREST_TAGS.map((tag) => {
@@ -705,7 +707,7 @@ export default function GhostSetupPage() {
         <div style={{ marginBottom: 28 }}>
           <label style={labelStyle}>
             <Smartphone size={10} style={{ display: "inline", marginRight: 5 }} />
-            Your Phone Number <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>(shared only on mutual match)</span>
+            {t("setup.phone")} <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>({t("setup.phoneDesc")})</span>
           </label>
 
           {/* Explainer */}
@@ -749,7 +751,7 @@ export default function GhostSetupPage() {
           {/* Optional: username-based second app */}
           <div style={{ marginTop: 16 }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.3)", margin: "0 0 8px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-              Also on <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, opacity: 0.6 }}>— optional second app</span>
+              {t("setup.altPlatform")} <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, opacity: 0.6 }}>— optional second app</span>
             </p>
             <button
               onClick={() => setShowAltSheet(true)}
@@ -868,10 +870,10 @@ export default function GhostSetupPage() {
         >
           {saving ? (
             <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1, repeat: Infinity }}>
-              <span>Activating...</span>
+              <span>{t("setup.saving")}</span>
             </motion.span>
           ) : (
-            <><img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain" }} /><span> Activate Ghost Profile</span></>
+            <><img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain" }} /><span> {t("setup.enterGhost")}</span></>
           )}
         </motion.button>
 
