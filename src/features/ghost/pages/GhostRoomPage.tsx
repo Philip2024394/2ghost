@@ -5,6 +5,7 @@ import { ArrowLeft, RefreshCw, Upload, X, Link, Users, Lock, Unlock, Image, Vide
 import { uploadGhostImage, deleteGhostImage, uploadGhostVideo, deleteGhostVideo, isSupabaseStorageUrl } from "../ghostStorage";
 
 const ROOM_BG = "https://ik.imagekit.io/7grri5v7d/ghost%20room.png";
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 const SESSION_KEY   = "ghost_room_session_until";
 const SESSION_TTL   = 24 * 60 * 60 * 1000; // 24 hours
 const WA_STORED_KEY = "ghost_room_whatsapp";
@@ -122,9 +123,9 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
         >
           <motion.div
             animate={{ y: [0, -8, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            style={{ fontSize: 56, marginBottom: 12, filter: "drop-shadow(0 0 20px rgba(74,222,128,0.4))" }}
+            style={{ marginBottom: 12, filter: "drop-shadow(0 0 20px rgba(74,222,128,0.4))" }}
           >
-            👻
+            <img src={GHOST_LOGO} alt="ghost" style={{ width: 168, height: 168, objectFit: "contain" }} />
           </motion.div>
           <h1 style={{ fontSize: 26, fontWeight: 900, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
             <span style={{ color: "#4ade80" }}>2</span>Ghost Room
@@ -723,7 +724,7 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
             }}
           >
             <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
-            <span>Thanks 2Ghost 👻</span>
+            <span>Thanks 2Ghost <img src={GHOST_LOGO} alt="ghost" style={{ width: 48, height: 48, objectFit: "contain", verticalAlign: "middle" }} /></span>
           </button>
         </div>
       </div>
@@ -1223,7 +1224,7 @@ export default function GhostRoomPage() {
                     <ArrowLeft size={14} />
                   </button>
                   <span style={{ fontSize: 15, fontWeight: 900, color: "#fff", flex: 1 }}>
-                    {settingsView === "image" ? "🖼 Images" : settingsView === "video" ? "🎬 Videos" : settingsView === "ghosts" ? "👻 Ghosts" : "📤 Share Room"}
+                    {settingsView === "image" ? "🖼 Images" : settingsView === "video" ? "🎬 Videos" : settingsView === "ghosts" ? <><img src={GHOST_LOGO} alt="" style={{ width: 42, height: 42, objectFit: "contain", verticalAlign: "middle", marginRight: 4 }} /> Ghosts</> : "📤 Share Room"}
                   </span>
                   <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>
                     {settingsView === "image"
@@ -1455,7 +1456,7 @@ export default function GhostRoomPage() {
                 <div style={{ padding: "14px 18px max(32px,env(safe-area-inset-bottom,32px))" }}>
                   {matches.length === 0 && accessedRooms.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "60px 0" }}>
-                      <span style={{ fontSize: 52 }}>👻</span>
+                      <img src={GHOST_LOGO} alt="ghost" style={{ width: 156, height: 156, objectFit: "contain" }} />
                       <p style={{ fontSize: 14, color: "rgba(255,255,255,0.25)", marginTop: 14 }}>No ghost connections yet</p>
                       <p style={{ fontSize: 11, color: "rgba(255,255,255,0.18)" }}>Match with ghosts to see them here</p>
                     </div>
@@ -1479,7 +1480,7 @@ export default function GhostRoomPage() {
                               <div style={{ width: 52, height: 52, borderRadius: "50%", overflow: "hidden", border: `2px solid ${isActive ? "rgba(74,222,128,0.5)" : "rgba(255,255,255,0.12)"}` }}>
                                 {c.image
                                   ? <img src={c.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                  : <div style={{ width: "100%", height: "100%", background: "rgba(74,222,128,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>👻</div>
+                                  : <div style={{ width: "100%", height: "100%", background: "rgba(74,222,128,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}><img src={GHOST_LOGO} alt="ghost" style={{ width: 66, height: 66, objectFit: "contain" }} /></div>
                                 }
                               </div>
                               {isActive && (
@@ -1693,7 +1694,9 @@ export default function GhostRoomPage() {
         {tab === "my" && (
           <div>
             {/* Room code block */}
-            <div style={S.greenCard}>
+            <div style={{ ...S.greenCard, backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/ghostert.png)", backgroundSize: "cover", backgroundPosition: "center", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", inset: 0, background: "rgba(4,8,4,0.72)" }} />
+              <div style={{ position: "relative", zIndex: 1 }}>
               <p style={S.label}>Your Ghost Room Code</p>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                 <div style={{
@@ -1735,6 +1738,7 @@ export default function GhostRoomPage() {
                   </button>
                 </div>
               )}
+              </div>
             </div>
 
             {/* Room expiry */}
@@ -2289,7 +2293,7 @@ export default function GhostRoomPage() {
 
             {matches.length === 0 && (
               <div style={{ textAlign: "center", padding: "40px 20px" }}>
-                <span style={{ fontSize: 40 }}>👻</span>
+                <img src={GHOST_LOGO} alt="ghost" style={{ width: 120, height: 120, objectFit: "contain" }} />
                 <p style={{ fontSize: 14, color: "rgba(255,255,255,0.3)", marginTop: 12 }}>No active matches yet</p>
                 <p style={{ fontSize: 12, color: "rgba(255,255,255,0.2)" }}>Go back to the feed and start liking</p>
               </div>

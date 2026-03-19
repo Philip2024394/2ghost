@@ -5,6 +5,8 @@ import { ArrowLeft, SlidersHorizontal, X } from "lucide-react";
 import { generateIndonesianProfiles } from "@/data/indonesianProfiles";
 import { useGhostMode } from "@/features/ghost/hooks/useGhostMode";
 
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
+
 // ── Badges ────────────────────────────────────────────────────────────────────
 const BADGES = [
   { id: "tonight", icon: "🌙", label: "Free Tonight",    desc: "Available tonight for a meetup" },
@@ -143,7 +145,7 @@ function ProfilePopup({ profile, isGhost, onClose }: { profile: MapProfile; isGh
             <span>Pass</span>
           </button>
           <button style={{ flex: 2, height: 44, borderRadius: 12, border: "none", background: "linear-gradient(to bottom, #4ade80, #22c55e)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 16px rgba(34,197,94,0.35)" }}>
-            <span>👻 Like Ghost</span>
+            <span><img src={GHOST_LOGO} alt="" style={{ width: 48, height: 48, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> Like Ghost</span>
           </button>
         </div>
       </motion.div>
@@ -219,7 +221,7 @@ export default function GhostMapPage() {
             </>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 16 }}>👻</span>
+              <img src={GHOST_LOGO} alt="ghost" style={{ width: 48, height: 48, objectFit: "contain" }} />
               <span style={{ fontSize: 15, fontWeight: 900 }}>Ghost Map</span>
               <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>· <span>{visible.length}</span> nearby</span>
             </div>
@@ -421,7 +423,7 @@ export default function GhostMapPage() {
                       onClick={() => { setActiveBadge(a => a === badge.id ? null : badge.id); setDrawerOpen(false); }}
                       style={{ width: "100%", marginBottom: 8, background: isActive ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${isActive ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.07)"}`, borderRadius: 14, padding: "11px 14px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", textAlign: "left" }}
                     >
-                      <span style={{ fontSize: 22, flexShrink: 0 }}>{badge.icon}</span>
+                      <span style={{ fontSize: 22, flexShrink: 0 }}>{badge.icon === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle" }} /> : badge.icon}</span>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                           <span style={{ fontSize: 13, fontWeight: 800, color: isActive ? "rgba(74,222,128,0.95)" : "#fff" }}>{badge.label}</span>

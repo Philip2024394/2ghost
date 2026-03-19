@@ -1,7 +1,10 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Heart, X, MessageCircle, Settings, Navigation, Globe, Shield, Clock, Gift, Check, Eye, Moon, Zap, LogOut, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, X, MessageCircle, Settings, Navigation, Globe, Clock, Gift, Check, Eye, Moon, Zap, LogOut, SlidersHorizontal, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/Ghostly%20figure%20with%20a%20glowing%20shield.png";
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 import { generateIndonesianProfiles } from "@/data/indonesianProfiles";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
 import { useGhostMode } from "../hooks/useGhostMode";
@@ -218,9 +221,9 @@ function GhostParticles() {
           initial={{ y: "105%", opacity: 0.6 }}
           animate={{ y: "-10%", opacity: 0 }}
           transition={{ duration: p.duration, delay: p.delay, ease: "easeOut", repeat: Infinity, repeatDelay: Math.random() * 3 }}
-          style={{ position: "absolute", left: `${p.left}%`, bottom: 0, fontSize: p.size, display: "block" }}
+          style={{ position: "absolute", left: `${p.left}%`, bottom: 0, display: "block" }}
         >
-          👻
+          <img src={GHOST_LOGO} alt="ghost" style={{ width: p.size * 3, height: p.size * 3, objectFit: "contain" }} />
         </motion.span>
       ))}
     </div>
@@ -430,7 +433,7 @@ function GhostProfilePopup({
             borderRadius: 20, padding: "4px 10px",
             border: "1px solid rgba(74,222,128,0.3)",
             fontSize: 10, fontWeight: 700, color: "rgba(74,222,128,0.9)", letterSpacing: "0.1em",
-          }}>👻 GHOST</div>
+          }}><img src={GHOST_LOGO} alt="" style={{ width: 30, height: 30, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> GHOST</div>
 
           {/* Online */}
           {online && (
@@ -553,8 +556,8 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
             <div style={{ width: 72, height: 72, borderRadius: "50%", border: "2px solid rgba(74,222,128,0.5)", overflow: "hidden", zIndex: 2, boxShadow: "0 0 20px rgba(74,222,128,0.3)" }}>
               <img src={profile.image} alt={firstName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </div>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", zIndex: 3, marginLeft: -12, background: "linear-gradient(135deg, #16a34a, #22c55e)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, boxShadow: "0 0 16px rgba(34,197,94,0.5)" }}>
-              👻
+            <div style={{ width: 40, height: 40, borderRadius: "50%", zIndex: 3, marginLeft: -12, background: "linear-gradient(135deg, #16a34a, #22c55e)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 16px rgba(34,197,94,0.5)" }}>
+              <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain" }} />
             </div>
           </div>
           {/* Ghost ID → real name reveal */}
@@ -647,8 +650,7 @@ function InboundLikePopup({
               />
               <div style={{
                 position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 32,
-              }}>👻</div>
+              }}><img src={GHOST_LOGO} alt="ghost" style={{ width: 96, height: 96, objectFit: "contain" }} /></div>
             </div>
           </div>
 
@@ -661,7 +663,7 @@ function InboundLikePopup({
               <span>{like.age} · {like.city}, {like.country} {like.countryFlag}</span>
             </p>
             <h3 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: "0 0 10px" }}>
-              <span>A Ghost is moving in to like you</span>
+              <span>A Ghost Has Appeared — and liked you</span>
             </h3>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.6 }}>
               <span>Like back to reveal their real name and connect on WhatsApp — or pass.</span>
@@ -772,7 +774,7 @@ function GhostCard({
 
         {/* Ghost badge */}
         <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "3px 7px", fontSize: 8, fontWeight: 700, color: "rgba(74,222,128,0.85)" }}>
-          {isTonight ? "🌙 Tonight" : "👻"}
+          {isTonight ? "🌙 Tonight" : <img src={GHOST_LOGO} alt="ghost" style={{ width: 42, height: 42, objectFit: "contain" }} />}
         </div>
 
         {/* Online dot */}
@@ -882,11 +884,7 @@ function GhostCard({
             <p style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 4px" }}>
               <span>Looking for</span>
             </p>
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.35)",
-              borderRadius: 20, padding: "5px 12px",
-            }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: 16 }}>{outcomeIcon}</span>
               <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(74,222,128,0.95)" }}>{outcomeTag}</span>
             </div>
@@ -995,7 +993,7 @@ function MatchPaywallModal({
             </div>
             <div>
               <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(74,222,128,0.9)", margin: "0 0 4px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                <span>👻 Ghost Match!</span>
+                <span><img src={GHOST_LOGO} alt="" style={{ width: 48, height: 48, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> Ghost Match!</span>
               </p>
               <h3 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>
                 <span>{profile.name}, {profile.age}</span>
@@ -1027,7 +1025,7 @@ function MatchPaywallModal({
               >
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 1px" }}>
-                    <span>{p.emoji} {p.name}</span>
+                    <span>{p.emoji === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle", marginRight: 4 }} /> : p.emoji} {p.name}</span>
                   </p>
                   <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}><span>{p.period}</span></p>
                 </div>
@@ -1128,9 +1126,9 @@ function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
                 ],
               }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              style={{ fontSize: 72, lineHeight: 1, display: "inline-block", marginBottom: 16 }}
+              style={{ lineHeight: 1, display: "inline-block", marginBottom: 16 }}
             >
-              👻
+              <img src={GHOST_LOGO} alt="ghost" style={{ width: 216, height: 216, objectFit: "contain" }} />
             </motion.div>
             <h1 style={{
               fontSize: 24, fontWeight: 900, color: "#fff", margin: "0 0 10px",
@@ -1178,7 +1176,7 @@ function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
                     background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.18)",
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
                   }}>
-                    {rule.icon}
+                    {rule.icon === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle" }} /> : rule.icon}
                   </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 3px" }}>
@@ -1244,7 +1242,7 @@ function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
               background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)",
               borderRadius: "50px 50px 60% 60%", pointerEvents: "none",
             }} />
-            👻 I Accept the House Rules — Enter Ghost Mode
+            <img src={GHOST_LOGO} alt="" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> I Accept the House Rules — Enter Ghost Mode
           </motion.button>
 
           <p style={{
@@ -1411,7 +1409,7 @@ function DevPanel({
               <div>
                 <span style={label}>Access Level</span>
                 <div style={{ display: "flex", gap: 5 }}>
-                  <button style={actionBtn} onClick={() => grantAccess("ghost")}>👻 Ghost</button>
+                  <button style={actionBtn} onClick={() => grantAccess("ghost")}><img src={GHOST_LOGO} alt="" style={{ width: 36, height: 36, objectFit: "contain", verticalAlign: "middle", marginRight: 4 }} /> Ghost</button>
                   <button style={actionBtn} onClick={() => grantAccess("bundle")}>⭐ Bundle</button>
                   <button style={dangerBtn} onClick={() => deactivate()}>Revoke</button>
                 </div>
@@ -1723,6 +1721,40 @@ function GhostFlashSection({
   const liveCount = 8 + (Math.floor(Date.now() / 300000) % 17);
   void flashTick; // triggers re-render for countdown
 
+  // Auto-scroll: slowly left → then back right, pause at each end
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const dirRef = useRef<1 | -1>(1); // 1 = scrolling left, -1 = scrolling right
+  const pauseRef = useRef(false);
+  const userScrollRef = useRef(false);
+  const userScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!isActive) return;
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const onUserScroll = () => {
+      userScrollRef.current = true;
+      if (userScrollTimer.current) clearTimeout(userScrollTimer.current);
+      userScrollTimer.current = setTimeout(() => { userScrollRef.current = false; }, 2000);
+    };
+    el.addEventListener("scroll", onUserScroll, { passive: true });
+
+    let raf: number;
+    const step = () => {
+      if (!userScrollRef.current && !pauseRef.current && el) {
+        el.scrollLeft += dirRef.current * 0.6;
+        const atEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 2;
+        const atStart = el.scrollLeft <= 2;
+        if (atEnd && dirRef.current === 1) { dirRef.current = -1; pauseRef.current = true; setTimeout(() => { pauseRef.current = false; }, 800); }
+        else if (atStart && dirRef.current === -1) { dirRef.current = 1; pauseRef.current = true; setTimeout(() => { pauseRef.current = false; }, 800); }
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => { cancelAnimationFrame(raf); el.removeEventListener("scroll", onUserScroll); };
+  }, [isActive]);
+
   if (!isActive) {
     return (
       <motion.div
@@ -1800,7 +1832,9 @@ function GhostFlashSection({
               animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 0.9, repeat: Infinity }}
               style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 10px rgba(74,222,128,1)", display: "block", flexShrink: 0 }}
             />
-            <span style={{ fontSize: 13, fontWeight: 900, color: "#4ade80", letterSpacing: "0.06em" }}>⚡ FLASH ACTIVE</span>
+            <span style={{ fontSize: 13, lineHeight: 1 }}>⚡</span>
+            <span style={{ fontSize: 14, lineHeight: 1 }}>🕰️</span>
+            <span style={{ fontSize: 11, fontWeight: 900, color: "#4ade80", letterSpacing: "0.04em" }}>Ghosting</span>
             <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>· {liveCount} live now</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1821,18 +1855,12 @@ function GhostFlashSection({
             >
               {fmtFlashTime(flashUntil)}
             </motion.span>
-            <button
-              onClick={onExit}
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "3px 8px", color: "rgba(255,255,255,0.35)", fontSize: 10, cursor: "pointer", fontWeight: 700 }}
-            >
-              Exit
-            </button>
           </div>
         </div>
 
         {/* Flash profiles horizontal scroll */}
         {flashProfiles.length > 0 ? (
-          <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
+          <div ref={scrollRef} className="ghost-flash-scroll" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}>
             {flashProfiles.map((p) => (
               <div
                 key={p.id}
@@ -2006,6 +2034,82 @@ function BoostModal({ onClose, onBoost }: { onClose: () => void; onBoost: () => 
   );
 }
 
+// ── Found Boo Banner ────────────────────────────────────────────────────────
+function fmtCountdown(ms: number): string {
+  if (ms <= 0) return "0m";
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+function FoundBooBanner({
+  foundBoo,
+  onReactivate,
+}: {
+  foundBoo: { matchProfileId: string; matchProfileImage: string; matchName: string; connectedAt: number; pausedUntil: number; canReactivateAt: number };
+  onReactivate: () => void;
+}) {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 60000);
+    return () => clearInterval(t);
+  }, []);
+  void tick;
+  const canReactivate = Date.now() >= foundBoo.canReactivateAt;
+  const remaining = foundBoo.pausedUntil - Date.now();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -12, height: 0 }}
+      animate={{ opacity: 1, y: 0, height: "auto" }}
+      exit={{ opacity: 0, y: -12, height: 0 }}
+      style={{ margin: "10px 14px 0", overflow: "hidden" }}
+    >
+      <div style={{
+        background: "rgba(74,222,128,0.05)",
+        border: "1px solid rgba(74,222,128,0.3)",
+        borderRadius: 16,
+        padding: "14px 16px",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+      }}>
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <img
+            src={foundBoo.matchProfileImage}
+            alt={foundBoo.matchName}
+            style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(74,222,128,0.5)" }}
+          />
+          <img src={GHOST_LOGO} alt="ghost" style={{ position: "absolute", bottom: -4, right: -4, width: 54, height: 54, objectFit: "contain" }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>Found Boo</p>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 6px", lineHeight: 1.4 }}>
+            Your profile is paused — giving your new connection space
+          </p>
+          <p style={{ fontSize: 11, color: "#4ade80", fontWeight: 700, margin: 0 }}>
+            Resumes in {fmtCountdown(remaining)}
+          </p>
+        </div>
+        <button
+          onClick={canReactivate ? onReactivate : undefined}
+          style={{
+            flexShrink: 0,
+            height: 34, paddingInline: 12, borderRadius: 10, border: "none",
+            background: canReactivate ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.06)",
+            color: canReactivate ? "#4ade80" : "rgba(255,255,255,0.2)",
+            fontSize: 11, fontWeight: 800, cursor: canReactivate ? "pointer" : "default",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {canReactivate ? "Reactivate" : "Early"}
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
 // ── Main page ───────────────────────────────────────────────────────────────
 export default function GhostModePage() {
   const navigate = useNavigate();
@@ -2019,6 +2123,36 @@ export default function GhostModePage() {
   const isFemale = (() => {
     try { return localStorage.getItem("ghost_gender") === "Female"; } catch { return false; }
   })();
+
+  // Found Boo state
+  const [foundBoo, setFoundBoo] = useState<{
+    matchProfileId: string;
+    matchProfileImage: string;
+    matchName: string;
+    connectedAt: number;
+    pausedUntil: number;
+    canReactivateAt: number;
+  } | null>(() => {
+    try {
+      const raw = localStorage.getItem("ghost_found_boo");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
+
+  const isProfilePaused = foundBoo && foundBoo.pausedUntil > Date.now();
+
+  const handleFoundBoo = (profile: GhostProfile) => {
+    const data = {
+      matchProfileId: profile.id,
+      matchProfileImage: profile.image,
+      matchName: profile.name,
+      connectedAt: Date.now(),
+      pausedUntil: Date.now() + 72 * 60 * 60 * 1000,
+      canReactivateAt: Date.now() + 60 * 60 * 1000,
+    };
+    try { localStorage.setItem("ghost_found_boo", JSON.stringify(data)); } catch {}
+    setFoundBoo(data);
+  };
 
   const [selectedProfile, setSelectedProfile] = useState<GhostProfile | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
@@ -2070,6 +2204,29 @@ export default function GhostModePage() {
   // Quick Exit — renders a blank screen instantly
   const [quickExit, setQuickExit] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showSettingsSheet, setShowSettingsSheet] = useState(false);
+
+  // Filter button randomly cycling glow
+  const FILTER_GLOWS = [
+    "rgba(74,222,128,0.8)",   // green
+    "rgba(168,85,247,0.8)",   // purple
+    "rgba(251,191,36,0.8)",   // gold
+    "rgba(96,165,250,0.8)",   // blue
+    "rgba(251,113,133,0.8)",  // pink
+    "rgba(251,146,60,0.8)",   // orange
+  ];
+  const [filterGlowIdx, setFilterGlowIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => {
+      setFilterGlowIdx(i => {
+        let next = i;
+        while (next === i) next = Math.floor(Math.random() * FILTER_GLOWS.length);
+        return next;
+      });
+    }, 1800);
+    return () => clearInterval(t);
+  }, []);
+  const [settingsGateFeature, setSettingsGateFeature] = useState<string | null>(null);
 
 
   // Ghost Flash — 60-minute live pool
@@ -2088,6 +2245,34 @@ export default function GhostModePage() {
     } catch { return 0; }
   });
   const [showFlashLimitToast, setShowFlashLimitToast] = useState(false);
+
+  // ── Shield blocked-attempt alert ──────────────────────────────────────────
+  const [showBlockedAlert, setShowBlockedAlert] = useState(false);
+  useEffect(() => {
+    // Only trigger if shield is active and blocked numbers exist
+    const pkg = Number(localStorage.getItem("ghost_block_package") || 0);
+    if (pkg === 0) return;
+    let blocked: string[] = [];
+    try { blocked = JSON.parse(localStorage.getItem("ghost_blocked_numbers") || "[]"); } catch {}
+    if (blocked.length === 0) return;
+
+    // Show first alert after 90s, then randomly every 4–10 min
+    const LAST_KEY = "ghost_blocked_alert_last";
+    const last = Number(localStorage.getItem(LAST_KEY) || 0);
+    const minGap = 4 * 60 * 1000;
+    const now = Date.now();
+    const initialDelay = last === 0 ? 90000 : Math.max(0, minGap - (now - last));
+
+    const fire = () => {
+      try { localStorage.setItem(LAST_KEY, String(Date.now())); } catch {}
+      setShowBlockedAlert(true);
+      // Schedule next random alert 4–10 min later
+      const next = (4 + Math.floor(Math.random() * 6)) * 60 * 1000;
+      setTimeout(fire, next);
+    };
+    const t = setTimeout(fire, initialDelay);
+    return () => clearTimeout(t);
+  }, []);
   useEffect(() => {
     if (!isFlashActive) return;
     const t = setInterval(() => setFlashTick((n) => n + 1), 1000);
@@ -2324,7 +2509,7 @@ export default function GhostModePage() {
 
   return (
     /* Desktop: centred column, max 480px, fills viewport height */
-    <div style={{ minHeight: "100dvh", background: "#050508", display: "flex", justifyContent: "center" }}>
+    <div translate="no" style={{ minHeight: "100dvh", background: "#050508", display: "flex", justifyContent: "center" }}>
     <div style={{ width: "100%", maxWidth: 480, minHeight: "100dvh", background: "#050508", color: "#fff", display: "flex", flexDirection: "column", position: "relative" }}>
       <GhostParticles />
       <GhostInstallBanner />
@@ -2339,10 +2524,12 @@ export default function GhostModePage() {
         {/* Top row: title + primary actions */}
         <div style={{ padding: "0 16px 10px", display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 26, lineHeight: 1 }}>👻</span>
+            <img src="https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasd.png" alt="2Ghost" style={{ width: 78, height: 78, objectFit: "contain" }} />
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <h1 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>Ghost Mode</h1>
+                <h1 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
+                  <span style={{ color: "#4ade80", fontWeight: 900 }}>2</span>Ghost
+                </h1>
                 <span style={{ background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 6, padding: "1px 6px", fontSize: 9, fontWeight: 700, color: "rgba(74,222,128,0.9)", letterSpacing: "0.08em" }}>
                   {plan === "bundle" ? "GHOST + VIP" : "ACTIVE"}
                 </span>
@@ -2351,33 +2538,20 @@ export default function GhostModePage() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-            <motion.button
-              onClick={() => setShowFilters(true)}
-              whileTap={{ scale: 0.93 }}
-              style={{
-                height: 34, paddingInline: 12, borderRadius: 10, border: "1px solid rgba(74,222,128,0.3)",
-                background: "rgba(74,222,128,0.1)",
-                color: "rgba(74,222,128,0.9)", fontSize: 12, fontWeight: 700,
-                display: "flex", alignItems: "center", gap: 5, cursor: "pointer",
-              }}
-            >
-              <SlidersHorizontal size={13} />
-              Filter
-            </motion.button>
             <button
-              onClick={() => setQuickExit(true)}
-              title="Quick Exit"
+              onClick={() => navigate("/ghost/dashboard")}
+              title="Dashboard"
               style={{
                 width: 34, height: 34, borderRadius: 10,
-                background: "rgba(255,59,48,0.06)", border: "1px solid rgba(255,59,48,0.15)",
+                background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.2)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", color: "rgba(255,99,88,0.7)",
+                cursor: "pointer", color: "rgba(74,222,128,0.7)",
               }}
             >
-              <LogOut size={15} />
+              <LayoutDashboard size={15} />
             </button>
             <button
-              onClick={() => { if (confirm("Deactivate Ghost Mode?")) deactivate(); }}
+              onClick={() => { setSettingsGateFeature(null); setShowSettingsSheet(true); }}
               style={{
                 width: 34, height: 34, borderRadius: 10,
                 background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)",
@@ -2390,69 +2564,68 @@ export default function GhostModePage() {
           </div>
         </div>
 
-        {/* Feature strip */}
-        <div style={{ padding: "0 14px 10px", display: "flex", gap: 6, overflowX: "auto", scrollbarWidth: "none" }}>
-          <button
-            onClick={() => navigate("/ghost/room")}
-            style={{ flexShrink: 0, height: 28, paddingInline: 10, borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.55)", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
+        {/* Feature strip — bare icon + label, no container */}
+        <div style={{ padding: "0 10px 12px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+
+          {/* Room */}
+          <button onClick={() => navigate("/ghost/room")}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
           >
-            🚪 Room
+            <span style={{ fontSize: 24, lineHeight: 1 }}>🚪</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>Room</span>
           </button>
-          <motion.button
-            onClick={() => setShowHouseModal(true)}
-            animate={houseTier === "black" ? { boxShadow: ["0 0 0px rgba(212,175,55,0)", "0 0 8px rgba(212,175,55,0.6)", "0 0 0px rgba(212,175,55,0)"] } : houseTier === "house" ? { boxShadow: ["0 0 0px rgba(74,222,128,0)", "0 0 6px rgba(74,222,128,0.4)", "0 0 0px rgba(74,222,128,0)"] } : {}}
-            transition={{ duration: 2.2, repeat: Infinity }}
-            style={{
-              flexShrink: 0, height: 28, paddingInline: 10, borderRadius: 8,
-              background: houseTier === "black" ? "rgba(212,175,55,0.12)" : houseTier === "house" ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.04)",
-              border: houseTier === "black" ? "1px solid rgba(212,175,55,0.45)" : houseTier === "house" ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.07)",
-              color: houseTier === "black" ? "rgba(212,175,55,0.9)" : houseTier === "house" ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.55)",
-              fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
-            }}
+
+          {/* House */}
+          <button onClick={() => setShowHouseModal(true)}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
           >
-            {houseTier === "black" ? "🖤 Black" : "🏠 House"}
-          </motion.button>
-          <motion.button
-            onClick={toggleTonight}
-            animate={isTonightMode ? { boxShadow: ["0 0 0px rgba(74,222,128,0)", "0 0 8px rgba(74,222,128,0.5)", "0 0 0px rgba(74,222,128,0)"] } : {}}
-            transition={{ duration: 2, repeat: Infinity }}
-            style={{
-              flexShrink: 0, height: 28, paddingInline: 10, borderRadius: 8,
-              background: isTonightMode ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
-              border: isTonightMode ? "1px solid rgba(74,222,128,0.4)" : "1px solid rgba(255,255,255,0.07)",
-              color: isTonightMode ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.55)",
-              fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
-            }}
-          >
-            <Moon size={12} color={isTonightMode ? "#4ade80" : "rgba(255,255,255,0.55)"} fill={isTonightMode ? "rgba(74,222,128,0.4)" : "none"} />
-            Tonight
-          </motion.button>
-          <motion.button
-            onClick={() => setShowBoostModal(true)}
-            animate={isBoosted ? { boxShadow: ["0 0 0px rgba(74,222,128,0)", "0 0 8px rgba(74,222,128,0.5)", "0 0 0px rgba(74,222,128,0)"] } : {}}
-            transition={{ duration: 1.8, repeat: Infinity }}
-            style={{
-              flexShrink: 0, height: 28, paddingInline: 10, borderRadius: 8,
-              background: isBoosted ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
-              border: isBoosted ? "1px solid rgba(74,222,128,0.4)" : "1px solid rgba(255,255,255,0.07)",
-              color: isBoosted ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.55)",
-              fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
-            }}
-          >
-            <Zap size={12} color={isBoosted ? "#4ade80" : "rgba(255,255,255,0.55)"} fill={isBoosted ? "rgba(74,222,128,0.3)" : "none"} />
-            Boost
-          </motion.button>
-          <button
-            onClick={() => navigate("/ghost/block")}
-            style={{
-              flexShrink: 0, height: 28, paddingInline: 10, borderRadius: 8,
-              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
-              color: "rgba(255,255,255,0.55)", fontSize: 11, fontWeight: 700, cursor: "pointer",
-              display: "flex", alignItems: "center", gap: 5,
-            }}
-          >
-            <Shield size={12} color="rgba(255,255,255,0.55)" /> Shield
+            <span style={{ fontSize: 24, lineHeight: 1 }}>{houseTier === "black" ? "🖤" : "🏠"}</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: houseTier === "black" ? "rgba(212,175,55,0.9)" : houseTier === "house" ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)" }}>
+              {houseTier === "black" ? "Black" : "House"}
+            </span>
           </button>
+
+          {/* Tonight */}
+          <button onClick={toggleTonight}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
+          >
+            <Moon size={22} color={isTonightMode ? "#4ade80" : "rgba(255,255,255,0.55)"} fill={isTonightMode ? "rgba(74,222,128,0.35)" : "none"} />
+            <span style={{ fontSize: 10, fontWeight: 700, color: isTonightMode ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)" }}>Tonight</span>
+          </button>
+
+          {/* Boost */}
+          <button onClick={() => setShowBoostModal(true)}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
+          >
+            <Zap size={22} color={isBoosted ? "#4ade80" : "rgba(255,255,255,0.55)"} fill={isBoosted ? "rgba(74,222,128,0.3)" : "none"} />
+            <span style={{ fontSize: 10, fontWeight: 700, color: isBoosted ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)" }}>Boost</span>
+          </button>
+
+          {/* Shield */}
+          <button onClick={() => navigate("/ghost/block")}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
+          >
+            <img src={SHIELD_LOGO} alt="shield" style={{ width: 26, height: 26, objectFit: "contain" }} />
+            <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>Shield</span>
+          </button>
+
+          {/* Filter — colour-cycling round button, no glow */}
+          <button
+            onClick={() => setShowFilters(true)}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
+          >
+            <div style={{
+              width: 28, height: 28, borderRadius: "50%",
+              background: FILTER_GLOWS[filterGlowIdx].replace("0.8", "0.12"),
+              border: `1.5px solid ${FILTER_GLOWS[filterGlowIdx].replace("0.8", "0.6")}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "background 0.6s, border-color 0.6s",
+            }}>
+              <SlidersHorizontal size={14} color={FILTER_GLOWS[filterGlowIdx].replace("0.8", "1")} />
+            </div>
+            <span style={{ fontSize: 10, fontWeight: 700, color: FILTER_GLOWS[filterGlowIdx].replace("0.8", "0.9"), transition: "color 0.6s" }}>Filter</span>
+          </button>
+
         </div>
       </div>
 
@@ -2475,13 +2648,17 @@ export default function GhostModePage() {
               exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 32 }}
               onClick={(e) => e.stopPropagation()}
+              className="ghost-flash-scroll"
               style={{
-                position: "absolute", bottom: 0, left: 0, right: 0,
+                position: "fixed", bottom: 0,
+                left: "50%", transform: "translateX(-50%)",
+                width: "100%", maxWidth: 480,
                 background: "rgba(8,8,14,0.98)", backdropFilter: "blur(30px)",
                 borderRadius: "22px 22px 0 0",
                 border: "1px solid rgba(255,255,255,0.08)",
                 paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))",
                 maxHeight: "85dvh", overflowY: "auto",
+                scrollbarWidth: "none",
               }}
             >
               {/* Handle */}
@@ -2533,7 +2710,7 @@ export default function GhostModePage() {
 
       {/* Ghost banner */}
       <div style={{ margin: "10px 14px 0", background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 12, padding: "7px 14px", display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontSize: 14 }}>👻</span>
+        <img src={GHOST_LOGO} alt="ghost" style={{ width: 42, height: 42, objectFit: "contain" }} />
         <p style={{ fontSize: 11, color: "rgba(74,222,128,0.8)", margin: 0, fontWeight: 600 }}>
           You are invisible. Others only see your photo, name, age & city.
         </p>
@@ -2689,10 +2866,23 @@ export default function GhostModePage() {
         </div>
       )}
 
+      {/* ── Found Boo banner ── */}
+      <AnimatePresence>
+        {isProfilePaused && foundBoo && (
+          <FoundBooBanner
+            foundBoo={foundBoo}
+            onReactivate={() => {
+              try { localStorage.removeItem("ghost_found_boo"); } catch {}
+              setFoundBoo(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Profile grid */}
       {profiles.length === 0 ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, opacity: 0.5 }}>
-          <span style={{ fontSize: 40 }}>👻</span>
+          <img src={GHOST_LOGO} alt="ghost" style={{ width: 120, height: 120, objectFit: "contain" }} />
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", textAlign: "center" }}>No profiles match your filters.<br />Try widening your search.</p>
         </div>
       ) : (
@@ -2728,6 +2918,7 @@ export default function GhostModePage() {
             onConnectWhatsApp={() => {
               if (isGhost) {
                 // Subscriber — open WhatsApp directly
+                if (matchProfile) handleFoundBoo(matchProfile);
                 setMatchProfile(null);
               } else {
                 // Free user — show subscription plans
@@ -2750,6 +2941,7 @@ export default function GhostModePage() {
                 localStorage.setItem("ghost_mode_plan", planKey);
               } catch {}
               activate(planKey as "ghost" | "bundle");
+              if (matchPaywallProfile) handleFoundBoo(matchPaywallProfile);
               setMatchPaywallProfile(null);
             }}
             onClose={() => setMatchPaywallProfile(null)}
@@ -2791,6 +2983,75 @@ export default function GhostModePage() {
         )}
       </AnimatePresence>
 
+      {/* ── Shield blocked-attempt alert ── */}
+      <AnimatePresence>
+        {showBlockedAlert && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowBlockedAlert(false)}
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 9990, backdropFilter: "blur(4px)" }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.88, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 10 }}
+              transition={{ type: "spring", damping: 22, stiffness: 280 }}
+              style={{
+                position: "fixed", top: "50%", left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "calc(100% - 40px)", maxWidth: 340,
+                zIndex: 9991,
+                background: "rgba(6,10,6,0.97)",
+                border: "1px solid rgba(74,222,128,0.35)",
+                borderRadius: 22,
+                padding: "26px 22px 20px",
+                boxShadow: "0 0 60px rgba(74,222,128,0.1), 0 24px 48px rgba(0,0,0,0.7)",
+                backdropFilter: "blur(24px)",
+                textAlign: "center",
+              }}
+            >
+              {/* Top accent */}
+              <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: "4px 4px 0 0", position: "absolute", top: 0, left: 0, right: 0 }} />
+
+              {/* Shield logo */}
+              <motion.div
+                animate={{ scale: [1, 1.07, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}
+              >
+                <img src={SHIELD_LOGO} alt="shield" style={{ width: 64, height: 64, objectFit: "contain", filter: "drop-shadow(0 0 12px rgba(74,222,128,0.5))" }} />
+              </motion.div>
+
+              <p style={{ fontSize: 11, fontWeight: 800, color: "rgba(74,222,128,0.8)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>
+                🛡️ Alert Ghost
+              </p>
+              <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: "0 0 10px", lineHeight: 1.35 }}>
+                1 of your Shield numbers has tried to gain access to the Ghost House
+              </p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 22px", lineHeight: 1.6 }}>
+                Don't stress — we guarded the gates as requested.
+              </p>
+
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setShowBlockedAlert(false)}
+                style={{
+                  width: "100%", height: 46, borderRadius: 50, border: "none",
+                  background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                  color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer",
+                  boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 20px rgba(34,197,94,0.4)",
+                  position: "relative", overflow: "hidden",
+                }}
+              >
+                <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
+                Thanks 2Ghost
+              </motion.button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* ── Ghost House modal ── */}
       <AnimatePresence>
         {showHouseModal && (
@@ -2824,6 +3085,116 @@ export default function GhostModePage() {
             }}
             onPass={() => setInboundLike(null)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* ── Settings Sheet ── */}
+      <AnimatePresence>
+        {showSettingsSheet && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowSettingsSheet(false)}
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 9000, backdropFilter: "blur(4px)" }}
+            />
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 320 }}
+              style={{
+                position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
+                width: "100%", maxWidth: 480, zIndex: 9001,
+                background: "rgba(10,12,16,0.98)", borderTop: "1px solid rgba(74,222,128,0.18)",
+                borderRadius: "24px 24px 0 0", padding: "20px 20px 36px",
+              }}
+            >
+              {/* Handle */}
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)", margin: "0 auto 20px" }} />
+
+              <p style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.9)", margin: "0 0 6px", letterSpacing: 0.3 }}>
+                Ghost Settings
+              </p>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "0 0 20px" }}>
+                Manage what you share in Ghost Mode
+              </p>
+
+              {settingsGateFeature ? (
+                /* Ghost Room gate message */
+                <div style={{
+                  background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.2)",
+                  borderRadius: 16, padding: "20px 18px", textAlign: "center",
+                }}>
+                  <div style={{ fontSize: 36, marginBottom: 10 }}>🚪</div>
+                  <p style={{ fontSize: 14, fontWeight: 800, color: "rgba(74,222,128,0.9)", margin: "0 0 6px" }}>
+                    Ghost Room Required
+                  </p>
+                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 18px", lineHeight: 1.5 }}>
+                    You need to create your Ghost Room before sharing {settingsGateFeature.toLowerCase()}. Your room is the private link ghosts use to access your content.
+                  </p>
+                  <button
+                    onClick={() => { setShowSettingsSheet(false); navigate("/ghost/room"); }}
+                    style={{
+                      height: 40, paddingInline: 24, borderRadius: 12,
+                      background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.35)",
+                      color: "rgba(74,222,128,0.9)", fontSize: 13, fontWeight: 800, cursor: "pointer",
+                    }}
+                  >
+                    Set Up Ghost Room
+                  </button>
+                  <button
+                    onClick={() => setSettingsGateFeature(null)}
+                    style={{
+                      display: "block", margin: "12px auto 0", background: "none", border: "none",
+                      color: "rgba(255,255,255,0.35)", fontSize: 12, cursor: "pointer",
+                    }}
+                  >
+                    ← Back
+                  </button>
+                </div>
+              ) : (
+                /* 2×2 feature grid */
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {[
+                    { icon: "🎥", label: "Video", desc: "Share video clips" },
+                    { icon: "🖼️", label: "Images", desc: "Share photo gallery" },
+                    { icon: "👥", label: "Contacts", desc: "Share contact list" },
+                    { icon: null, label: "Shield", desc: "Block unwanted ghosts", isShield: true },
+                  ].map(({ icon, label, desc, isShield }) => (
+                    <button
+                      key={label}
+                      onClick={() => {
+                        if (isShield) {
+                          setShowSettingsSheet(false);
+                          navigate("/ghost/block");
+                        } else {
+                          const hasRoom = !!localStorage.getItem("ghost_room_code");
+                          if (!hasRoom) {
+                            setSettingsGateFeature(label);
+                          } else {
+                            setShowSettingsSheet(false);
+                            navigate("/ghost/room");
+                          }
+                        }
+                      }}
+                      style={{
+                        background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+                        borderRadius: 16, padding: "18px 14px", textAlign: "left", cursor: "pointer",
+                        display: "flex", flexDirection: "column", gap: 8,
+                      }}
+                    >
+                      {isShield
+                        ? <img src={SHIELD_LOGO} alt="shield" style={{ width: 72, height: 72, objectFit: "contain" }} />
+                        : <span style={{ fontSize: 28 }}>{icon}</span>
+                      }
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.85)", margin: 0 }}>{label}</p>
+                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>{desc}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 

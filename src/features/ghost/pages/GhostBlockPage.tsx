@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Shield, Plus, Trash2, ArrowRight, Phone } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ArrowRight, Phone, X, Globe, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/Ghostly%20figure%20with%20a%20glowing%20shield.png";
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 const COUNTRY_CODES = [
   { code: "+62", flag: "🇮🇩", name: "Indonesia" },
@@ -18,49 +21,151 @@ const COUNTRY_CODES = [
   { code: "+91", flag: "🇮🇳", name: "India" },
 ];
 
+const ALL_COUNTRIES = [
+  { flag: "🇦🇫", name: "Afghanistan" },
+  { flag: "🇦🇱", name: "Albania" },
+  { flag: "🇩🇿", name: "Algeria" },
+  { flag: "🇦🇷", name: "Argentina" },
+  { flag: "🇦🇲", name: "Armenia" },
+  { flag: "🇦🇺", name: "Australia" },
+  { flag: "🇦🇹", name: "Austria" },
+  { flag: "🇦🇿", name: "Azerbaijan" },
+  { flag: "🇧🇩", name: "Bangladesh" },
+  { flag: "🇧🇾", name: "Belarus" },
+  { flag: "🇧🇪", name: "Belgium" },
+  { flag: "🇧🇴", name: "Bolivia" },
+  { flag: "🇧🇦", name: "Bosnia" },
+  { flag: "🇧🇷", name: "Brazil" },
+  { flag: "🇧🇬", name: "Bulgaria" },
+  { flag: "🇨🇦", name: "Canada" },
+  { flag: "🇨🇱", name: "Chile" },
+  { flag: "🇨🇳", name: "China" },
+  { flag: "🇨🇴", name: "Colombia" },
+  { flag: "🇭🇷", name: "Croatia" },
+  { flag: "🇨🇿", name: "Czech Republic" },
+  { flag: "🇩🇰", name: "Denmark" },
+  { flag: "🇪🇨", name: "Ecuador" },
+  { flag: "🇪🇬", name: "Egypt" },
+  { flag: "🇪🇹", name: "Ethiopia" },
+  { flag: "🇫🇮", name: "Finland" },
+  { flag: "🇫🇷", name: "France" },
+  { flag: "🇬🇪", name: "Georgia" },
+  { flag: "🇩🇪", name: "Germany" },
+  { flag: "🇬🇭", name: "Ghana" },
+  { flag: "🇬🇷", name: "Greece" },
+  { flag: "🇬🇹", name: "Guatemala" },
+  { flag: "🇭🇳", name: "Honduras" },
+  { flag: "🇭🇺", name: "Hungary" },
+  { flag: "🇮🇳", name: "India" },
+  { flag: "🇮🇩", name: "Indonesia" },
+  { flag: "🇮🇷", name: "Iran" },
+  { flag: "🇮🇶", name: "Iraq" },
+  { flag: "🇮🇪", name: "Ireland" },
+  { flag: "🇮🇱", name: "Israel" },
+  { flag: "🇮🇹", name: "Italy" },
+  { flag: "🇯🇲", name: "Jamaica" },
+  { flag: "🇯🇵", name: "Japan" },
+  { flag: "🇯🇴", name: "Jordan" },
+  { flag: "🇰🇿", name: "Kazakhstan" },
+  { flag: "🇰🇪", name: "Kenya" },
+  { flag: "🇰🇷", name: "South Korea" },
+  { flag: "🇰🇼", name: "Kuwait" },
+  { flag: "🇱🇧", name: "Lebanon" },
+  { flag: "🇱🇾", name: "Libya" },
+  { flag: "🇲🇾", name: "Malaysia" },
+  { flag: "🇲🇽", name: "Mexico" },
+  { flag: "🇲🇦", name: "Morocco" },
+  { flag: "🇲🇿", name: "Mozambique" },
+  { flag: "🇲🇲", name: "Myanmar" },
+  { flag: "🇳🇵", name: "Nepal" },
+  { flag: "🇳🇱", name: "Netherlands" },
+  { flag: "🇳🇿", name: "New Zealand" },
+  { flag: "🇳🇬", name: "Nigeria" },
+  { flag: "🇳🇴", name: "Norway" },
+  { flag: "🇴🇲", name: "Oman" },
+  { flag: "🇵🇰", name: "Pakistan" },
+  { flag: "🇵🇪", name: "Peru" },
+  { flag: "🇵🇭", name: "Philippines" },
+  { flag: "🇵🇱", name: "Poland" },
+  { flag: "🇵🇹", name: "Portugal" },
+  { flag: "🇶🇦", name: "Qatar" },
+  { flag: "🇷🇴", name: "Romania" },
+  { flag: "🇷🇺", name: "Russia" },
+  { flag: "🇸🇦", name: "Saudi Arabia" },
+  { flag: "🇸🇳", name: "Senegal" },
+  { flag: "🇷🇸", name: "Serbia" },
+  { flag: "🇸🇬", name: "Singapore" },
+  { flag: "🇸🇰", name: "Slovakia" },
+  { flag: "🇸🇴", name: "Somalia" },
+  { flag: "🇿🇦", name: "South Africa" },
+  { flag: "🇸🇸", name: "South Sudan" },
+  { flag: "🇪🇸", name: "Spain" },
+  { flag: "🇱🇰", name: "Sri Lanka" },
+  { flag: "🇸🇩", name: "Sudan" },
+  { flag: "🇸🇪", name: "Sweden" },
+  { flag: "🇨🇭", name: "Switzerland" },
+  { flag: "🇸🇾", name: "Syria" },
+  { flag: "🇹🇼", name: "Taiwan" },
+  { flag: "🇹🇿", name: "Tanzania" },
+  { flag: "🇹🇭", name: "Thailand" },
+  { flag: "🇹🇳", name: "Tunisia" },
+  { flag: "🇹🇷", name: "Turkey" },
+  { flag: "🇺🇬", name: "Uganda" },
+  { flag: "🇺🇦", name: "Ukraine" },
+  { flag: "🇦🇪", name: "UAE" },
+  { flag: "🇬🇧", name: "UK" },
+  { flag: "🇺🇸", name: "USA" },
+  { flag: "🇺🇿", name: "Uzbekistan" },
+  { flag: "🇻🇪", name: "Venezuela" },
+  { flag: "🇻🇳", name: "Vietnam" },
+  { flag: "🇾🇪", name: "Yemen" },
+  { flag: "🇿🇲", name: "Zambia" },
+  { flag: "🇿🇼", name: "Zimbabwe" },
+];
+
 const PACKAGES = [
   {
     key: 1,
     name: "Shield 1",
-    emoji: "🛡️",
+    shieldCount: 1,
     desc: "Block 1 number",
     idr: "29,000",
     usd: "~$2",
     period: "per month",
-    color: "#60a5fa",
-    glow: "rgba(96,165,250,0.4)",
-    border: "rgba(96,165,250,0.35)",
-    bg: "rgba(96,165,250,0.07)",
-    gradient: "linear-gradient(to bottom, #93c5fd, #60a5fa, #3b82f6)",
+    color: "#86efac",
+    glow: "rgba(134,239,172,0.4)",
+    border: "rgba(134,239,172,0.35)",
+    bg: "rgba(134,239,172,0.07)",
+    gradient: "linear-gradient(to bottom, #bbf7d0, #86efac, #4ade80)",
   },
   {
     key: 3,
     name: "Shield 3",
-    emoji: "🛡️🛡️",
+    shieldCount: 3,
     desc: "Block up to 3 numbers",
     idr: "59,000",
     usd: "~$4",
     period: "per month",
-    color: "#a855f7",
-    glow: "rgba(168,85,247,0.4)",
-    border: "rgba(168,85,247,0.35)",
-    bg: "rgba(168,85,247,0.07)",
-    gradient: "linear-gradient(to bottom, #c084fc, #a855f7, #9333ea)",
+    color: "#4ade80",
+    glow: "rgba(74,222,128,0.4)",
+    border: "rgba(74,222,128,0.4)",
+    bg: "rgba(74,222,128,0.08)",
+    gradient: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
     badge: "POPULAR",
   },
   {
     key: 6,
     name: "Shield 6",
-    emoji: "🛡️🛡️🛡️",
+    shieldCount: 6,
     desc: "Block up to 6 numbers",
     idr: "89,000",
     usd: "~$6",
     period: "per month",
-    color: "#f97316",
-    glow: "rgba(249,115,22,0.4)",
-    border: "rgba(251,146,60,0.35)",
-    bg: "rgba(249,115,22,0.07)",
-    gradient: "linear-gradient(to bottom, #fb923c, #f97316, #ea580c)",
+    color: "#22c55e",
+    glow: "rgba(34,197,94,0.4)",
+    border: "rgba(34,197,94,0.35)",
+    bg: "rgba(34,197,94,0.07)",
+    gradient: "linear-gradient(to bottom, #22c55e, #16a34a, #15803d)",
   },
 ];
 
@@ -73,6 +178,18 @@ function saveBlockedNumbers(arr: string[]) {
 function getBlockPackage(): number {
   try { return parseInt(localStorage.getItem("ghost_block_package") || "0", 10); } catch { return 0; }
 }
+function getBlockedCountries(): string[] {
+  try { return JSON.parse(localStorage.getItem("ghost_blocked_countries") || "[]"); } catch { return []; }
+}
+function saveBlockedCountries(arr: string[]) {
+  try { localStorage.setItem("ghost_blocked_countries", JSON.stringify(arr)); } catch {}
+}
+function getHiddenCities(): string[] {
+  try { return JSON.parse(localStorage.getItem("ghost_hidden_cities") || "[]"); } catch { return []; }
+}
+function saveHiddenCities(arr: string[]) {
+  try { localStorage.setItem("ghost_hidden_cities", JSON.stringify(arr)); } catch {}
+}
 
 export default function GhostBlockPage() {
   const navigate = useNavigate();
@@ -84,6 +201,13 @@ export default function GhostBlockPage() {
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [newPhone, setNewPhone] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+
+  // Free features
+  const [blockedCountries, setBlockedCountries] = useState<string[]>(getBlockedCountries);
+  const [hiddenCities, setHiddenCities] = useState<string[]>(getHiddenCities);
+  const [newCity, setNewCity] = useState("");
+  const [showCountryBlockSheet, setShowCountryBlockSheet] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
 
   const cleanNew = newPhone.replace(/\D/g, "");
   const fullNew = countryCode.code + cleanNew;
@@ -114,17 +238,51 @@ export default function GhostBlockPage() {
     setConfirmDelete(null);
   };
 
+  const toggleCountry = (name: string) => {
+    const next = blockedCountries.includes(name)
+      ? blockedCountries.filter((c) => c !== name)
+      : [...blockedCountries, name];
+    setBlockedCountries(next);
+    saveBlockedCountries(next);
+  };
+
+  const addCity = () => {
+    const city = newCity.trim();
+    if (!city || hiddenCities.includes(city)) return;
+    const next = [...hiddenCities, city];
+    setHiddenCities(next);
+    saveHiddenCities(next);
+    setNewCity("");
+  };
+
+  const removeCity = (city: string) => {
+    const next = hiddenCities.filter((c) => c !== city);
+    setHiddenCities(next);
+    saveHiddenCities(next);
+  };
+
+  const filteredCountries = ALL_COUNTRIES.filter((c) =>
+    c.name.toLowerCase().includes(countrySearch.toLowerCase())
+  );
+
   const slotsUsed = blocked.length;
   const slotsTotal = pkg;
 
   return (
-    <div style={{ minHeight: "100dvh", background: "#050508", color: "#fff" }}>
+    <div style={{
+      minHeight: "100dvh", color: "#fff", position: "relative",
+      backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/vxcvxcvxcv.png)",
+      backgroundSize: "cover", backgroundPosition: "center top", backgroundAttachment: "fixed",
+    }}>
+
+      {/* Dark overlay */}
+      <div style={{ position: "fixed", inset: 0, background: "rgba(4,5,8,0.78)", zIndex: 0, pointerEvents: "none" }} />
 
       {/* ── Header ── */}
       <div style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(5,5,8,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        background: "rgba(4,5,8,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(74,222,128,0.12)",
         padding: "max(14px, env(safe-area-inset-top, 14px)) 16px 14px",
         display: "flex", alignItems: "center", gap: 12,
       }}>
@@ -140,216 +298,519 @@ export default function GhostBlockPage() {
           <ArrowLeft size={16} />
         </button>
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>Ghost Shield</h1>
-          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>Block numbers from signing in</p>
+          <h1 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>Ghost Mode Shield</h1>
+          <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600 }}>Secure 2Ghost House from unwanted traffic entering</p>
         </div>
-        <Shield size={20} style={{ color: "#60a5fa" }} />
+        <img src={SHIELD_LOGO} alt="shield" style={{ width: 64, height: 64, objectFit: "contain" }} />
       </div>
 
-      <div style={{ padding: "20px 16px", display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* ── Main scrollable content ── */}
+      <div style={{ position: "relative", zIndex: 1, padding: "16px 16px 40px", display: "flex", flexDirection: "column", gap: 14 }}>
 
-        {/* ── No package bought yet ── */}
-        {pkg === 0 ? (
-          <>
-            {/* Explainer */}
+        {/* ── Intro text ── */}
+        <div style={{
+          background: "rgba(4,8,4,0.75)", border: "1px solid rgba(74,222,128,0.15)",
+          borderRadius: 14, padding: "14px 16px",
+          backdropFilter: "blur(10px)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <img src={SHIELD_LOGO} alt="" style={{ width: 28, height: 28, objectFit: "contain" }} />
+            <p style={{ fontSize: 13, fontWeight: 900, color: "#4ade80", margin: 0 }}>How Shield Protects You</p>
+          </div>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7 }}>
+            Ghost Shield is your invisible security layer. Block specific numbers from entering your Ghost House, stop likes from entire countries, and hide your profile from cities you choose — all without anyone knowing. Blocked users see only a server error, never the truth.
+          </p>
+        </div>
+
+        {/* ── FREE: Block Likes from Countries ── */}
+        <div style={{
+          background: "rgba(4,8,4,0.75)", border: "1px solid rgba(74,222,128,0.18)",
+          borderRadius: 16, overflow: "hidden",
+          backdropFilter: "blur(10px)",
+        }}>
+          {/* Section header */}
+          <div style={{
+            padding: "14px 16px",
+            borderBottom: blockedCountries.length > 0 ? "1px solid rgba(74,222,128,0.1)" : "none",
+            display: "flex", alignItems: "center", gap: 10,
+          }}>
             <div style={{
-              background: "rgba(96,165,250,0.06)",
-              border: "1px solid rgba(96,165,250,0.2)",
-              borderRadius: 16, padding: "18px 18px",
-              textAlign: "center",
+              width: 36, height: 36, borderRadius: 10,
+              background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)",
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}>
-              <div style={{ fontSize: 44, marginBottom: 10 }}>🛡️</div>
-              <h2 style={{ fontSize: 18, fontWeight: 900, margin: "0 0 8px" }}>Stay Invisible to Who Matters</h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: "0 0 4px", lineHeight: 1.6 }}>
-                <span>Add a WhatsApp number to your private block list.</span>
-              </p>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.6 }}>
-                <span>If they try to sign in, they see a server error — not that you blocked them.</span>
+              <Globe size={16} color="#4ade80" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: 0 }}>Block Likes from Countries</p>
+                <span style={{
+                  fontSize: 9, fontWeight: 800, color: "#4ade80",
+                  background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.3)",
+                  borderRadius: 4, padding: "1px 6px", letterSpacing: "0.06em",
+                }}>FREE</span>
+              </div>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "1px 0 0" }}>
+                {blockedCountries.length === 0
+                  ? "No countries blocked · likes from everywhere allowed"
+                  : `${blockedCountries.length} countr${blockedCountries.length === 1 ? "y" : "ies"} blocked`}
               </p>
             </div>
+            <button
+              onClick={() => setShowCountryBlockSheet(true)}
+              style={{
+                height: 32, borderRadius: 8, padding: "0 12px",
+                background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)",
+                color: "#4ade80", fontSize: 12, fontWeight: 800, cursor: "pointer",
+              }}
+            >
+              {blockedCountries.length === 0 ? "Set Up" : "Edit"}
+            </button>
+          </div>
 
-            {/* Packages */}
-            <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.1em", margin: 0, textAlign: "center" }}>
-              Choose a Shield plan
-            </p>
-            {PACKAGES.map((p) => (
-              <motion.button
-                key={p.key}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleBuy(p.key)}
-                style={{
-                  width: "100%", borderRadius: 16, padding: "16px 18px",
-                  background: p.bg, border: `1px solid ${p.border}`,
-                  cursor: "pointer", textAlign: "left", position: "relative",
-                  boxShadow: `0 0 30px ${p.glow}22`,
-                }}
-              >
-                {p.badge && (
-                  <div style={{
-                    position: "absolute", top: 12, right: 12,
-                    background: p.color, borderRadius: 6,
-                    padding: "2px 8px", fontSize: 9, fontWeight: 800, color: "#fff", letterSpacing: "0.06em",
+          {/* Blocked country chips */}
+          {blockedCountries.length > 0 && (
+            <div style={{ padding: "10px 16px 14px", display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {blockedCountries.map((name) => {
+                const c = ALL_COUNTRIES.find((x) => x.name === name);
+                return (
+                  <div key={name} style={{
+                    display: "flex", alignItems: "center", gap: 5,
+                    background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)",
+                    borderRadius: 20, padding: "4px 10px 4px 8px",
                   }}>
-                    {p.badge}
+                    <span style={{ fontSize: 14 }}>{c?.flag}</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{name}</span>
+                    <button
+                      onClick={() => toggleCountry(name)}
+                      style={{
+                        background: "none", border: "none", cursor: "pointer",
+                        color: "rgba(255,255,255,0.3)", padding: 0, marginLeft: 2,
+                        display: "flex", alignItems: "center",
+                      }}
+                    >
+                      <X size={12} />
+                    </button>
                   </div>
-                )}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div>
-                    <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: "0 0 3px" }}>
-                      <span>{p.emoji} {p.name}</span>
-                    </p>
-                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 8px" }}>
-                      <span>{p.desc}</span>
-                    </p>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-                      <span style={{ fontSize: 22, fontWeight: 900, color: p.color }}>{p.idr}</span>
-                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>IDR</span>
-                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>· {p.usd} · {p.period}</span>
-                    </div>
-                  </div>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: "50%",
-                    background: p.gradient,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    boxShadow: `0 4px 12px ${p.glow}`, flexShrink: 0,
-                  }}>
-                    <ArrowRight size={16} color="#fff" strokeWidth={2.5} />
-                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ── FREE: Hide from Cities ── */}
+        <div style={{
+          background: "rgba(4,8,4,0.75)", border: "1px solid rgba(74,222,128,0.18)",
+          borderRadius: 16, overflow: "hidden",
+          backdropFilter: "blur(10px)",
+        }}>
+          <div style={{ padding: "14px 16px 0", display: "flex", alignItems: "flex-start", gap: 10 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)",
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>
+              <MapPin size={16} color="#4ade80" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: 0 }}>Hide from Cities</p>
+                <span style={{
+                  fontSize: 9, fontWeight: 800, color: "#4ade80",
+                  background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.3)",
+                  borderRadius: 4, padding: "1px 6px", letterSpacing: "0.06em",
+                }}>FREE</span>
+              </div>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "1px 0 0" }}>
+                Your profile won't appear to users in these cities
+              </p>
+            </div>
+          </div>
+
+          {/* City input row */}
+          <div style={{ padding: "12px 16px 0", display: "flex", gap: 8 }}>
+            <input
+              type="text"
+              placeholder="Enter city name…"
+              value={newCity}
+              onChange={(e) => setNewCity(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") addCity(); }}
+              style={{
+                flex: 1, height: 40, borderRadius: 10,
+                background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                color: "#fff", fontSize: 13, paddingLeft: 12, paddingRight: 12,
+                outline: "none", boxSizing: "border-box",
+              }}
+            />
+            <button
+              onClick={addCity}
+              disabled={!newCity.trim() || hiddenCities.includes(newCity.trim())}
+              style={{
+                width: 40, height: 40, borderRadius: 10, border: "none",
+                background: newCity.trim() && !hiddenCities.includes(newCity.trim())
+                  ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.05)",
+                color: newCity.trim() && !hiddenCities.includes(newCity.trim())
+                  ? "#4ade80" : "rgba(255,255,255,0.2)",
+                cursor: newCity.trim() ? "pointer" : "default",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+
+          {/* City chips */}
+          {hiddenCities.length > 0 ? (
+            <div style={{ padding: "10px 16px 14px", display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {hiddenCities.map((city) => (
+                <div key={city} style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)",
+                  borderRadius: 20, padding: "4px 10px 4px 10px",
+                }}>
+                  <MapPin size={10} color="rgba(74,222,128,0.6)" />
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{city}</span>
+                  <button
+                    onClick={() => removeCity(city)}
+                    style={{
+                      background: "none", border: "none", cursor: "pointer",
+                      color: "rgba(255,255,255,0.3)", padding: 0, marginLeft: 2,
+                      display: "flex", alignItems: "center",
+                    }}
+                  >
+                    <X size={12} />
+                  </button>
                 </div>
-              </motion.button>
-            ))}
-          </>
-        ) : (
+              ))}
+            </div>
+          ) : (
+            <div style={{ padding: "10px 16px 14px" }}>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0, fontStyle: "italic" }}>
+                No cities hidden yet · your profile is visible everywhere
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Divider ── */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 10,
+        }}>
+          <div style={{ flex: 1, height: 1, background: "rgba(74,222,128,0.1)" }} />
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>Number Shield</span>
+          <div style={{ flex: 1, height: 1, background: "rgba(74,222,128,0.1)" }} />
+        </div>
+
+        {/* ── Shield inactive — show info card + activate CTA ── */}
+        {pkg === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            style={{
+              background: "rgba(4,8,4,0.82)",
+              border: "1px solid rgba(74,222,128,0.3)",
+              borderRadius: 24, padding: "28px 22px 24px",
+              backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+              boxShadow: "0 0 60px rgba(74,222,128,0.08), 0 24px 48px rgba(0,0,0,0.5)",
+              textAlign: "center",
+            }}
+          >
+            {/* Top accent */}
+            <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: "4px 4px 0 0", marginBottom: 24, marginLeft: -22, marginRight: -22, marginTop: -28 }} />
+
+            {/* Icon */}
+            <motion.div
+              animate={{ scale: [1, 1.06, 1] }}
+              transition={{ duration: 2.4, repeat: Infinity }}
+              style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}
+            >
+              <img src={SHIELD_LOGO} alt="shield" style={{ width: 120, height: 120, objectFit: "contain", filter: "drop-shadow(0 0 18px rgba(74,222,128,0.45))" }} />
+            </motion.div>
+
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.01em" }}>
+              Block Specific Numbers
+            </h2>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 20px", lineHeight: 1.7 }}>
+              Choose a Shield plan to block specific WhatsApp numbers from entering your Ghost House. They'll see a server error — they'll never know they're blocked.
+            </p>
+
+            {/* Feature points */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22, textAlign: "left" }}>
+              {[
+                { icon: "🚫", text: "Block any WhatsApp number from entering the house" },
+                { icon: "👻", text: "Blocked ghosts see a server error — never know they're blocked" },
+                { icon: "🔒", text: "Active while your Ghost membership is active" },
+                { icon: "📅", text: "1 month Shield included with every pay-per-connection" },
+                { icon: "🌍", text: "Works globally — any country code" },
+              ].map(({ icon, text }) => (
+                <div key={text} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                  <span style={{ fontSize: 15, flexShrink: 0, marginTop: 1 }}>{icon === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 36, height: 36, objectFit: "contain", verticalAlign: "middle" }} /> : icon}</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.55 }}>{text}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.2), transparent)", marginBottom: 18 }} />
+
+            {/* Activate Now CTA */}
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              whileHover={{ y: -1 }}
+              onClick={() => setShowPurchase(true)}
+              style={{
+                width: "100%", height: 52, borderRadius: 50, border: "none",
+                background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
+                letterSpacing: "0.04em",
+                boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 28px rgba(34,197,94,0.45)",
+                position: "relative", overflow: "hidden",
+              }}
+            >
+              <div style={{
+                position: "absolute", top: 0, left: "10%", right: "10%", height: "45%",
+                background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)",
+                borderRadius: "50px 50px 60% 60%", pointerEvents: "none",
+              }} />
+              <img src={SHIELD_LOGO} alt="" style={{ width: 32, height: 32, objectFit: "contain", verticalAlign: "middle", marginRight: 8 }} />
+              Activate Shield Now
+            </motion.button>
+
+            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "10px 0 0", lineHeight: 1.6 }}>
+              Shield stays active with your membership or 1 month per connection
+            </p>
+          </motion.div>
+        )}
+
+        {/* ── Active shield — blocked numbers management ── */}
+        {pkg > 0 && (
           <>
-            {/* ── Active shield status ── */}
+            {/* Active status card */}
             {(() => {
               const activePkg = PACKAGES.find((p) => p.key === pkg)!;
               return (
                 <div style={{
-                  background: activePkg.bg,
+                  background: "rgba(4,8,4,0.82)",
                   border: `1px solid ${activePkg.border}`,
-                  borderRadius: 16, padding: "14px 16px",
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  borderRadius: 18, padding: "16px 18px",
+                  backdropFilter: "blur(12px)",
+                  boxShadow: `0 0 30px ${activePkg.glow}22`,
                 }}>
-                  <div>
-                    <p style={{ fontSize: 12, fontWeight: 700, color: activePkg.color, margin: "0 0 2px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                      <span>Active · {activePkg.name}</span>
-                    </p>
-                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: 0 }}>
-                      <span>{slotsUsed} of {slotsTotal} numbers blocked</span>
-                    </p>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                        <img src={SHIELD_LOGO} alt="shield" style={{ width: 44, height: 44, objectFit: "contain" }} />
+                        <p style={{ fontSize: 14, fontWeight: 900, color: activePkg.color, margin: 0 }}>
+                          {activePkg.name} — Active
+                        </p>
+                      </div>
+                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>
+                        {slotsUsed} of {slotsTotal} slots used · active with membership
+                      </p>
+                    </div>
+                    <div style={{ display: "flex", gap: 5 }}>
+                      {Array.from({ length: slotsTotal }).map((_, i) => (
+                        <div key={i} style={{
+                          width: 10, height: 10, borderRadius: "50%",
+                          background: i < slotsUsed ? activePkg.color : "rgba(255,255,255,0.1)",
+                          boxShadow: i < slotsUsed ? `0 0 6px ${activePkg.glow}` : "none",
+                        }} />
+                      ))}
+                    </div>
                   </div>
-                  {/* Slot dots */}
-                  <div style={{ display: "flex", gap: 5 }}>
-                    {Array.from({ length: slotsTotal }).map((_, i) => (
-                      <div key={i} style={{
-                        width: 10, height: 10, borderRadius: "50%",
-                        background: i < slotsUsed ? activePkg.color : "rgba(255,255,255,0.1)",
-                        boxShadow: i < slotsUsed ? `0 0 6px ${activePkg.glow}` : "none",
-                      }} />
-                    ))}
-                  </div>
+                  {pkg < 6 && (
+                    <button
+                      onClick={() => setShowPurchase(true)}
+                      style={{
+                        background: "none", border: "none", cursor: "pointer",
+                        color: "rgba(74,222,128,0.6)", fontSize: 11, fontWeight: 700, padding: 0,
+                      }}
+                    >
+                      Upgrade Shield ↑
+                    </button>
+                  )}
                 </div>
               );
             })()}
 
-            {/* ── Blocked numbers list ── */}
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 10px" }}>
-                Blocked numbers
-              </p>
+            {/* Blocked numbers */}
+            <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.1em", margin: 0 }}>
+              Blocked Numbers
+            </p>
 
-              {blocked.length === 0 && (
-                <div style={{
-                  background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
-                  borderRadius: 14, padding: "20px 16px", textAlign: "center",
-                }}>
-                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", margin: 0 }}>
-                    <span>No numbers blocked yet</span>
-                  </p>
-                </div>
-              )}
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {blocked.map((num) => {
-                  const cc = COUNTRY_CODES.find((c) => num.startsWith(c.code)) || COUNTRY_CODES[0];
-                  const local = num.slice(cc.code.length);
-                  return (
-                    <div key={num} style={{
-                      background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-                      borderRadius: 12, padding: "12px 14px",
-                      display: "flex", alignItems: "center", justifyContent: "space-between",
-                    }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{
-                          width: 36, height: 36, borderRadius: "50%",
-                          background: "rgba(255,255,255,0.06)",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 18,
-                        }}>
-                          {cc.flag}
-                        </div>
-                        <div>
-                          <p style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: "0 0 1px" }}>
-                            <span>{cc.code} {local}</span>
-                          </p>
-                          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>
-                            <span>{cc.name} · Blocked</span>
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setConfirmDelete(num)}
-                        style={{
-                          width: 32, height: 32, borderRadius: 8,
-                          background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          cursor: "pointer", color: "#ef4444",
-                        }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  );
-                })}
+            {blocked.length === 0 && (
+              <div style={{
+                background: "rgba(4,8,4,0.7)", border: "1px solid rgba(74,222,128,0.1)",
+                borderRadius: 14, padding: "20px 16px", textAlign: "center",
+                backdropFilter: "blur(8px)",
+              }}>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", margin: 0 }}>No numbers blocked yet</p>
               </div>
+            )}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {blocked.map((num) => {
+                const cc = COUNTRY_CODES.find((c) => num.startsWith(c.code)) || COUNTRY_CODES[0];
+                const local = num.slice(cc.code.length);
+                return (
+                  <div key={num} style={{
+                    background: "rgba(4,8,4,0.75)", border: "1px solid rgba(74,222,128,0.12)",
+                    borderRadius: 12, padding: "12px 14px",
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    backdropFilter: "blur(8px)",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 36, height: 36, borderRadius: "50%",
+                        background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)",
+                        display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
+                      }}>
+                        {cc.flag}
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: "0 0 1px" }}>{cc.code} {local}</p>
+                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>{cc.name} · Blocked</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setConfirmDelete(num)}
+                      style={{
+                        width: 32, height: 32, borderRadius: 8,
+                        background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        cursor: "pointer", color: "#ef4444",
+                      }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
-            {/* ── Add number button ── */}
             {slotsUsed < slotsTotal && (
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setShowAddModal(true)}
                 style={{
-                  width: "100%", height: 48, borderRadius: 14,
-                  background: "rgba(96,165,250,0.08)",
-                  border: "1px solid rgba(96,165,250,0.25)",
-                  color: "#60a5fa", fontSize: 14, fontWeight: 800,
+                  width: "100%", height: 50, borderRadius: 14,
+                  background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.3)",
+                  color: "#4ade80", fontSize: 14, fontWeight: 800,
                   cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 }}
               >
                 <Plus size={16} />
-                <span>Add Number to Block</span>
+                Add Number to Block
               </motion.button>
-            )}
-
-            {/* Upgrade if all slots used */}
-            {slotsUsed >= slotsTotal && pkg < 6 && (
-              <button
-                onClick={() => setShowPurchase(true)}
-                style={{
-                  width: "100%", padding: "12px 16px", borderRadius: 14,
-                  background: "rgba(168,85,247,0.07)", border: "1px solid rgba(168,85,247,0.25)",
-                  color: "rgba(192,132,252,0.8)", fontSize: 13, fontWeight: 700,
-                  cursor: "pointer", textAlign: "center",
-                }}
-              >
-                <span>All slots used — upgrade to block more ↑</span>
-              </button>
             )}
           </>
         )}
       </div>
+
+      {/* ── Country block sheet ── */}
+      <AnimatePresence>
+        {showCountryBlockSheet && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowCountryBlockSheet(false)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 200,
+              background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+            }}
+          >
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "100%", maxWidth: 480,
+                background: "rgba(6,6,10,0.98)",
+                borderRadius: "20px 20px 0 0",
+                border: "1px solid rgba(74,222,128,0.15)", borderBottom: "none",
+                maxHeight: "78dvh", display: "flex", flexDirection: "column",
+              }}
+            >
+              <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: "4px 4px 0 0" }} />
+              <div style={{ padding: "14px 18px 10px", flexShrink: 0 }}>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+                  <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>Block Countries</h3>
+                  <span style={{ fontSize: 12, color: "rgba(74,222,128,0.7)", fontWeight: 700 }}>
+                    {blockedCountries.length} selected
+                  </span>
+                </div>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: "0 0 12px" }}>
+                  Users from these countries won't be able to like your profile.
+                </p>
+                {/* Search */}
+                <input
+                  type="text"
+                  placeholder="Search country…"
+                  value={countrySearch}
+                  onChange={(e) => setCountrySearch(e.target.value)}
+                  style={{
+                    width: "100%", height: 38, borderRadius: 10,
+                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                    color: "#fff", fontSize: 13, paddingLeft: 12,
+                    outline: "none", boxSizing: "border-box",
+                  }}
+                />
+              </div>
+
+              {/* Country list */}
+              <div style={{ overflowY: "auto", flex: 1, scrollbarWidth: "none" as const }}>
+                {filteredCountries.map((c) => {
+                  const selected = blockedCountries.includes(c.name);
+                  return (
+                    <button
+                      key={c.name}
+                      onClick={() => toggleCountry(c.name)}
+                      style={{
+                        width: "100%", padding: "11px 18px",
+                        background: selected ? "rgba(74,222,128,0.08)" : "transparent",
+                        border: "none", cursor: "pointer",
+                        display: "flex", alignItems: "center", gap: 12, textAlign: "left",
+                        borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      }}
+                    >
+                      <span style={{ fontSize: 22, flexShrink: 0 }}>{c.flag}</span>
+                      <span style={{ flex: 1, fontSize: 14, color: selected ? "#4ade80" : "rgba(255,255,255,0.8)", fontWeight: selected ? 700 : 500 }}>{c.name}</span>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+                        border: selected ? "none" : "1.5px solid rgba(255,255,255,0.2)",
+                        background: selected ? "#22c55e" : "transparent",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        {selected && <span style={{ color: "#fff", fontSize: 13, lineHeight: 1 }}>✓</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Done button */}
+              <div style={{ padding: "12px 18px max(20px, env(safe-area-inset-bottom, 20px))", flexShrink: 0, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <button
+                  onClick={() => setShowCountryBlockSheet(false)}
+                  style={{
+                    width: "100%", height: 48, borderRadius: 50, border: "none",
+                    background: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
+                    color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
+                    boxShadow: "0 4px 16px rgba(34,197,94,0.4)",
+                  }}
+                >
+                  Done
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Add number modal ── */}
       <AnimatePresence>
@@ -375,7 +836,7 @@ export default function GhostBlockPage() {
                 padding: "20px 18px max(28px, env(safe-area-inset-bottom, 28px))",
               }}
             >
-              <div style={{ height: 3, background: "linear-gradient(90deg, #60a5fa, #a855f7)", borderRadius: 4, marginBottom: 18, marginLeft: -18, marginRight: -18, marginTop: -20 }} />
+              <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: 4, marginBottom: 18, marginLeft: -18, marginRight: -18, marginTop: -20 }} />
 
               <h3 style={{ fontSize: 16, fontWeight: 900, margin: "0 0 4px" }}>Block a Number</h3>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: "0 0 18px" }}>
@@ -431,11 +892,11 @@ export default function GhostBlockPage() {
                 style={{
                   width: "100%", height: 46, borderRadius: 50, border: "none",
                   background: canAdd
-                    ? "linear-gradient(to bottom, #93c5fd, #60a5fa, #3b82f6)"
+                    ? "linear-gradient(to bottom, #86efac, #4ade80, #16a34a)"
                     : "rgba(255,255,255,0.07)",
                   color: canAdd ? "#fff" : "rgba(255,255,255,0.3)",
                   fontSize: 14, fontWeight: 900, cursor: canAdd ? "pointer" : "default",
-                  boxShadow: canAdd ? "0 4px 16px rgba(96,165,250,0.4)" : "none",
+                  boxShadow: canAdd ? "0 4px 16px rgba(74,222,128,0.4)" : "none",
                   transition: "all 0.2s",
                 }}
               >
@@ -446,7 +907,7 @@ export default function GhostBlockPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Country picker ── */}
+      {/* ── Country picker (for phone add modal) ── */}
       <AnimatePresence>
         {showCountryPicker && (
           <motion.div
@@ -480,7 +941,7 @@ export default function GhostBlockPage() {
                   onClick={() => { setCountryCode(c); setShowCountryPicker(false); }}
                   style={{
                     width: "100%", padding: "13px 20px",
-                    background: countryCode.code === c.code ? "rgba(96,165,250,0.08)" : "transparent",
+                    background: countryCode.code === c.code ? "rgba(74,222,128,0.08)" : "transparent",
                     border: "none", cursor: "pointer",
                     display: "flex", alignItems: "center", gap: 12, textAlign: "left",
                   }}
@@ -549,7 +1010,7 @@ export default function GhostBlockPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Upgrade modal ── */}
+      {/* ── Shield packages bottom sheet ── */}
       <AnimatePresence>
         {showPurchase && (
           <motion.div
@@ -557,7 +1018,7 @@ export default function GhostBlockPage() {
             onClick={() => setShowPurchase(false)}
             style={{
               position: "fixed", inset: 0, zIndex: 200,
-              background: "rgba(0,0,0,0.78)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+              background: "rgba(0,0,0,0.82)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
               display: "flex", alignItems: "flex-end", justifyContent: "center",
             }}
           >
@@ -567,36 +1028,75 @@ export default function GhostBlockPage() {
               onClick={(e) => e.stopPropagation()}
               style={{
                 width: "100%", maxWidth: 480,
-                background: "rgba(6,6,10,0.98)",
-                borderRadius: "20px 20px 0 0",
-                border: "1px solid rgba(255,255,255,0.08)", borderBottom: "none",
-                padding: "20px 18px max(28px, env(safe-area-inset-bottom, 28px))",
+                background: "rgba(4,6,4,0.98)",
+                borderRadius: "22px 22px 0 0",
+                border: "1px solid rgba(74,222,128,0.18)", borderBottom: "none",
+                padding: "6px 18px max(32px, env(safe-area-inset-bottom, 32px))",
               }}
             >
-              <h3 style={{ fontSize: 16, fontWeight: 900, margin: "0 0 14px" }}>Upgrade Shield</h3>
-              {PACKAGES.filter((p) => p.key > pkg).map((p) => (
-                <motion.button
-                  key={p.key}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleBuy(p.key)}
-                  style={{
-                    width: "100%", borderRadius: 14, padding: "13px 16px", marginBottom: 9,
-                    background: p.bg, border: `1px solid ${p.border}`,
-                    cursor: "pointer", textAlign: "left",
-                    display: "flex", alignItems: "center", justifyContent: "space-between",
-                  }}
-                >
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>
-                      <span>{p.emoji} {p.name} — {p.desc}</span>
-                    </p>
-                    <p style={{ fontSize: 12, color: p.color, margin: 0, fontWeight: 700 }}>
-                      <span>{p.idr} IDR {p.usd} · {p.period}</span>
-                    </p>
-                  </div>
-                  <ArrowRight size={16} color={p.color} strokeWidth={2.5} />
-                </motion.button>
-              ))}
+              {/* Top accent + handle */}
+              <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: "4px 4px 0 0", marginLeft: -18, marginRight: -18 }} />
+              <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 18px" }}>
+                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
+              </div>
+
+              <h3 style={{ fontSize: 18, fontWeight: 900, margin: "0 0 4px", color: "#fff" }}>Choose Your Shield</h3>
+              <p style={{ fontSize: 12, color: "rgba(74,222,128,0.7)", margin: "0 0 18px", fontWeight: 600 }}>
+                Active with membership · 1 month per connection payment
+              </p>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {PACKAGES.filter((p) => p.key > pkg).map((p) => (
+                  <motion.button
+                    key={p.key}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleBuy(p.key)}
+                    style={{
+                      width: "100%", borderRadius: 16, padding: "16px 18px",
+                      background: p.bg, border: `1px solid ${p.border}`,
+                      cursor: "pointer", textAlign: "left", position: "relative",
+                      boxShadow: `0 0 24px ${p.glow}18`,
+                    }}
+                  >
+                    {p.badge && (
+                      <div style={{
+                        position: "absolute", top: 12, right: 12,
+                        background: p.color, borderRadius: 6,
+                        padding: "2px 8px", fontSize: 9, fontWeight: 800, color: "#fff", letterSpacing: "0.06em",
+                      }}>
+                        {p.badge}
+                      </div>
+                    )}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div>
+                        <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: "0 0 3px", display: "flex", alignItems: "center", gap: 4 }}>
+                          {Array.from({ length: Math.min(p.shieldCount, 3) }).map((_, i) => (
+                            <img key={i} src={SHIELD_LOGO} alt="" style={{ width: 36, height: 36, objectFit: "contain" }} />
+                          ))}
+                          {p.name}
+                        </p>
+                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "0 0 8px" }}>{p.desc}</p>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+                          <span style={{ fontSize: 22, fontWeight: 900, color: p.color }}>{p.idr}</span>
+                          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>IDR</span>
+                          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>· {p.usd}</span>
+                        </div>
+                        <p style={{ fontSize: 10, color: "rgba(74,222,128,0.55)", margin: "5px 0 0", fontWeight: 600 }}>
+                          Active with membership · 1 month per connection
+                        </p>
+                      </div>
+                      <div style={{
+                        width: 38, height: 38, borderRadius: "50%",
+                        background: p.gradient, flexShrink: 0, marginLeft: 12,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        boxShadow: `0 4px 14px ${p.glow}`,
+                      }}>
+                        <ArrowRight size={16} color="#fff" strokeWidth={2.5} />
+                      </div>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
             </motion.div>
           </motion.div>
         )}

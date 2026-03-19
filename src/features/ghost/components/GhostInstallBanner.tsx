@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
+
 // Detects iOS Safari
 function isIOS(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as any).MSStream;
@@ -101,9 +103,9 @@ export default function GhostInstallBanner() {
               <div style={{
                 width: 52, height: 52, borderRadius: 14, flexShrink: 0,
                 background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)",
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26,
+                display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                👻
+                <img src={GHOST_LOGO} alt="ghost" style={{ width: 78, height: 78, objectFit: "contain" }} />
               </div>
 
               {/* Text */}
@@ -171,7 +173,7 @@ export default function GhostInstallBanner() {
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 24 }}>👻</span>
+                  <img src={GHOST_LOGO} alt="ghost" style={{ width: 72, height: 72, objectFit: "contain" }} />
                   <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Install 2Ghost on iPhone</p>
                 </div>
                 <button onClick={dismiss} style={{ background: "rgba(255,255,255,0.06)", border: "none", borderRadius: 8, width: 30, height: 30, cursor: "pointer", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>

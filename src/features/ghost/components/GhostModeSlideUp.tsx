@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Check } from "lucide-react";
 import { useGhostMode } from "../hooks/useGhostMode";
 
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
+
 interface GhostModeSlideUpProps {
   onClose: () => void;
   onEnterGhost: () => void;
@@ -84,7 +86,7 @@ export default function GhostModeSlideUp({ onClose, onEnterGhost }: GhostModeSli
 
             {/* Header */}
             <div style={{ textAlign: "center", marginBottom: 20 }}>
-              <div style={{ fontSize: 44, lineHeight: 1, marginBottom: 8 }}>👻</div>
+              <div style={{ lineHeight: 1, marginBottom: 8 }}><img src={GHOST_LOGO} alt="ghost" style={{ width: 132, height: 132, objectFit: "contain" }} /></div>
               <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(74,222,128,0.8)", letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 6px" }}>
                 Introducing
               </p>
@@ -111,7 +113,7 @@ export default function GhostModeSlideUp({ onClose, onEnterGhost }: GhostModeSli
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                   <div>
-                    <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: 0 }}>👻 Ghost Mode</p>
+                    <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: 0 }}><img src={GHOST_LOGO} alt="" style={{ width: 48, height: 48, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> Ghost Mode</p>
                     <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Private dating — photo + name + age + city only</p>
                   </div>
                   <div style={{ textAlign: "right" }}>
@@ -158,7 +160,7 @@ export default function GhostModeSlideUp({ onClose, onEnterGhost }: GhostModeSli
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                   <div>
-                    <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: 0 }}>👻 Ghost + VIP</p>
+                    <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: 0 }}><img src={GHOST_LOGO} alt="" style={{ width: 48, height: 48, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> Ghost + VIP</p>
                     <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Everything — save $4/mo</p>
                   </div>
                   <div style={{ textAlign: "right" }}>

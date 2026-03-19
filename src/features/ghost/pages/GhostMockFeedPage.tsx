@@ -1,57 +1,20 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Lock, Settings, Shield, ArrowRight, X, SlidersHorizontal } from "lucide-react";
+import { Lock, Settings, ArrowRight, X, SlidersHorizontal } from "lucide-react";
+import { MOCK_PROFILES, PROFILE_IMAGES, isOnlineNow, type MockProfile } from "../../../data/mockProfiles";
 
-// ── Ghost ID helper (same algorithm as real feed) ─────────────────────────────
+const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/Ghostly%20figure%20with%20a%20glowing%20shield.png";
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
+
+// ── Ghost ID helper ────────────────────────────────────────────────────────────
 function toGhostId(id: string): string {
   let h = 0;
   for (let i = 0; i < id.length; i++) { h = Math.imul(31, h) + id.charCodeAt(i) | 0; }
   return `Ghost-${1000 + Math.abs(h) % 9000}`;
 }
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
-const MOCK_IMAGES: string[] = Array.from(
-  { length: 40 },
-  (_, i) => `https://i.pravatar.cc/400?img=${i + 1}`
-);
-
-const NAMES = [
-  "Sari","Dewi","Rina","Ayu","Fitri","Nadia","Putri","Maya","Dina","Cinta",
-  "Reni","Lina","Hana","Wulan","Tari","Indah","Sinta","Mega","Yuni","Lia",
-  "Bagas","Rizky","Andi","Danu","Fajar","Hendra","Iwan","Joko","Kevin","Lukman",
-  "Mario","Novan","Ogi","Pandu","Raka","Surya","Tegar","Umar","Vino","Wahyu",
-];
-const CITIES = [
-  "Jakarta","Surabaya","Bandung","Bali","Yogyakarta","Medan","Semarang",
-  "Makassar","Malang","Solo","Bogor","Depok","Bekasi","Tangerang","Batam",
-];
-const GENDERS = [
-  "Female","Female","Female","Female","Female","Female","Female","Male",
-  "Female","Female","Female","Female","Female","Female","Female","Male",
-  "Female","Female","Female","Female","Male","Male","Male","Male",
-  "Male","Male","Male","Male","Male","Male","Male","Male",
-  "Female","Female","Female","Female","Female","Female","Female","Male",
-];
-
-function rng(seed: number, min: number, max: number) {
-  const x = Math.sin(seed + 1) * 10000;
-  return min + Math.floor((x - Math.floor(x)) * (max - min + 1));
-}
-
-const MOCK_PROFILES = MOCK_IMAGES.map((img, i) => ({
-  id: `mock-${i}`,
-  name: NAMES[i] || `User${i}`,
-  age: rng(i * 7, 20, 35),
-  city: CITIES[i % CITIES.length],
-  image: img,
-  gender: GENDERS[i] || "Female",
-  distanceKm: rng(i * 3, 1, 48),
-  isOnline: i % 3 === 0,
-  lastSeen: i % 3 === 1 ? `${rng(i, 2, 59)}m ago` : i % 3 === 2 ? `${rng(i, 1, 5)}h ago` : null,
-  countryFlag: "🇮🇩",
-  country: "Indonesia",
-}));
+const MOCK_IMAGES = PROFILE_IMAGES;
 
 const BASE_ONLINE = 127;
 
@@ -113,9 +76,9 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
             <motion.div
               animate={{ scale: [1, 1.08, 1] }}
               transition={{ duration: 2.5, repeat: Infinity }}
-              style={{ fontSize: 52, lineHeight: 1, marginBottom: 10 }}
+              style={{ lineHeight: 1, marginBottom: 10 }}
             >
-              👻
+              <img src={GHOST_LOGO} alt="ghost" style={{ width: 156, height: 156, objectFit: "contain" }} />
             </motion.div>
             <h2 style={{ fontSize: 22, fontWeight: 900, margin: "0 0 6px" }}>
               <span>Welcome to the </span>
@@ -148,7 +111,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
                   background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.15)",
                   display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
                 }}>
-                  {f.icon}
+                  {f.icon === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle" }} /> : <span>{f.icon}</span>}
                 </div>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 1px" }}>
@@ -181,7 +144,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
               >
                 <div>
                   <p style={{ fontSize: 14, fontWeight: 800, color: "#fff", margin: "0 0 1px" }}>
-                    <span>{p.emoji} {p.name}</span>
+                    <span>{p.emoji === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle", marginRight: 4 }} /> : p.emoji} {p.name}</span>
                   </p>
                   <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>
                     <span>{p.period}</span>
@@ -227,7 +190,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
 }
 
 // ── Locked profile card (mirrors real GhostCard exactly) ─────────────────────
-function LockedCard({ profile, onTap }: { profile: typeof MOCK_PROFILES[0]; onTap: () => void }) {
+function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => void }) {
   const ghostId = toGhostId(profile.id);
   return (
     <motion.div
@@ -249,8 +212,21 @@ function LockedCard({ profile, onTap }: { profile: typeof MOCK_PROFILES[0]; onTa
 
         {/* Ghost badge */}
         <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "3px 7px", fontSize: 8, fontWeight: 700, color: "rgba(74,222,128,0.85)" }}>
-          👻
+          <img src={GHOST_LOGO} alt="ghost" style={{ width: 30, height: 30, objectFit: "contain" }} />
         </div>
+
+        {/* VIP badge */}
+        {profile.isVip && (
+          <div style={{
+            position: "absolute", top: 28, left: 7,
+            background: "linear-gradient(135deg, #a855f7, #7c3aed)",
+            borderRadius: 20, padding: "3px 6px",
+            fontSize: 8, fontWeight: 800, color: "#fff", letterSpacing: "0.04em",
+            boxShadow: "0 2px 8px rgba(168,85,247,0.5)",
+          }}>
+            ⭐ VIP
+          </div>
+        )}
 
         {/* Lock badge — top right */}
         <div style={{
@@ -265,7 +241,7 @@ function LockedCard({ profile, onTap }: { profile: typeof MOCK_PROFILES[0]; onTa
         </div>
 
         {/* Online dot */}
-        {profile.isOnline && (
+        {isOnlineNow(profile) && (
           <span style={{ position: "absolute", top: 7, right: 72, width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.8)", display: "block" }} />
         )}
 
@@ -368,9 +344,26 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
     return () => clearInterval(t);
   }, [ctaSecs]);
 
+  // Randomly cycling avatar indices for the banner
+  const [bannerAvatars, setBannerAvatars] = useState<number[]>([0, 1, 2]);
+  useEffect(() => {
+    const t = setInterval(() => {
+      setBannerAvatars(() => {
+        const pool = Array.from({ length: MOCK_IMAGES.length }, (_, i) => i);
+        const picked: number[] = [];
+        while (picked.length < 3) {
+          const idx = Math.floor(Math.random() * pool.length);
+          picked.push(pool.splice(idx, 1)[0]);
+        }
+        return picked;
+      });
+    }, 2500);
+    return () => clearInterval(t);
+  }, []);
+
   const lock = () => setShowPopup(true);
 
-  const onlineProfiles = MOCK_PROFILES.filter((p) => p.isOnline).length;
+  const onlineProfiles = MOCK_PROFILES.filter((p) => isOnlineNow(p)).length;
 
   return (
     <div style={{ minHeight: "100dvh", background: "#050508", color: "#fff", display: "flex", flexDirection: "column" }}>
@@ -386,7 +379,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
       }}>
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 16 }}>👻</span>
+            <img src={GHOST_LOGO} alt="ghost" style={{ width: 48, height: 48, objectFit: "contain" }} />
             <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Ghost Mode</h1>
           </div>
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>
@@ -412,8 +405,8 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
             </span>
           </motion.div>
 
-          <button onClick={lock} style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.12)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(96,165,250,0.5)" }}>
-            <Shield size={15} />
+          <button onClick={lock} style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.12)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+            <img src={SHIELD_LOGO} alt="shield" style={{ width: 40, height: 40, objectFit: "contain" }} />
           </button>
           <button onClick={lock} style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.3)" }}>
             <Settings size={15} />
@@ -440,7 +433,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
               cursor: "pointer",
             }}
           >
-            <span style={{ fontSize: 13 }}>{icon}</span>
+            <span style={{ fontSize: 13 }}>{icon === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle" }} /> : icon}</span>
             <span style={{ fontSize: 11, fontWeight: 700, color, whiteSpace: "nowrap" }}>{label}</span>
           </motion.button>
         ))}
@@ -476,14 +469,30 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Lock size={13} style={{ color: "#4ade80", flexShrink: 0 }} />
+          {/* Rotating round avatars */}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            {bannerAvatars.map((imgIdx, i) => (
+              <motion.img
+                key={`${imgIdx}-${i}`}
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.35 }}
+                src={MOCK_IMAGES[imgIdx]}
+                style={{
+                  width: 26, height: 26, borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "2px solid rgba(74,222,128,0.5)",
+                  marginLeft: i === 0 ? 0 : -8,
+                  zIndex: 3 - i,
+                  position: "relative",
+                }}
+              />
+            ))}
+          </div>
           <p style={{ fontSize: 12, color: "rgba(74,222,128,0.9)", margin: 0, fontWeight: 700 }}>
             <span>{onlineCount} Ghost members active near you</span>
           </p>
         </div>
-        <span style={{ fontSize: 10, fontWeight: 800, color: "#f97316" }}>
-          <span>from 49k IDR</span>
-        </span>
       </motion.div>
 
       {/* ── Stats row (mirrors real feed) ── */}
@@ -608,9 +617,9 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
                 <motion.div
                   animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
                   transition={{ duration: 1.2, delay: 0.4 }}
-                  style={{ fontSize: 48, lineHeight: 1, marginBottom: 12 }}
+                  style={{ lineHeight: 1, marginBottom: 12 }}
                 >
-                  👻
+                  <img src={GHOST_LOGO} alt="ghost" style={{ width: 144, height: 144, objectFit: "contain" }} />
                 </motion.div>
                 <h2 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.01em" }}>
                   You're in Preview Mode

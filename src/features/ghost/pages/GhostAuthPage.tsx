@@ -113,7 +113,7 @@ export default function GhostAuthPage() {
         localStorage.setItem("ghost_gender", gender);
         localStorage.setItem("ghost_phone", countryCode.code + cleanPhone);
       } catch {}
-      navigate("/ghost");
+      navigate("/ghost/gateway");
     }, 1000);
   };
 
@@ -404,13 +404,14 @@ export default function GhostAuthPage() {
                       localStorage.setItem("ghost_mode_until", String(Date.now() + 30 * 24 * 60 * 60 * 1000));
                       localStorage.setItem("ghost_mode_plan", "bundle");
                       localStorage.setItem("ghost_gender", "Male");
+                      localStorage.setItem("ghost_phone", "+62812345678");
                       localStorage.setItem("ghost_profile", JSON.stringify({
                         name: "Admin", age: 30, city: "Jakarta", country: "Indonesia",
                         countryFlag: "🇮🇩", gender: "Male",
                         photo: "https://i.pravatar.cc/400?img=14",
                       }));
                     } catch {}
-                    navigate("/ghost");
+                    navigate("/ghost/gateway");
                   }}
                   style={{
                     display: "block", margin: "2px auto 0",

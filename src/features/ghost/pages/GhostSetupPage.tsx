@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { WORLD_COUNTRIES } from "../data/worldCountries";
 
 const GHOST_PROFILE_KEY = "ghost_profile";
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 const OUTCOMES = [
   { key: "serious",     icon: "💍", label: "Something Serious",  tag: "Serious" },
@@ -132,7 +133,7 @@ export default function GhostSetupPage() {
       // Store interest separately so GhostModePage can read it for default feed filter
       localStorage.setItem("ghost_interest", interest);
     } catch {}
-    setTimeout(() => navigate("/ghost"), 600);
+    setTimeout(() => navigate("/ghost/gateway"), 600);
   };
 
   const inputStyle: React.CSSProperties = {
@@ -164,7 +165,7 @@ export default function GhostSetupPage() {
         display: "flex", alignItems: "center", gap: 12,
       }}>
         <button
-          onClick={() => navigate("/ghost")}
+          onClick={() => navigate("/ghost/gateway")}
           style={{
             width: 34, height: 34, borderRadius: 10,
             background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)",
@@ -176,7 +177,7 @@ export default function GhostSetupPage() {
         </button>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 15 }}>👻</span>
+            <img src={GHOST_LOGO} alt="ghost" style={{ width: 45, height: 45, objectFit: "contain" }} />
             <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Set Up Ghost Profile</h1>
           </div>
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>Photo · Name · Age · City · Country</p>
@@ -195,7 +196,7 @@ export default function GhostSetupPage() {
         }}>
           <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>🔒</span>
           <p style={{ fontSize: 11, color: "rgba(74,222,128,0.8)", margin: 0, lineHeight: 1.55 }}>
-            Your Ghost profile shows <strong>photo, name, age, city &amp; country only</strong>. Open to the world — like someone from any country and they can like you back.
+            Your Ghost profile shows <strong>photo, name, age, city &amp; country only</strong>. Like a ghost and start chatting on WhatsApp — private. No trail or records stored.
           </p>
         </div>
 
@@ -552,7 +553,7 @@ export default function GhostSetupPage() {
                   </div>
                   <span style={{ fontSize: 13 }}>{selectedCountryObj?.flag}</span>
                   <span style={{ fontSize: 9, background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 5, padding: "1px 6px", color: "rgba(74,222,128,0.8)", fontWeight: 700 }}>
-                    👻 Ghost
+                    <img src={GHOST_LOGO} alt="" style={{ width: 30, height: 30, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> Ghost
                   </span>
                   {selectedOutcome && (
                     <span style={{ fontSize: 9, background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 5, padding: "1px 6px", color: "rgba(74,222,128,0.9)", fontWeight: 700 }}>
@@ -585,7 +586,7 @@ export default function GhostSetupPage() {
               <span>Activating...</span>
             </motion.span>
           ) : (
-            <><span style={{ fontSize: 18 }}>👻</span><span> Activate Ghost Profile</span></>
+            <><img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain" }} /><span> Activate Ghost Profile</span></>
           )}
         </motion.button>
 

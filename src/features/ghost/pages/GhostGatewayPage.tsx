@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import GhostMockFeedPage from "./GhostMockFeedPage";
 
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
+
 const GhostModePage = lazy(() => import("./GhostModePage"));
 const GhostSetupPage = lazy(() => import("./GhostSetupPage"));
 
@@ -21,7 +23,10 @@ const HOW_IT_WORKS = [
   { icon: "🚪", title: "Ghost Room", desc: "Your private vault. All your matches live here with a 48-hour countdown. Don't let them fade." },
   { icon: "🌍", title: "Global House", desc: "Members from Indonesia, UK, Ireland, Japan, Australia and growing — your next match could be anywhere." },
   { icon: "👁️", title: "You're Invisible", desc: "Others only see your Ghost ID, photo, age, and city — nothing else — until you both connect." },
+  { icon: "🚫", title: "Block Unwanted Ghosts", desc: "See someone giving bad energy? Block them instantly — they vanish from your House and can never enter your space again." },
 ];
+
+const PREVIEW_AVATARS = Array.from({ length: 8 }, (_, i) => `https://i.pravatar.cc/80?img=${i + 1}`);
 
 function WelcomeModal({ onAccept }: { onAccept: () => void }) {
   return (
@@ -58,9 +63,6 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
 
           {/* Ghost hero */}
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <div style={{ fontSize: 72, lineHeight: 1, display: "inline-block", marginBottom: 16 }}>
-              👻
-            </div>
             <h1 style={{ fontSize: 24, fontWeight: 900, color: "#fff", margin: "0 0 10px", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
               Welcome to{" "}
               <span style={{ background: "linear-gradient(135deg, #4ade80, #22c55e)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
@@ -72,6 +74,27 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
               <span style={{ color: "rgba(74,222,128,0.85)", fontWeight: 700 }}>house rules</span>{" "}
               that we must all abide by — to keep our house free from bad energies entering.
             </p>
+          </div>
+
+          {/* Profile previews */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 16 }}>
+            {PREVIEW_AVATARS.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                style={{
+                  width: 38, height: 38, borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "2px solid rgba(74,222,128,0.45)",
+                  marginLeft: i === 0 ? 0 : -10,
+                  zIndex: PREVIEW_AVATARS.length - i,
+                  position: "relative",
+                }}
+              />
+            ))}
+            <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.45)", marginLeft: 10 }}>
+              +120 ghosts inside
+            </span>
           </div>
 
           {/* Divider */}
@@ -86,7 +109,7 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
               {RULES.map((rule) => (
                 <div key={rule.title} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "rgba(74,222,128,0.04)", border: "1px solid rgba(74,222,128,0.08)", borderRadius: 14, padding: "12px 14px" }}>
                   <div style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.18)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
-                    {rule.icon}
+                    {rule.icon === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle" }} /> : rule.icon}
                   </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 3px" }}>{rule.title}</p>
@@ -135,7 +158,7 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
             }}
           >
             <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
-            👻 I accept 2Ghost Rules
+            <img src={GHOST_LOGO} alt="" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> I accept 2Ghost Rules
           </motion.button>
 
           <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "12px 0 0", lineHeight: 1.6 }}>
@@ -160,11 +183,15 @@ export default function GhostGatewayPage() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [countdown, setCountdown] = useState(false);
 
-  // Delay welcome modal by 3 seconds so user can see the mock feed first
   useEffect(() => {
-    try { if (localStorage.getItem("ghost_house_welcomed")) return; } catch {}
-    const t = setTimeout(() => setShowWelcome(true), 3000);
-    return () => clearTimeout(t);
+    try {
+      if (localStorage.getItem("ghost_house_welcomed")) {
+        // Already accepted rules — skip modal, auto-slide after 3s
+        setCountdown(true);
+        return;
+      }
+    } catch {}
+    setShowWelcome(true);
   }, []);
 
   const hasProfile = (() => {
@@ -202,7 +229,7 @@ export default function GhostGatewayPage() {
       <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>
         <Suspense fallback={
           <div style={{ width: "100%", height: "100%", background: "#050508", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: 40 }}>👻</span>
+            <img src={GHOST_LOGO} alt="ghost" style={{ width: 120, height: 120, objectFit: "contain" }} />
           </div>
         }>
           {hasProfile ? <GhostModePage /> : <GhostSetupPage />}
@@ -246,9 +273,9 @@ export default function GhostGatewayPage() {
               <motion.div
                 animate={{ scale: [0.9, 1.05, 0.9], opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 1.2, repeat: Infinity }}
-                style={{ fontSize: 52 }}
+                style={{}}
               >
-                👻
+                <img src={GHOST_LOGO} alt="ghost" style={{ width: 156, height: 156, objectFit: "contain" }} />
               </motion.div>
               <p style={{ fontSize: 14, fontWeight: 800, color: "rgba(74,222,128,0.9)", letterSpacing: "0.08em", margin: 0 }}>
                 Entering Ghost Mode...

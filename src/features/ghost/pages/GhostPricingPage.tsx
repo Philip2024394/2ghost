@@ -4,6 +4,7 @@ import { Check, ArrowLeft, ArrowRight, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const GHOST_HERO = "https://ik.imagekit.io/7grri5v7d/find%20meddddd.png";
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 const PLANS = [
   {
@@ -164,7 +165,7 @@ export default function GhostPricingPage() {
               letterSpacing: "0.04em",
             }}
           >
-            {p.key === "founding" ? "👻 Founding" : p.key === "monthly" ? "Monthly" : "VIP Bundle"}
+            {p.key === "founding" ? <><img src={GHOST_LOGO} alt="" style={{ width: 42, height: 42, objectFit: "contain", verticalAlign: "middle", marginRight: 4 }} /> Founding</> : p.key === "monthly" ? "Monthly" : "VIP Bundle"}
           </button>
         ))}
       </div>
