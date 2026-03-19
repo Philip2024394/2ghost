@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Plus, Trash2, ArrowRight, Phone, X, Globe, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -264,6 +264,18 @@ export default function GhostBlockPage() {
   const filteredCountries = ALL_COUNTRIES.filter((c) =>
     c.name.toLowerCase().includes(countrySearch.toLowerCase())
   );
+
+  // First-entry welcome popup
+  const [showShieldWelcome, setShowShieldWelcome] = useState(false);
+  useEffect(() => {
+    if (!sessionStorage.getItem("ghost_shield_welcome_seen")) {
+      const t = setTimeout(() => {
+        setShowShieldWelcome(true);
+        sessionStorage.setItem("ghost_shield_welcome_seen", "1");
+      }, 600);
+      return () => clearTimeout(t);
+    }
+  }, []);
 
   const slotsUsed = blocked.length;
   const slotsTotal = pkg;
@@ -1097,6 +1109,114 @@ export default function GhostBlockPage() {
                   </motion.button>
                 ))}
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Shield first-entry welcome popup ── */}
+      <AnimatePresence>
+        {showShieldWelcome && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowShieldWelcome(false)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 200,
+              background: "rgba(0,0,0,0.75)",
+              backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+            }}
+          >
+            <motion.div
+              initial={{ y: "100%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "100%", maxWidth: 480,
+                background: "rgba(4,8,4,0.97)",
+                borderRadius: "24px 24px 0 0",
+                border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none",
+                padding: "0 22px max(36px, env(safe-area-inset-bottom, 36px))",
+                boxShadow: "0 -24px 80px rgba(0,0,0,0.7)",
+              }}
+            >
+              <div style={{ height: 3, background: "linear-gradient(90deg, #15803d, #4ade80, #22c55e)", marginLeft: -22, marginRight: -22 }} />
+              <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 18px" }}>
+                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+                <img src={SHIELD_LOGO} alt="shield" style={{ width: 48, height: 48, objectFit: "contain" }} />
+                <motion.h2
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1, duration: 0.35 }}
+                  style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.2, letterSpacing: "-0.02em", margin: 0 }}
+                >
+                  Ghost Mode Shield
+                </motion.h2>
+              </div>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.18, duration: 0.35 }}
+                style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, margin: "0 0 18px" }}
+              >
+                Your privacy firewall. You control exactly who can reach you in the Ghost House — down to the country level.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.26, duration: 0.4 }}
+                style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}
+              >
+                {[
+                  { icon: "🌍", badge: "FREE", text: "Block likes from entire countries — if a region brings you bad energy, shut it off instantly" },
+                  { icon: "📍", badge: "FREE", text: "Hide from cities — your profile won't appear in feeds from those areas" },
+                  { icon: "📵", badge: "PAID", text: "Block specific WhatsApp numbers after connecting — they vanish from both feeds permanently" },
+                ].map(({ icon, badge, text }) => (
+                  <div key={text} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1.5 }}>{icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <span style={{
+                        fontSize: 9, fontWeight: 800, letterSpacing: "0.08em",
+                        padding: "1px 6px", borderRadius: 4, marginRight: 6,
+                        background: badge === "FREE" ? "rgba(74,222,128,0.12)" : "rgba(251,191,36,0.12)",
+                        color: badge === "FREE" ? "#4ade80" : "#fbbf24",
+                        border: `1px solid ${badge === "FREE" ? "rgba(74,222,128,0.25)" : "rgba(251,191,36,0.25)"}`,
+                      }}>{badge}</span>
+                      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: "4px 0 0", lineHeight: 1.55 }}>{text}</p>
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+
+              <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.15), transparent)", marginBottom: 18 }} />
+
+              <motion.button
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.38, duration: 0.3 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setShowShieldWelcome(false)}
+                style={{
+                  width: "100%", height: 52, borderRadius: 50, border: "none",
+                  background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                  color: "#fff", fontSize: 15, fontWeight: 900,
+                  cursor: "pointer", letterSpacing: "0.03em",
+                  boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 24px rgba(34,197,94,0.4)",
+                  position: "relative", overflow: "hidden",
+                }}
+              >
+                <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
+                Set Up My Shield →
+              </motion.button>
             </motion.div>
           </motion.div>
         )}

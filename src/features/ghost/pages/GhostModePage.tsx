@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Heart, X, MessageCircle, Settings, Navigation, Globe, Clock, Gift, Check, Eye, Moon, Zap, LogOut, SlidersHorizontal, LayoutDashboard } from "lucide-react";
-import { getConnectLink, getPlatform } from "../data/connectPlatforms";
+import { PHONE_APPS, getUsernamePlatform } from "../data/connectPlatforms";
 import { useNavigate } from "react-router-dom";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/Ghostly%20figure%20with%20a%20glowing%20shield.png";
@@ -29,8 +29,9 @@ type GhostProfile = {
   isVerified?: boolean;
   bio?: string | null;
   interests?: string[] | null;
-  connectPlatform?: string;
-  connectHandle?: string | null;
+  connectPhone?: string | null;
+  connectAlt?: string | null;
+  connectAltHandle?: string | null;
 };
 
 type GhostMatch = {
@@ -545,8 +546,9 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
 }) {
   const firstName = profile.name.split(" ")[0];
   const ghostId = toGhostId(profile.id);
-  // Use the profile's chosen platform, fallback to WhatsApp
-  const platform = getPlatform(profile.connectPlatform ?? "whatsapp");
+  const altPlatform = profile.connectAlt ? getUsernamePlatform(profile.connectAlt) : undefined;
+  const hasPhone = !!profile.connectPhone;
+
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -560,7 +562,7 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
         initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 22 }}
         style={{
-          width: "100%", maxWidth: 320, textAlign: "center",
+          width: "100%", maxWidth: 340, textAlign: "center",
           background: "rgba(8,8,12,0.95)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
           borderRadius: 22, border: "1px solid rgba(74,222,128,0.2)", overflow: "hidden",
         }}
@@ -575,7 +577,7 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
               <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain" }} />
             </div>
           </div>
-          {/* Ghost ID → real name reveal */}
+
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "0 0 2px", letterSpacing: "0.05em" }}>
             <span>{ghostId} is revealed as</span>
           </p>
@@ -583,15 +585,13 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
           <h2 style={{ fontSize: 22, fontWeight: 900, margin: "0 0 4px", background: "linear-gradient(135deg, #4ade80, #22c55e)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             <span>{firstName}! 🎉</span>
           </h2>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: "0 0 6px" }}>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: "0 0 4px" }}>
             <span>{profile.age} · {profile.city} {profile.countryFlag}</span>
           </p>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 8px", lineHeight: 1.55 }}>
-            <span>You both liked each other! {isSubscribed ? `Connect now on ${platform.label}.` : `Unlock their ${platform.label} to connect for real.`}</span>
-          </p>
-          {/* Show their interests if available */}
+
+          {/* Interests */}
           {profile.interests && profile.interests.length > 0 && (
-            <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 5, marginBottom: 16 }}>
+            <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 4, margin: "8px 0 12px" }}>
               {profile.interests.map((tag) => (
                 <span key={tag} style={{ fontSize: 10, fontWeight: 700, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)", borderRadius: 50, padding: "2px 8px", color: "rgba(74,222,128,0.8)" }}>
                   {tag}
@@ -599,13 +599,103 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
               ))}
             </div>
           )}
-          <button
-            onClick={onConnectWhatsApp}
-            style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 4px 24px rgba(34,197,94,0.4)" }}
-          >
-            <span style={{ fontSize: 18 }}>{platform.emoji}</span>
-            {isSubscribed ? `Open ${platform.label}` : `Connect on ${platform.label}`}
-          </button>
+
+          {isSubscribed ? (
+            <>
+              {/* ── SUBSCRIBER: show all available connect options ── */}
+              <p style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.4)", margin: "12px 0 10px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                Reach {firstName} on
+              </p>
+
+              {hasPhone && (
+                <>
+                  {/* Phone-based apps — all work from one number */}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 10 }}>
+                    {PHONE_APPS.map((app) => (
+                      <motion.button
+                        key={app.key}
+                        whileTap={{ scale: 0.93 }}
+                        onClick={() => {
+                          const link = app.getLink(profile.connectPhone!);
+                          window.open(link, "_blank");
+                          onConnectWhatsApp();
+                        }}
+                        style={{
+                          height: 44, borderRadius: 12, padding: "0 14px",
+                          background: "rgba(255,255,255,0.05)", border: `1px solid ${app.color}30`,
+                          color: app.color, fontWeight: 800, fontSize: 13, cursor: "pointer",
+                          display: "flex", alignItems: "center", gap: 6,
+                        }}
+                      >
+                        <span style={{ fontSize: 18 }}>{app.emoji}</span>
+                        <span>{app.label}</span>
+                      </motion.button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Username-based alt platform */}
+              {altPlatform && profile.connectAltHandle && (
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => {
+                    if (altPlatform.getLink) {
+                      window.open(altPlatform.getLink(profile.connectAltHandle!), "_blank");
+                    } else {
+                      navigator.clipboard?.writeText(profile.connectAltHandle!);
+                    }
+                    onConnectWhatsApp();
+                  }}
+                  style={{
+                    width: "100%", height: 46, borderRadius: 12, border: `1px solid ${altPlatform.color}40`,
+                    background: "rgba(255,255,255,0.04)", color: altPlatform.color,
+                    fontWeight: 800, fontSize: 13, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 8,
+                  }}
+                >
+                  <span style={{ fontSize: 20 }}>{altPlatform.emoji}</span>
+                  <span>{altPlatform.label} · {profile.connectAltHandle}</span>
+                  {!altPlatform.getLink && <span style={{ fontSize: 10, opacity: 0.6 }}>tap to copy</span>}
+                </motion.button>
+              )}
+
+              {!hasPhone && !altPlatform && (
+                <button
+                  onClick={onConnectWhatsApp}
+                  style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 4px 24px rgba(34,197,94,0.4)" }}
+                >
+                  <MessageCircle size={18} /> Connect Now
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              {/* ── FREE USER: show which apps this person uses, paywall to unlock ── */}
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "12px 0 10px", lineHeight: 1.5 }}>
+                Unlock to connect. {firstName} is reachable on:
+              </p>
+              <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+                {hasPhone && PHONE_APPS.map((app) => (
+                  <span key={app.key} style={{ fontSize: 18, padding: 4, background: "rgba(255,255,255,0.04)", borderRadius: 8, border: `1px solid ${app.color}25` }} title={app.label}>
+                    {app.emoji}
+                  </span>
+                ))}
+                {altPlatform && (
+                  <span style={{ fontSize: 18, padding: 4, background: "rgba(255,255,255,0.04)", borderRadius: 8, border: `1px solid ${altPlatform.color}25` }} title={altPlatform.label}>
+                    {altPlatform.emoji}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={onConnectWhatsApp}
+                style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 4px 24px rgba(34,197,94,0.4)" }}
+              >
+                <MessageCircle size={18} /> Unlock to Connect
+              </button>
+            </>
+          )}
+
           <button onClick={onClose} style={{ display: "block", margin: "12px auto 0", background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer" }}>
             Keep browsing
           </button>
@@ -2272,11 +2362,8 @@ export default function GhostModePage() {
     };
     try { localStorage.setItem("ghost_found_boo", JSON.stringify(data)); } catch {}
     setFoundBoo(data);
-    // Open the correct connect platform
-    const link = getConnectLink(profile.connectPlatform ?? "whatsapp", profile.connectHandle ?? "");
-    if (link) {
-      setTimeout(() => window.open(link, "_blank"), 200);
-    }
+    // Open WhatsApp by default (subscriber path — they chose the app in the popup)
+    // The popup handles per-app navigation, so no auto-open here
   };
 
   // Flag / Report state

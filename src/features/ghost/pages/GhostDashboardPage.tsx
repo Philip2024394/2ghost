@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, LogOut, Edit2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getPlatform } from "../data/connectPlatforms";
+import { PHONE_APPS, getUsernamePlatform } from "../data/connectPlatforms";
 
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
@@ -126,10 +126,11 @@ export default function GhostDashboardPage() {
   const profileData = (() => {
     try { const r = localStorage.getItem("ghost_profile"); return r ? JSON.parse(r) : null; } catch { return null; }
   })();
-  const connectPlatform = profileData?.connectPlatform ?? "whatsapp";
-  const connectHandle = profileData?.connectHandle ?? null;
+  const connectPhone: string | null = profileData?.connectPhone ?? null;
+  const connectAlt: string | null = profileData?.connectAlt ?? null;
+  const connectAltHandle: string | null = profileData?.connectAltHandle ?? null;
+  const altPlatform = connectAlt ? getUsernamePlatform(connectAlt) : undefined;
   const interests: string[] = profileData?.interests ?? [];
-  const platform = getPlatform(connectPlatform);
 
   // Activity
   const [likesToday] = useState(getLikesToday);
@@ -358,26 +359,58 @@ export default function GhostDashboardPage() {
               </button>
             </div>
             <div style={{ ...CARD }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: connectHandle || interests.length > 0 ? 12 : 0 }}>
-                <span style={{ fontSize: 32 }}>{platform.emoji}</span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 15, fontWeight: 800, color: platform.color, margin: "0 0 2px" }}>{platform.label}</p>
-                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>
-                    {connectHandle ? (
-                      <span>{platform.inputType === "phone" ? "📞" : "@"} {connectHandle}</span>
-                    ) : (
-                      <span style={{ color: "rgba(255,165,0,0.7)" }}>No handle set — <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => navigate("/ghost/setup")}>add one</span></span>
-                    )}
+              {/* Phone number — works for 6 apps */}
+              <div style={{ marginBottom: 12 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>
+                  Phone Number
+                </p>
+                {connectPhone ? (
+                  <>
+                    <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: "0 0 8px" }}>📞 {connectPhone}</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {PHONE_APPS.map((app) => (
+                        <span key={app.key} style={{
+                          fontSize: 12, fontWeight: 700, padding: "4px 10px",
+                          background: "rgba(255,255,255,0.04)", border: `1px solid ${app.color}30`,
+                          borderRadius: 50, color: app.color,
+                          display: "flex", alignItems: "center", gap: 5,
+                        }}>
+                          <span>{app.emoji}</span> {app.label}
+                        </span>
+                      ))}
+                    </div>
+                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", margin: "6px 0 0" }}>
+                      Your match can reach you on any of these apps
+                    </p>
+                  </>
+                ) : (
+                  <p style={{ fontSize: 12, color: "rgba(255,165,0,0.7)", margin: 0 }}>
+                    No phone number set —{" "}
+                    <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => navigate("/ghost/setup")}>add one in Setup</span>
                   </p>
-                </div>
-                <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.06)", borderRadius: 6, padding: "3px 8px" }}>
-                  {platform.reach}
-                </span>
+                )}
               </div>
+
+              {/* Alt username platform */}
+              {altPlatform && connectAltHandle && (
+                <>
+                  <div style={{ height: 1, background: "rgba(255,255,255,0.05)", marginBottom: 12 }} />
+                  <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>
+                    Also On
+                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 24 }}>{altPlatform.emoji}</span>
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 800, color: altPlatform.color, margin: 0 }}>{altPlatform.label}</p>
+                      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0 }}>{connectAltHandle}</p>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {interests.length > 0 && (
                 <>
-                  <div style={{ height: 1, background: "rgba(255,255,255,0.05)", marginBottom: 10 }} />
+                  <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "12px 0" }} />
                   <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>Your Interests</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {interests.map((tag) => (
@@ -392,13 +425,6 @@ export default function GhostDashboardPage() {
                   </div>
                 </>
               )}
-            </div>
-
-            {/* Platform coverage hint */}
-            <div style={{ marginTop: 8, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "8px 12px" }}>
-              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0, lineHeight: 1.55 }}>
-                2Ghost supports WhatsApp · Telegram · WeChat · iMessage · Line · Instagram · Signal · Viber · Messenger · KakaoTalk · Zalo · SMS — covering 8 billion people worldwide.
-              </p>
             </div>
           </motion.div>
 

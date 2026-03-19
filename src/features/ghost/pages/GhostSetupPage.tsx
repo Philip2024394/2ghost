@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Camera, MapPin, User, Globe, Zap, Target, ShieldCheck, Tag, Smartphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { WORLD_COUNTRIES } from "../data/worldCountries";
-import { CONNECT_PLATFORMS, getPlatform } from "../data/connectPlatforms";
+import { PHONE_APPS, USERNAME_PLATFORMS } from "../data/connectPlatforms";
 
 const GHOST_PROFILE_KEY = "ghost_profile";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
@@ -80,9 +80,10 @@ export default function GhostSetupPage() {
   const [showOutcomePicker, setShowOutcomePicker] = useState(false);
   const [bio, setBio] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
-  const [connectPlatform, setConnectPlatform] = useState("whatsapp");
-  const [connectHandle, setConnectHandle] = useState("");
-  const [showPlatformSheet, setShowPlatformSheet] = useState(false);
+  const [connectPhone, setConnectPhone] = useState("");
+  const [connectAlt, setConnectAlt] = useState("");       // username platform key
+  const [connectAltHandle, setConnectAltHandle] = useState("");
+  const [showAltSheet, setShowAltSheet] = useState(false);
 
   // Photo verification
   const selfieRef = useRef<HTMLInputElement>(null);
@@ -167,8 +168,9 @@ export default function GhostSetupPage() {
           idVerified,
           bio: bio.trim() || null,
           interests: interests.length > 0 ? interests : null,
-          connectPlatform,
-          connectHandle: connectHandle.trim() || null,
+          connectPhone: connectPhone.trim() || null,
+          connectAlt: connectAlt || null,
+          connectAltHandle: connectAltHandle.trim() || null,
         })
       );
       // Store interest separately so GhostModePage can read it for default feed filter
@@ -666,50 +668,99 @@ export default function GhostSetupPage() {
           )}
         </div>
 
-        {/* Connect Platform */}
-        {(() => {
-          const p = getPlatform(connectPlatform);
-          return (
-            <div style={{ marginBottom: 28 }}>
-              <label style={labelStyle}>
-                <Smartphone size={10} style={{ display: "inline", marginRight: 5 }} />
-                How People Reach You <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>(shared only on mutual match)</span>
-              </label>
+        {/* How people reach you */}
+        <div style={{ marginBottom: 28 }}>
+          <label style={labelStyle}>
+            <Smartphone size={10} style={{ display: "inline", marginRight: 5 }} />
+            Your Phone Number <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>(shared only on mutual match)</span>
+          </label>
 
-              {/* Platform selector */}
-              <button
-                onClick={() => setShowPlatformSheet(true)}
-                style={{
-                  width: "100%", height: 48, borderRadius: 12, marginBottom: 10,
-                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  padding: "0 14px",
-                }}
-              >
-                <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 20 }}>{p.emoji}</span>
-                  <span style={{ color: p.color }}>{p.label}</span>
-                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>{p.reach}</span>
+          {/* Explainer */}
+          <div style={{
+            background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.12)",
+            borderRadius: 12, padding: "10px 12px", marginBottom: 12,
+          }}>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", margin: "0 0 6px", lineHeight: 1.5 }}>
+              One number — your match can reach you on any app that uses it:
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {PHONE_APPS.map((a) => (
+                <span key={a.key} style={{
+                  fontSize: 11, fontWeight: 700,
+                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 50, padding: "3px 9px", color: a.color,
+                }}>
+                  {a.emoji} {a.label}
                 </span>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>▾ Change</span>
-              </button>
-
-              {/* Handle input */}
-              <input
-                style={inputStyle}
-                placeholder={p.placeholder}
-                value={connectHandle}
-                maxLength={80}
-                onChange={(e) => setConnectHandle(e.target.value)}
-              />
-              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "6px 0 0", lineHeight: 1.5 }}>
-                {p.inputType === "phone" ? "Enter your number with country code. Only shared with your mutual matches." :
-                 `Your ${p.label} ${p.inputType}. Only shared with your mutual matches.`}
-              </p>
+              ))}
             </div>
-          );
-        })()}
+          </div>
+
+          <input
+            style={inputStyle}
+            type="tel"
+            placeholder="+62 8xx xxxx xxxx (include country code)"
+            value={connectPhone}
+            maxLength={20}
+            onChange={(e) => setConnectPhone(e.target.value)}
+          />
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "6px 0 0", lineHeight: 1.5 }}>
+            Include your country code. Only your mutual matches see this.
+          </p>
+
+          {/* Optional: username-based second app */}
+          <div style={{ marginTop: 16 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.3)", margin: "0 0 8px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+              Also on <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, opacity: 0.6 }}>— optional second app</span>
+            </p>
+            <button
+              onClick={() => setShowAltSheet(true)}
+              style={{
+                width: "100%", height: 46, borderRadius: 12, marginBottom: connectAlt ? 10 : 0,
+                background: connectAlt ? "rgba(74,222,128,0.06)" : "rgba(255,255,255,0.03)",
+                border: connectAlt ? "1px solid rgba(74,222,128,0.25)" : "1px solid rgba(255,255,255,0.07)",
+                color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "0 14px",
+              }}
+            >
+              {connectAlt ? (() => {
+                const alt = USERNAME_PLATFORMS.find((p) => p.key === connectAlt)!;
+                return (
+                  <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 20 }}>{alt.emoji}</span>
+                    <span style={{ color: alt.color }}>{alt.label}</span>
+                  </span>
+                );
+              })() : (
+                <span style={{ color: "rgba(255,255,255,0.3)" }}>
+                  WeChat · Telegram · Instagram · Line · KakaoTalk…
+                </span>
+              )}
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>▾ {connectAlt ? "Change" : "Pick"}</span>
+            </button>
+            {connectAlt && (() => {
+              const alt = USERNAME_PLATFORMS.find((p) => p.key === connectAlt)!;
+              return (
+                <>
+                  <input
+                    style={inputStyle}
+                    placeholder={alt.placeholder}
+                    value={connectAltHandle}
+                    maxLength={80}
+                    onChange={(e) => setConnectAltHandle(e.target.value)}
+                  />
+                  <button
+                    onClick={() => { setConnectAlt(""); setConnectAltHandle(""); }}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.2)", fontSize: 11, marginTop: 6, padding: 0 }}
+                  >
+                    ✕ Remove
+                  </button>
+                </>
+              );
+            })()}
+          </div>
+        </div>
 
         {/* Profile preview */}
         {photo && name && age && city && country && (
@@ -792,12 +843,12 @@ export default function GhostSetupPage() {
           </p>
         )}
       </div>
-      {/* ── Platform picker bottom sheet ── */}
+      {/* ── Alt platform picker bottom sheet ── */}
       <AnimatePresence>
-        {showPlatformSheet && (
+        {showAltSheet && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setShowPlatformSheet(false)}
+            onClick={() => setShowAltSheet(false)}
             style={{
               position: "fixed", inset: 0, zIndex: 100,
               background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
@@ -819,36 +870,36 @@ export default function GhostSetupPage() {
               <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)" }} />
               <div style={{ padding: "16px 18px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                 <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0, textAlign: "center" }}>
-                  How People Reach You
+                  Also on...
                 </p>
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "4px 0 0", textAlign: "center" }}>
-                  Covering 8 billion people — pick the app you live on
+                  Add a username-based app so matches can reach you there too
                 </p>
               </div>
               <div style={{ overflowY: "auto", padding: "14px 16px max(20px, env(safe-area-inset-bottom, 20px))" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {CONNECT_PLATFORMS.map((p) => (
+                  {USERNAME_PLATFORMS.map((p) => (
                     <motion.button
                       key={p.key}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => { setConnectPlatform(p.key); setConnectHandle(""); setShowPlatformSheet(false); }}
+                      onClick={() => { setConnectAlt(p.key); setConnectAltHandle(""); setShowAltSheet(false); }}
                       style={{
                         width: "100%", height: 58, borderRadius: 14, padding: "0 16px",
-                        background: connectPlatform === p.key ? "rgba(74,222,128,0.08)" : "rgba(255,255,255,0.03)",
-                        border: connectPlatform === p.key ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.07)",
+                        background: connectAlt === p.key ? "rgba(74,222,128,0.08)" : "rgba(255,255,255,0.03)",
+                        border: connectAlt === p.key ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.07)",
                         cursor: "pointer",
                         display: "flex", alignItems: "center", gap: 14,
                         transition: "all 0.15s",
                       }}
                     >
-                      <span style={{ fontSize: 24, flexShrink: 0 }}>{p.emoji}</span>
+                      <span style={{ fontSize: 28, flexShrink: 0 }}>{p.emoji}</span>
                       <div style={{ flex: 1, textAlign: "left" }}>
-                        <p style={{ fontSize: 14, fontWeight: 700, color: connectPlatform === p.key ? p.color : "#fff", margin: 0 }}>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: connectAlt === p.key ? p.color : "#fff", margin: 0 }}>
                           {p.label}
                         </p>
                         <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>{p.reach}</p>
                       </div>
-                      {connectPlatform === p.key && (
+                      {connectAlt === p.key && (
                         <span style={{ fontSize: 16, color: "rgba(74,222,128,0.9)" }}>✓</span>
                       )}
                     </motion.button>
