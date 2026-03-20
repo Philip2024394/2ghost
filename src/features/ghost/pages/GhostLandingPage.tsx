@@ -257,9 +257,9 @@ export default function GhostLandingPage() {
                   margin: "0 0 18px",
                 }}
               >
-                Tomorrow's dating app<br />
-                isn't louder —<br />
-                <span style={{ color: "#4ade80" }}>it's quieter.</span>
+                Dating without<br />
+                the noise —<br />
+                <span style={{ color: "#4ade80" }}>finally.</span>
               </motion.h2>
 
               {/* Manifesto body */}
@@ -269,22 +269,46 @@ export default function GhostLandingPage() {
                 transition={{ delay: 0.28, duration: 0.45 }}
                 style={{
                   fontSize: 13, color: "rgba(255,255,255,0.55)",
-                  lineHeight: 1.75, margin: "0 0 6px",
+                  lineHeight: 1.75, margin: "0 0 14px",
                 }}
               >
-                2Ghost was built for people tired of performative dating. No followers. No stories. No dopamine loops. Just two people, a mutual choice, and a private conversation on the app you already use.
+                2Ghost is for people done with performative dating.{"\n"}No followers. No profiles to perfect. No endless swiping.
               </motion.p>
 
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.35, duration: 0.45 }}
+                transition={{ delay: 0.32, duration: 0.45 }}
+                style={{
+                  fontSize: 13, color: "rgba(255,255,255,0.55)",
+                  lineHeight: 1.75, margin: "0 0 14px",
+                }}
+              >
+                Just two people who choose each other — and start talking.
+              </motion.p>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.36, duration: 0.45 }}
+                style={{
+                  fontSize: 13, color: "rgba(255,255,255,0.7)",
+                  lineHeight: 1.75, margin: "0 0 14px", fontStyle: "italic",
+                }}
+              >
+                Stay anonymous until it actually means something.{"\n"}Then move the conversation to the apps you already use.
+              </motion.p>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.40, duration: 0.45 }}
                 style={{
                   fontSize: 13, color: "rgba(255,255,255,0.55)",
                   lineHeight: 1.75, margin: "0 0 18px",
                 }}
               >
-                The future of dating is anonymous until it's real.
+                This is dating without the noise.
               </motion.p>
 
               {/* Credit */}
