@@ -347,6 +347,7 @@ export default function GhostModePage() {
   const [icebreakerProfile, setIcebreakerProfile] = useState<GhostProfile | null>(null);
   const [showButler, setShowButler] = useState(false);
   const [butlerMatchName, setButlerMatchName] = useState<string | undefined>();
+  const [butlerConnectProfile, setButlerConnectProfile] = useState<GhostProfile | null>(null);
   const [matchPaywallProfile, setMatchPaywallProfile] = useState<GhostProfile | null>(null);
   const [connectNowProfile, setConnectNowProfile] = useState<GhostProfile | null>(null);
   const [savedMatches, setSavedMatches] = useState<GhostMatch[]>(loadMatches);
@@ -797,21 +798,6 @@ export default function GhostModePage() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-            {/* Ghost Butler — only show for supported cities */}
-            {isCitySupported(userCity) && (
-              <button
-                onClick={() => { setButlerMatchName(undefined); setShowButler(true); }}
-                title="Ghost Butler"
-                style={{
-                  width: 34, height: 34, borderRadius: 10,
-                  background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.25)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  cursor: "pointer", fontSize: 16,
-                }}
-              >
-                🎩
-              </button>
-            )}
             <button
               onClick={() => navigate("/ghost/dashboard")}
               title="Dashboard"
@@ -890,6 +876,17 @@ export default function GhostModePage() {
             <img src={SHIELD_LOGO} alt="shield" style={{ width: 26, height: 26, objectFit: "contain" }} />
             <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>Shield</span>
           </button>
+
+          {/* Ghost Butler */}
+          {isCitySupported(userCity) && (
+            <button
+              onClick={() => { setButlerMatchName(undefined); setShowButler(true); }}
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
+            >
+              <span style={{ fontSize: 22, lineHeight: 1 }}>🎩</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(251,191,36,0.9)" }}>Butler</span>
+            </button>
+          )}
 
           {/* Filter */}
           <button
@@ -1254,10 +1251,18 @@ export default function GhostModePage() {
             onConnectWhatsApp={() => {
               if (isGhost) {
                 if (matchProfile) {
-                  handleFoundBoo(matchProfile);
-                  setConnectNowProfile(matchProfile);
+                  // If city supported and user is male, show butler prompt first
+                  if (!isFemale && isCitySupported(userCity)) {
+                    setButlerConnectProfile(matchProfile);
+                    setMatchProfile(null);
+                  } else {
+                    handleFoundBoo(matchProfile);
+                    setConnectNowProfile(matchProfile);
+                    setMatchProfile(null);
+                  }
+                } else {
+                  setMatchProfile(null);
                 }
-                setMatchProfile(null);
               } else {
                 setMatchPaywallProfile(matchProfile);
                 setMatchProfile(null);
@@ -1283,6 +1288,75 @@ export default function GhostModePage() {
             matchName={butlerMatchName}
             onClose={() => setShowButler(false)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Butler connect prompt — shows before opening WhatsApp when city is supported */}
+      <AnimatePresence>
+        {butlerConnectProfile && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: "fixed", inset: 0, zIndex: 320, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+            onClick={() => {
+              const p = butlerConnectProfile;
+              setButlerConnectProfile(null);
+              if (p) { handleFoundBoo(p); setConnectNowProfile(p); }
+            }}
+          >
+            <motion.div
+              initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "100%", maxWidth: 480,
+                background: "rgba(10,10,16,0.98)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
+                borderRadius: "22px 22px 0 0", border: "1px solid rgba(251,191,36,0.2)",
+                padding: "20px 20px max(20px, env(safe-area-inset-bottom, 20px))",
+              }}
+            >
+              <div style={{ textAlign: "center", marginBottom: 16 }}>
+                <span style={{ fontSize: 32, lineHeight: 1 }}>🎩</span>
+                <p style={{ margin: "8px 0 4px", fontSize: 15, fontWeight: 800, color: "#fbbf24" }}>
+                  Send a Surprise First?
+                </p>
+                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
+                  Impress {butlerConnectProfile.name.split(" ")[0]} with flowers, jewellery or a spa gift — delivered right to her door.
+                </p>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <button
+                  onClick={() => {
+                    const p = butlerConnectProfile;
+                    setButlerConnectProfile(null);
+                    setButlerMatchName(p?.name);
+                    setTimeout(() => setShowButler(true), 200);
+                  }}
+                  style={{
+                    width: "100%", height: 48, borderRadius: 14, border: "none",
+                    background: "linear-gradient(135deg, #d97706, #fbbf24)",
+                    color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  }}
+                >
+                  🎩 Open Ghost Butler
+                </button>
+                <button
+                  onClick={() => {
+                    const p = butlerConnectProfile;
+                    setButlerConnectProfile(null);
+                    if (p) { handleFoundBoo(p); setConnectNowProfile(p); }
+                  }}
+                  style={{
+                    width: "100%", height: 44, borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)",
+                    background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)",
+                    fontWeight: 700, fontSize: 13, cursor: "pointer",
+                  }}
+                >
+                  No thanks, connect now
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
