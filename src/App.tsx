@@ -18,7 +18,8 @@ const GhostPricingPage  = lazyWithRetry(() => import("./features/ghost/pages/Gho
 const GhostBlockPage    = lazyWithRetry(() => import("./features/ghost/pages/GhostBlockPage"));
 const GhostRoomPage     = lazyWithRetry(() => import("./features/ghost/pages/GhostRoomPage"));
 const GhostMapPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostMapPage"));
-const GhostDashboardPage = lazyWithRetry(() => import("./features/ghost/pages/GhostDashboardPage"));
+const GhostDashboardPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostDashboardPage"));
+const GhostPaymentSuccessPage = lazyWithRetry(() => import("./features/ghost/pages/GhostPaymentSuccessPage"));
 
 // Admin
 const AdminLoginPage    = lazyWithRetry(() => import("./features/admin/AdminLoginPage"));
@@ -50,7 +51,8 @@ export default function App() {
           <Route path="/ghost/block" element={<GhostBlockPage />} />
           <Route path="/ghost/room"  element={<GhostRoomPage />} />
           <Route path="/ghost/map"   element={<GhostMapPage />} />
-          <Route path="/ghost/dashboard" element={<GhostDashboardPage />} />
+          <Route path="/ghost/dashboard"       element={<GhostDashboardPage />} />
+          <Route path="/ghost/payment-success" element={<GhostPaymentSuccessPage />} />
 
           {/* Admin — separate login page, then layout-wrapped dashboard */}
           <Route path="/admin/login" element={<AdminLoginPage />} />

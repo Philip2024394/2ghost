@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getCachedIpCountry } from "@/shared/hooks/useIpCountry";
+import GhostOnboarding, { hasSeenOnboarding } from "../components/GhostOnboarding";
 
 const GHOST_HERO = "https://ik.imagekit.io/7grri5v7d/find%20meddddd.png";
 
@@ -28,6 +29,18 @@ function getNewProfilesToday(): number {
 
 const AVATARS = Array.from({ length: 6 }, (_, i) => `https://i.pravatar.cc/80?img=${i + 1}`);
 
+// ── Floating hearts config ─────────────────────────────────────────────────────
+const HEARTS = [
+  { delay: 0,    x: "48%",  size: 16, dur: 3.2, drift:  12 },
+  { delay: 0.5,  x: "38%",  size: 12, dur: 3.8, drift: -18 },
+  { delay: 1.0,  x: "58%",  size: 20, dur: 2.9, drift:   8 },
+  { delay: 1.5,  x: "44%",  size: 13, dur: 3.5, drift: -10 },
+  { delay: 2.0,  x: "54%",  size: 18, dur: 4.0, drift:  20 },
+  { delay: 2.5,  x: "35%",  size: 11, dur: 3.1, drift:  -6 },
+  { delay: 3.0,  x: "62%",  size: 15, dur: 3.7, drift:  14 },
+  { delay: 3.5,  x: "50%",  size: 22, dur: 2.7, drift:  -4 },
+];
+
 function getDeadline(): number {
   try {
     const stored = localStorage.getItem("ghost_beta_deadline");
@@ -50,6 +63,7 @@ function formatCountdown(ms: number): string {
 
 export default function GhostLandingPage() {
   const navigate = useNavigate();
+  const [showOnboarding, setShowOnboarding] = useState(() => !hasSeenOnboarding());
   const [showManifesto, setShowManifesto] = useState(false);
   const [countdown, setCountdown] = useState(() => Math.max(0, getDeadline() - Date.now()));
   const [newProfiles, setNewProfiles] = useState(getNewProfilesToday);
@@ -98,6 +112,11 @@ export default function GhostLandingPage() {
 
   return (
     <div style={{ minHeight: "100dvh", position: "relative", overflow: "hidden", background: "#050508" }}>
+      <AnimatePresence>
+        {showOnboarding && (
+          <GhostOnboarding onDone={() => setShowOnboarding(false)} />
+        )}
+      </AnimatePresence>
 
       {/* Background image */}
       <img
@@ -179,6 +198,34 @@ export default function GhostLandingPage() {
             </span>
           </div>
 
+          {/* Floating hearts */}
+          <div style={{ position: "relative", height: 0 }}>
+            <style>{`
+              @keyframes floatHeart {
+                0%   { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
+                15%  { opacity: 1; }
+                80%  { opacity: 0.6; }
+                100% { transform: translateY(-110px) translateX(var(--drift)) scale(1); opacity: 0; }
+              }
+            `}</style>
+            {HEARTS.map((h, i) => (
+              <span
+                key={i}
+                style={{
+                  position: "absolute",
+                  left: h.x,
+                  bottom: 0,
+                  fontSize: h.size,
+                  pointerEvents: "none",
+                  animation: `floatHeart ${h.dur}s ease-out ${h.delay}s infinite`,
+                  ["--drift" as any]: `${h.drift}px`,
+                  willChange: "transform, opacity",
+                  filter: "drop-shadow(0 0 4px rgba(239,68,68,0.5))",
+                }}
+              >❤️</span>
+            ))}
+          </div>
+
           {/* CTA button */}
           <motion.button
             whileTap={{ scale: 0.97 }}
@@ -200,7 +247,7 @@ export default function GhostLandingPage() {
               background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)",
               borderRadius: "50px 50px 60% 60%", pointerEvents: "none",
             }} />
-            Enter the Ghost House →
+            Ghost Hotel — Enter Free →
           </motion.button>
 
           {/* Privacy note */}

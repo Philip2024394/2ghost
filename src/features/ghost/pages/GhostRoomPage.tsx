@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, RefreshCw, Upload, X, Link, Users, Lock, Unlock, Image, Video, ShieldOff, Copy, Check, MessageCircle, ChevronRight, Settings } from "lucide-react";
 import { uploadGhostImage, deleteGhostImage, uploadGhostVideo, deleteGhostVideo, isSupabaseStorageUrl } from "../ghostStorage";
 
@@ -428,10 +428,11 @@ type GhostMatch = {
 type InboxItem = {
   id: string;
   senderGhostId: string;
-  type: "image" | "video";
-  content: string;     // base64 for image, URL for video
+  type: "image" | "video" | "note";
+  content: string;     // base64 for image, URL for video, text for note
   sentAt: number;
   status: "pending" | "accepted" | "declined";
+  note?: string;       // optional caption/memory attached to media
 };
 
 function inboxKey(ghostId: string) { return `ghost_room_inbox_${ghostId}`; }
@@ -446,7 +447,7 @@ const ROOM_TIERS: Record<RoomTier, {
   images: number; videos: number;
   imageMaxMB: number; videoMaxMB: number; videoMaxSec: number;
   imageFormats: string; videoFormats: string;
-  badge: string; color: string;
+  badge: string; color: string; bgRgba: string; borderRgba: string;
 }> = {
   free: {
     label: "Seller Room", price: "Free",
@@ -455,6 +456,7 @@ const ROOM_TIERS: Record<RoomTier, {
     imageFormats: "JPG · PNG · WEBP (max 5 MB each)",
     videoFormats: "MP4 · MOV · WEBM (max 30 MB · 30 sec)",
     badge: "👻", color: "rgba(255,255,255,0.4)",
+    bgRgba: "rgba(255,255,255,0.03)", borderRgba: "rgba(255,255,255,0.1)",
   },
   suite: {
     label: "Ghost Suite", price: "$4.99/mo",
@@ -463,6 +465,7 @@ const ROOM_TIERS: Record<RoomTier, {
     imageFormats: "JPG · PNG · WEBP (max 10 MB each)",
     videoFormats: "MP4 · MOV · WEBM (max 100 MB · 2 min)",
     badge: "🏨", color: "rgba(74,222,128,0.9)",
+    bgRgba: "rgba(74,222,128,0.06)", borderRgba: "rgba(74,222,128,0.2)",
   },
   gold: {
     label: "Gold Room",   price: "$9.99/mo",
@@ -471,6 +474,7 @@ const ROOM_TIERS: Record<RoomTier, {
     imageFormats: "JPG · PNG · WEBP (max 20 MB each)",
     videoFormats: "MP4 · MOV · WEBM (max 300 MB · 5 min)",
     badge: "🔑", color: "#d4af37",
+    bgRgba: "rgba(212,175,55,0.07)", borderRgba: "rgba(212,175,55,0.35)",
   },
 };
 
@@ -570,9 +574,11 @@ function SendMediaPanel({
 }) {
   const [open, setOpen] = useState(false);
   const [targetId, setTargetId] = useState("");
-  const [sendType, setSendType] = useState<"image" | "video">("image");
+  const [sendType, setSendType] = useState<"image" | "video" | "note">("image");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState("");
+  const [noteText, setNoteText] = useState("");
+  const [caption, setCaption] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
@@ -601,8 +607,15 @@ function SendMediaPanel({
     const target = targetId.trim();
     if (!target.startsWith("Ghost-")) { setError("Enter a valid Ghost ID (e.g. Ghost-4821)"); return; }
     if (target === myGhostId) { setError("You can't send to yourself"); return; }
-    const content = sendType === "image" ? selectedImage : videoUrl;
-    if (!content) { setError(sendType === "image" ? "Select an image first" : "Paste a video URL first"); return; }
+
+    let content = "";
+    if (sendType === "note") {
+      if (!noteText.trim()) { setError("Write a memory note first"); return; }
+      content = noteText.trim();
+    } else {
+      content = sendType === "image" ? (selectedImage || "") : videoUrl;
+      if (!content) { setError(sendType === "image" ? "Select an image first" : "Paste a video URL first"); return; }
+    }
 
     setSending(true);
     setError("");
@@ -614,6 +627,7 @@ function SendMediaPanel({
         content,
         sentAt: Date.now(),
         status: "pending",
+        note: sendType !== "note" && caption.trim() ? caption.trim() : undefined,
       };
       const existing = loadInbox(target);
       saveInbox(target, [...existing, item]);
@@ -622,6 +636,8 @@ function SendMediaPanel({
       setTargetId("");
       setSelectedImage(null);
       setVideoUrl("");
+      setNoteText("");
+      setCaption("");
       setTimeout(() => { setSent(false); setOpen(false); }, 2000);
     }, 800);
   };
@@ -659,15 +675,15 @@ function SendMediaPanel({
               />
 
               {/* Type toggle */}
-              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                {(["image", "video"] as const).map((t) => (
+              <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+                {([["image","🖼️ Photo"], ["video","🎬 Video"], ["note","💬 Memory"]] as const).map(([t, label]) => (
                   <button key={t} onClick={() => setSendType(t)}
-                    style={{ flex: 1, height: 36, borderRadius: 10, border: "none", cursor: "pointer", fontWeight: 800, fontSize: 12,
+                    style={{ flex: 1, height: 36, borderRadius: 10, border: "none", cursor: "pointer", fontWeight: 800, fontSize: 11,
                       background: sendType === t ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
                       color: sendType === t ? "rgba(74,222,128,0.95)" : "rgba(255,255,255,0.4)",
                       outline: sendType === t ? "1px solid rgba(74,222,128,0.3)" : "none",
                     }}>
-                    {t === "image" ? "🖼️ Image" : "🎬 Video"}
+                    {label}
                   </button>
                 ))}
               </div>
@@ -725,6 +741,45 @@ function SendMediaPanel({
                       ))}
                     </div>
                   )}
+                  {/* Caption for video */}
+                  <input
+                    style={{ ...inputStyle, marginTop: 8 }}
+                    placeholder="Add a caption or memory note (optional)"
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {/* Caption for image */}
+              {sendType === "image" && (selectedImage || myImages.length > 0) && (
+                <input
+                  style={{ ...inputStyle, marginBottom: 0, marginTop: 8 }}
+                  placeholder="Add a caption or memory note (optional)"
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                />
+              )}
+
+              {/* Memory note — text only send */}
+              {sendType === "note" && (
+                <div>
+                  <textarea
+                    placeholder="Write a memory, message, or thought to save in their vault..."
+                    value={noteText}
+                    onChange={(e) => { setNoteText(e.target.value); setError(""); }}
+                    rows={4}
+                    style={{
+                      width: "100%", borderRadius: 12,
+                      background: "rgba(255,255,255,0.06)", border: "1px solid rgba(74,222,128,0.25)",
+                      color: "#fff", fontSize: 14, padding: "12px 14px",
+                      outline: "none", resize: "none", boxSizing: "border-box",
+                      lineHeight: 1.6, fontFamily: "inherit",
+                    }}
+                  />
+                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", margin: "4px 0 0", textAlign: "right" }}>
+                    {noteText.length} chars · text only, stored privately in their vault
+                  </p>
                 </div>
               )}
 
@@ -891,6 +946,7 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
 
 export default function GhostRoomPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [hasSub, setHasSub] = useState(hasRoomSub);
   const [verified, setVerified] = useState(isSessionValid);
   const [showRoomWelcome, setShowRoomWelcome] = useState(false);
@@ -906,6 +962,7 @@ export default function GhostRoomPage() {
     try { return localStorage.getItem(KEYS.bothShare) || genCode(); } catch { return genCode(); }
   });
   const [copiedShare, setCopiedShare] = useState<"img" | "vid" | "both" | null>(null);
+  const [copiedSoulPack, setCopiedSoulPack] = useState<string | null>(null);
   const [settingsView, setSettingsView] = useState<null | "video" | "image" | "ghosts" | "share">(null);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [viewingVideo, setViewingVideo] = useState<string | null>(null);
@@ -937,12 +994,20 @@ export default function GhostRoomPage() {
   const [codeCopied, setCodeCopied] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-  // Enter room / request
-  const [enterInput, setEnterInput] = useState("");
+  // Enter room / request — pre-fill from ?code= URL param (shared vault links)
+  const [enterInput, setEnterInput] = useState(() => {
+    const code = searchParams.get("code");
+    return code ? code.toUpperCase() : "";
+  });
   const [accessedRooms, setAccessedRooms] = useState<AccessedRoom[]>(() => loadJson(KEYS.accessed, []));
   const [enterError, setEnterError] = useState("");
   const [enterSuccess, setEnterSuccess] = useState("");
   const [requestSent, setRequestSent] = useState<string[]>([]);
+
+  // Switch to Enter tab if a ?code= param was provided
+  useEffect(() => {
+    if (searchParams.get("code")) setTab("enter");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Inbox — items sent TO me by other Ghost Vault holders
   const [inbox, setInbox] = useState<InboxItem[]>(() => loadInbox(myGhostId));
@@ -1292,7 +1357,7 @@ export default function GhostRoomPage() {
     },
     label: { fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", textTransform: "uppercase" as const, marginBottom: 6, display: "block" },
     greenCard: {
-      background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.2)",
+      background: tierInfo.bgRgba, border: `1px solid ${tierInfo.borderRgba}`,
       borderRadius: 16, padding: "14px 16px", marginBottom: 12,
     },
     input: {
@@ -1484,7 +1549,7 @@ export default function GhostRoomPage() {
                       <div style={{
                         height: "100%", borderRadius: 3,
                         width: `${Math.min(100, ((myImages.length + myVideoUrls.length) / Math.max(1, ROOM_TIERS[roomTier].images + ROOM_TIERS[roomTier].videos)) * 100)}%`,
-                        background: "linear-gradient(90deg,#4ade80,#22c55e)",
+                        background: tierInfo.color,
                       }} />
                     </div>
                   </div>
@@ -1960,6 +2025,20 @@ export default function GhostRoomPage() {
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "0 0 10px" }}>
                 Share this code only with people you trust. Anyone with this code can view your room.
               </p>
+              {/* Share vault link button */}
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => {
+                  const link = `${window.location.origin}/ghost/room?code=${roomCode}`;
+                  navigator.clipboard.writeText(link).catch(() => {});
+                  setCodeCopied(true);
+                  setTimeout(() => setCodeCopied(false), 2000);
+                }}
+                style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 10, padding: "7px 12px", color: "rgba(74,222,128,0.9)", fontSize: 12, fontWeight: 700, cursor: "pointer", marginBottom: 10 }}
+              >
+                <Link size={12} />
+                {codeCopied ? "Link copied!" : "Copy Vault Link — share with your match"}
+              </motion.button>
               {/* Reset code */}
               {!showResetConfirm ? (
                 <button
@@ -2036,12 +2115,12 @@ export default function GhostRoomPage() {
                     onClick={() => upgradeTier(key)}
                     style={{
                       borderRadius: 12, padding: "10px 12px", cursor: "pointer", textAlign: "left",
-                      background: roomTier === key ? "rgba(74,222,128,0.08)" : "rgba(255,255,255,0.03)",
-                      border: `1px solid ${roomTier === key ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.07)"}`,
+                      background: roomTier === key ? t.bgRgba : "rgba(255,255,255,0.03)",
+                      border: `1px solid ${roomTier === key ? t.borderRgba : "rgba(255,255,255,0.07)"}`,
                     }}
                   >
                     <div style={{ fontSize: 16, marginBottom: 2 }}>{t.badge || "🚪"}</div>
-                    <p style={{ fontSize: 12, fontWeight: 800, color: roomTier === key ? "rgba(74,222,128,0.95)" : "#fff", margin: "0 0 1px" }}>{t.label}</p>
+                    <p style={{ fontSize: 12, fontWeight: 800, color: roomTier === key ? t.color : "#fff", margin: "0 0 1px" }}>{t.label}</p>
                     <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "0 0 4px" }}>{t.price}</p>
                     <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", margin: 0 }}>{t.images} photos · {t.videos} video{t.videos !== 1 ? "s" : ""}</p>
                   </motion.button>
@@ -2207,9 +2286,9 @@ export default function GhostRoomPage() {
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
                       {(Object.entries(ROOM_TIERS) as [RoomTier, typeof ROOM_TIERS[RoomTier]][]).map(([key, t]) => (
-                        <div key={key} style={{ borderRadius: 14, padding: "13px 16px", border: `1px solid ${roomTier === key ? t.color : "rgba(255,255,255,0.08)"}`, background: roomTier === key ? `rgba(74,222,128,0.06)` : "rgba(255,255,255,0.02)", opacity: roomTier === key ? 1 : 0.75 }}>
+                        <div key={key} style={{ borderRadius: 14, padding: "13px 16px", border: `1px solid ${roomTier === key ? t.color : "rgba(255,255,255,0.08)"}`, background: roomTier === key ? t.bgRgba : "rgba(255,255,255,0.02)", opacity: roomTier === key ? 1 : 0.75 }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                            <p style={{ fontSize: 14, fontWeight: 900, color: t.color, margin: 0 }}>{t.badge} {t.label} {roomTier === key && <span style={{ fontSize: 9, background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 5, padding: "1px 6px", color: "#4ade80", marginLeft: 4 }}>YOUR PLAN</span>}</p>
+                            <p style={{ fontSize: 14, fontWeight: 900, color: t.color, margin: 0 }}>{t.badge} {t.label} {roomTier === key && <span style={{ fontSize: 9, background: t.bgRgba, border: `1px solid ${t.borderRgba}`, borderRadius: 5, padding: "1px 6px", color: t.color, marginLeft: 4 }}>YOUR PLAN</span>}</p>
                             <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", margin: 0 }}>{t.price}</p>
                           </div>
                           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "0 0 2px" }}>📷 {t.images} photos · {t.imageFormats}</p>
@@ -2461,7 +2540,7 @@ export default function GhostRoomPage() {
                   {/* Header */}
                   <div style={{ padding: "12px 14px 10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 18 }}>{item.type === "image" ? "🖼️" : "🎬"}</span>
+                      <span style={{ fontSize: 18 }}>{item.type === "image" ? "🖼️" : item.type === "video" ? "🎬" : "💬"}</span>
                       <div>
                         <p style={{ fontSize: 13, fontWeight: 800, color: item.status === "pending" ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)", margin: 0 }}>
                           From {item.senderGhostId}
@@ -2486,7 +2565,13 @@ export default function GhostRoomPage() {
 
                   {/* Preview */}
                   <div style={{ margin: "0 14px 12px", borderRadius: 10, overflow: "hidden", background: "rgba(0,0,0,0.4)" }}>
-                    {item.type === "image" ? (
+                    {item.type === "note" ? (
+                      <div style={{ padding: "14px 16px" }}>
+                        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.85)", lineHeight: 1.65, margin: 0, whiteSpace: "pre-wrap" }}>
+                          {item.content}
+                        </p>
+                      </div>
+                    ) : item.type === "image" ? (
                       <img
                         src={item.content} alt=""
                         style={{ width: "100%", maxHeight: 220, objectFit: "cover", display: "block" }}
@@ -2495,6 +2580,14 @@ export default function GhostRoomPage() {
                       <video src={item.content} controls style={{ width: "100%", maxHeight: 200, display: "block" }} />
                     )}
                   </div>
+                  {/* Caption / memory note attached to media */}
+                  {item.note && item.type !== "note" && (
+                    <div style={{ margin: "-4px 14px 12px", padding: "8px 12px", borderRadius: 8, background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)" }}>
+                      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>
+                        "{item.note}"
+                      </p>
+                    </div>
+                  )}
 
                   {/* Actions */}
                   {item.status === "pending" && (
@@ -2604,6 +2697,41 @@ export default function GhostRoomPage() {
                         </motion.button>
                       )}
                     </div>
+
+                    {/* 2Ghost Soul Pack — shared vault link for both users */}
+                    {isGranted && (() => {
+                      // Deterministic shared code: hash of sorted ghost IDs
+                      const ids = [myGhostId, ghostId].sort().join("_");
+                      let h = 0;
+                      for (let i = 0; i < ids.length; i++) { h = Math.imul(31, h) + ids.charCodeAt(i) | 0; }
+                      const soulCode = Math.abs(h).toString(36).slice(0, 6).toUpperCase();
+                      const soulLink = `${window.location.origin}/ghost/room?code=${soulCode}`;
+                      const isCopied = copiedSoulPack === ghostId;
+                      return (
+                        <motion.button
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => {
+                            navigator.clipboard.writeText(soulLink).catch(() => {});
+                            setCopiedSoulPack(ghostId);
+                            setTimeout(() => setCopiedSoulPack(null), 3000);
+                          }}
+                          style={{
+                            width: "100%", marginTop: 8, height: 38, borderRadius: 10,
+                            border: `1px solid ${isCopied ? "rgba(167,139,250,0.5)" : "rgba(167,139,250,0.25)"}`,
+                            background: isCopied ? "rgba(167,139,250,0.18)" : "rgba(167,139,250,0.08)",
+                            color: isCopied ? "rgba(196,181,253,1)" : "rgba(167,139,250,0.85)",
+                            fontSize: 12, fontWeight: 800, cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                          }}
+                        >
+                          {isCopied ? (
+                            <><Check size={12} /> Soul Pack Link Copied — send to {ghostId}</>
+                          ) : (
+                            <><span>💜</span> 2Ghost Soul Pack — share your memory vault</>
+                          )}
+                        </motion.button>
+                      );
+                    })()}
                   </div>
                 );
               })}

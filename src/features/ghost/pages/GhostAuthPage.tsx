@@ -22,6 +22,7 @@ const COUNTRY_CODES = [
 
 export default function GhostAuthPage() {
   const navigate = useNavigate();
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [gender, setGender] = useState<"Female" | "Male">("Female");
   const [countryCode, setCountryCode] = useState(COUNTRY_CODES[0]);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
@@ -126,6 +127,43 @@ export default function GhostAuthPage() {
     color: "#fff", outline: "none",
     boxSizing: "border-box",
   };
+
+  // ── Age gate ──────────────────────────────────────────────────────────────
+  if (!ageConfirmed) {
+    return (
+      <div style={{
+        minHeight: "100dvh", background: "#050508", color: "#fff",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", padding: "32px 28px", textAlign: "center",
+      }}>
+        <div style={{ fontSize: 52, marginBottom: 20 }}>👻</div>
+        <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }}>
+          Welcome to<br />2Ghost
+        </h1>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", margin: "0 0 36px", lineHeight: 1.6, maxWidth: 280 }}>
+          This app is for adults 18 and over. Please confirm your age to continue.
+        </p>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => setAgeConfirmed(true)}
+          style={{
+            width: "100%", maxWidth: 320, height: 52, borderRadius: 50, border: "none",
+            background: "linear-gradient(135deg,#16a34a,#4ade80)",
+            color: "#fff", fontSize: 16, fontWeight: 900, cursor: "pointer",
+            boxShadow: "0 8px 28px rgba(74,222,128,0.3)", marginBottom: 14,
+          }}
+        >
+          I am 18 or older — Continue
+        </motion.button>
+        <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: 0, maxWidth: 260, lineHeight: 1.6 }}>
+          By continuing you agree to our{" "}
+          <a href="/ghost/terms" style={{ color: "rgba(74,222,128,0.5)", textDecoration: "none" }}>Terms of Service</a>
+          {" "}and{" "}
+          <a href="/ghost/privacy" style={{ color: "rgba(74,222,128,0.5)", textDecoration: "none" }}>Privacy Policy</a>.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100dvh", position: "relative", overflow: "hidden", background: "#000" }}>

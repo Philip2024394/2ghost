@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, ArrowLeft, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getCachedIpCountry } from "@/shared/hooks/useIpCountry";
+import { getLocalPrice, buildStripeLink } from "../data/stripePlans";
 
 const GOLD_KEY = "https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png";
 
@@ -97,9 +99,31 @@ const COMPARE = [
 ];
 
 export default function GhostPricingPage() {
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
   const [selected, setSelected] = useState("suite");
+
+  // Local currency
+  const countryCode = getCachedIpCountry()?.countryCode ?? "US";
+  const localPrice  = getLocalPrice(countryCode);
+
+  // Ghost ID for Stripe client_reference_id
+  const ghostId = (() => {
+    try { return JSON.parse(localStorage.getItem("ghost_profile") || "{}").ghost_id || ""; } catch { return ""; }
+  })();
+
+  const handlePlanCta = (planKey: string) => {
+    if (planKey === "free") { navigate("/ghost/setup"); return; }
+    const link = buildStripeLink(planKey as "suite" | "gold", ghostId);
+    if (link) {
+      window.location.href = link;
+    } else {
+      // Stripe not configured yet — fall through to setup
+      navigate("/ghost/setup");
+    }
+  };
+
   const plan = PLANS.find((p) => p.key === selected)!;
+  const displayPrice = selected === "suite" ? localPrice.suite : selected === "gold" ? localPrice.gold : "Free";
 
   return (
     <div style={{ minHeight: "100dvh", background: "#000", color: "#fff", overflowX: "hidden" }}>
@@ -184,8 +208,11 @@ export default function GhostPricingPage() {
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <p style={{ fontSize: 26, fontWeight: 900, color: plan.color, margin: 0, lineHeight: 1 }}>{plan.price}</p>
+                  <p style={{ fontSize: 26, fontWeight: 900, color: plan.color, margin: 0, lineHeight: 1 }}>{displayPrice}</p>
                   <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: "2px 0 0" }}>{plan.period}</p>
+                  {plan.key !== "free" && (
+                    <p style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", margin: "2px 0 0" }}>{localPrice.note}</p>
+                  )}
                 </div>
               </div>
 
@@ -204,7 +231,7 @@ export default function GhostPricingPage() {
               {/* CTA */}
               <motion.button
                 whileTap={{ scale: 0.97 }}
-                onClick={() => navigate(plan.key === "free" ? "/ghost/setup" : "/ghost/setup")}
+                onClick={() => handlePlanCta(plan.key)}
                 style={{
                   width: "100%", height: 50, borderRadius: 50, border: "none",
                   background: plan.gradient,
@@ -217,6 +244,15 @@ export default function GhostPricingPage() {
                 <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom,rgba(255,255,255,0.18),transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
                 {plan.cta} <ArrowRight size={16} strokeWidth={2.5} />
               </motion.button>
+
+              {/* Trust signals */}
+              {plan.key !== "free" && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginTop: 12 }}>
+                  {["🔒 Secure checkout", "↩️ Cancel anytime", "🌍 190+ countries"].map(t => (
+                    <span key={t} style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", fontWeight: 600 }}>{t}</span>
+                  ))}
+                </div>
+              )}
 
             </div>
           </motion.div>
