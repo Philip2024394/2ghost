@@ -612,13 +612,13 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
           borderRadius: 22, border: "1px solid rgba(74,222,128,0.2)", overflow: "hidden",
         }}
       >
-        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #16a34a)" }} />
+        <div style={{ height: 3, background: "linear-gradient(90deg, #d97706, #fbbf24, #f59e0b, #fbbf24, #d97706)" }} />
         <div style={{ padding: "28px 24px 24px" }}>
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
-            <div style={{ width: 72, height: 72, borderRadius: "50%", border: "2px solid rgba(74,222,128,0.5)", overflow: "hidden", zIndex: 2, boxShadow: "0 0 20px rgba(74,222,128,0.3)" }}>
+            <div style={{ width: 72, height: 72, borderRadius: "50%", border: "2px solid rgba(251,191,36,0.7)", overflow: "hidden", zIndex: 2, boxShadow: "0 0 24px rgba(251,191,36,0.35)" }}>
               <img src={profile.image} alt={firstName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </div>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", zIndex: 3, marginLeft: -12, background: "linear-gradient(135deg, #16a34a, #22c55e)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 16px rgba(34,197,94,0.5)" }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", zIndex: 3, marginLeft: -12, background: "linear-gradient(135deg, #f59e0b, #fbbf24)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 16px rgba(251,191,36,0.5)" }}>
               <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain" }} />
             </div>
           </div>
@@ -626,8 +626,8 @@ function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: 
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "0 0 2px", letterSpacing: "0.05em" }}>
             <span>{ghostId} is revealed as</span>
           </p>
-          <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(74,222,128,0.8)", letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 4px" }}>{t("match.title")}</p>
-          <h2 style={{ fontSize: 22, fontWeight: 900, margin: "0 0 4px", background: "linear-gradient(135deg, #4ade80, #22c55e)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(251,191,36,0.9)", letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 4px" }}>{t("match.title")}</p>
+          <h2 style={{ fontSize: 22, fontWeight: 900, margin: "0 0 4px", background: "linear-gradient(135deg, #fbbf24, #f59e0b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             <span>{firstName}! 🎉</span>
           </h2>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: "0 0 4px" }}>
@@ -1227,7 +1227,7 @@ function ConnectNowPopup({ profile, onDone }: { profile: GhostProfile; onDone: (
         }}
       >
         {/* Green top bar */}
-        <div style={{ height: 4, background: "linear-gradient(90deg, #15803d, #4ade80, #22c55e)", marginLeft: -22, marginRight: -22 }} />
+        <div style={{ height: 4, background: "linear-gradient(90deg, #d97706, #fbbf24, #f59e0b, #fbbf24, #d97706)", marginLeft: -22, marginRight: -22 }} />
         <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 6px" }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
         </div>
@@ -1239,9 +1239,9 @@ function ConnectNowPopup({ profile, onDone }: { profile: GhostProfile; onDone: (
             transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.15 }}
             style={{ fontSize: 44, marginBottom: 8 }}
           >
-            🎉
+            ✨
           </motion.div>
-          <h2 style={{ fontSize: 24, fontWeight: 900, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
+          <h2 style={{ fontSize: 24, fontWeight: 900, margin: "0 0 6px", letterSpacing: "-0.02em", background: "linear-gradient(135deg, #fbbf24, #f59e0b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             {t("match.connected")}
           </h2>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.5 }}>
@@ -1250,7 +1250,7 @@ function ConnectNowPopup({ profile, onDone }: { profile: GhostProfile; onDone: (
         </div>
 
         {/* Profile row */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 14, padding: "12px 14px", marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.18)", borderRadius: 14, padding: "12px 14px", marginBottom: 20 }}>
           <img src={profile.image} alt={firstName} style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(74,222,128,0.4)", flexShrink: 0 }} />
           <div>
             <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>{profile.name}</p>
@@ -1364,7 +1364,7 @@ function MatchPaywallModal({
 }) {
   const { t } = useLanguage();
   const PLANS = [
-    { key: "founding", emoji: "🔥", name: "Founding Ghost", idr: "49,000", usd: "~$3", period: "3 months · locks forever", color: "#f97316", gradient: "linear-gradient(to bottom, #fb923c, #f97316, #ea580c)", glow: "rgba(249,115,22,0.45)", border: "rgba(251,146,60,0.4)" },
+    { key: "founding", emoji: "⭐", name: "Founding Ghost", idr: "49,000", usd: "~$3", period: "3 months · locks forever", color: "#f59e0b", gradient: "linear-gradient(to bottom, #fbbf24, #f59e0b, #d97706)", glow: "rgba(251,191,36,0.45)", border: "rgba(251,191,36,0.4)" },
     { key: "monthly",  emoji: "👻", name: "Ghost Monthly",  idr: "69,000", usd: "~$4.50", period: "per month · cancel anytime", color: "#22c55e", gradient: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)", glow: "rgba(34,197,94,0.45)",  border: "rgba(74,222,128,0.4)" },
     { key: "bundle",   emoji: "⭐", name: "Ghost + VIP",    idr: "99,000", usd: "~$6.50", period: "per month · best value",     color: "#a855f7", gradient: "linear-gradient(to bottom, #c084fc, #a855f7, #9333ea)", glow: "rgba(168,85,247,0.45)", border: "rgba(168,85,247,0.4)" },
   ];

@@ -47,16 +47,16 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
     },
     {
       key: "founding",
-      emoji: "🔥",
+      emoji: "⭐",
       name: "Founding Ghost",
       idr: "49,000",
       usd: "~$3",
       period: "3 months · locks forever at this price",
-      color: "#f97316",
-      border: "rgba(251,146,60,0.4)",
-      bg: "rgba(249,115,22,0.08)",
-      gradient: "linear-gradient(to bottom, #fb923c, #f97316, #ea580c)",
-      glow: "rgba(249,115,22,0.4)",
+      color: "#f59e0b",
+      border: "rgba(251,191,36,0.45)",
+      bg: "rgba(251,191,36,0.07)",
+      gradient: "linear-gradient(to bottom, #fbbf24, #f59e0b, #d97706)",
+      glow: "rgba(251,191,36,0.45)",
       badge: "BEST VALUE",
     },
     {
@@ -276,10 +276,10 @@ function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => voi
         {profile.isVip && (
           <div style={{
             position: "absolute", top: 28, left: 7,
-            background: "linear-gradient(135deg, #a855f7, #7c3aed)",
+            background: "linear-gradient(135deg, #fbbf24, #f59e0b, #d97706)",
             borderRadius: 20, padding: "3px 6px",
             fontSize: 8, fontWeight: 800, color: "#fff", letterSpacing: "0.04em",
-            boxShadow: "0 2px 8px rgba(168,85,247,0.5)",
+            boxShadow: "0 2px 8px rgba(251,191,36,0.5)",
           }}>
             ⭐ VIP
           </div>
