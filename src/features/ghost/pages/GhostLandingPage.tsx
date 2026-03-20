@@ -1,8 +1,30 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { getCachedIpCountry } from "@/shared/hooks/useIpCountry";
 
 const GHOST_HERO = "https://ik.imagekit.io/7grri5v7d/find%20meddddd.png";
+
+// Seeded RNG — deterministic per day so number is consistent within the day
+function seededInt(seed: number, lo: number, hi: number): number {
+  const x = Math.sin(seed * 9301 + 49297) * 233280;
+  return lo + Math.floor((x - Math.floor(x)) * (hi - lo + 1));
+}
+
+// Daily target: seed from YYYYMMDD integer → 280–520 new profiles that day
+function getDailyTarget(): number {
+  const now = new Date();
+  const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+  return seededInt(seed, 280, 520);
+}
+
+// How many profiles have "joined" so far today (grows 0 → target across midnight–midnight)
+function getNewProfilesToday(): number {
+  const now = new Date();
+  const minuteOfDay = now.getHours() * 60 + now.getMinutes();
+  const fraction = minuteOfDay / 1440; // 0.0 at 00:00 → ~1.0 at 23:59
+  return Math.max(1, Math.floor(getDailyTarget() * fraction));
+}
 
 const AVATARS = Array.from({ length: 6 }, (_, i) => `https://i.pravatar.cc/80?img=${i + 1}`);
 
@@ -30,6 +52,8 @@ export default function GhostLandingPage() {
   const navigate = useNavigate();
   const [showManifesto, setShowManifesto] = useState(false);
   const [countdown, setCountdown] = useState(() => Math.max(0, getDeadline() - Date.now()));
+  const [newProfiles, setNewProfiles] = useState(getNewProfilesToday);
+  const [countryName] = useState(() => getCachedIpCountry()?.countryName ?? "Indonesia");
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -51,10 +75,11 @@ export default function GhostLandingPage() {
     return () => clearTimeout(t);
   }, []);
 
-  // Countdown tick
+  // Tick both countdown and new-profiles counter (every minute is enough for profiles)
   useEffect(() => {
     timerRef.current = setInterval(() => {
       setCountdown(Math.max(0, getDeadline() - Date.now()));
+      setNewProfiles(getNewProfilesToday());
     }, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
@@ -138,7 +163,7 @@ export default function GhostLandingPage() {
               color: "rgba(255,255,255,0.45)",
               marginLeft: 10,
             }}>
-              +120.000 Profiles Indonesia
+              {newProfiles.toLocaleString()} New Profiles Today · {countryName}
             </span>
           </div>
 
