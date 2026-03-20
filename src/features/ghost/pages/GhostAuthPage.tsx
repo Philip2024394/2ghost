@@ -114,7 +114,7 @@ export default function GhostAuthPage() {
         localStorage.setItem("ghost_phone", countryCode.code + cleanPhone);
         localStorage.removeItem("ghost_house_welcomed"); // always show welcome on new auth
       } catch {}
-      navigate("/ghost/gateway");
+      navigate("/ghost/gateway", { replace: true });
     }, 1000);
   };
 

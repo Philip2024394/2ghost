@@ -201,7 +201,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
       {/* Back button */}
       <div style={{ position: "relative", zIndex: 2, padding: "max(16px, env(safe-area-inset-top,16px)) 16px 0" }}>
         <button
-          onClick={() => navigate("/ghost")}
+          onClick={() => navigate("/ghost/mode")}
           style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.7)" }}
         >
           <ArrowLeft size={16} />
@@ -1720,7 +1720,7 @@ export default function GhostRoomPage() {
       {/* Header */}
       <div style={S.header}>
         <button
-          onClick={() => navigate("/ghost")}
+          onClick={() => navigate("/ghost/mode")}
           style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.7)", flexShrink: 0 }}
         >
           <ArrowLeft size={16} />
