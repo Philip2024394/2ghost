@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
 
-const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
+const MAX_DISMISSALS = 5;
+const REPEAT_MS = 5 * 60 * 1000; // 5 minutes
+const FIRST_SHOW_MS = 4000;       // 4s after page load
 
-// Detects iOS Safari
 function isIOS(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as any).MSStream;
 }
 
-// Detects if already running as standalone (installed PWA)
 function isStandalone(): boolean {
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
@@ -17,143 +17,180 @@ function isStandalone(): boolean {
   );
 }
 
+function getDismissCount(): number {
+  try { return Number(localStorage.getItem("ghost_install_dismissals") || 0); } catch { return 0; }
+}
+function setDismissCount(n: number) {
+  try { localStorage.setItem("ghost_install_dismissals", String(n)); } catch {}
+}
+function getLastDismissed(): number {
+  try { return Number(localStorage.getItem("ghost_install_last_dismissed") || 0); } catch { return 0; }
+}
+function setLastDismissed() {
+  try { localStorage.setItem("ghost_install_last_dismissed", String(Date.now())); } catch {}
+}
+
 export default function GhostInstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [show, setShow] = useState(false);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
-  const [installed, setInstalled] = useState(false);
+  const repeatTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleReshow = () => {
+    if (repeatTimerRef.current) clearTimeout(repeatTimerRef.current);
+    repeatTimerRef.current = setTimeout(() => {
+      if (getDismissCount() < MAX_DISMISSALS && !isStandalone()) {
+        setShow(true);
+      }
+    }, REPEAT_MS);
+  };
 
   useEffect(() => {
-    // Don't show if already installed
     if (isStandalone()) return;
+    if (getDismissCount() >= MAX_DISMISSALS) return;
 
-    // Don't show if user dismissed in last 7 days
-    try {
-      const dismissed = Number(localStorage.getItem("ghost_install_dismissed") || 0);
-      if (Date.now() - dismissed < 7 * 24 * 60 * 60 * 1000) return;
-    } catch {}
+    // How long since last dismissed?
+    const sinceLastDismiss = Date.now() - getLastDismissed();
+    const initialDelay = sinceLastDismiss < REPEAT_MS
+      ? REPEAT_MS - sinceLastDismiss   // wait out the remaining cooldown
+      : FIRST_SHOW_MS;                 // first time — show after 4s
+
+    const firstTimer = setTimeout(() => {
+      if (!isStandalone() && getDismissCount() < MAX_DISMISSALS) {
+        setShow(true);
+      }
+    }, initialDelay);
 
     if (isIOS()) {
-      // iOS: no beforeinstallprompt — show manual guide after 3s
-      const t = setTimeout(() => setShow(true), 3000);
-      return () => clearTimeout(t);
+      return () => clearTimeout(firstTimer);
     }
 
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setTimeout(() => setShow(true), 2000);
     };
     window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => setShow(false));
 
-    window.addEventListener("appinstalled", () => {
-      setInstalled(true);
-      setShow(false);
-    });
-
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    return () => {
+      clearTimeout(firstTimer);
+      if (repeatTimerRef.current) clearTimeout(repeatTimerRef.current);
+      window.removeEventListener("beforeinstallprompt", handler);
+    };
   }, []);
 
-  const dismiss = () => {
+  const handleLater = () => {
     setShow(false);
     setShowIOSGuide(false);
-    try { localStorage.setItem("ghost_install_dismissed", String(Date.now())); } catch {}
+    const next = getDismissCount() + 1;
+    setDismissCount(next);
+    setLastDismissed();
+    if (next < MAX_DISMISSALS) scheduleReshow();
   };
 
-  const handleInstall = async () => {
+  const handleAdd = async () => {
     if (isIOS()) {
       setShowIOSGuide(true);
       return;
     }
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      // No native prompt available — show a guide
+      setShowIOSGuide(true);
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === "accepted") {
-      setInstalled(true);
       setShow(false);
+      setDismissCount(MAX_DISMISSALS); // don't show again after install
     }
     setDeferredPrompt(null);
   };
 
   return (
     <>
-      {/* ── Main install banner ── */}
+      {/* ── Main banner ── */}
       <AnimatePresence>
-        {show && !showIOSGuide && !installed && (
+        {show && !showIOSGuide && (
           <motion.div
-            initial={{ y: 120, opacity: 0 }}
+            initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 120, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 280, damping: 28 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
             style={{
               position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9990,
-              padding: "0 12px max(16px, env(safe-area-inset-bottom, 16px))",
+              display: "flex", justifyContent: "center",
+              padding: "0 12px max(20px, env(safe-area-inset-bottom, 20px))",
               pointerEvents: "none",
             }}
           >
             <div style={{
-              background: "rgba(8,8,14,0.97)", border: "1px solid rgba(74,222,128,0.25)",
-              borderRadius: 20, padding: "14px 16px",
-              display: "flex", alignItems: "center", gap: 14,
-              boxShadow: "0 -4px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(74,222,128,0.08)",
+              width: "100%", maxWidth: 480,
+              background: "rgba(6,8,6,0.97)",
+              border: "1px solid rgba(74,222,128,0.3)",
+              borderRadius: 20,
+              padding: "14px 16px",
+              display: "flex", alignItems: "center", gap: 12,
+              boxShadow: "0 -4px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(74,222,128,0.06)",
               backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
               pointerEvents: "all",
             }}>
               {/* Icon */}
               <div style={{
-                width: 52, height: 52, borderRadius: 14, flexShrink: 0,
-                background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)",
-                display: "flex", alignItems: "center", justifyContent: "center",
+                width: 46, height: 46, borderRadius: 13, flexShrink: 0,
+                background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)",
+                display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
               }}>
-                <img src={GHOST_LOGO} alt="ghost" style={{ width: 78, height: 78, objectFit: "contain" }} />
+                <img src={GHOST_LOGO} alt="2Ghost" style={{ width: 60, height: 60, objectFit: "contain" }} />
               </div>
 
               {/* Text */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>
-                  Install 2Ghost
+                <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: "0 0 2px", lineHeight: 1.2 }}>
+                  Add 2Ghost to Home Screen
                 </p>
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.4 }}>
-                  Full-screen · No browser bar · Works offline
+                <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0, lineHeight: 1.4 }}>
+                  You'll need your sign-in code to access the app
                 </p>
               </div>
 
-              {/* Actions */}
-              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                <button
-                  onClick={dismiss}
-                  style={{
-                    width: 32, height: 32, borderRadius: 10,
-                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
-                    color: "rgba(255,255,255,0.4)", cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  <X size={14} />
-                </button>
+              {/* Buttons */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  onClick={handleInstall}
+                  onClick={handleAdd}
                   style={{
-                    height: 32, borderRadius: 10, padding: "0 16px", border: "none",
+                    height: 30, borderRadius: 8, padding: "0 14px", border: "none",
                     background: "linear-gradient(135deg, #16a34a, #22c55e)",
-                    color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer",
+                    color: "#fff", fontSize: 11, fontWeight: 800, cursor: "pointer",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  {isIOS() ? "How to Install" : "Install"}
+                  Add Now
                 </motion.button>
+                <button
+                  onClick={handleLater}
+                  style={{
+                    height: 28, borderRadius: 8, padding: "0 14px",
+                    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                    color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 600,
+                    cursor: "pointer", whiteSpace: "nowrap",
+                  }}
+                >
+                  Later
+                </button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── iOS step-by-step guide ── */}
+      {/* ── iOS / manual install guide ── */}
       <AnimatePresence>
         {showIOSGuide && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={dismiss}
+            onClick={handleLater}
             style={{
               position: "fixed", inset: 0, zIndex: 9995,
               background: "rgba(0,0,0,0.85)", backdropFilter: "blur(16px)",
@@ -168,50 +205,62 @@ export default function GhostInstallBanner() {
                 width: "100%", maxWidth: 480,
                 background: "rgba(8,8,14,0.99)", borderRadius: "20px 20px 0 0",
                 border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none",
-                padding: "20px 20px max(24px, env(safe-area-inset-bottom, 24px))",
+                padding: "20px 22px max(28px, env(safe-area-inset-bottom, 28px))",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <img src={GHOST_LOGO} alt="ghost" style={{ width: 72, height: 72, objectFit: "contain" }} />
-                  <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Install 2Ghost on iPhone</p>
+                  <img src={GHOST_LOGO} alt="ghost" style={{ width: 44, height: 44, objectFit: "contain" }} />
+                  <div>
+                    <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0 }}>Add to Home Screen</p>
+                    <p style={{ fontSize: 10, color: "rgba(74,222,128,0.6)", margin: 0 }}>3 quick steps</p>
+                  </div>
                 </div>
-                <button onClick={dismiss} style={{ background: "rgba(255,255,255,0.06)", border: "none", borderRadius: 8, width: 30, height: 30, cursor: "pointer", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <X size={14} />
+                <button onClick={handleLater} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, width: 30, height: 30, cursor: "pointer", color: "rgba(255,255,255,0.4)", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  ✕
                 </button>
               </div>
 
+              <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "14px 0 18px" }} />
+
               {[
-                { step: "1", icon: "⬆️", text: 'Tap the Share button at the bottom of Safari' },
-                { step: "2", icon: "📌", text: 'Scroll down and tap "Add to Home Screen"' },
+                { step: "1", icon: "⬆️", text: isIOS() ? "Tap the Share button at the bottom of Safari" : "Open this page in your browser's menu (⋮)" },
+                { step: "2", icon: "📌", text: isIOS() ? 'Scroll down and tap "Add to Home Screen"' : 'Tap "Add to Home Screen" or "Install App"' },
                 { step: "3", icon: "✅", text: 'Tap "Add" — 2Ghost opens full-screen, no browser bar' },
               ].map(({ step, icon, text }) => (
-                <div key={step} style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 16 }}>
+                <div key={step} style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 14 }}>
                   <div style={{
                     width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                    background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 18,
+                    background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)",
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
                   }}>
                     {icon}
                   </div>
-                  <div style={{ paddingTop: 8 }}>
-                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", margin: 0, lineHeight: 1.5 }}>
-                      <strong style={{ color: "rgba(74,222,128,0.9)" }}>Step {step}:</strong> {text}
+                  <div style={{ paddingTop: 7 }}>
+                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", margin: 0, lineHeight: 1.5 }}>
+                      <strong style={{ color: "rgba(74,222,128,0.9)" }}>Step {step}: </strong>{text}
                     </p>
                   </div>
                 </div>
               ))}
 
-              <div style={{
-                marginTop: 8, padding: "10px 14px",
-                background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)",
-                borderRadius: 12,
-              }}>
-                <p style={{ fontSize: 11, color: "rgba(74,222,128,0.7)", margin: 0 }}>
-                  Once installed, 2Ghost opens like a native app — full screen, no address bar, no back button clutter.
+              <div style={{ marginTop: 8, padding: "12px 14px", background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.12)", borderRadius: 12 }}>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "0 0 4px", fontWeight: 700 }}>🔑 Remember</p>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0, lineHeight: 1.5 }}>
+                  When you open 2Ghost from your home screen, you'll need your sign-in verification code to access your account.
                 </p>
               </div>
+
+              <button
+                onClick={handleLater}
+                style={{
+                  marginTop: 16, width: "100%", height: 44, borderRadius: 12,
+                  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
+                  color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                Close
+              </button>
             </motion.div>
           </motion.div>
         )}

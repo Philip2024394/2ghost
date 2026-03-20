@@ -10,6 +10,8 @@ export type IndonesianProfile = {
   longitude: number;
   image: string;
   last_seen_at: string | null;
+  isNewGuest?: boolean;
+  badge?: string;
 };
 
 // ── Country data ──────────────────────────────────────────────────────────────
@@ -346,6 +348,30 @@ export function getLastSeen(seed: number): string | null {
 
 // ── Generator ─────────────────────────────────────────────────────────────────
 
+const ID_FEMALE_IMAGES = [
+  "https://ik.imagekit.io/7grri5v7d/1as.png",
+  "https://ik.imagekit.io/7grri5v7d/1q.png",
+  "https://ik.imagekit.io/7grri5v7d/2a.png",
+  "https://ik.imagekit.io/7grri5v7d/2i.png",
+  "https://ik.imagekit.io/7grri5v7d/4i.png",
+  "https://ik.imagekit.io/7grri5v7d/1a.png",
+  "https://ik.imagekit.io/7grri5v7d/3a.png",
+  "https://ik.imagekit.io/7grri5v7d/15a.png",
+  "https://ik.imagekit.io/7grri5v7d/5a.png",
+  "https://ik.imagekit.io/7grri5v7d/5q.png",
+  "https://ik.imagekit.io/7grri5v7d/4a.png",
+  "https://ik.imagekit.io/7grri5v7d/5i.png",
+  "https://ik.imagekit.io/7grri5v7d/4q.png",
+];
+
+const MOCK_BADGES = [
+  "free_tonight","free_weekend","available_now","marriage_minded","soulmate",
+  "here_for_love","date_me_first","friends_first","serious_only","lets_hang",
+  "good_vibes","fun_first","no_strings","just_vibes","flirt_mode","wild_heart",
+  "spontaneous","discreet","older_man","foreign_partner","local_only",
+  "long_distance","travel_together","new_here","night_owl","second_chance",
+];
+
 export function generateIndonesianProfiles(): IndonesianProfile[] {
   const profiles: IndonesianProfile[] = [];
   let globalSeed = 0;
@@ -356,6 +382,9 @@ export function generateIndonesianProfiles(): IndonesianProfile[] {
       globalSeed++;
       const city = pickFrom(country.cities, globalSeed * 3 + 1);
       const imgIdx = ((country.imgOffset + (i % 70)) % 70) + 1;
+      const femaleImage = country.key === "id"
+        ? ID_FEMALE_IMAGES[i % ID_FEMALE_IMAGES.length]
+        : `https://i.pravatar.cc/400?img=${imgIdx}`;
       profiles.push({
         id: `${country.key}-f-${i + 1}`,
         name: country.femaleNames[i % country.femaleNames.length],
@@ -366,8 +395,10 @@ export function generateIndonesianProfiles(): IndonesianProfile[] {
         gender: "Female",
         latitude:  city.lat + (seededRandom(globalSeed * 11) - 0.5) * 0.25,
         longitude: city.lon + (seededRandom(globalSeed * 13) - 0.5) * 0.25,
-        image: `https://i.pravatar.cc/400?img=${imgIdx}`,
+        image: femaleImage,
         last_seen_at: getLastSeen(globalSeed),
+        isNewGuest: globalSeed % 5 === 0,
+        badge: globalSeed % 3 === 0 ? MOCK_BADGES[globalSeed % MOCK_BADGES.length] : undefined,
       });
     }
 
@@ -388,6 +419,8 @@ export function generateIndonesianProfiles(): IndonesianProfile[] {
         longitude: city.lon + (seededRandom(globalSeed * 19) - 0.5) * 0.25,
         image: `https://i.pravatar.cc/400?img=${imgIdx}`,
         last_seen_at: getLastSeen(globalSeed + 300),
+        isNewGuest: globalSeed % 5 === 0,
+        badge: globalSeed % 3 === 0 ? MOCK_BADGES[globalSeed % MOCK_BADGES.length] : undefined,
       });
     }
   });

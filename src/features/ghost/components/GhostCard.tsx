@@ -11,41 +11,24 @@ import {
   profileLikesCount,
   mockBio,
 } from "../utils/ghostHelpers";
+import { getDateIdea } from "../data/dateIdeas";
+import { getBadge } from "../data/profileBadges";
 
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
-const FIRST_DATE_IDEAS = [
-  { key: "french_restaurant", emoji: "🍷", label: "French Restaurant",  desc: "Candlelit dinner, good wine" },
-  { key: "beach_walk",        emoji: "🏖️", label: "Beach Shore Walk",   desc: "Sunset stroll, barefoot vibes" },
-  { key: "cinema_night",      emoji: "🎬", label: "Cinema Night",        desc: "Pick a film, share popcorn" },
-  { key: "coffee_date",       emoji: "☕", label: "Coffee & Cake",        desc: "Slow morning, easy conversation" },
-  { key: "night_market",      emoji: "🏮", label: "Night Market",         desc: "Street food, good energy" },
-  { key: "picnic",            emoji: "🌿", label: "Picnic in the Park",   desc: "Blanket, snacks, fresh air" },
-  { key: "live_music",        emoji: "🎶", label: "Live Music Night",     desc: "Jazz bar, concert, or rooftop" },
-  { key: "sushi",             emoji: "🍣", label: "Sushi Date",           desc: "Good food, clean vibes" },
-  { key: "city_explore",      emoji: "🚶", label: "City Explore",         desc: "Walk, discover, see where it leads" },
-  { key: "rooftop",           emoji: "🌆", label: "Rooftop Bar",          desc: "City views, cocktails, golden hour" },
-  { key: "bowling",           emoji: "🎳", label: "Bowling Night",        desc: "Playful, competitive, fun" },
-  { key: "boat_trip",         emoji: "⛵", label: "Boat Trip",            desc: "Open water, coastal adventure" },
-];
-
-function getDateIdea(profileId: string, key?: string | null) {
-  if (key) return FIRST_DATE_IDEAS.find((d) => d.key === key) ?? null;
-  // deterministic random from profile id
-  let h = 0;
-  for (let i = 0; i < profileId.length; i++) h = Math.imul(31, h) + profileId.charCodeAt(i) | 0;
-  return FIRST_DATE_IDEAS[Math.abs(h) % FIRST_DATE_IDEAS.length];
-}
+const SPAM_IMG = "https://ik.imagekit.io/7grri5v7d/spam%20in.png";
+const FOUND_BOO_STAMP = "https://ik.imagekit.io/7grri5v7d/Found%20Boo%20postage%20stamp%20design.png";
 
 // ── Profile mini card ───────────────────────────────────────────────────────
 export default function GhostCard({
   profile, liked, onClick, isRevealed, onReveal, canReveal, isTonight, houseTier,
-  isFlagged, onFlagOpen,
+  isFlagged, onFlagOpen, isFoundBoo,
 }: {
   profile: GhostProfile; liked: boolean; onClick: () => void;
   isRevealed: boolean; onReveal: () => void; canReveal: boolean;
   isTonight?: boolean; houseTier?: "black" | "house" | null;
   isFlagged?: boolean; onFlagOpen?: () => void;
+  isFoundBoo?: boolean;
 }) {
   const { t } = useLanguage();
   const online = isOnline(profile.last_seen_at);
@@ -141,6 +124,23 @@ export default function GhostCard({
           </div>
         )}
 
+        {/* Badge */}
+        {(() => {
+          const badge = getBadge(profile.badge);
+          if (!badge) return null;
+          return (
+            <div style={{
+              position: "absolute", bottom: 52, left: 8,
+              background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)",
+              borderRadius: 50, padding: "3px 9px",
+              display: "inline-flex", alignItems: "center", gap: 4,
+            }}>
+              <span style={{ fontSize: 10 }}>{badge.emoji}</span>
+              <span style={{ fontSize: 9, fontWeight: 800, color: "#fbbf24", letterSpacing: "0.03em" }}>{badge.label}</span>
+            </div>
+          );
+        })()}
+
         {/* Ghost ID / age */}
         <div style={{ position: "absolute", bottom: 8, left: 8, right: 8 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
@@ -209,21 +209,34 @@ export default function GhostCard({
           </button>
         )}
 
-        {/* Under Investigation overlay */}
+        {/* Spam / Under Investigation overlay */}
         {isFlagged && (
           <div style={{
-            position: "absolute", inset: 0,
-            background: "rgba(239,68,68,0.18)",
+            position: "absolute", inset: 0, zIndex: 5,
+            background: "rgba(0,0,0,0.55)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            zIndex: 5,
+            borderRadius: 16,
           }}>
-            <div style={{
-              background: "rgba(0,0,0,0.75)", borderRadius: 8, padding: "6px 10px",
-              border: "1px solid rgba(239,68,68,0.4)", textAlign: "center",
-            }}>
-              <p style={{ fontSize: 10, fontWeight: 800, color: "#f87171", margin: 0 }}>🔍 Under Investigation</p>
-              <p style={{ fontSize: 8, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Cannot interact</p>
-            </div>
+            <img
+              src={SPAM_IMG}
+              alt="Under Investigation"
+              style={{ width: "80%", maxWidth: 140, objectFit: "contain", pointerEvents: "none" }}
+            />
+          </div>
+        )}
+
+        {/* Found Boo stamp overlay */}
+        {isFoundBoo && (
+          <div style={{
+            position: "absolute", inset: 0, zIndex: 6,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            pointerEvents: "none",
+          }}>
+            <img
+              src={FOUND_BOO_STAMP}
+              alt="Found Boo"
+              style={{ width: "72%", maxWidth: 130, objectFit: "contain", opacity: 0.92 }}
+            />
           </div>
         )}
       </motion.div>
@@ -292,7 +305,10 @@ export default function GhostCard({
                 borderRadius: 10, padding: "8px 10px",
                 display: "flex", alignItems: "center", gap: 8,
               }}>
-                <span style={{ fontSize: 20, flexShrink: 0 }}>{idea.emoji}</span>
+                {idea.image
+                  ? <img src={idea.image} alt={idea.label} style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                  : <span style={{ fontSize: 20, flexShrink: 0 }}>{idea.emoji}</span>
+                }
                 <div>
                   <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(251,191,36,0.85)", margin: "0 0 1px", letterSpacing: "0.04em" }}>
                     TAKE ME ON A DATE

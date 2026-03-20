@@ -60,19 +60,21 @@ export default function GhostLandingPage() {
   });
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
+  const handleEnter = () => {
     try {
       const hasPhone = !!localStorage.getItem("ghost_phone");
       const hasProfile = !!localStorage.getItem("ghost_profile");
       if (hasPhone && hasProfile) {
-        // Fully set up — go straight to the app, skip gateway
         navigate("/ghost/mode", { replace: true });
       } else if (hasPhone) {
-        // Authed but no profile yet — go through gateway
         navigate("/ghost/gateway", { replace: true });
+      } else {
+        navigate("/ghost/auth", { replace: true });
       }
-    } catch {}
-  }, [navigate]);
+    } catch {
+      navigate("/ghost/auth", { replace: true });
+    }
+  };
 
   // Fire popup after 3 seconds (once per session)
   useEffect(() => {
@@ -181,7 +183,7 @@ export default function GhostLandingPage() {
           <motion.button
             whileTap={{ scale: 0.97 }}
             whileHover={{ y: -1 }}
-            onClick={() => navigate("/ghost/auth", { replace: true })}
+            onClick={handleEnter}
             style={{
               width: "100%", height: 52, borderRadius: 50, border: "none",
               background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
@@ -383,7 +385,7 @@ export default function GhostLandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.55, duration: 0.35 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => { setShowManifesto(false); navigate("/ghost/auth", { replace: true }); }}
+                onClick={() => { setShowManifesto(false); handleEnter(); }}
                 style={{
                   width: "100%", height: 54, borderRadius: 50, border: "none",
                   background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",

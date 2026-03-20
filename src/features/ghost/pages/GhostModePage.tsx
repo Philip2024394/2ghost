@@ -36,9 +36,29 @@ import GhostPulseRow from "../components/GhostPulseRow";
 import FoundBooBanner from "../components/FoundBooBanner";
 import { CountryTabBar } from "../components/CountryTabBar";
 import InternationalGhostModal from "../components/CountryTabBar";
+import GhostNewGuestsPopup from "../components/GhostNewGuestsPopup";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
+
+const HOUSE_RULES = [
+  { icon: "🤝", title: "Respect Every Ghost", desc: "No harassment, hate, or disrespect. Every person here deserves dignity — no exceptions." },
+  { icon: "🔒", title: "Privacy is Sacred", desc: "Never share another member's identity, photos, or location outside the House." },
+  { icon: "🚫", title: "No Bad Energy", desc: "No spam, scams, or fake profiles. Genuine connections only — the House self-cleanses." },
+  { icon: "👻", title: "Stay Anonymous Until Ready", desc: "Your Ghost ID protects you. Only reveal yourself when you're truly comfortable." },
+  { icon: "💚", title: "Good Vibes Only", desc: "Bring curiosity, openness, and warmth. The energy you put in is the energy you get back." },
+];
+
+const HOW_IT_WORKS = [
+  { icon: "❤️", title: "Like for Free", desc: "Browse every profile and like as many as you want — completely free, no subscription needed." },
+  { icon: "✨", title: "Ghost Match", desc: "When two ghosts like each other it becomes a mutual match. You'll get notified instantly." },
+  { icon: "📱", title: "Connect on Match", desc: "After a mutual match, pay once to unlock their real contact — WhatsApp, Telegram, or any app they use." },
+  { icon: "🚪", title: "Ghost Room", desc: "Your private vault. All your matches live here with a 48-hour countdown. Don't let them fade." },
+  { icon: "🌍", title: "Global House", desc: "Members from Indonesia 🇮🇩 Philippines 🇵🇭 Thailand 🇹🇭 Singapore 🇸🇬 Malaysia 🇲🇾 Vietnam 🇻🇳 and beyond." },
+  { icon: "👁️", title: "You're Invisible", desc: "Others only see your Ghost ID, photo, age, and city — nothing else — until you both connect." },
+];
+
+const PREVIEW_AVATARS = Array.from({ length: 8 }, (_, i) => `https://i.pravatar.cc/80?img=${i + 1}`);
 
 // ── Dev Panel ────────────────────────────────────────────────────────────────
 function DevPanel({
@@ -364,17 +384,24 @@ export default function GhostModePage() {
   const [showFilters, setShowFilters] = useState(false);
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
 
-  // First-entry welcome popup — fires once per session
-  const [showModeWelcome, setShowModeWelcome] = useState(false);
+  // House rules gate — shows 5s after first arrival, blocks interaction until agreed
+  const [houseRulesAgreed, setHouseRulesAgreed] = useState(() => {
+    try { return !!localStorage.getItem("ghost_house_welcomed"); } catch { return false; }
+  });
+  const [showHouseRules, setShowHouseRules] = useState(false);
+  const [showSecurityPopup, setShowSecurityPopup] = useState(false);
+
   useEffect(() => {
-    if (!sessionStorage.getItem("ghost_mode_welcome_seen")) {
-      const t = setTimeout(() => {
-        setShowModeWelcome(true);
-        sessionStorage.setItem("ghost_mode_welcome_seen", "1");
-      }, 800);
-      return () => clearTimeout(t);
-    }
-  }, []);
+    if (houseRulesAgreed) return;
+    const timer = setTimeout(() => setShowHouseRules(true), 5000);
+    return () => clearTimeout(timer);
+  }, [houseRulesAgreed]);
+
+  const handleHouseRulesAccept = () => {
+    try { localStorage.setItem("ghost_house_welcomed", "1"); } catch {}
+    setHouseRulesAgreed(true);
+    setShowHouseRules(false);
+  };
 
   // Filter button randomly cycling glow
   const FILTER_GLOWS = [
@@ -510,10 +537,16 @@ export default function GhostModePage() {
   const [filterCountry, setFilterCountry] = useState("");
   const [onlineOnly, setOnlineOnly] = useState(false);
   const [lookingFor, setLookingFor] = useState<string>("all");
+  const [filterBadge, setFilterBadge] = useState<string>("");
 
   // Inbound like notification
   const [inboundLike, setInboundLike] = useState<InboundLike | null>(null);
   const inboundShownRef = useRef(false);
+
+  // New Guests popup
+  const [showNewGuests, setShowNewGuests] = useState(false);
+  const [lobbyMode, setLobbyMode] = useState(false);
+  const newGuestsShownRef = useRef(false);
 
   // Geolocation
   const [userLat, setUserLat] = useState<number | null>(null);
@@ -545,8 +578,13 @@ export default function GhostModePage() {
   }, [hasGhostProfile, navigate]);
 
   // Simulate an inbound international like after 18s (demo — fires once per session)
+  // Skipped entirely if the account was created less than 5 minutes ago
   useEffect(() => {
     if (inboundShownRef.current || !hasGhostProfile) return;
+    const GRACE_MS = 5 * 60 * 1000; // 5 minutes
+    const joinedAt = (() => { try { return Number(localStorage.getItem("ghost_joined_at") || 0); } catch { return 0; } })();
+    const accountAgeMs = joinedAt ? Date.now() - joinedAt : GRACE_MS + 1;
+    if (accountAgeMs < GRACE_MS) return; // new account — skip notification
     const t = setTimeout(() => {
       if (inboundShownRef.current) return;
       inboundShownRef.current = true;
@@ -554,7 +592,19 @@ export default function GhostModePage() {
       setInboundLike(pick);
     }, 18000);
     return () => clearTimeout(t);
-  }, [isGhost]);
+  }, [isGhost, hasGhostProfile]);
+
+  // New Guests popup — fires once per session after 5–9 random minutes
+  useEffect(() => {
+    if (newGuestsShownRef.current || !hasGhostProfile) return;
+    const delayMs = (5 + Math.random() * 4) * 60 * 1000; // 5–9 minutes
+    const t = setTimeout(() => {
+      if (newGuestsShownRef.current) return;
+      newGuestsShownRef.current = true;
+      setShowNewGuests(true);
+    }, delayMs);
+    return () => clearTimeout(t);
+  }, [hasGhostProfile]);
 
   // Base profiles — all SEA countries + international, sorted by IP proximity
   const allProfiles = useMemo<GhostProfile[]>(() => {
@@ -581,6 +631,8 @@ export default function GhostModePage() {
         distanceKm,
         lastActiveHoursAgo: activeHoursAgo(p.id),
         isVerified: profileIsVerified(p.id),
+        isNewGuest: p.isNewGuest,
+        badge: p.badge ?? null,
       };
     });
     const intl = INTL_PROFILES.map((p) => ({ ...p, lastActiveHoursAgo: activeHoursAgo(p.id), isVerified: profileIsVerified(p.id) }));
@@ -597,11 +649,21 @@ export default function GhostModePage() {
     return merged;
   }, [userLat, userLon, ipCountry]);
 
+  // New guest profiles subset (for popup + lobby mode)
+  const newGuestProfiles = useMemo(() => allProfiles.filter((p) => p.isNewGuest), [allProfiles]);
+
+  // Don't show popup if there are no new guests
+  useEffect(() => {
+    if (showNewGuests && newGuestProfiles.length === 0) setShowNewGuests(false);
+  }, [showNewGuests, newGuestProfiles.length]);
+
   // Filtered + sorted profiles (excludes passed/refused)
   const profiles = useMemo(() => {
     return allProfiles
       .filter((p) => {
         if (passedIds.has(p.id)) return false;
+        if (lobbyMode && !p.isNewGuest) return false;
+        if (filterBadge && p.badge !== filterBadge) return false;
         if (p.lastActiveHoursAgo !== undefined && p.lastActiveHoursAgo > 24) return false;
         if (gender !== "all" && p.gender !== gender) return false;
         if (p.age < ageMin || p.age > ageMax) return false;
@@ -619,7 +681,7 @@ export default function GhostModePage() {
         if (a.distanceKm !== undefined && b.distanceKm !== undefined) return a.distanceKm - b.distanceKm;
         return 0;
       });
-  }, [allProfiles, gender, ageMin, ageMax, maxKm, filterCountry, onlineOnly, passedIds, browsingCountryCode]);
+  }, [allProfiles, gender, ageMin, ageMax, maxKm, filterCountry, onlineOnly, passedIds, browsingCountryCode, lobbyMode, filterBadge]);
 
   const saveMatch = (profile: GhostProfile) => {
     const next = [
@@ -698,7 +760,10 @@ export default function GhostModePage() {
 
   return (
     <div translate="no" style={{ minHeight: "100dvh", background: "#050508", display: "flex", justifyContent: "center" }}>
-    <div style={{ width: "100%", maxWidth: 480, minHeight: "100dvh", background: "#050508", color: "#fff", display: "flex", flexDirection: "column", position: "relative" }}>
+    <div
+      onClickCapture={!houseRulesAgreed ? (e) => { e.stopPropagation(); setShowSecurityPopup(true); } : undefined}
+      style={{ width: "100%", maxWidth: 480, minHeight: "100dvh", background: "#050508", color: "#fff", display: "flex", flexDirection: "column", position: "relative" }}
+    >
       <GhostParticles />
       <GhostInstallBanner />
 
@@ -882,6 +947,7 @@ export default function GhostModePage() {
                   filterCountry={filterCountry} setFilterCountry={setFilterCountry}
                   onlineOnly={onlineOnly} setOnlineOnly={setOnlineOnly}
                   lookingFor={lookingFor} setLookingFor={setLookingFor}
+                  filterBadge={filterBadge} setFilterBadge={setFilterBadge}
                 />
               </div>
               <div style={{ padding: "14px 18px 0" }}>
@@ -1094,6 +1160,36 @@ export default function GhostModePage() {
         )}
       </AnimatePresence>
 
+      {/* ── Lobby mode banner ── */}
+      <AnimatePresence>
+        {lobbyMode && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            style={{
+              margin: "10px 14px 0",
+              background: "rgba(74,222,128,0.07)",
+              border: "1px solid rgba(74,222,128,0.25)",
+              borderRadius: 12, padding: "10px 14px",
+              display: "flex", alignItems: "center", gap: 10,
+            }}
+          >
+            <span style={{ fontSize: 18 }}>🏨</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 12, fontWeight: 800, color: "#4ade80", margin: 0 }}>The Lobby — New Guests</p>
+              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>Showing {newGuestProfiles.length} guests who just arrived</p>
+            </div>
+            <button
+              onClick={() => setLobbyMode(false)}
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, padding: "4px 10px", cursor: "pointer" }}
+            >
+              Exit
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Profile grid */}
       {profiles.length === 0 ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, opacity: 0.5 }}>
@@ -1115,6 +1211,7 @@ export default function GhostModePage() {
               houseTier={profileHouseTier(profile.id)}
               isFlagged={!!flaggedProfiles[profile.id]}
               onFlagOpen={() => { const gId = toGhostId(profile.id); setFlagSheet({ profileId: profile.id, ghostId: gId }); }}
+              isFoundBoo={!!(isProfilePaused && foundBoo?.matchProfileId === profile.id)}
             />
           ))}
         </div>
@@ -1210,6 +1307,17 @@ export default function GhostModePage() {
               </p>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── New Guests popup ── */}
+      <AnimatePresence>
+        {showNewGuests && newGuestProfiles.length > 0 && (
+          <GhostNewGuestsPopup
+            newGuests={newGuestProfiles}
+            onEnterLobby={() => { setShowNewGuests(false); setLobbyMode(true); }}
+            onDismiss={() => setShowNewGuests(false)}
+          />
         )}
       </AnimatePresence>
 
@@ -1496,98 +1604,192 @@ export default function GhostModePage() {
         )}
       </AnimatePresence>
 
-      {/* ── First-entry welcome popup ── */}
+      {/* ── Security popup — fires when user taps before agreeing to house rules ── */}
       <AnimatePresence>
-        {showModeWelcome && (
+        {showSecurityPopup && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setShowModeWelcome(false)}
+            onClick={() => setShowSecurityPopup(false)}
             style={{
-              position: "fixed", inset: 0, zIndex: 200,
-              background: "rgba(0,0,0,0.75)",
-              backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+              position: "fixed", inset: 0, zIndex: 300,
+              background: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: "0 24px",
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.88, opacity: 0, y: 12 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.88, opacity: 0, y: 12 }}
+              transition={{ type: "spring", stiffness: 360, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "100%", maxWidth: 340,
+                background: "rgba(8,10,8,0.98)",
+                border: "1px solid rgba(74,222,128,0.18)",
+                borderRadius: 20,
+                padding: "28px 24px 22px",
+                boxShadow: "0 24px 80px rgba(0,0,0,0.8)",
+                textAlign: "center",
+              }}
+            >
+              <img src={GHOST_LOGO} alt="ghost" style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 14 }} />
+              <p style={{ fontSize: 11, fontWeight: 800, color: "rgba(74,222,128,0.7)", textTransform: "uppercase", letterSpacing: "0.12em", margin: "0 0 8px" }}>
+                🔒 Security Notice
+              </p>
+              <h3 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: "0 0 10px", lineHeight: 1.3 }}>
+                Account Required
+              </h3>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: "0 0 20px", lineHeight: 1.6 }}>
+                For security reasons, all users must agree to our house rules before viewing our house guests.
+              </p>
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={() => { setShowSecurityPopup(false); setShowHouseRules(true); }}
+                style={{
+                  width: "100%", height: 46, borderRadius: 50, border: "none",
+                  background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                  color: "#fff", fontSize: 14, fontWeight: 900,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 20px rgba(34,197,94,0.4)",
+                }}
+              >
+                View House Rules
+              </motion.button>
+              <button
+                onClick={() => setShowSecurityPopup(false)}
+                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 12, cursor: "pointer", marginTop: 12, padding: "4px 0" }}
+              >
+                Close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── House rules modal — slides up 5s after first arrival ── */}
+      <AnimatePresence>
+        {showHouseRules && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed", inset: 0, zIndex: 250,
+              background: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
               display: "flex", alignItems: "flex-end", justifyContent: "center",
             }}
           >
             <motion.div
-              initial={{ y: "100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "100%", opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              onClick={(e) => e.stopPropagation()}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 280, damping: 32 }}
               style={{
                 width: "100%", maxWidth: 480,
-                background: "rgba(4,8,4,0.97)",
+                backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdfasdASD.png)",
+                backgroundSize: "cover", backgroundPosition: "center top",
                 borderRadius: "24px 24px 0 0",
-                border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none",
-                padding: "0 22px max(36px, env(safe-area-inset-bottom, 36px))",
-                boxShadow: "0 -24px 80px rgba(0,0,0,0.7)",
+                border: "1px solid rgba(74,222,128,0.12)", borderBottom: "none",
+                maxHeight: "92dvh",
+                display: "flex", flexDirection: "column",
               }}
             >
-              <div style={{ height: 3, background: "linear-gradient(90deg, #15803d, #4ade80, #22c55e)", marginLeft: -22, marginRight: -22 }} />
-              <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 18px" }}>
-                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
+              <div style={{ height: 3, flexShrink: 0, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e, #4ade80, #16a34a)" }} />
+              <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 0", flexShrink: 0 }}>
+                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
               </div>
 
-              <motion.h2
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.12, duration: 0.35 }}
-                style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.2, letterSpacing: "-0.02em", margin: "0 0 6px" }}
-              >
-                You're in the Ghost House.
-              </motion.h2>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.35 }}
-                style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, margin: "0 0 18px" }}
-              >
-                Anonymous until you match. Real people. Real chemistry. No followers, no stories — just connection.
-              </motion.p>
+              {/* Scrollable content */}
+              <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none", padding: "20px 22px 16px" }}>
 
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.28, duration: 0.4 }}
-                style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}
-              >
-                {[
-                  { icon: "👆", text: "Tap a card to flip it — reveal their bio, activity, and intentions" },
-                  { icon: "❤️", text: "Like freely. When they like back it's a mutual match — no one-sided alerts" },
-                  { icon: "🌙", text: "Tonight Mode — signal you're available right now until midnight" },
-                  { icon: "🛡️", text: "Shield blocks unwanted numbers and entire countries from reaching you" },
-                  { icon: "🚩", text: "Flag any profile — our team investigates quietly within 24 hours" },
-                ].map(({ icon, text }) => (
-                  <div key={text} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                    <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1.5 }}>{icon}</span>
-                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.55 }}>{text}</p>
+                <div style={{ textAlign: "center", marginBottom: 24 }}>
+                  <h1 style={{ fontSize: 24, fontWeight: 900, margin: "0 0 10px", letterSpacing: "-0.02em", lineHeight: 1.2, background: "linear-gradient(135deg, #fff 40%, #4ade80)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                    Welcome to the Ghost Hotel 👻
+                  </h1>
+                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7, maxWidth: 320, marginInline: "auto" }}>
+                    Before you settle in, we have some{" "}
+                    <span style={{ color: "rgba(74,222,128,0.85)", fontWeight: 700 }}>hotel rules</span>{" "}
+                    that keep our hotel free from bad energy.
+                  </p>
+                </div>
+
+                {/* Preview avatars */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 16 }}>
+                  {PREVIEW_AVATARS.map((src, i) => (
+                    <img key={i} src={src} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(74,222,128,0.45)", marginLeft: i === 0 ? 0 : -10, zIndex: PREVIEW_AVATARS.length - i, position: "relative" }} />
+                  ))}
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.45)", marginLeft: 10 }}>+120 ghosts inside</span>
+                </div>
+
+                <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.2), transparent)", marginBottom: 22 }} />
+
+                {/* Rules */}
+                <div style={{ marginBottom: 26 }}>
+                  <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(74,222,128,0.6)", textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px" }}>🏠 House Rules</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {HOUSE_RULES.map((rule) => (
+                      <div key={rule.title} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "rgba(74,222,128,0.04)", border: "1px solid rgba(74,222,128,0.08)", borderRadius: 14, padding: "12px 14px" }}>
+                        <div style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.18)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
+                          {rule.icon === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain" }} /> : rule.icon}
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 3px" }}>{rule.title}</p>
+                          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.42)", margin: 0, lineHeight: 1.5 }}>{rule.desc}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </motion.div>
+                </div>
 
-              <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.15), transparent)", marginBottom: 18 }} />
+                <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.2), transparent)", marginBottom: 22 }} />
 
-              <motion.button
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.3 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setShowModeWelcome(false)}
-                style={{
-                  width: "100%", height: 52, borderRadius: 50, border: "none",
-                  background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
-                  color: "#fff", fontSize: 15, fontWeight: 900,
-                  cursor: "pointer", letterSpacing: "0.03em",
-                  boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 24px rgba(34,197,94,0.4)",
-                  position: "relative", overflow: "hidden",
-                }}
-              >
-                <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
-                Enter Ghost Mode →
-              </motion.button>
+                {/* How it works */}
+                <div style={{ marginBottom: 8 }}>
+                  <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(74,222,128,0.6)", textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px" }}>⚙️ How It Works</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {HOW_IT_WORKS.map((item) => (
+                      <div key={item.title} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                        <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
+                          {item.icon}
+                        </div>
+                        <div style={{ paddingTop: 2 }}>
+                          <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>{item.title}</p>
+                          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Sticky footer */}
+              <div style={{ flexShrink: 0, padding: "14px 22px max(28px, env(safe-area-inset-bottom, 28px))", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(4,6,4,0.97)" }}>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ y: -2 }}
+                  onClick={handleHouseRulesAccept}
+                  style={{
+                    width: "100%", height: 54, borderRadius: 50, border: "none",
+                    background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                    color: "#fff", fontSize: 15, fontWeight: 900,
+                    cursor: "pointer", letterSpacing: "0.03em",
+                    boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px rgba(34,197,94,0.5)",
+                    position: "relative", overflow: "hidden",
+                  }}
+                >
+                  <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
+                  Agree To Abide By Rules
+                </motion.button>
+                <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "10px 0 0", lineHeight: 1.6 }}>
+                  By entering you agree to the house rules above and our{" "}
+                  <span style={{ color: "rgba(255,255,255,0.35)" }}>Privacy Policy</span>
+                </p>
+              </div>
             </motion.div>
           </motion.div>
         )}

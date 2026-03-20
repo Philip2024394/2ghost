@@ -3,26 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Camera, MapPin, Globe, Smartphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { WORLD_COUNTRIES } from "../data/worldCountries";
+import { getCitiesForCountry } from "../data/countryCities";
 import { PHONE_APPS } from "../data/connectPlatforms";
 import { detectIpCountry, getCachedIpCountry, COUNTRY_PHONE_PREFIX } from "@/shared/hooks/useIpCountry";
+import { saveProfileToSupabase } from "../ghostProfileService";
+import { DATE_IDEAS as FIRST_DATE_IDEAS } from "../data/dateIdeas";
+import { PROFILE_BADGES, BADGE_CATEGORIES } from "../data/profileBadges";
 
 const GHOST_PROFILE_KEY = "ghost_profile";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasd.png";
-
-const FIRST_DATE_IDEAS = [
-  { key: "french_restaurant", emoji: "🍷", label: "French Restaurant",  desc: "Candlelit dinner, good wine" },
-  { key: "beach_walk",        emoji: "🏖️", label: "Beach Shore Walk",   desc: "Sunset stroll, barefoot vibes" },
-  { key: "cinema_night",      emoji: "🎬", label: "Cinema Night",        desc: "Pick a film, share popcorn" },
-  { key: "coffee_date",       emoji: "☕", label: "Coffee & Cake",        desc: "Slow morning, easy conversation" },
-  { key: "night_market",      emoji: "🏮", label: "Night Market",         desc: "Street food, good energy" },
-  { key: "picnic",            emoji: "🌿", label: "Picnic in the Park",   desc: "Blanket, snacks, fresh air" },
-  { key: "live_music",        emoji: "🎶", label: "Live Music Night",     desc: "Jazz bar, concert, or rooftop" },
-  { key: "sushi",             emoji: "🍣", label: "Sushi Date",           desc: "Good food, clean vibes" },
-  { key: "city_explore",      emoji: "🚶", label: "City Explore",         desc: "Walk, discover, see where it leads" },
-  { key: "rooftop",           emoji: "🌆", label: "Rooftop Bar",          desc: "City views, cocktails, golden hour" },
-  { key: "bowling",           emoji: "🎳", label: "Bowling Night",        desc: "Playful, competitive, fun" },
-  { key: "boat_trip",         emoji: "⛵", label: "Boat Trip",            desc: "Open water, coastal adventure" },
-];
 
 const RELIGIONS = [
   "Muslim 🌙", "Christian ✝️", "Catholic ✝️", "Buddhist ☸️",
@@ -42,12 +31,18 @@ const label: React.CSSProperties = {
   display: "block", marginBottom: 8,
 };
 
-const input = (hasError = false): React.CSSProperties => ({
+const input = (hasError = false, focused = false): React.CSSProperties => ({
   width: "100%", height: 50, borderRadius: 12,
-  background: "rgba(255,255,255,0.05)",
-  border: hasError ? "1px solid rgba(239,68,68,0.5)" : "1px solid rgba(255,255,255,0.1)",
+  background: focused ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.05)",
+  border: hasError
+    ? "1px solid rgba(239,68,68,0.5)"
+    : focused
+      ? "1px solid rgba(74,222,128,0.45)"
+      : "1px solid rgba(255,255,255,0.1)",
   color: "#fff", fontSize: 15, padding: "0 14px",
   outline: "none", boxSizing: "border-box",
+  transition: "background 0.15s, border-color 0.15s",
+  boxShadow: focused ? "0 0 0 3px rgba(74,222,128,0.08)" : "none",
 });
 
 export default function GhostSetupPage() {
@@ -59,13 +54,13 @@ export default function GhostSetupPage() {
   const [age, setAge] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
-  const [countryQuery, setCountryQuery] = useState("");
-  const [showCountrySuggestions, setShowCountrySuggestions] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [gender, setGender] = useState<"Female" | "Male" | "">("");
   const [interest, setInterest] = useState<"Women" | "Men" | "Both" | "">("");
   const [connectPhone, setConnectPhone] = useState("");
   const [bio, setBio] = useState("");
   const [firstDateIdea, setFirstDateIdea] = useState("");
+  const [profileBadge, setProfileBadge] = useState("");
   const [religion, setReligion] = useState("");
   const [lookingFor, setLookingFor] = useState("");
   const [saving, setSaving] = useState(false);
@@ -84,9 +79,6 @@ export default function GhostSetupPage() {
   }, []);
 
   const selectedCountryObj = WORLD_COUNTRIES.find((c) => c.name === country);
-  const countrySuggestions = WORLD_COUNTRIES.filter((c) =>
-    c.name.toLowerCase().includes(countryQuery.toLowerCase()) && countryQuery.length > 0
-  );
 
   const ageNum = parseInt(age, 10);
 
@@ -110,28 +102,54 @@ export default function GhostSetupPage() {
     reader.readAsDataURL(file);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSubmitAttempted(true);
     if (!isValid) return;
     setSaving(true);
+
+    const profileData = {
+      photo,
+      name: name.trim(),
+      age: ageNum,
+      city: city.trim(),
+      country,
+      countryFlag: selectedCountryObj?.flag ?? "🌍",
+      countryCode: selectedCountryObj?.code ?? "",
+      gender,
+      interest,
+      bio: bio.trim() || null,
+      firstDateIdea: firstDateIdea || null,
+      badge: profileBadge || null,
+      religion: religion || null,
+      lookingFor: lookingFor || null,
+      connectPhone: connectPhone.trim() || null,
+      connectAlt: null,
+      connectAltHandle: null,
+      verified: false,
+      idVerified: false,
+    };
+
+    // Save to localStorage immediately (always works, instant)
     try {
-      localStorage.setItem(GHOST_PROFILE_KEY, JSON.stringify({
-        photo, name: name.trim(), age: ageNum,
-        city: city.trim(), country,
-        countryFlag: selectedCountryObj?.flag ?? "🌍",
-        countryCode: selectedCountryObj?.code ?? "",
-        gender, interest,
-        bio: bio.trim() || null,
-        firstDateIdea: firstDateIdea || null,
-        religion: religion || null,
-        lookingFor: lookingFor || null,
-        connectPhone: connectPhone.trim() || null,
-        connectAlt: null, connectAltHandle: null,
-        verified: false, idVerified: false,
-      }));
+      localStorage.setItem(GHOST_PROFILE_KEY, JSON.stringify(profileData));
       localStorage.setItem("ghost_interest", interest);
+      // Stamp join time so we can apply a new-account notification grace period
+      if (!localStorage.getItem("ghost_joined_at")) {
+        localStorage.setItem("ghost_joined_at", String(Date.now()));
+      }
     } catch {}
-    setTimeout(() => navigate("/ghost/mode", { replace: true }), 600);
+
+    // Save to Supabase (best-effort — failures don't block the user)
+    const phone = (() => { try { return localStorage.getItem("ghost_phone") || ""; } catch { return ""; } })();
+    if (phone) {
+      try {
+        await saveProfileToSupabase(phone, profileData);
+      } catch {
+        // Supabase error — profile is already in localStorage, continue normally
+      }
+    }
+
+    navigate("/ghost/mode", { replace: true });
   };
 
   return (
@@ -211,11 +229,13 @@ export default function GhostSetupPage() {
         <div style={{ marginBottom: 20 }}>
           <label style={label}>Your First Name</label>
           <input
-            style={input(submitAttempted && errors.name)}
+            style={input(submitAttempted && errors.name, focusedField === "name")}
             placeholder="e.g. Sari"
             value={name}
             maxLength={30}
             onChange={(e) => setName(e.target.value)}
+            onFocus={() => setFocusedField("name")}
+            onBlur={() => setFocusedField(null)}
           />
           {submitAttempted && errors.name && (
             <p style={{ fontSize: 11, color: "rgba(239,68,68,0.7)", margin: "5px 0 0" }}>Enter your first name</p>
@@ -227,11 +247,13 @@ export default function GhostSetupPage() {
           <div>
             <label style={label}>Age</label>
             <input
-              style={input(submitAttempted && errors.age)}
+              style={input(submitAttempted && errors.age, focusedField === "age")}
               type="number" min={18} max={80}
               placeholder="e.g. 24"
               value={age}
               onChange={(e) => setAge(e.target.value)}
+              onFocus={() => setFocusedField("age")}
+              onBlur={() => setFocusedField(null)}
             />
             {submitAttempted && errors.age && (
               <p style={{ fontSize: 11, color: "rgba(239,68,68,0.7)", margin: "5px 0 0" }}>18 – 80</p>
@@ -240,22 +262,58 @@ export default function GhostSetupPage() {
           <div>
             <label style={label}>
               <MapPin size={10} style={{ display: "inline", marginRight: 4 }} />
-              City
+              City / Area
             </label>
-            <input
-              style={input(submitAttempted && errors.city)}
-              placeholder="e.g. Dublin"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-            />
+            {!country ? (
+              <div style={{
+                height: 50, borderRadius: 12, border: "1px solid rgba(255,255,255,0.07)",
+                background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center",
+                paddingLeft: 14,
+              }}>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.2)" }}>Select country first</span>
+              </div>
+            ) : (
+              <div style={{ position: "relative" }}>
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  onFocus={() => setFocusedField("city")}
+                  onBlur={() => setFocusedField(null)}
+                  style={{
+                    width: "100%", height: 50, borderRadius: 12,
+                    background: focusedField === "city" ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.05)",
+                    border: submitAttempted && errors.city
+                      ? "1px solid rgba(239,68,68,0.5)"
+                      : focusedField === "city"
+                        ? "1px solid rgba(74,222,128,0.45)"
+                        : "1px solid rgba(255,255,255,0.1)",
+                    color: city ? "#fff" : "rgba(255,255,255,0.35)",
+                    fontSize: 15, paddingLeft: 14, paddingRight: 30,
+                    outline: "none", boxSizing: "border-box",
+                    appearance: "none", WebkitAppearance: "none",
+                    cursor: "pointer",
+                    transition: "background 0.15s, border-color 0.15s",
+                    boxShadow: focusedField === "city" ? "0 0 0 3px rgba(74,222,128,0.08)" : "none",
+                  }}
+                >
+                  <option value="" disabled style={{ background: "#0a0a10", color: "rgba(255,255,255,0.4)" }}>
+                    Select your city…
+                  </option>
+                  {getCitiesForCountry(selectedCountryObj?.code ?? "").map((c) => (
+                    <option key={c} value={c} style={{ background: "#0a0a10", color: "#fff" }}>{c}</option>
+                  ))}
+                </select>
+                <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "rgba(255,255,255,0.3)", fontSize: 12 }}>▼</span>
+              </div>
+            )}
             {submitAttempted && errors.city && (
-              <p style={{ fontSize: 11, color: "rgba(239,68,68,0.7)", margin: "5px 0 0" }}>Enter your city</p>
+              <p style={{ fontSize: 11, color: "rgba(239,68,68,0.7)", margin: "5px 0 0" }}>Select your city</p>
             )}
           </div>
         </div>
 
         {/* Country */}
-        <div style={{ marginBottom: 20, position: "relative" }}>
+        <div style={{ marginBottom: 20 }}>
           <label style={label}>
             <Globe size={10} style={{ display: "inline", marginRight: 4 }} />
             Country
@@ -266,38 +324,45 @@ export default function GhostSetupPage() {
                 {selectedCountryObj.flag}
               </span>
             )}
-            <input
-              style={{ ...input(submitAttempted && errors.country), paddingLeft: selectedCountryObj ? 44 : 14 }}
-              placeholder="Search country..."
-              value={countryQuery || country}
-              onChange={(e) => { setCountryQuery(e.target.value); setCountry(""); setShowCountrySuggestions(true); }}
-              onFocus={() => setShowCountrySuggestions(true)}
-              onBlur={() => setTimeout(() => setShowCountrySuggestions(false), 150)}
-            />
-          </div>
-          {showCountrySuggestions && countrySuggestions.length > 0 && (
-            <div style={{
-              position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 50,
-              background: "rgba(10,10,16,0.98)", backdropFilter: "blur(20px)",
-              border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12,
-              overflow: "hidden", maxHeight: 200, overflowY: "auto",
-            }}>
-              {countrySuggestions.slice(0, 8).map((c) => (
-                <button
-                  key={c.code}
-                  onMouseDown={() => { setCountry(c.name); setCountryQuery(""); setShowCountrySuggestions(false); }}
-                  style={{
-                    width: "100%", padding: "10px 14px", background: "none",
-                    border: "none", color: "#fff", fontSize: 13, textAlign: "left",
-                    cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.04)",
-                    display: "flex", alignItems: "center", gap: 10,
-                  }}
-                >
-                  <span style={{ fontSize: 18 }}>{c.flag}</span> {c.name}
-                </button>
+            <select
+              value={country}
+              onChange={(e) => { setCountry(e.target.value); setCity(""); }}
+              onFocus={() => setFocusedField("country")}
+              onBlur={() => setFocusedField(null)}
+              style={{
+                width: "100%", height: 50, borderRadius: 12,
+                background: focusedField === "country" ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.05)",
+                border: submitAttempted && errors.country
+                  ? "1px solid rgba(239,68,68,0.5)"
+                  : focusedField === "country"
+                    ? "1px solid rgba(74,222,128,0.45)"
+                    : "1px solid rgba(255,255,255,0.1)",
+                color: country ? "#fff" : "rgba(255,255,255,0.35)",
+                fontSize: 15,
+                paddingLeft: selectedCountryObj ? 44 : 14,
+                paddingRight: 14,
+                outline: "none",
+                boxSizing: "border-box",
+                appearance: "none", WebkitAppearance: "none",
+                cursor: "pointer",
+                transition: "background 0.15s, border-color 0.15s",
+                boxShadow: focusedField === "country" ? "0 0 0 3px rgba(74,222,128,0.08)" : "none",
+              }}
+            >
+              <option value="" disabled style={{ background: "#0a0a10", color: "rgba(255,255,255,0.4)" }}>
+                Select your country…
+              </option>
+              {WORLD_COUNTRIES.map((c) => (
+                <option key={c.code} value={c.name} style={{ background: "#0a0a10", color: "#fff" }}>
+                  {c.flag} {c.name}
+                </option>
               ))}
-            </div>
-          )}
+            </select>
+            {/* Dropdown arrow */}
+            <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "rgba(255,255,255,0.3)", fontSize: 12 }}>
+              ▼
+            </span>
+          </div>
           {submitAttempted && errors.country && (
             <p style={{ fontSize: 11, color: "rgba(239,68,68,0.7)", margin: "5px 0 0" }}>Select your country</p>
           )}
@@ -374,11 +439,13 @@ export default function GhostSetupPage() {
           <label style={label}>One Line About You</label>
           <div style={{ position: "relative" }}>
             <input
-              style={{ ...input(), paddingRight: 42 }}
+              style={{ ...input(false, focusedField === "bio"), paddingRight: 42 }}
               placeholder="e.g. Loves late nights and good coffee"
               value={bio}
               maxLength={72}
               onChange={(e) => setBio(e.target.value)}
+              onFocus={() => setFocusedField("bio")}
+              onBlur={() => setFocusedField(null)}
             />
             <span style={{
               position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
@@ -435,13 +502,55 @@ export default function GhostSetupPage() {
                     transition: "all 0.15s",
                   }}
                 >
-                  <div style={{ fontSize: 26, marginBottom: 6, lineHeight: 1 }}>{idea.emoji}</div>
+                  {idea.image
+                    ? <img src={idea.image} alt={idea.label} style={{ width: 48, height: 48, borderRadius: 10, objectFit: "cover", marginBottom: 6, display: "block" }} />
+                    : <div style={{ fontSize: 26, marginBottom: 6, lineHeight: 1 }}>{idea.emoji}</div>
+                  }
                   <p style={{ fontSize: 12, fontWeight: 800, color: sel ? "rgba(74,222,128,0.95)" : "#fff", margin: "0 0 3px", lineHeight: 1.2 }}>{idea.label}</p>
                   <p style={{ fontSize: 10, color: sel ? "rgba(74,222,128,0.6)" : "rgba(255,255,255,0.3)", margin: 0, lineHeight: 1.4 }}>{idea.desc}</p>
                 </button>
               );
             })}
           </div>
+        </div>
+
+        {/* My Badge */}
+        <div style={{ marginBottom: 20 }}>
+          <label style={label}>
+            My Badge
+            <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}> — shows on your card (optional)</span>
+          </label>
+          {BADGE_CATEGORIES.map((cat) => {
+            const badges = PROFILE_BADGES.filter((b) => b.category === cat.key);
+            return (
+              <div key={cat.key} style={{ marginBottom: 12 }}>
+                <p style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 6px" }}>
+                  {cat.label}
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {badges.map((b) => {
+                    const sel = profileBadge === b.key;
+                    return (
+                      <button
+                        key={b.key}
+                        onClick={() => setProfileBadge(sel ? "" : b.key)}
+                        style={{
+                          height: 32, borderRadius: 50, padding: "0 12px",
+                          background: sel ? "rgba(251,191,36,0.15)" : "rgba(255,255,255,0.04)",
+                          border: sel ? "1px solid rgba(251,191,36,0.5)" : "1px solid rgba(255,255,255,0.08)",
+                          color: sel ? "#fbbf24" : "rgba(255,255,255,0.55)",
+                          fontSize: 12, fontWeight: 700, cursor: "pointer",
+                          display: "flex", alignItems: "center", gap: 5,
+                        }}
+                      >
+                        <span>{b.emoji}</span>{b.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Religion */}
@@ -483,12 +592,14 @@ export default function GhostSetupPage() {
             Phone Number <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>— only shared after a mutual match</span>
           </label>
           <input
-            style={input()}
+            style={input(false, focusedField === "phone")}
             type="tel"
             placeholder="+62 8xx xxxx xxxx"
             value={connectPhone}
             maxLength={20}
             onChange={(e) => setConnectPhone(e.target.value)}
+            onFocus={() => setFocusedField("phone")}
+            onBlur={() => setFocusedField(null)}
           />
           <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
             {PHONE_APPS.map((a) => (
@@ -559,7 +670,7 @@ export default function GhostSetupPage() {
           ) : (
             <>
               <img src={GHOST_LOGO} alt="" style={{ width: 36, height: 36, objectFit: "contain" }} />
-              Enter the Ghost House
+              Meet The Guests
             </>
           )}
         </motion.button>

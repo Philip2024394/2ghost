@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Navigation, Globe } from "lucide-react";
 import { WORLD_COUNTRIES } from "../data/worldCountries";
 import type { GenderFilter, KmFilter } from "../types/ghostTypes";
+import { PROFILE_BADGES, BADGE_CATEGORIES } from "../data/profileBadges";
 
 // ── Filter bar ──────────────────────────────────────────────────────────────
 export default function FilterBar({
@@ -12,6 +13,7 @@ export default function FilterBar({
   filterCountry, setFilterCountry,
   onlineOnly, setOnlineOnly,
   lookingFor, setLookingFor,
+  filterBadge, setFilterBadge,
 }: {
   gender: GenderFilter; setGender: (g: GenderFilter) => void;
   ageMin: number; ageMax: number;
@@ -22,6 +24,7 @@ export default function FilterBar({
   filterCountry: string; setFilterCountry: (c: string) => void;
   onlineOnly: boolean; setOnlineOnly: (v: boolean) => void;
   lookingFor: string; setLookingFor: (v: string) => void;
+  filterBadge: string; setFilterBadge: (v: string) => void;
 }) {
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [countryQuery, setCountryQuery] = useState("");
@@ -154,6 +157,48 @@ export default function FilterBar({
           </button>
         ))}
       </div>
+
+      <div style={S.divider} />
+
+      {/* ── Badge filter ── */}
+      <p style={S.label}>Profile Badge</p>
+      <button
+        onClick={() => setFilterBadge("")}
+        style={{ ...S.chip(!filterBadge), height: 36, width: "100%", marginBottom: 10, fontSize: 12 }}
+      >
+        ✨ All Badges
+      </button>
+      {BADGE_CATEGORIES.map((cat) => {
+        const badges = PROFILE_BADGES.filter((b) => b.category === cat.key);
+        return (
+          <div key={cat.key} style={{ marginBottom: 12 }}>
+            <p style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 6px" }}>
+              {cat.label}
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {badges.map((b) => {
+                const active = filterBadge === b.key;
+                return (
+                  <button
+                    key={b.key}
+                    onClick={() => setFilterBadge(active ? "" : b.key)}
+                    style={{
+                      height: 32, borderRadius: 50, padding: "0 11px",
+                      background: active ? "rgba(251,191,36,0.18)" : "rgba(255,255,255,0.05)",
+                      color: active ? "#fbbf24" : "rgba(255,255,255,0.45)",
+                      fontSize: 11, fontWeight: 700, cursor: "pointer",
+                      border: active ? "1px solid rgba(251,191,36,0.4)" : "1px solid rgba(255,255,255,0.07)",
+                      display: "flex", alignItems: "center", gap: 5,
+                    }}
+                  >
+                    <span>{b.emoji}</span>{b.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
 
     </div>
   );

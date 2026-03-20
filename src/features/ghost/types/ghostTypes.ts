@@ -22,6 +22,8 @@ export type GhostProfile = {
   connectPhone?: string | null;
   connectAlt?: string | null;
   connectAltHandle?: string | null;
+  isNewGuest?: boolean; // joined within last 48h
+  badge?: string | null;
 };
 
 export type GhostMatch = {

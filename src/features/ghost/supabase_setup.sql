@@ -9,15 +9,39 @@ create extension if not exists "pgcrypto";
 -- ── Tables ───────────────────────────────────────────────────
 
 create table if not exists ghost_profiles (
-  ghost_id    text primary key,               -- e.g. "Ghost-4821"
-  whatsapp    text,
-  display_name text,
-  gender      text,
-  interest    text,                           -- "Women" | "Men" | "Both"
-  verified    boolean default false,
-  photo_url   text,
-  created_at  timestamptz default now()
+  ghost_id      text primary key,             -- phone number used as unique ID
+  whatsapp      text,
+  display_name  text,
+  gender        text,
+  interest      text,                         -- "Women" | "Men" | "Both"
+  verified      boolean default false,
+  photo_url     text,
+  age           int,
+  city          text,
+  country       text,
+  country_flag  text,
+  country_code  text,
+  bio           text,
+  first_date_idea text,
+  religion      text,
+  looking_for   text,
+  connect_phone text,
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now()
 );
+
+-- Migration: add missing columns to existing installs (safe — idempotent)
+alter table ghost_profiles add column if not exists age           int;
+alter table ghost_profiles add column if not exists city          text;
+alter table ghost_profiles add column if not exists country       text;
+alter table ghost_profiles add column if not exists country_flag  text;
+alter table ghost_profiles add column if not exists country_code  text;
+alter table ghost_profiles add column if not exists bio           text;
+alter table ghost_profiles add column if not exists first_date_idea text;
+alter table ghost_profiles add column if not exists religion      text;
+alter table ghost_profiles add column if not exists looking_for   text;
+alter table ghost_profiles add column if not exists connect_phone text;
+alter table ghost_profiles add column if not exists updated_at    timestamptz default now();
 
 create table if not exists ghost_room_config (
   ghost_id    text primary key references ghost_profiles(ghost_id) on delete cascade,

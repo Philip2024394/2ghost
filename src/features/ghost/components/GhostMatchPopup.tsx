@@ -4,29 +4,9 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { PHONE_APPS, getUsernamePlatform } from "../data/connectPlatforms";
 import type { GhostProfile } from "../types/ghostTypes";
 import { toGhostId } from "../utils/ghostHelpers";
+import { getDateIdea } from "../data/dateIdeas";
 
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
-
-const FIRST_DATE_IDEAS = [
-  { key: "french_restaurant", emoji: "🍷", label: "French Restaurant" },
-  { key: "beach_walk",        emoji: "🏖️", label: "Beach Shore Walk" },
-  { key: "cinema_night",      emoji: "🎬", label: "Cinema Night" },
-  { key: "coffee_date",       emoji: "☕", label: "Coffee & Cake" },
-  { key: "night_market",      emoji: "🏮", label: "Night Market" },
-  { key: "picnic",            emoji: "🌿", label: "Picnic in the Park" },
-  { key: "live_music",        emoji: "🎶", label: "Live Music Night" },
-  { key: "sushi",             emoji: "🍣", label: "Sushi Date" },
-  { key: "city_explore",      emoji: "🚶", label: "City Explore" },
-  { key: "rooftop",           emoji: "🌆", label: "Rooftop Bar" },
-  { key: "bowling",           emoji: "🎳", label: "Bowling Night" },
-  { key: "boat_trip",         emoji: "⛵", label: "Boat Trip" },
-];
-function getDateIdea(profileId: string, key?: string | null) {
-  if (key) return FIRST_DATE_IDEAS.find((d) => d.key === key) ?? null;
-  let h = 0;
-  for (let i = 0; i < profileId.length; i++) h = Math.imul(31, h) + profileId.charCodeAt(i) | 0;
-  return FIRST_DATE_IDEAS[Math.abs(h) % FIRST_DATE_IDEAS.length];
-}
 
 // ── Match popup ─────────────────────────────────────────────────────────────
 export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: {

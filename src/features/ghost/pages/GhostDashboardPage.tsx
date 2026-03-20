@@ -4,8 +4,12 @@ import { ArrowLeft, LogOut, Edit2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PHONE_APPS, getUsernamePlatform } from "../data/connectPlatforms";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { DATE_IDEAS } from "../data/dateIdeas";
+import { saveProfileToSupabase } from "../ghostProfileService";
+import { PROFILE_BADGES, BADGE_CATEGORIES } from "../data/profileBadges";
 
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
+const FOUND_BOO_STAMP = "https://ik.imagekit.io/7grri5v7d/Found%20Boo%20postage%20stamp%20design.png";
 
 type FoundBooData = {
   matchProfileId: string;
@@ -132,22 +136,24 @@ export default function GhostDashboardPage() {
   const connectAlt: string | null = profileData?.connectAlt ?? null;
   const connectAltHandle: string | null = profileData?.connectAltHandle ?? null;
   const altPlatform = connectAlt ? getUsernamePlatform(connectAlt) : undefined;
-  const firstDateIdea: string | null = profileData?.firstDateIdea ?? null;
-  const FIRST_DATE_IDEAS = [
-    { key: "french_restaurant", emoji: "🍷", label: "French Restaurant",  desc: "Candlelit dinner, good wine" },
-    { key: "beach_walk",        emoji: "🏖️", label: "Beach Shore Walk",   desc: "Sunset stroll, barefoot vibes" },
-    { key: "cinema_night",      emoji: "🎬", label: "Cinema Night",        desc: "Pick a film, share popcorn" },
-    { key: "coffee_date",       emoji: "☕", label: "Coffee & Cake",        desc: "Slow morning, easy conversation" },
-    { key: "night_market",      emoji: "🏮", label: "Night Market",         desc: "Street food, good energy" },
-    { key: "picnic",            emoji: "🌿", label: "Picnic in the Park",   desc: "Blanket, snacks, fresh air" },
-    { key: "live_music",        emoji: "🎶", label: "Live Music Night",     desc: "Jazz bar, concert, or rooftop" },
-    { key: "sushi",             emoji: "🍣", label: "Sushi Date",           desc: "Good food, clean vibes" },
-    { key: "city_explore",      emoji: "🚶", label: "City Explore",         desc: "Walk, discover, see where it leads" },
-    { key: "rooftop",           emoji: "🌆", label: "Rooftop Bar",          desc: "City views, cocktails, golden hour" },
-    { key: "bowling",           emoji: "🎳", label: "Bowling Night",        desc: "Playful, competitive, fun" },
-    { key: "boat_trip",         emoji: "⛵", label: "Boat Trip",            desc: "Open water, coastal adventure" },
-  ];
-  const dateIdeaObj = FIRST_DATE_IDEAS.find((d) => d.key === firstDateIdea) ?? null;
+  const [firstDateIdea, setFirstDateIdea] = useState<string>(profileData?.firstDateIdea ?? "");
+  const dateIdeaObj = DATE_IDEAS.find((d) => d.key === firstDateIdea) ?? null;
+  const [profileBadge, setProfileBadge] = useState<string>(profileData?.badge ?? "");
+  const [religion, setReligion] = useState<string>(profileData?.religion ?? "");
+  const badgeObj = PROFILE_BADGES.find((b) => b.key === profileBadge) ?? null;
+
+  const saveField = async (field: string, value: string | null) => {
+    try {
+      const updated = { ...(profileData ?? {}), [field]: value || null };
+      localStorage.setItem("ghost_profile", JSON.stringify(updated));
+      const phone = localStorage.getItem("ghost_phone") ?? "";
+      if (phone) await saveProfileToSupabase(phone, updated);
+    } catch {}
+  };
+
+  const handleDateIdeaChange = async (key: string) => { setFirstDateIdea(key); await saveField("firstDateIdea", key); };
+  const handleBadgeChange    = async (key: string) => { setProfileBadge(key); await saveField("badge", key); };
+  const handleReligionChange = async (val: string) => { setReligion(val); await saveField("religion", val); };
 
   // Activity
   const [likesToday] = useState(getLikesToday);
@@ -277,6 +283,8 @@ export default function GhostDashboardPage() {
                         alt={foundBoo.matchName}
                         style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(74,222,128,0.5)" }}
                       />
+                      {/* Found Boo stamp on matched profile */}
+                      <img src={FOUND_BOO_STAMP} alt="Found Boo" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", pointerEvents: "none", opacity: 0.9 }} />
                       <img src={GHOST_LOGO} alt="ghost" style={{ position: "absolute", bottom: -4, right: -4, width: 54, height: 54, objectFit: "contain" }} />
                     </div>
                     <div style={{ flex: 1 }}>
@@ -425,19 +433,95 @@ export default function GhostDashboardPage() {
                 </>
               )}
 
-              {dateIdeaObj && (
-                <>
-                  <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "12px 0" }} />
-                  <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>Take Me On A Date</p>
+              <>
+                <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "12px 0" }} />
+                <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>Take Me On A Date</p>
+                <select
+                  value={firstDateIdea}
+                  onChange={(e) => handleDateIdeaChange(e.target.value)}
+                  style={{
+                    width: "100%", height: 44, borderRadius: 12, border: "1px solid rgba(251,191,36,0.25)",
+                    background: "rgba(251,191,36,0.07)", color: firstDateIdea ? "rgba(251,191,36,0.9)" : "rgba(255,255,255,0.35)",
+                    fontSize: 13, fontWeight: 700, padding: "0 12px", appearance: "none", WebkitAppearance: "none",
+                    cursor: "pointer", marginBottom: dateIdeaObj ? 10 : 0,
+                  }}
+                >
+                  <option value="" style={{ background: "#050508", color: "#fff" }}>— Choose a date idea —</option>
+                  {DATE_IDEAS.map((d) => (
+                    <option key={d.key} value={d.key} style={{ background: "#050508", color: "#fff" }}>
+                      {d.emoji} {d.label}
+                    </option>
+                  ))}
+                </select>
+                {dateIdeaObj && (
                   <div style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.2)", borderRadius: 12, padding: "10px 12px" }}>
-                    <span style={{ fontSize: 24, flexShrink: 0 }}>{dateIdeaObj.emoji}</span>
+                    {dateIdeaObj.image
+                      ? <img src={dateIdeaObj.image} alt={dateIdeaObj.label} style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                      : <span style={{ fontSize: 24, flexShrink: 0 }}>{dateIdeaObj.emoji}</span>
+                    }
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 800, color: "rgba(251,191,36,0.9)", margin: 0 }}>{dateIdeaObj.label}</p>
                       <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>{dateIdeaObj.desc}</p>
                     </div>
                   </div>
-                </>
+                )}
+              </>
+
+              {/* ── My Badge ── */}
+              <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "12px 0" }} />
+              <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>My Badge</p>
+              <select
+                value={profileBadge}
+                onChange={(e) => handleBadgeChange(e.target.value)}
+                style={{
+                  width: "100%", height: 44, borderRadius: 12,
+                  border: "1px solid rgba(251,191,36,0.25)",
+                  background: "rgba(251,191,36,0.07)",
+                  color: profileBadge ? "#fbbf24" : "rgba(255,255,255,0.35)",
+                  fontSize: 13, fontWeight: 700, padding: "0 12px",
+                  appearance: "none", WebkitAppearance: "none", cursor: "pointer",
+                }}
+              >
+                <option value="">— Choose a badge —</option>
+                {BADGE_CATEGORIES.map((cat) => (
+                  <optgroup key={cat.key} label={cat.label}>
+                    {PROFILE_BADGES.filter((b) => b.category === cat.key).map((b) => (
+                      <option key={b.key} value={b.key}>{b.emoji} {b.label}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              {badgeObj && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.2)", borderRadius: 10, padding: "8px 12px", marginTop: 8 }}>
+                  <span style={{ fontSize: 18 }}>{badgeObj.emoji}</span>
+                  <div>
+                    <p style={{ fontSize: 12, fontWeight: 800, color: "#fbbf24", margin: 0 }}>{badgeObj.label}</p>
+                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>Showing on your card</p>
+                  </div>
+                  <button onClick={() => handleBadgeChange("")} style={{ marginLeft: "auto", background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 16, cursor: "pointer", padding: 0 }}>✕</button>
+                </div>
               )}
+
+              {/* ── Religion ── */}
+              <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "12px 0" }} />
+              <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>Religion</p>
+              <select
+                value={religion}
+                onChange={(e) => handleReligionChange(e.target.value)}
+                style={{
+                  width: "100%", height: 44, borderRadius: 12,
+                  border: "1px solid rgba(168,85,247,0.25)",
+                  background: "rgba(168,85,247,0.07)",
+                  color: religion ? "rgba(168,85,247,0.9)" : "rgba(255,255,255,0.35)",
+                  fontSize: 13, fontWeight: 700, padding: "0 12px",
+                  appearance: "none", WebkitAppearance: "none", cursor: "pointer",
+                }}
+              >
+                <option value="" style={{ background: "#050508", color: "#fff" }}>— Select religion —</option>
+                {["Muslim 🌙","Christian ✝️","Catholic ✝️","Buddhist ☸️","Hindu 🕉️","Jewish ✡️","Spiritual 🌿","Not religious 🙂"].map((r) => (
+                  <option key={r} value={r} style={{ background: "#050508", color: "#fff" }}>{r}</option>
+                ))}
+              </select>
             </div>
           </motion.div>
 
