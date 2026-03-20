@@ -148,6 +148,24 @@ export default function GhostDashboardPage() {
   });
   const [showFaceVerify, setShowFaceVerify] = useState(false);
   const [showReferral, setShowReferral] = useState(false);
+  // Butler gift delivery — recipient opts in, stores address privately for admin use only
+  const [butlerAddress, setButlerAddress] = useState<string>(() => {
+    try { return localStorage.getItem("ghost_butler_address") ?? ""; } catch { return ""; }
+  });
+  const [butlerOptIn, setButlerOptIn] = useState<boolean>(() => {
+    try { return localStorage.getItem("ghost_butler_optin") === "1"; } catch { return false; }
+  });
+  const [butlerAddressEdit, setButlerAddressEdit] = useState(false);
+
+  const handleButlerOptIn = (val: boolean) => {
+    setButlerOptIn(val);
+    try { localStorage.setItem("ghost_butler_optin", val ? "1" : "0"); } catch {}
+  };
+  const handleButlerAddressSave = (addr: string) => {
+    setButlerAddress(addr);
+    setButlerAddressEdit(false);
+    try { localStorage.setItem("ghost_butler_address", addr); } catch {}
+  };
 
   const saveField = async (field: string, value: string | null) => {
     try {
@@ -529,6 +547,69 @@ export default function GhostDashboardPage() {
                   <option key={r} value={r} style={{ background: "#050508", color: "#fff" }}>{r}</option>
                 ))}
               </select>
+            </div>
+          </motion.div>
+
+          {/* ── Butler Gift Delivery opt-in ── */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 }}>
+            <div style={{ background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.15)", borderRadius: 18, padding: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <span style={{ fontSize: 20 }}>🎩</span>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: "#fbbf24", margin: 0 }}>Ghost Butler</p>
+                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>Allow surprise gift deliveries</p>
+                  </div>
+                </div>
+                {/* Toggle */}
+                <div
+                  onClick={() => handleButlerOptIn(!butlerOptIn)}
+                  style={{
+                    width: 48, height: 28, borderRadius: 14, cursor: "pointer",
+                    background: butlerOptIn ? "#fbbf24" : "rgba(255,255,255,0.1)",
+                    position: "relative", transition: "background 0.2s", flexShrink: 0,
+                  }}
+                >
+                  <div style={{
+                    position: "absolute", top: 4, left: butlerOptIn ? 24 : 4,
+                    width: 20, height: 20, borderRadius: "50%", background: "#fff",
+                    transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                  }} />
+                </div>
+              </div>
+
+              {butlerOptIn && (
+                <div style={{ marginTop: 10 }}>
+                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: "0 0 8px", lineHeight: 1.5 }}>
+                    Your address is stored privately and only released by Ghost admin to a verified service provider — never to the sender.
+                  </p>
+                  {!butlerAddressEdit && butlerAddress ? (
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.04)", borderRadius: 10, padding: "10px 12px" }}>
+                      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: 0 }}>📍 {butlerAddress}</p>
+                      <button onClick={() => setButlerAddressEdit(true)} style={{ background: "none", border: "none", color: "#fbbf24", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Edit</button>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <input
+                        defaultValue={butlerAddress}
+                        placeholder="Your delivery address (private)"
+                        onBlur={(e) => handleButlerAddressSave(e.target.value.trim())}
+                        style={{
+                          flex: 1, height: 40, borderRadius: 10, padding: "0 12px",
+                          background: "rgba(255,255,255,0.06)", border: "1px solid rgba(251,191,36,0.25)",
+                          color: "#fff", fontSize: 12, outline: "none",
+                        }}
+                      />
+                      <button
+                        onClick={(e) => handleButlerAddressSave((e.currentTarget.previousElementSibling as HTMLInputElement)?.value ?? "")}
+                        style={{ height: 40, padding: "0 14px", borderRadius: 10, border: "none", background: "#fbbf24", color: "#000", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
 

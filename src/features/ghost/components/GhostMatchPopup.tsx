@@ -9,11 +9,12 @@ import { getDateIdea } from "../data/dateIdeas";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 // ── Match popup ─────────────────────────────────────────────────────────────
-export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: {
+export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp, onButler }: {
   profile: GhostProfile;
   onClose: () => void;
   isSubscribed: boolean;
   onConnectWhatsApp: () => void;
+  onButler?: () => void;
 }) {
   const { t } = useLanguage();
   const firstName = profile.name.split(" ")[0];
@@ -169,7 +170,20 @@ export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConn
             </>
           )}
 
-          <button onClick={onClose} style={{ display: "block", margin: "12px auto 0", background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer" }}>
+          {onButler && (
+            <button
+              onClick={onButler}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                width: "100%", height: 42, borderRadius: 14, border: "1px solid rgba(251,191,36,0.3)",
+                background: "rgba(251,191,36,0.07)", color: "#fbbf24",
+                fontSize: 12, fontWeight: 800, cursor: "pointer", margin: "10px 0 0",
+              }}
+            >
+              🎩 Send a Surprise via Ghost Butler
+            </button>
+          )}
+          <button onClick={onClose} style={{ display: "block", margin: "10px auto 0", background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer" }}>
             Keep browsing
           </button>
         </div>

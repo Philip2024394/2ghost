@@ -38,6 +38,8 @@ import { CountryTabBar } from "../components/CountryTabBar";
 import InternationalGhostModal from "../components/CountryTabBar";
 import GhostNewGuestsPopup from "../components/GhostNewGuestsPopup";
 import GhostIcebreakerPopup from "../components/GhostIcebreakerPopup";
+import GhostButlerSheet from "../components/GhostButlerSheet";
+import { isCitySupported } from "../data/butlerProviders";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
@@ -286,6 +288,10 @@ export default function GhostModePage() {
     try { return !!localStorage.getItem("ghost_profile"); } catch { return false; }
   })();
 
+  const userCity = (() => {
+    try { const p = JSON.parse(localStorage.getItem("ghost_profile") || "{}"); return p.city ?? "Jakarta"; } catch { return "Jakarta"; }
+  })();
+
   // Women browse free — paywall only fires at the moment of first WhatsApp connection
   const isFemale = (() => {
     try { return localStorage.getItem("ghost_gender") === "Female"; } catch { return false; }
@@ -339,6 +345,8 @@ export default function GhostModePage() {
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [matchProfile, setMatchProfile] = useState<GhostProfile | null>(null);
   const [icebreakerProfile, setIcebreakerProfile] = useState<GhostProfile | null>(null);
+  const [showButler, setShowButler] = useState(false);
+  const [butlerMatchName, setButlerMatchName] = useState<string | undefined>();
   const [matchPaywallProfile, setMatchPaywallProfile] = useState<GhostProfile | null>(null);
   const [connectNowProfile, setConnectNowProfile] = useState<GhostProfile | null>(null);
   const [savedMatches, setSavedMatches] = useState<GhostMatch[]>(loadMatches);
@@ -789,6 +797,21 @@ export default function GhostModePage() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+            {/* Ghost Butler — only show for supported cities */}
+            {isCitySupported(userCity) && (
+              <button
+                onClick={() => { setButlerMatchName(undefined); setShowButler(true); }}
+                title="Ghost Butler"
+                style={{
+                  width: 34, height: 34, borderRadius: 10,
+                  background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.25)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", fontSize: 16,
+                }}
+              >
+                🎩
+              </button>
+            )}
             <button
               onClick={() => navigate("/ghost/dashboard")}
               title="Dashboard"
@@ -1227,6 +1250,7 @@ export default function GhostModePage() {
             profile={matchProfile}
             isSubscribed={isGhost}
             onClose={() => { const p = matchProfile; setMatchProfile(null); setTimeout(() => setIcebreakerProfile(p), 350); }}
+            onButler={isCitySupported(userCity) ? () => { const p = matchProfile; setMatchProfile(null); setButlerMatchName(p?.name); setTimeout(() => setShowButler(true), 350); } : undefined}
             onConnectWhatsApp={() => {
               if (isGhost) {
                 if (matchProfile) {
@@ -1248,6 +1272,16 @@ export default function GhostModePage() {
           <GhostIcebreakerPopup
             profile={icebreakerProfile}
             onClose={() => setIcebreakerProfile(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showButler && (
+          <GhostButlerSheet
+            city={userCity}
+            matchName={butlerMatchName}
+            onClose={() => setShowButler(false)}
           />
         )}
       </AnimatePresence>
