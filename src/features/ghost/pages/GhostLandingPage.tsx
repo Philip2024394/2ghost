@@ -62,7 +62,13 @@ export default function GhostLandingPage() {
 
   useEffect(() => {
     try {
-      if (localStorage.getItem("ghost_phone")) {
+      const hasPhone = !!localStorage.getItem("ghost_phone");
+      const hasProfile = !!localStorage.getItem("ghost_profile");
+      if (hasPhone && hasProfile) {
+        // Fully set up — go straight to the app, skip gateway
+        navigate("/ghost/mode", { replace: true });
+      } else if (hasPhone) {
+        // Authed but no profile yet — go through gateway
         navigate("/ghost/gateway", { replace: true });
       }
     } catch {}
@@ -266,9 +272,9 @@ export default function GhostLandingPage() {
                   <span style={{ color: "#4ade80" }}>finally.</span>
                 </h2>
                 <img
-                  src="https://ik.imagekit.io/7grri5v7d/weeeehusss.png"
+                  src="https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasdasdasd.png"
                   alt=""
-                  style={{ width: 110, height: 110, objectFit: "contain", flexShrink: 0 }}
+                  style={{ width: "auto", height: 250, objectFit: "contain", flexShrink: 0 }}
                 />
               </motion.div>
 
@@ -366,6 +372,10 @@ export default function GhostLandingPage() {
                   </p>
                 </div>
               </motion.div>
+
+              <p style={{ margin: "0 0 18px", fontSize: 13, fontWeight: 900, color: "#ef4444", textAlign: "center", letterSpacing: "0.02em" }}>
+                After this closes, it's paid membership only
+              </p>
 
               {/* CTA */}
               <motion.button

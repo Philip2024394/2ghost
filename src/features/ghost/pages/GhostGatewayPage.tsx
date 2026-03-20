@@ -34,11 +34,10 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
   return (
     <div
       style={{
-        position: "absolute", inset: 0, zIndex: 10,
+        position: "fixed", inset: 0, zIndex: 10,
         background: "rgba(0,0,0,0.6)",
         backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
         display: "flex", alignItems: "flex-end", justifyContent: "center",
-        overflowY: "auto",
       }}
     >
       <div
