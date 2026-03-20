@@ -769,9 +769,15 @@ export default function GhostModePage() {
   return (
     <div translate="no" style={{ minHeight: "100dvh", background: "#050508", display: "flex", justifyContent: "center" }}>
     <div
-      onClickCapture={!houseRulesAgreed ? (e) => { e.stopPropagation(); setShowSecurityPopup(true); } : undefined}
       style={{ width: "100%", maxWidth: 480, minHeight: "100dvh", background: "#050508", color: "#fff", display: "flex", flexDirection: "column", position: "relative" }}
     >
+      {/* Blocking overlay — sits above cards/content but below house rules modal and install banner */}
+      {!houseRulesAgreed && (
+        <div
+          onClick={() => setShowSecurityPopup(true)}
+          style={{ position: "fixed", inset: 0, zIndex: 120, cursor: "default" }}
+        />
+      )}
       <GhostParticles />
       <GhostInstallBanner />
 
