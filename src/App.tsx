@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { LanguageProvider } from "./i18n/LanguageContext";
 
 const GhostLandingPage  = lazy(() => import("./features/ghost/pages/GhostLandingPage"));
 const GhostGatewayPage  = lazy(() => import("./features/ghost/pages/GhostGatewayPage"));
@@ -15,6 +16,7 @@ const GhostDashboardPage = lazy(() => import("./features/ghost/pages/GhostDashbo
 
 export default function App() {
   return (
+    <LanguageProvider>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Suspense fallback={null}>
         <Routes>
@@ -34,5 +36,6 @@ export default function App() {
         </Routes>
       </Suspense>
     </BrowserRouter>
+    </LanguageProvider>
   );
 }
