@@ -134,7 +134,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
               }}>Ghost House</span>
             </h2>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.6 }}>
-              <span>Women join free. Men subscribe to connect.</span><br />
+              <span>Join free · No card required</span><br />
               <span>Ghost Room (media sharing) is paid for everyone.</span>
             </p>
           </div>

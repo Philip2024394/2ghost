@@ -278,7 +278,7 @@ export default function GhostAuthPage() {
                     }}
                   >
                     <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(74,222,128,0.9)" }}>
-                      <span>🎁 Women join free — pay only when you connect</span>
+                      <span>Join free · No card required</span>
                     </span>
                   </motion.div>
                 )}
