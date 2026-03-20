@@ -37,7 +37,7 @@ import FoundBooBanner from "../components/FoundBooBanner";
 import { CountryTabBar } from "../components/CountryTabBar";
 import InternationalGhostModal from "../components/CountryTabBar";
 
-const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/Ghostly%20figure%20with%20a%20glowing%20shield.png";
+const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
 
 // ── Dev Panel ────────────────────────────────────────────────────────────────

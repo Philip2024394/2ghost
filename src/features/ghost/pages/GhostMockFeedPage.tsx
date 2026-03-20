@@ -5,7 +5,7 @@ import { Lock, Settings, ArrowRight, X, SlidersHorizontal } from "lucide-react";
 import { MOCK_PROFILES, PROFILE_IMAGES, isOnlineNow, type MockProfile } from "../../../data/mockProfiles";
 import { useLanguage } from "@/i18n/LanguageContext";
 
-const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/Ghostly%20figure%20with%20a%20glowing%20shield.png";
+const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 // ── Ghost ID helper ────────────────────────────────────────────────────────────
