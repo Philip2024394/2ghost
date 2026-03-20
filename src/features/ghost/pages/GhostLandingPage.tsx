@@ -54,6 +54,10 @@ export default function GhostLandingPage() {
   const [countdown, setCountdown] = useState(() => Math.max(0, getDeadline() - Date.now()));
   const [newProfiles, setNewProfiles] = useState(getNewProfilesToday);
   const [countryName] = useState(() => getCachedIpCountry()?.countryName ?? "Indonesia");
+  const [countryFlag] = useState(() => {
+    const code = getCachedIpCountry()?.countryCode ?? "ID";
+    return [...code.toUpperCase()].map((c) => String.fromCodePoint(c.charCodeAt(0) + 127397)).join("");
+  });
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -163,7 +167,7 @@ export default function GhostLandingPage() {
               color: "rgba(255,255,255,0.45)",
               marginLeft: 10,
             }}>
-              {newProfiles.toLocaleString()} New Profiles Today · {countryName}
+              {newProfiles.toLocaleString()} New Profiles Today · {countryFlag} {countryName}
             </span>
           </div>
 
