@@ -25,7 +25,8 @@ export default function GhostGatewayPage() {
     })();
 
     if (!phone) {
-      navigate("/ghost/setup", { replace: true });
+      // No phone = brand new user — go to mode, welcome popup will greet them
+      navigate("/ghost/mode", { replace: true });
       return;
     }
 
@@ -37,10 +38,9 @@ export default function GhostGatewayPage() {
             localStorage.setItem("ghost_profile", JSON.stringify(profile));
             if (profile.interest) localStorage.setItem("ghost_interest", profile.interest as string);
           } catch {}
-          navigate("/ghost/mode", { replace: true });
-        } else {
-          navigate("/ghost/setup", { replace: true });
         }
+        // Whether profile found or not — go to mode (welcome popup handles new users)
+        navigate("/ghost/mode", { replace: true });
       })
       .catch(() => {
         // Network/Supabase error — don't block returning users at setup

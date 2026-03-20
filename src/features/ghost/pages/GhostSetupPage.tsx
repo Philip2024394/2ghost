@@ -520,62 +520,49 @@ export default function GhostSetupPage() {
             My Badge
             <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}> — shows on your card (optional)</span>
           </label>
-          {BADGE_CATEGORIES.map((cat) => {
-            const badges = PROFILE_BADGES.filter((b) => b.category === cat.key);
-            return (
-              <div key={cat.key} style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 6px" }}>
-                  {cat.label}
-                </p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {badges.map((b) => {
-                    const sel = profileBadge === b.key;
-                    return (
-                      <button
-                        key={b.key}
-                        onClick={() => setProfileBadge(sel ? "" : b.key)}
-                        style={{
-                          height: 32, borderRadius: 50, padding: "0 12px",
-                          background: sel ? "rgba(251,191,36,0.15)" : "rgba(255,255,255,0.04)",
-                          border: sel ? "1px solid rgba(251,191,36,0.5)" : "1px solid rgba(255,255,255,0.08)",
-                          color: sel ? "#fbbf24" : "rgba(255,255,255,0.55)",
-                          fontSize: 12, fontWeight: 700, cursor: "pointer",
-                          display: "flex", alignItems: "center", gap: 5,
-                        }}
-                      >
-                        <span>{b.emoji}</span>{b.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+          <select
+            value={profileBadge}
+            onChange={(e) => setProfileBadge(e.target.value)}
+            style={{
+              width: "100%", height: 44, borderRadius: 12,
+              border: "1px solid rgba(251,191,36,0.25)",
+              background: "rgba(251,191,36,0.07)",
+              color: profileBadge ? "#fbbf24" : "rgba(255,255,255,0.35)",
+              fontSize: 13, fontWeight: 700, padding: "0 12px",
+              appearance: "none", WebkitAppearance: "none", cursor: "pointer",
+            }}
+          >
+            <option value="">— Choose a badge —</option>
+            {BADGE_CATEGORIES.map((cat) => (
+              <optgroup key={cat.key} label={cat.label}>
+                {PROFILE_BADGES.filter((b) => b.category === cat.key).map((b) => (
+                  <option key={b.key} value={b.key}>{b.emoji} {b.label}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
         </div>
 
         {/* Religion */}
         <div style={{ marginBottom: 32 }}>
           <label style={label}>Religion</label>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {RELIGIONS.map((r) => {
-              const sel = religion === r;
-              return (
-                <button
-                  key={r}
-                  onClick={() => setReligion(sel ? "" : r)}
-                  style={{
-                    height: 34, borderRadius: 50, padding: "0 12px",
-                    background: sel ? "rgba(168,85,247,0.1)" : "rgba(255,255,255,0.04)",
-                    border: sel ? "1px solid rgba(168,85,247,0.4)" : "1px solid rgba(255,255,255,0.08)",
-                    color: sel ? "rgba(168,85,247,0.9)" : "rgba(255,255,255,0.6)",
-                    fontSize: 12, fontWeight: 600, cursor: "pointer",
-                  }}
-                >
-                  {r}
-                </button>
-              );
-            })}
-          </div>
+          <select
+            value={religion}
+            onChange={(e) => setReligion(e.target.value)}
+            style={{
+              width: "100%", height: 44, borderRadius: 12,
+              border: "1px solid rgba(168,85,247,0.25)",
+              background: "rgba(168,85,247,0.07)",
+              color: religion ? "rgba(168,85,247,0.9)" : "rgba(255,255,255,0.35)",
+              fontSize: 13, fontWeight: 700, padding: "0 12px",
+              appearance: "none", WebkitAppearance: "none", cursor: "pointer",
+            }}
+          >
+            <option value="">— Select religion —</option>
+            {RELIGIONS.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
         </div>
 
         {/* Divider */}

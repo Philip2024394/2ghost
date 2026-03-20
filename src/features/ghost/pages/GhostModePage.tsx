@@ -571,11 +571,7 @@ export default function GhostModePage() {
     requestLocation();
   }, [requestLocation]);
 
-  useEffect(() => {
-    if (!hasGhostProfile) {
-      navigate("/ghost/setup");
-    }
-  }, [hasGhostProfile, navigate]);
+  // Profile is optional — users can browse and set up later via the dashboard
 
   // Simulate an inbound international like after 18s (demo — fires once per session)
   // Skipped entirely if the account was created less than 5 minutes ago

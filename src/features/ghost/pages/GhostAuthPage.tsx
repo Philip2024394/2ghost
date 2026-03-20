@@ -114,9 +114,7 @@ export default function GhostAuthPage() {
         localStorage.setItem("ghost_phone", countryCode.code + cleanPhone);
         localStorage.removeItem("ghost_house_welcomed");
       } catch {}
-      // If profile already exists locally, skip the gateway check entirely
-      const hasProfile = (() => { try { return !!localStorage.getItem("ghost_profile"); } catch { return false; } })();
-      navigate(hasProfile ? "/ghost/mode" : "/ghost/gateway", { replace: true });
+      navigate("/ghost/gateway", { replace: true });
     }, 1000);
   };
 
