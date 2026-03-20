@@ -413,10 +413,10 @@ export default function GhostSetupPage() {
           </div>
         </div>
 
-        {/* Dream First Date */}
+        {/* Take Me On A Date */}
         <div style={{ marginBottom: 20 }}>
           <label style={label}>
-            Dream First Date
+            Take Me On A Date
             <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}> — pick one</span>
           </label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>

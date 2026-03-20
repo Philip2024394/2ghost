@@ -428,7 +428,7 @@ export default function GhostDashboardPage() {
               {dateIdeaObj && (
                 <>
                   <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "12px 0" }} />
-                  <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>Dream First Date</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>Take Me On A Date</p>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.2)", borderRadius: 12, padding: "10px 12px" }}>
                     <span style={{ fontSize: 24, flexShrink: 0 }}>{dateIdeaObj.emoji}</span>
                     <div>

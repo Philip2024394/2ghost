@@ -295,7 +295,7 @@ export default function GhostCard({
                 <span style={{ fontSize: 20, flexShrink: 0 }}>{idea.emoji}</span>
                 <div>
                   <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(251,191,36,0.85)", margin: "0 0 1px", letterSpacing: "0.04em" }}>
-                    DREAM FIRST DATE
+                    TAKE ME ON A DATE
                   </p>
                   <p style={{ fontSize: 12, fontWeight: 700, color: "#fff", margin: 0 }}>{idea.label}</p>
                   <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: 0 }}>{idea.desc}</p>
