@@ -247,20 +247,26 @@ export default function GhostLandingPage() {
               </div>
 
               {/* Tagline */}
-              <motion.h2
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15, duration: 0.4 }}
-                style={{
-                  fontSize: 22, fontWeight: 900, color: "#fff",
-                  lineHeight: 1.2, letterSpacing: "-0.02em",
-                  margin: "0 0 18px",
-                }}
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 0 18px", gap: 12 }}
               >
-                Dating without<br />
-                the noise —<br />
-                <span style={{ color: "#4ade80" }}>finally.</span>
-              </motion.h2>
+                <h2 style={{
+                  fontSize: 22, fontWeight: 900, color: "#fff",
+                  lineHeight: 1.2, letterSpacing: "-0.02em", margin: 0, flex: 1,
+                }}>
+                  Dating without<br />
+                  the noise —<br />
+                  <span style={{ color: "#4ade80" }}>finally.</span>
+                </h2>
+                <img
+                  src="https://ik.imagekit.io/7grri5v7d/weeeehusss.png"
+                  alt=""
+                  style={{ width: 110, height: 110, objectFit: "contain", flexShrink: 0 }}
+                />
+              </motion.div>
 
               {/* Manifesto body */}
               <motion.p
