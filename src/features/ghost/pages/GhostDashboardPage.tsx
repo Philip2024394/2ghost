@@ -74,7 +74,7 @@ const FEATURES = [
   },
   {
     icon: "🚪",
-    title: "Ghost Room",
+    title: "Ghost Vault",
     desc: "Your private vault. Every match lives here with a 48-hour countdown — after that they fade unless you act. Upload images and videos securely. Share your room code only with people you trust.",
     badge: "ACTIVE",
   },
@@ -708,7 +708,7 @@ export default function GhostDashboardPage() {
               <span style={{ fontSize: 26 }}>👻</span>
               <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.6)", textAlign: "center" }}>Invite Friends</span>
               <span style={{ fontSize: 9, color: "rgba(74,222,128,0.7)", textAlign: "center", lineHeight: 1.4 }}>
-                Earn Ghost Room & Black rewards
+                Earn Ghost Vault & Black rewards
               </span>
             </motion.button>
           </motion.div>

@@ -19,6 +19,15 @@ const GhostRoomPage     = lazyWithRetry(() => import("./features/ghost/pages/Gho
 const GhostMapPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostMapPage"));
 const GhostDashboardPage = lazyWithRetry(() => import("./features/ghost/pages/GhostDashboardPage"));
 
+// Admin
+const AdminLoginPage    = lazyWithRetry(() => import("./features/admin/AdminLoginPage"));
+const AdminLayout       = lazyWithRetry(() => import("./features/admin/AdminLayout"));
+const AdminOverviewPage = lazyWithRetry(() => import("./features/admin/pages/AdminOverviewPage"));
+const AdminProfilesPage = lazyWithRetry(() => import("./features/admin/pages/AdminProfilesPage"));
+const AdminUsersPage    = lazyWithRetry(() => import("./features/admin/pages/AdminUsersPage"));
+const AdminPaymentsPage = lazyWithRetry(() => import("./features/admin/pages/AdminPaymentsPage"));
+const AdminServicesPage = lazyWithRetry(() => import("./features/admin/pages/AdminServicesPage"));
+
 export default function App() {
   return (
     <LanguageProvider>
@@ -37,7 +46,19 @@ export default function App() {
           <Route path="/ghost/room"  element={<GhostRoomPage />} />
           <Route path="/ghost/map"   element={<GhostMapPage />} />
           <Route path="/ghost/dashboard" element={<GhostDashboardPage />} />
-          <Route path="*"            element={<Navigate to="/ghost" replace />} />
+
+          {/* Admin — separate login page, then layout-wrapped dashboard */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="/admin/overview" replace />} />
+            <Route path="overview"  element={<AdminOverviewPage />} />
+            <Route path="profiles"  element={<AdminProfilesPage />} />
+            <Route path="users"     element={<AdminUsersPage />} />
+            <Route path="payments"  element={<AdminPaymentsPage />} />
+            <Route path="services"  element={<AdminServicesPage />} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/ghost" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

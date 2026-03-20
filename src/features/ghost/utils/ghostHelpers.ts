@@ -34,14 +34,14 @@ export function activeHoursAgo(id: string): number {
   return Math.abs(h) % 29; // ~83% within 24h
 }
 
-// Ghost House tier — deterministic from profile id
-// ~5% Ghost Black (elite), ~12% Ghost House (member)
-export function profileHouseTier(id: string): "black" | "house" | null {
+// Ghost Rooms tier — deterministic from profile id
+// ~5% Gold Room (elite), ~12% Ghost Suite (member)
+export function profileHouseTier(id: string): "gold" | "suite" | null {
   let h = 0;
   for (let i = 0; i < id.length; i++) { h = Math.imul(53, h) + id.charCodeAt(i) | 0; }
   const n = Math.abs(h) % 100;
-  if (n < 5)  return "black";
-  if (n < 17) return "house";
+  if (n < 5)  return "gold";
+  if (n < 17) return "suite";
   return null;
 }
 

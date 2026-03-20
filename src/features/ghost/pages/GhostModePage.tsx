@@ -56,7 +56,7 @@ const HOW_IT_WORKS = [
   { icon: "❤️", title: "Like for Free", desc: "Browse every profile and like as many as you want — completely free, no subscription needed." },
   { icon: "✨", title: "Ghost Match", desc: "When two ghosts like each other it becomes a mutual match. You'll get notified instantly." },
   { icon: "📱", title: "Connect on Match", desc: "After a mutual match, pay once to unlock their real contact — WhatsApp, Telegram, or any app they use." },
-  { icon: "🚪", title: "Ghost Room", desc: "Your private vault. All your matches live here with a 48-hour countdown. Don't let them fade." },
+  { icon: "🚪", title: "Ghost Vault", desc: "Your private vault. All your matches live here with a 48-hour countdown. Don't let them fade." },
   { icon: "🌍", title: "Global House", desc: "Members from Indonesia 🇮🇩 Philippines 🇵🇭 Thailand 🇹🇭 Singapore 🇸🇬 Malaysia 🇲🇾 Vietnam 🇻🇳 and beyond." },
   { icon: "👁️", title: "You're Invisible", desc: "Others only see your Ghost ID, photo, age, and city — nothing else — until you both connect." },
 ];
@@ -73,7 +73,7 @@ function DevPanel({
 }: {
   isTonightMode: boolean; toggleTonight: () => void;
   isFlashActive: boolean; enterFlash: () => void; exitFlash: () => void;
-  houseTier: "black" | "house" | null; setHouseTier: (t: "black" | "house" | null) => void;
+  houseTier: "gold" | "suite" | null; setHouseTier: (t: "gold" | "suite" | null) => void;
   activate: (p: "ghost" | "bundle") => void; deactivate: () => void;
   onTriggerFlashMatch: () => void; onTriggerMatch: () => void; onTriggerInbound: () => void;
 }) {
@@ -81,7 +81,7 @@ function DevPanel({
 
   const DEMO_PROFILE = {
     photo: "https://i.pravatar.cc/400?img=33",
-    name: "Dev Admin", age: 28, city: "Jakarta", country: "Indonesia",
+    name: "Dev Admin", age: 28, city: "Yogyakarta", country: "Indonesia",
     countryFlag: "🇮🇩", countryCode: "ID", gender: "Male",
     vibe: { key: "tonight", icon: "🌙", label: "Tonight" },
     outcome: { key: "casual", icon: "🤝", label: "Casual Connection", tag: "Casual" },
@@ -109,7 +109,7 @@ function DevPanel({
     activate(plan);
   };
 
-  const setHouseAndPersist = (tier: "black" | "house" | null) => {
+  const setHouseAndPersist = (tier: "gold" | "suite" | null) => {
     try {
       if (tier) localStorage.setItem("ghost_house_tier", tier);
       else localStorage.removeItem("ghost_house_tier");
@@ -117,10 +117,38 @@ function DevPanel({
     setHouseTier(tier);
   };
 
+  const unlockAll = () => {
+    try {
+      // Full ghost plan
+      const until = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      localStorage.setItem("ghost_mode_until", String(until));
+      localStorage.setItem("ghost_mode_plan", "bundle");
+      localStorage.setItem("ghost_phone", "+628123456789");
+      // Full profile — Yogyakarta city so real Butler providers show, face verified
+      const fullProfile = { ...DEMO_PROFILE, gender: "Male", id: "dev00000-0000-0000-0000-000000000001", faceVerified: true, city: "Yogyakarta", country: "Indonesia", countryFlag: "🇮🇩" };
+      localStorage.setItem("ghost_profile", JSON.stringify(fullProfile));
+      localStorage.setItem("ghost_gender", "Male");
+      // Face verified
+      localStorage.setItem("ghost_face_verified", "1");
+      // Gold Room tier
+      localStorage.setItem("ghost_house_tier", "gold");
+      // Referral count — tier 2 (3 friends)
+      localStorage.setItem("ghost_referral_count", "3");
+      // Block package
+      localStorage.setItem("ghost_block_package", "10");
+      // Butler — unlock Yogyakarta flowers as demo
+      localStorage.setItem("ghost_butler_yogyakarta_flowers", "1");
+    } catch {}
+    activate("bundle");
+    setHouseAndPersist("gold");
+    window.location.reload();
+  };
+
   const resetAll = () => {
     const keys = ["ghost_mode_until","ghost_mode_plan","ghost_profile","ghost_gender","ghost_phone",
       "ghost_passed_ids","ghost_matches","ghost_tonight_until","ghost_flash_until",
-      "ghost_boost_until","ghost_house_tier","ghost_blocked_numbers","ghost_block_package","ghost_block_until"];
+      "ghost_boost_until","ghost_house_tier","ghost_blocked_numbers","ghost_block_package","ghost_block_until",
+      "ghost_face_verified","ghost_referral_count","ghost_referral_reward"];
     keys.forEach((k) => { try { localStorage.removeItem(k); } catch {} });
     deactivate();
     window.location.reload();
@@ -227,12 +255,12 @@ function DevPanel({
                 </div>
               </div>
 
-              {/* Ghost House */}
+              {/* Ghost Vaults */}
               <div>
-                <span style={label}>Ghost House Badge</span>
+                <span style={label}>Ghost Vaults Badge</span>
                 <div style={{ display: "flex", gap: 5 }}>
-                  <button style={btn(houseTier === "house")} onClick={() => setHouseAndPersist("house")}>🏠 House</button>
-                  <button style={btn(houseTier === "black")} onClick={() => setHouseAndPersist("black")}>🖤 Black</button>
+                  <button style={btn(houseTier === "suite")} onClick={() => setHouseAndPersist("suite")}>🏨 Suite</button>
+                  <button style={btn(houseTier === "gold")} onClick={() => setHouseAndPersist("gold")}>🔑 Gold</button>
                   <button style={btn(!houseTier)} onClick={() => setHouseAndPersist(null)}>None</button>
                 </div>
               </div>
@@ -245,6 +273,17 @@ function DevPanel({
                   <button style={actionBtn} onClick={onTriggerMatch}>💚 Match</button>
                   <button style={actionBtn} onClick={onTriggerInbound}>👋 Inbound Like</button>
                 </div>
+              </div>
+
+              {/* Unlock All */}
+              <div>
+                <span style={label}>Admin Shortcut</span>
+                <button
+                  style={{ ...btnBase, width: "100%", background: "rgba(74,222,128,0.15)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.4)", fontWeight: 900, fontSize: 12 }}
+                  onClick={unlockAll}
+                >
+                  🔓 Unlock All Features
+                </button>
               </div>
 
               <p style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", margin: 0, textAlign: "center" }}>
@@ -360,6 +399,16 @@ export default function GhostModePage() {
   const [referralCopied, setReferralCopied] = useState(false);
   const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
 
+  // Invite popup — fires after 7 minutes of browsing
+  const [showInvitePopup, setShowInvitePopup] = useState(false);
+  const [invitePopupDismissed, setInvitePopupDismissed] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (!invitePopupDismissed) setShowInvitePopup(true);
+    }, 7 * 60 * 1000);
+    return () => clearTimeout(t);
+  }, [invitePopupDismissed]);
+
   // Tonight Mode — auto-expires at midnight
   const [tonightUntil, setTonightUntil] = useState<number>(() => {
     try { const v = Number(localStorage.getItem("ghost_tonight_until") || 0); return v > Date.now() ? v : 0; } catch { return 0; }
@@ -445,6 +494,11 @@ export default function GhostModePage() {
   const isFlashActive = flashUntil > Date.now();
   const [flashTick, setFlashTick] = useState(0);
   const [flashMatchProfile, setFlashMatchProfile] = useState<GhostProfile | null>(null);
+  const [showFlashPaywall, setShowFlashPaywall] = useState(false);
+  const [flashPaywallPaying, setFlashPaywallPaying] = useState(false);
+  const [flashConnectedIds, setFlashConnectedIds] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("ghost_flash_connected") || "[]")); } catch { return new Set(); }
+  });
   const [flashContactsUsed, setFlashContactsUsed] = useState<number>(() => {
     try {
       const until = Number(localStorage.getItem("ghost_flash_until") || 0);
@@ -503,13 +557,13 @@ export default function GhostModePage() {
     setFlashContactsUsed(0);
   };
 
-  // Ghost House membership
-  const [houseTier, setHouseTier] = useState<"black" | "house" | null>(() => {
-    try { return (localStorage.getItem("ghost_house_tier") as "black" | "house" | null) ?? null; } catch { return null; }
+  // Ghost Vaults membership
+  const [houseTier, setHouseTier] = useState<"gold" | "suite" | null>(() => {
+    try { return (localStorage.getItem("ghost_house_tier") as "gold" | "suite" | null) ?? null; } catch { return null; }
   });
   const [showHouseModal, setShowHouseModal] = useState(false);
-  const handleHousePurchase = (tier: "black" | "house") => {
-    const next = tier === "black" || houseTier !== "black" ? tier : houseTier;
+  const handleHousePurchase = (tier: "gold" | "suite") => {
+    const next = tier === "gold" || houseTier !== "gold" ? tier : houseTier;
     try { localStorage.setItem("ghost_house_tier", next); } catch {}
     setHouseTier(next);
     setShowHouseModal(false);
@@ -570,12 +624,24 @@ export default function GhostModePage() {
     setLocationLoading(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setUserLat(pos.coords.latitude);
-        setUserLon(pos.coords.longitude);
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        setUserLat(lat);
+        setUserLon(lon);
         setLocationLoading(false);
+        // Persist real coordinates to ghost_profile so other users see correct distance
+        try {
+          const raw = localStorage.getItem("ghost_profile");
+          if (raw) {
+            const profile = JSON.parse(raw);
+            profile.latitude = lat;
+            profile.longitude = lon;
+            localStorage.setItem("ghost_profile", JSON.stringify(profile));
+          }
+        } catch {}
       },
       () => setLocationLoading(false),
-      { timeout: 8000 }
+      { timeout: 8000, enableHighAccuracy: false }
     );
   }, []);
 
@@ -842,13 +908,17 @@ export default function GhostModePage() {
             <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>Room</span>
           </button>
 
-          {/* House */}
+          {/* Ghost Vaults */}
           <button onClick={() => setShowHouseModal(true)}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
           >
-            <span style={{ fontSize: 24, lineHeight: 1 }}>{houseTier === "black" ? "🖤" : "🏠"}</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: houseTier === "black" ? "rgba(212,175,55,0.9)" : houseTier === "house" ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)" }}>
-              {houseTier === "black" ? "Black" : "House"}
+            <span style={{ fontSize: 24, lineHeight: 1 }}>
+              {houseTier === "gold"
+                ? <img src="https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png" alt="Gold Room" style={{ width: 24, height: 24, objectFit: "contain" }} />
+                : "🏨"}
+            </span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: houseTier === "gold" ? "rgba(212,175,55,0.9)" : houseTier === "suite" ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)" }}>
+              {houseTier === "gold" ? "Gold" : "Rooms"}
             </span>
           </button>
 
@@ -967,6 +1037,21 @@ export default function GhostModePage() {
                   ✕
                 </button>
               </div>
+              {/* ── Stats row inside filter sheet ── */}
+              <div style={{ display: "flex", gap: 8, padding: "0 18px 14px" }}>
+                {[
+                  { label: "Liked", value: likedIds.size },
+                  { label: "Active now", value: profiles.filter((p) => isOnline(p.last_seen_at)).length },
+                  { label: "Showing", value: profiles.length },
+                  ...(ipCountry ? [{ label: ipCountry.countryName, value: "📍" }] : []),
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ flex: 1, background: "rgba(74,222,128,0.05)", borderRadius: 10, border: "1px solid rgba(74,222,128,0.1)", padding: "8px 0", textAlign: "center" }}>
+                    <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0 }}>{value}</p>
+                    <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: 0 }}>{label}</p>
+                  </div>
+                ))}
+              </div>
+
               <div style={{ padding: "0 18px" }}>
                 <FilterBar
                   gender={gender} setGender={setGender}
@@ -1021,27 +1106,13 @@ export default function GhostModePage() {
         )}
       </AnimatePresence>
 
-      {/* Stats */}
-      <div style={{ display: "flex", gap: 8, padding: "10px 14px 0" }}>
-        {[
-          { label: "Liked", value: likedIds.size },
-          { label: "Active now", value: profiles.filter((p) => isOnline(p.last_seen_at)).length },
-          { label: "Showing", value: profiles.length },
-        ].map(({ label, value }) => (
-          <div key={label} style={{ flex: 1, background: "rgba(255,255,255,0.04)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)", padding: "8px 0", textAlign: "center" }}>
-            <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>{value}</p>
-            <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: 0 }}>{label}</p>
-          </div>
-        ))}
-      </div>
-
       {/* ── Ghost Flash ── */}
       <GhostFlashSection
         isActive={isFlashActive}
         flashUntil={flashUntil}
         flashTick={flashTick}
-        flashProfiles={profiles.filter((p) => isFlashProfile(p.id)).slice(0, 10)}
-        onEnter={enterFlash}
+        flashProfiles={profiles.filter((p) => isFlashProfile(p.id) && !flashConnectedIds.has(p.id)).slice(0, 10)}
+        onEnter={() => setShowFlashPaywall(true)}
         onExit={exitFlash}
         onSelectProfile={(p) => setSelectedProfile(p)}
         contactsUsed={flashContactsUsed}
@@ -1082,19 +1153,6 @@ export default function GhostModePage() {
         );
       })()}
 
-      {/* ── Active today banner + IP location indicator ── */}
-      <div style={{ margin: "10px 14px 0", background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.1)", borderRadius: 10, padding: "6px 12px", display: "flex", alignItems: "center", gap: 6 }}>
-        <Clock size={11} color="rgba(74,222,128,0.7)" />
-        <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600, flex: 1 }}>
-          <span>{t("feed.activeToday")} — <strong>{profiles.length}</strong></span>
-        </p>
-        {ipCountry && (
-          <span style={{ fontSize: 10, color: "rgba(74,222,128,0.5)", fontWeight: 600, flexShrink: 0 }}>
-            📍 {ipCountry.countryName}
-          </span>
-        )}
-      </div>
-
       {/* ── Active matches row (48h expiry) ── */}
       {savedMatches.filter((m) => Date.now() - m.matchedAt < MATCH_EXPIRY_MS).length > 0 && (
         <div style={{ margin: "10px 14px 0" }}>
@@ -1134,48 +1192,94 @@ export default function GhostModePage() {
         </div>
       )}
 
-      {/* ── Referral banner (women only) ── */}
-      {isFemale && (
-        <div style={{
-          margin: "10px 14px 0",
-          background: "linear-gradient(135deg, rgba(236,72,153,0.08), rgba(168,85,247,0.08))",
-          border: "1px solid rgba(236,72,153,0.2)",
-          borderRadius: 12, padding: "10px 14px",
-          display: "flex", alignItems: "center", gap: 10,
-        }}>
-          <span style={{ fontSize: 20, flexShrink: 0 }}>🎁</span>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 11, fontWeight: 800, color: "rgba(244,114,182,0.9)", margin: "0 0 2px" }}>
-              <span>Invite a friend · she gets free access</span>
-            </p>
-            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: 0 }}>
-              <span>You get 2 weeks free when she joins</span>
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              const ghostId = (() => { try { const p = JSON.parse(localStorage.getItem("ghost_profile") || "{}"); return toGhostId(p.id || "anon"); } catch { return toGhostId("anon"); } })();
-              const url = `${window.location.origin}/ghost/auth?ref=${ghostId}`;
-              if (navigator.share) {
-                navigator.share({ title: "Join Ghost House", text: "I'm on Ghost — join me, it's free for women 👻", url });
-              } else {
-                navigator.clipboard.writeText(url).then(() => {
-                  setReferralCopied(true);
-                  setTimeout(() => setReferralCopied(false), 2500);
-                });
-              }
-            }}
+      {/* ── Invite popup (shown after 7 min for all users) ── */}
+      <AnimatePresence>
+        {showInvitePopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => { setShowInvitePopup(false); setInvitePopupDismissed(true); }}
             style={{
-              flexShrink: 0, height: 32, paddingInline: 12, borderRadius: 9,
-              background: "linear-gradient(135deg, #be185d, #ec4899)",
-              border: "none", color: "#fff", fontSize: 11, fontWeight: 800,
-              cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
+              position: "fixed", inset: 0, zIndex: 600,
+              background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: "0 24px",
             }}
           >
-            {referralCopied ? <><Check size={11} /><span>Copied!</span></> : <><Gift size={11} /><span>Invite</span></>}
-          </button>
-        </div>
-      )}
+            <motion.div
+              initial={{ scale: 0.88, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.88, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "100%", maxWidth: 320,
+                background: "linear-gradient(160deg, rgba(5,8,5,0.98) 0%, rgba(8,12,8,0.98) 100%)",
+                border: "1px solid rgba(74,222,128,0.2)",
+                borderRadius: 20, padding: "22px 20px 20px",
+                position: "relative", overflow: "hidden",
+              }}
+            >
+              {/* Top accent */}
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)" }} />
+
+              {/* Close */}
+              <button
+                onClick={() => { setShowInvitePopup(false); setInvitePopupDismissed(true); }}
+                style={{ position: "absolute", top: 10, right: 12, background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 18, cursor: "pointer", lineHeight: 1 }}
+              >×</button>
+
+              {/* Icon */}
+              <div style={{ textAlign: "center", marginBottom: 12 }}>
+                <img src="https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png" alt="key" style={{ width: 52, height: 52, objectFit: "contain" }} />
+              </div>
+
+              {/* Header */}
+              <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", textAlign: "center", margin: "0 0 6px", lineHeight: 1.3 }}>
+                Rooms Remain Available<br />
+                <span style={{ color: "#4ade80" }}>Invite a Guest for Free Access</span>
+              </p>
+
+              {/* Subtext */}
+              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", textAlign: "center", margin: "0 0 18px", lineHeight: 1.5 }}>
+                Guest's Must Follow Our Privacy Hotel Rules
+              </p>
+
+              {/* Invite button */}
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => {
+                  const ghostId = (() => { try { const p = JSON.parse(localStorage.getItem("ghost_profile") || "{}"); return toGhostId(p.id || "anon"); } catch { return toGhostId("anon"); } })();
+                  const url = `${window.location.origin}/ghost/auth?ref=${ghostId}`;
+                  if (navigator.share) {
+                    navigator.share({ title: "Join Ghost Rooms", text: "I'm on Ghost — come join me 👻", url });
+                  } else {
+                    navigator.clipboard.writeText(url).then(() => {
+                      setReferralCopied(true);
+                      setTimeout(() => setReferralCopied(false), 2500);
+                    });
+                  }
+                }}
+                style={{
+                  width: "100%", height: 44, borderRadius: 12, border: "none",
+                  background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                  color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                  boxShadow: "0 4px 16px rgba(74,222,128,0.3)",
+                }}
+              >
+                <Gift size={14} />
+                {referralCopied ? "Link Copied!" : "Send Invite"}
+              </motion.button>
+
+              <p style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", textAlign: "center", margin: "10px 0 0" }}>
+                Tap outside to dismiss
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Found Boo banner ── */}
       <AnimatePresence>
@@ -1239,7 +1343,7 @@ export default function GhostModePage() {
               canReveal={isGhost || isFemale}
               isTonight={isProfileTonight(profile.id)}
               houseTier={profileHouseTier(profile.id)}
-              isFlagged={!!flaggedProfiles[profile.id]}
+              flaggedReason={flaggedProfiles[profile.id]?.reason}
               onFlagOpen={() => { const gId = toGhostId(profile.id); setFlagSheet({ profileId: profile.id, ghostId: gId }); }}
               isFoundBoo={!!(isProfilePaused && foundBoo?.matchProfileId === profile.id)}
             />
@@ -1465,6 +1569,12 @@ export default function GhostModePage() {
           <GhostFlashMatchPopup
             profile={flashMatchProfile}
             onClose={() => setFlashMatchProfile(null)}
+            onConnect={(p) => {
+              const next = new Set(flashConnectedIds).add(p.id);
+              setFlashConnectedIds(next);
+              try { localStorage.setItem("ghost_flash_connected", JSON.stringify([...next])); } catch {}
+              setFlashMatchProfile(null);
+            }}
           />
         )}
       </AnimatePresence>
@@ -1632,10 +1742,10 @@ export default function GhostModePage() {
                 }}>
                   <div style={{ fontSize: 36, marginBottom: 10 }}>🚪</div>
                   <p style={{ fontSize: 14, fontWeight: 800, color: "rgba(74,222,128,0.9)", margin: "0 0 6px" }}>
-                    Ghost Room Required
+                    Ghost Vault Required
                   </p>
                   <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 18px", lineHeight: 1.5 }}>
-                    You need to create your Ghost Room before sharing {settingsGateFeature.toLowerCase()}. Your room is the private link ghosts use to access your content.
+                    You need to create your Ghost Vault before sharing {settingsGateFeature.toLowerCase()}. Your room is the private link ghosts use to access your content.
                   </p>
                   <button
                     onClick={() => { setShowSettingsSheet(false); navigate("/ghost/room"); }}
@@ -1645,7 +1755,7 @@ export default function GhostModePage() {
                       color: "rgba(74,222,128,0.9)", fontSize: 13, fontWeight: 800, cursor: "pointer",
                     }}
                   >
-                    Set Up Ghost Room
+                    Set Up Ghost Vault
                   </button>
                   <button
                     onClick={() => setSettingsGateFeature(null)}
@@ -1991,6 +2101,78 @@ export default function GhostModePage() {
             }}
             onClose={() => setShowIntlModal(false)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* ── Ghost Flash paywall ── */}
+      <AnimatePresence>
+        {showFlashPaywall && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => { if (!flashPaywallPaying) setShowFlashPaywall(false); }}
+            style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+          >
+            <motion.div
+              initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ width: "100%", maxWidth: 480, background: "rgb(5,5,10)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none", padding: "24px 24px max(28px, env(safe-area-inset-bottom, 28px))" }}
+            >
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)", margin: "0 auto 20px" }} />
+              {/* Header */}
+              <div style={{ textAlign: "center", marginBottom: 22 }}>
+                <motion.div animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 1, repeat: Infinity }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.35)", borderRadius: 50, padding: "6px 16px", marginBottom: 14 }}>
+                  <span style={{ fontSize: 16 }}>⚡</span>
+                  <span style={{ fontSize: 13, fontWeight: 900, color: "rgba(74,222,128,0.95)", letterSpacing: "0.1em" }}>GHOST FLASH</span>
+                </motion.div>
+                <p style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 6px" }}>Go Live for 60 Minutes</p>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.6 }}>
+                  Enter the live Flash pool and connect with active Ghosts right now. Up to 3 instant WhatsApp connections.
+                </p>
+              </div>
+              {/* Features */}
+              <div style={{ background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.12)", borderRadius: 14, padding: "14px 16px", marginBottom: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  ["⚡", "60-minute live session in the Flash pool"],
+                  ["💚", "Up to 3 instant WhatsApp connections"],
+                  ["👻", "Only live, active Ghosts shown"],
+                  ["🔄", "Rejoin anytime — each session is $2.99"],
+                ].map(([icon, text]) => (
+                  <div key={text} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 14, flexShrink: 0 }}>{icon}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{text}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Pay button */}
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                disabled={flashPaywallPaying}
+                onClick={() => {
+                  setFlashPaywallPaying(true);
+                  setTimeout(() => {
+                    enterFlash();
+                    setFlashPaywallPaying(false);
+                    setShowFlashPaywall(false);
+                  }, 1600);
+                }}
+                style={{
+                  width: "100%", height: 54, borderRadius: 50, border: "none",
+                  background: flashPaywallPaying ? "rgba(255,255,255,0.07)" : "linear-gradient(135deg, #4ade80, #16a34a)",
+                  color: flashPaywallPaying ? "rgba(255,255,255,0.3)" : "#000",
+                  fontSize: 16, fontWeight: 900, cursor: flashPaywallPaying ? "default" : "pointer",
+                  marginBottom: 10,
+                  boxShadow: flashPaywallPaying ? "none" : "0 4px 24px rgba(74,222,128,0.3)",
+                }}
+              >
+                {flashPaywallPaying ? "Processing…" : "⚡ Join Flash — $2.99"}
+              </motion.button>
+              <button onClick={() => setShowFlashPaywall(false)} style={{ width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 13, cursor: "pointer", padding: "6px 0" }}>
+                Maybe later
+              </button>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 

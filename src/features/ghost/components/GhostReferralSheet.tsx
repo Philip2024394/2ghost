@@ -30,7 +30,7 @@ function getReferralReward(): string | null {
 type Props = { onClose: () => void };
 
 const REWARDS = [
-  { target: 1,  reward: "1 free Ghost Room day",          emoji: "🏠" },
+  { target: 1,  reward: "1 free Ghost Vault day",          emoji: "🏠" },
   { target: 3,  reward: "Ghost Verified Host badge",       emoji: "⭐" },
   { target: 5,  reward: "1 week Ghost Black membership",  emoji: "👻" },
   { target: 10, reward: "1 month Ghost Black + priority", emoji: "🖤" },

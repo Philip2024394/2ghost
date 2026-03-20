@@ -32,7 +32,7 @@ export const BUTLER_CATEGORIES: ButlerCategoryMeta[] = [
     key: "flowers",
     label: "Fresh Flowers",
     emoji: "💐",
-    tagline: "Hand-arranged bouquets delivered same day",
+    tagline: "Hand-arranged bouquets delivered on your behalf",
     color: "#f472b6",
   },
   {
@@ -70,7 +70,9 @@ export function isCitySupported(city: string): boolean {
 
 // ── Mock providers (replace with Supabase fetch in production) ────────────────
 
-type P = ButlerProvider & { category: ButlerCategory };
+export type ButlerProviderFull = ButlerProvider & { category: ButlerCategory };
+
+type P = ButlerProviderFull;
 
 const PROVIDERS: P[] = [
 
@@ -102,6 +104,36 @@ const PROVIDERS: P[] = [
   { id:"jkt-be-4", name:"Kecantikan Prima",       photo:"https://i.pravatar.cc/120?img=31", description:"Skin-care facials, whitening treatments, luxury at-home visit with premium products",            specialty:"Skin & facials",          city:"Jakarta", countryCode:"ID", whatsapp:"+62 878-0004-4004", rating:4.8, deliveryNote:"Home visits Jakarta", verified:true, category:"beautician" },
   { id:"jkt-be-5", name:"Ayu Beautique",          photo:"https://i.pravatar.cc/120?img=30", description:"All-in-one beauty: lashes, nails, hair and make-up — surprise full glam package for her",        specialty:"Full glam packages",      city:"Jakarta", countryCode:"ID", whatsapp:"+62 821-0004-4005", rating:4.9, deliveryNote:"Home visits Jakarta", verified:true, category:"beautician" },
 
+  // ── Yogyakarta — Flowers ──────────────────────────────────────────────────
+  { id:"yk-fl-1", name:"Kembang Jogja",        photo:"https://ik.imagekit.io/7grri5v7d/asdfasdfasdfasdfzxxvzxcvzxcv.png",            description:"Hand-tied bouquets using local Javanese blooms, same-day delivery across Kota Yogyakarta and Sleman",     specialty:"Javanese hand-tied bouquets", city:"Yogyakarta", countryCode:"ID", whatsapp:"+6281291265168",  rating:4.9, deliveryNote:"Same-day Yogyakarta",        verified:true, category:"flowers" },
+  { id:"yk-fl-2", name:"Mawar Malioboro",      photo:"https://ik.imagekit.io/7grri5v7d/asdfasdfasdfasdfasdfdsfsadfasdfsdfasdf.png",  description:"Romantic rose arrangements inspired by Malioboro street culture, elegant ribbon wrapping and card",         specialty:"Rose arrangements",           city:"Yogyakarta", countryCode:"ID", whatsapp:"+6285728999994",  rating:4.8, deliveryNote:"Kota Yogyakarta & Sleman",  verified:true, category:"flowers" },
+  { id:"yk-fl-3", name:"Taman Kraton Florist", photo:"https://ik.imagekit.io/7grri5v7d/asdfasdfasdfasdfasdfdsfsadfasdf.png",         description:"Traditional Javanese batik-wrapped bouquets, culturally rich and truly unique for the recipient",           specialty:"Batik-wrapped bouquets",      city:"Yogyakarta", countryCode:"ID", whatsapp:"+6289525670707",  rating:4.8, deliveryNote:"Same-day Yogyakarta",        verified:true, category:"flowers" },
+  { id:"yk-fl-4", name:"Bunga Prambanan",      photo:"https://ik.imagekit.io/7grri5v7d/asdfasdfasdfasdfasdf.png",                    description:"Fresh tropical flowers sourced daily from local Yogyakarta market, affordable and beautifully presented",   specialty:"Fresh local tropicals",       city:"Yogyakarta", countryCode:"ID", whatsapp:"+6287738055136",  rating:4.7, deliveryNote:"Same-day Yogyakarta",        verified:true, category:"flowers" },
+  { id:"yk-fl-5", name:"Sekar Arum",           photo:"https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdfdfsdsadasdsssdddd.png",description:"Luxury orchid and jasmine packages, perfect surprise for special occasions, discreet delivery",            specialty:"Orchid & jasmine luxury",     city:"Yogyakarta", countryCode:"ID", whatsapp:"+6287738515883",  rating:4.9, deliveryNote:"Yogyakarta city-wide",       verified:true, category:"flowers" },
+  { id:"yk-fl-6", name:"Bunga Sentolo",        photo:"https://ik.imagekit.io/7grri5v7d/ZXZX.png",                                    description:"Wildflower and garden arrangements, rustic Javanese charm, delivered with a handwritten message",             specialty:"Wildflower arrangements",    city:"Yogyakarta", countryCode:"ID", whatsapp:"+6285100333027",  rating:4.7, deliveryNote:"Same-day Yogyakarta",        verified:true, category:"flowers" },
+  { id:"yk-fl-7", name:"Melati Florist",       photo:"https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdfdfsdsadasdsssdddd.png",description:"Jasmine and tropical bloom specialist, premium ribbon packaging, fast delivery across Yogyakarta",           specialty:"Jasmine & tropical blooms",   city:"Yogyakarta", countryCode:"ID", whatsapp:"+628112642667",   rating:4.8, deliveryNote:"Yogyakarta city-wide",       verified:true, category:"flowers" },
+
+  // ── Yogyakarta — Jewellery ────────────────────────────────────────────────
+  { id:"yk-jw-1", name:"Perak Kotagede",       photo:"https://i.pravatar.cc/120?img=65", description:"Authentic Kotagede silver jewellery — Yogyakarta's world-famous silver district, custom engraving available", specialty:"Kotagede sterling silver",  city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 812-0022-2201", rating:5.0, deliveryNote:"Same-day Yogyakarta",      verified:true, category:"jewellery" },
+  { id:"yk-jw-2", name:"Batik Silver Studio",  photo:"https://i.pravatar.cc/120?img=66", description:"Silver pieces with batik-motif engravings — uniquely Yogyakarta, gift-boxed with certificate of authenticity", specialty:"Batik-motif engraving",    city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 813-0022-2202", rating:4.9, deliveryNote:"Yogyakarta city-wide",     verified:true, category:"jewellery" },
+  { id:"yk-jw-3", name:"Empu Perhiasan",       photo:"https://i.pravatar.cc/120?img=67", description:"Master craftsman handmade rings and bracelets, traditional Javanese designs, one-of-a-kind pieces",          specialty:"Master craftsman pieces",   city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 857-0022-2203", rating:4.8, deliveryNote:"Same-day Yogyakarta",      verified:true, category:"jewellery" },
+  { id:"yk-jw-4", name:"Kilau Prambanan",      photo:"https://i.pravatar.cc/120?img=68", description:"Semi-precious stone jewellery set in silver, inspired by ancient Prambanan temple art, beautifully packaged", specialty:"Semi-precious stone silver", city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 878-0022-2204", rating:4.7, deliveryNote:"Yogyakarta & Klaten",      verified:true, category:"jewellery" },
+  { id:"yk-jw-5", name:"Candi Silver",         photo:"https://i.pravatar.cc/120?img=69", description:"925 silver minimalist modern pieces, name and date engraving, stunning gift presentation box",               specialty:"Modern minimalist silver",  city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 821-0022-2205", rating:4.8, deliveryNote:"Same-day Yogyakarta",      verified:true, category:"jewellery" },
+
+  // ── Yogyakarta — Spa & Wellness ───────────────────────────────────────────
+  { id:"yk-sp-1", name:"Griya Sehat Jogja",    photo:"https://i.pravatar.cc/120?img=70", description:"Traditional Javanese jamu spa — full-body lulur and herbal compress treatments, home visits or voucher",    specialty:"Javanese jamu & lulur",     city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 812-0023-2301", rating:4.9, deliveryNote:"Home visits Yogyakarta",    verified:true, category:"spa" },
+  { id:"yk-sp-2", name:"Kraton Wellness",      photo:"https://i.pravatar.cc/120?img=71", description:"Royal Keraton-inspired spa rituals, authentic Sultanate recipes for skin and relaxation, premium experience", specialty:"Royal Keraton spa rituals",  city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 813-0023-2302", rating:4.9, deliveryNote:"Yogyakarta city & Sleman",  verified:true, category:"spa" },
+  { id:"yk-sp-3", name:"Tirta Jogja Spa",      photo:"https://i.pravatar.cc/120?img=72", description:"Mobile therapist — full Javanese relaxation experience at her home, no travel needed, fully equipped",       specialty:"Mobile home spa",           city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 857-0023-2303", rating:4.8, deliveryNote:"Home visits Yogyakarta",    verified:true, category:"spa" },
+  { id:"yk-sp-4", name:"Aroma Merapi",         photo:"https://i.pravatar.cc/120?img=73", description:"Aromatherapy and hot-stone massage, volcanic Merapi mineral ingredients, deeply relaxing packages",          specialty:"Aromatherapy & hot stone",  city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 878-0023-2304", rating:4.7, deliveryNote:"Yogyakarta & Sleman",       verified:true, category:"spa" },
+  { id:"yk-sp-5", name:"Pandan Wellness",      photo:"https://i.pravatar.cc/120?img=74", description:"Herbal body wrap, reflexology and deep-tissue massage, gift vouchers with beautiful packaging",               specialty:"Herbal body wrap & reflexology", city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 821-0023-2305", rating:4.6, deliveryNote:"Voucher or home visit",  verified:true, category:"spa" },
+
+  // ── Yogyakarta — Beautician ───────────────────────────────────────────────
+  { id:"yk-be-1", name:"Cantik Jogja Studio",  photo:"https://i.pravatar.cc/120?img=75", description:"Professional make-up artist, bridal to everyday glam, home visits across Yogyakarta, full kit brought to her", specialty:"Make-up & bridal artistry", city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 812-0024-2401", rating:4.9, deliveryNote:"Home visits Yogyakarta",    verified:true, category:"beautician" },
+  { id:"yk-be-2", name:"Rambut Indah Jogja",   photo:"https://i.pravatar.cc/120?img=76", description:"Hair styling, blow-dry and keratin treatments at her home — special occasion and everyday packages available",  specialty:"Hair styling & treatments", city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 813-0024-2402", rating:4.8, deliveryNote:"Home visits Yogyakarta",    verified:true, category:"beautician" },
+  { id:"yk-be-3", name:"Ayu Kecantikan",       photo:"https://i.pravatar.cc/120?img=77", description:"Facial, eyebrow threading, nail art and eyelash extension — complete beauty session at her doorstep",          specialty:"Facial, nails & lashes",    city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 857-0024-2403", rating:4.8, deliveryNote:"Home visits Yogyakarta",    verified:true, category:"beautician" },
+  { id:"yk-be-4", name:"Glam by Dian",         photo:"https://i.pravatar.cc/120?img=78", description:"Skin-care facials with premium Yogyakarta botanical products, whitening and hydration treatments at home",      specialty:"Botanical skin-care facials",city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 878-0024-2404", rating:4.7, deliveryNote:"Yogyakarta & Bantul",       verified:true, category:"beautician" },
+  { id:"yk-be-5", name:"Putri Beautique",      photo:"https://i.pravatar.cc/120?img=79", description:"All-in-one package: lashes, nails, hair, make-up — full surprise glam experience delivered to her door",       specialty:"Full glam experience",      city:"Yogyakarta", countryCode:"ID", whatsapp:"+62 821-0024-2405", rating:4.9, deliveryNote:"Home visits Yogyakarta",    verified:true, category:"beautician" },
+
   // ── Bali — Flowers ────────────────────────────────────────────────────────
   { id:"bali-fl-1", name:"Ubud Blooms",          photo:"https://i.pravatar.cc/120?img=29", description:"Tropical flower arrangements, frangipani & orchid specialties, Bali-wide delivery",   specialty:"Tropical arrangements",   city:"Bali", countryCode:"ID", whatsapp:"+62 812-0011-1101", rating:4.9, deliveryNote:"Same-day Bali",        verified:true, category:"flowers" },
   { id:"bali-fl-2", name:"Bunga Bali",           photo:"https://i.pravatar.cc/120?img=28", description:"Handcrafted offerings-style bouquets, uniquely Balinese, spiritual and beautiful",    specialty:"Balinese-style bouquets", city:"Bali", countryCode:"ID", whatsapp:"+62 813-0011-1102", rating:4.8, deliveryNote:"Seminyak, Kuta, Ubud", verified:true, category:"flowers" },
@@ -117,13 +149,15 @@ const PROVIDERS: P[] = [
   { id:"bali-sp-5", name:"Bali Bliss",           photo:"https://i.pravatar.cc/120?img=20", description:"Flower bath, aromatherapy, full relaxation gift package — most popular in Seminyak",  specialty:"Flower bath packages",    city:"Bali", countryCode:"ID", whatsapp:"+62 821-0012-1205", rating:4.8, deliveryNote:"Seminyak & Kuta",       verified:true, category:"spa" },
 ];
 
+export const ALL_BUTLER_PROVIDERS: ButlerProviderFull[] = PROVIDERS;
+
 export function getProviders(city: string, category: ButlerCategory): ButlerProvider[] {
   const cityKey = BUTLER_CITIES.find((c) => city.toLowerCase().includes(c.toLowerCase())) ?? "Jakarta";
   const results = PROVIDERS.filter((p) => p.city === cityKey && p.category === category);
   if (results.length === 0) {
-    return PROVIDERS.filter((p) => p.city === "Jakarta" && p.category === category).slice(0, 5);
+    return PROVIDERS.filter((p) => p.city === "Jakarta" && p.category === category).slice(0, 7);
   }
-  return results.slice(0, 5);
+  return results.slice(0, 7);
 }
 
 /** localStorage key for purchased packs — tracks which category+city combos are unlocked */

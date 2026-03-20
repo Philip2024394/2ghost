@@ -5,14 +5,22 @@ import type { GhostProfile } from "../types/ghostTypes";
 import { toGhostId, fmtFlashTime } from "../utils/ghostHelpers";
 
 // ── Ghost Flash match popup ──────────────────────────────────────────────────
-export function GhostFlashMatchPopup({ profile, onClose }: { profile: GhostProfile; onClose: () => void }) {
+export function GhostFlashMatchPopup({ profile, onClose, onConnect }: { profile: GhostProfile; onClose: () => void; onConnect?: (p: GhostProfile) => void }) {
   const firstName = profile.name.split(" ")[0];
   const ghostId = toGhostId(profile.id);
   const [secs, setSecs] = useState(30);
+  const [screen, setScreen] = useState<"match" | "connected">("match");
+
   useEffect(() => {
+    if (screen === "connected") return; // stop countdown after connect
     const t = setInterval(() => setSecs((s) => { if (s <= 1) { onClose(); return 0; } return s - 1; }), 1000);
     return () => clearInterval(t);
-  }, [onClose]);
+  }, [onClose, screen]);
+
+  const handleConnect = () => {
+    setScreen("connected");
+    if (onConnect) onConnect(profile);
+  };
 
   return (
     <motion.div
@@ -86,26 +94,56 @@ export function GhostFlashMatchPopup({ profile, onClose }: { profile: GhostProfi
             <span>You're both live right now. WhatsApp opens instantly.</span>
           </p>
 
-          {/* CTA */}
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={onClose}
-            animate={{ boxShadow: ["0 4px 24px rgba(34,197,94,0.35)", "0 4px 32px rgba(34,197,94,0.6)", "0 4px 24px rgba(34,197,94,0.35)"] }}
-            transition={{ duration: 1.2, repeat: Infinity }}
-            style={{
-              width: "100%", height: 52, borderRadius: 16, border: "none",
-              background: "linear-gradient(135deg, #16a34a, #22c55e)",
-              color: "#fff", fontWeight: 900, fontSize: 15, cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            }}
-          >
-            <MessageCircle size={18} />
-            <span>Open WhatsApp Now</span>
-          </motion.button>
-
-          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 12, marginBottom: 0 }}>
-            <span>Auto-closing in {secs}s</span>
-          </p>
+          {screen === "match" ? (
+            <>
+              {/* CTA */}
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={handleConnect}
+                animate={{ boxShadow: ["0 4px 24px rgba(34,197,94,0.35)", "0 4px 32px rgba(34,197,94,0.6)", "0 4px 24px rgba(34,197,94,0.35)"] }}
+                transition={{ duration: 1.2, repeat: Infinity }}
+                style={{
+                  width: "100%", height: 52, borderRadius: 16, border: "none",
+                  background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                  color: "#fff", fontWeight: 900, fontSize: 15, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                }}
+              >
+                <MessageCircle size={18} />
+                <span>Open WhatsApp Now</span>
+              </motion.button>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 12, marginBottom: 0 }}>
+                <span>Auto-closing in {secs}s</span>
+              </p>
+            </>
+          ) : (
+            /* ── Connected confirmation screen ── */
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: "center" }}>
+              <motion.div
+                animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
+                style={{ fontSize: 40, marginBottom: 10 }}
+              >👻</motion.div>
+              <p style={{ fontSize: 16, fontWeight: 900, color: "rgba(74,222,128,0.95)", margin: "0 0 6px" }}>
+                {ghostId} has connected on Ghost Flash
+              </p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 14px", lineHeight: 1.6 }}>
+                Expect contact soon. You may join Flash again if for any reason they're not compatible with you.
+              </p>
+              <p style={{ fontSize: 15, fontWeight: 900, color: "#4ade80", margin: "0 0 20px", letterSpacing: "0.02em" }}>
+                Happy Haunting Boo 👻
+              </p>
+              <button
+                onClick={onClose}
+                style={{
+                  width: "100%", height: 46, borderRadius: 14, border: "1px solid rgba(74,222,128,0.3)",
+                  background: "rgba(74,222,128,0.08)", color: "#4ade80",
+                  fontWeight: 800, fontSize: 13, cursor: "pointer",
+                }}
+              >
+                Back to Ghost Mode
+              </button>
+            </motion.div>
+          )}
         </div>
       </motion.div>
     </motion.div>
@@ -238,7 +276,6 @@ export default function GhostFlashSection({
               style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 10px rgba(74,222,128,1)", display: "block", flexShrink: 0 }}
             />
             <span style={{ fontSize: 13, lineHeight: 1 }}>⚡</span>
-            <span style={{ fontSize: 14, lineHeight: 1 }}>🕰️</span>
             <span style={{ fontSize: 11, fontWeight: 900, color: "#4ade80", letterSpacing: "0.04em" }}>Ghosting</span>
             <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>· {liveCount} live now</span>
           </div>
@@ -265,7 +302,7 @@ export default function GhostFlashSection({
 
         {/* Flash profiles horizontal scroll */}
         {flashProfiles.length > 0 ? (
-          <div ref={scrollRef} className="ghost-flash-scroll" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}>
+          <div ref={scrollRef} className="ghost-flash-scroll" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 6 } as React.CSSProperties}>
             {flashProfiles.map((p) => (
               <div
                 key={p.id}

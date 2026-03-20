@@ -166,7 +166,11 @@ html::before {
     scrollbar-width: none;
   }
   .scroll-touch::-webkit-scrollbar { display: none; }
-  .ghost-flash-scroll::-webkit-scrollbar { display: none; }
+  .ghost-butler-scroll::-webkit-scrollbar { display: none; }
+  .ghost-flash-scroll::-webkit-scrollbar { height: 3px; }
+  .ghost-flash-scroll::-webkit-scrollbar-track { background: transparent; }
+  .ghost-flash-scroll::-webkit-scrollbar-thumb { background: rgba(74,222,128,0.45); border-radius: 4px; }
+  .ghost-flash-scroll::-webkit-scrollbar-thumb:hover { background: rgba(74,222,128,0.7); }
 
   /* ── Green thin scrollbar for profile info ── */
   .scrollbar-pink::-webkit-scrollbar { width: 3px; }

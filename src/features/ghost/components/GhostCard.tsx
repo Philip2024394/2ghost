@@ -22,12 +22,12 @@ const FOUND_BOO_STAMP = "https://ik.imagekit.io/7grri5v7d/Found%20Boo%20postage%
 // ── Profile mini card ───────────────────────────────────────────────────────
 export default function GhostCard({
   profile, liked, onClick, isRevealed, onReveal, canReveal, isTonight, houseTier,
-  isFlagged, onFlagOpen, isFoundBoo,
+  flaggedReason, onFlagOpen, isFoundBoo,
 }: {
   profile: GhostProfile; liked: boolean; onClick: () => void;
   isRevealed: boolean; onReveal: () => void; canReveal: boolean;
-  isTonight?: boolean; houseTier?: "black" | "house" | null;
-  isFlagged?: boolean; onFlagOpen?: () => void;
+  isTonight?: boolean; houseTier?: "gold" | "suite" | null;
+  flaggedReason?: string; onFlagOpen?: () => void;
   isFoundBoo?: boolean;
 }) {
   const { t } = useLanguage();
@@ -109,18 +109,20 @@ export default function GhostCard({
           </div>
         )}
 
-        {/* Ghost House / Ghost Black badge */}
+        {/* Ghost Rooms badge — Gold Room or Ghost Suite */}
         {houseTier && (
           <div style={{
             position: "absolute", top: 7, left: isTonight ? 70 : 30,
             width: 22, height: 22, borderRadius: "50%",
-            background: houseTier === "black" ? "#080808" : "rgba(5,5,8,0.85)",
-            border: houseTier === "black" ? "1.5px solid #d4af37" : "1.5px solid rgba(74,222,128,0.7)",
-            boxShadow: houseTier === "black" ? "0 0 8px rgba(212,175,55,0.6)" : "0 0 6px rgba(74,222,128,0.4)",
+            background: houseTier === "gold" ? "#080808" : "rgba(5,5,8,0.85)",
+            border: houseTier === "gold" ? "1.5px solid #d4af37" : "1.5px solid rgba(74,222,128,0.7)",
+            boxShadow: houseTier === "gold" ? "0 0 8px rgba(212,175,55,0.6)" : "0 0 6px rgba(74,222,128,0.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 11, backdropFilter: "blur(4px)",
           }}>
-            {houseTier === "black" ? "🖤" : "🏠"}
+            {houseTier === "gold"
+              ? <img src="https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png" alt="Gold Room" style={{ width: 14, height: 14, objectFit: "contain" }} />
+              : "🏨"}
           </div>
         )}
 
@@ -204,38 +206,35 @@ export default function GhostCard({
           </button>
         )}
 
-        {/* Flag button */}
-        {onFlagOpen && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onFlagOpen(); }}
-            style={{
-              position: "absolute", bottom: 8, right: 8,
-              width: 24, height: 24, borderRadius: 6,
-              background: isFlagged ? "rgba(239,68,68,0.3)" : "rgba(0,0,0,0.45)",
-              border: isFlagged ? "1px solid rgba(239,68,68,0.6)" : "1px solid rgba(255,255,255,0.1)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", backdropFilter: "blur(4px)",
-              fontSize: 11,
-            }}
-            title="Report this profile"
-          >
-            🚩
-          </button>
+        {/* Spam — full cover overlay with ghost ID + details on front */}
+        {flaggedReason === "spam" && (
+          <div style={{ position: "absolute", inset: 0, zIndex: 5, borderRadius: 16, overflow: "hidden" }}>
+            {/* Spam image fills the card */}
+            <img src={SPAM_IMG} alt="Spam" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            {/* Dark gradient so text is readable */}
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 55%)" }} />
+            {/* Ghost ID + details on top */}
+            <div style={{ position: "absolute", bottom: 10, left: 10, right: 10 }}>
+              <p style={{ fontSize: 11, fontWeight: 800, color: "rgba(239,68,68,0.95)", margin: "0 0 2px", letterSpacing: "0.04em" }}>{ghostId}</p>
+              <p style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", margin: "0 0 2px" }}>{profile.age} · {profile.city} {profile.countryFlag}</p>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(239,68,68,0.2)", border: "1px solid rgba(239,68,68,0.4)", borderRadius: 50, padding: "2px 8px" }}>
+                <span style={{ fontSize: 9 }}>🚫</span>
+                <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(239,68,68,0.9)" }}>REPORTED · UNDER REVIEW</span>
+              </div>
+            </div>
+          </div>
         )}
 
-        {/* Spam / Under Investigation overlay */}
-        {isFlagged && (
+        {/* Other flags — light dimmed overlay */}
+        {flaggedReason && flaggedReason !== "spam" && (
           <div style={{
-            position: "absolute", inset: 0, zIndex: 5,
-            background: "rgba(0,0,0,0.55)",
+            position: "absolute", inset: 0, zIndex: 5, borderRadius: 16,
+            background: "rgba(0,0,0,0.45)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            borderRadius: 16,
           }}>
-            <img
-              src={SPAM_IMG}
-              alt="Under Investigation"
-              style={{ width: "80%", maxWidth: 140, objectFit: "contain", pointerEvents: "none" }}
-            />
+            <div style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: 10, padding: "6px 12px", textAlign: "center" }}>
+              <span style={{ fontSize: 10, fontWeight: 800, color: "rgba(239,68,68,0.85)" }}>🚩 Reported</span>
+            </div>
           </div>
         )}
 
@@ -265,29 +264,33 @@ export default function GhostCard({
           background: "rgba(10,8,20,0.97)",
           border: "1px solid rgba(74,222,128,0.2)",
           boxShadow: "0 0 24px rgba(74,222,128,0.1)",
-          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          padding: "14px 12px", gap: 12,
           cursor: "pointer",
         }}
         onClick={() => setFlipped(false)}
       >
         {/* Blurred photo bg */}
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", borderRadius: 16 }}>
-          <img src={profile.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "blur(14px) brightness(0.25)", transform: "scale(1.1)" }} />
+          <img src={profile.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "blur(14px) brightness(0.22)", transform: "scale(1.1)" }} />
         </div>
 
-        <div style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-          {/* Purple accent */}
-          <div style={{ width: 32, height: 3, borderRadius: 2, background: "linear-gradient(90deg, #16a34a, #4ade80)" }} />
+        {/* Content */}
+        <div style={{ position: "absolute", inset: 0, zIndex: 1, display: "flex", flexDirection: "column", padding: "14px 12px 12px", gap: 9 }}>
 
-          {/* Outcome */}
-          <div style={{ textAlign: "center" }}>
-            <p style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 4px" }}>
-              <span>Looking for</span>
-            </p>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 16 }}>{outcomeIcon}</span>
-              <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(74,222,128,0.95)" }}>{outcomeTag}</span>
+          {/* Top accent + Ghost ID row */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 20, height: 3, borderRadius: 2, background: "linear-gradient(90deg, #16a34a, #4ade80)" }} />
+              <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(74,222,128,0.6)", letterSpacing: "0.08em" }}>{ghostId}</span>
+            </div>
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)" }}>Tap to flip ↩</span>
+          </div>
+
+          {/* Outcome pill */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 5, alignSelf: "flex-start", background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.18)", borderRadius: 50, padding: "4px 10px" }}>
+            <span style={{ fontSize: 13 }}>{outcomeIcon}</span>
+            <div>
+              <p style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.3)", margin: 0, letterSpacing: "0.08em", textTransform: "uppercase" }}>Looking for</p>
+              <p style={{ fontSize: 11, fontWeight: 800, color: "rgba(74,222,128,0.95)", margin: 0 }}>{outcomeTag}</p>
             </div>
           </div>
 
@@ -295,82 +298,76 @@ export default function GhostCard({
           {(() => {
             const bioText = profile.bio || mockBio(profile.id);
             return (
-              <div style={{
-                width: "100%", background: "rgba(74,222,128,0.06)",
-                border: "1px solid rgba(74,222,128,0.15)",
-                borderRadius: 10, padding: "8px 10px", textAlign: "center",
-              }}>
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>
+              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "7px 10px" }}>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", margin: 0, lineHeight: 1.55, fontStyle: "italic" }}>
                   "{bioText}"
                 </p>
               </div>
             );
           })()}
 
-          {/* Dream First Date */}
+          {/* Dream First Date — no container, just inline */}
           {(() => {
             const idea = getDateIdea(profile.id, profile.firstDateIdea);
             if (!idea) return null;
             return (
-              <div style={{
-                width: "100%",
-                background: "rgba(251,191,36,0.07)",
-                border: "1px solid rgba(251,191,36,0.2)",
-                borderRadius: 10, padding: "8px 10px",
-                display: "flex", alignItems: "center", gap: 8,
-              }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {idea.image
-                  ? <img src={idea.image} alt={idea.label} style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
-                  : <span style={{ fontSize: 20, flexShrink: 0 }}>{idea.emoji}</span>
+                  ? <img src={idea.image} alt={idea.label} style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover", flexShrink: 0, opacity: 0.9 }} />
+                  : <span style={{ fontSize: 22, flexShrink: 0 }}>{idea.emoji}</span>
                 }
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(251,191,36,0.85)", margin: "0 0 1px", letterSpacing: "0.04em" }}>
-                    TAKE ME ON A DATE
-                  </p>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: "#fff", margin: 0 }}>{idea.label}</p>
-                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: 0 }}>{idea.desc}</p>
+                  <p style={{ fontSize: 8, fontWeight: 800, color: "rgba(251,191,36,0.7)", margin: "0 0 1px", letterSpacing: "0.06em", textTransform: "uppercase" }}>Take me on a date</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: "#fff", margin: 0, lineHeight: 1.2 }}>{idea.label}</p>
                 </div>
               </div>
             );
           })()}
 
-          {/* Religion */}
-          {profile.religion && (
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <span style={{
-                fontSize: 10, fontWeight: 700,
-                background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.22)",
-                borderRadius: 50, padding: "3px 10px", color: "rgba(168,85,247,0.85)",
-              }}>
+          {/* Religion + likes row */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            {profile.religion ? (
+              <span style={{ fontSize: 10, fontWeight: 700, background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.22)", borderRadius: 50, padding: "3px 9px", color: "rgba(168,85,247,0.85)" }}>
                 {profile.religion}
               </span>
+            ) : <span />}
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <Heart size={10} fill="#ec4899" color="#ec4899" />
+              <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>{likesCount}</span>
             </div>
-          )}
+          </div>
 
-          {/* Activity */}
+          {/* Activity bar */}
           <div style={{ width: "100%" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Activity</span>
-              <span style={{ fontSize: 9, fontWeight: 700, color: activity.color }}>{activity.label}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+              <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Activity</span>
+              <span style={{ fontSize: 8, fontWeight: 700, color: activity.color }}>{activity.label}</span>
             </div>
-            <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.08)" }}>
-              <div style={{ height: "100%", width: `${activity.pct}%`, borderRadius: 2, background: activity.color, boxShadow: `0 0 6px ${activity.color}` }} />
+            <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)" }}>
+              <div style={{ height: "100%", width: `${activity.pct}%`, borderRadius: 2, background: activity.color, boxShadow: `0 0 5px ${activity.color}` }} />
             </div>
           </div>
 
-          {/* Likes */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <Heart size={11} fill="#ec4899" color="#ec4899" />
-            <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>
-              <span>{likesCount} likes received</span>
-            </span>
-          </div>
-
-          {/* Tap to flip back hint */}
-          <p style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", margin: 0 }}>
-            <span>Tap to flip back</span>
-          </p>
         </div>
+
+        {/* Flag button — absolute bottom-right circle */}
+        {onFlagOpen && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onFlagOpen(); }}
+            style={{
+              position: "absolute", bottom: 10, right: 10, zIndex: 2,
+              width: 32, height: 32, borderRadius: "50%",
+              background: flaggedReason ? "rgba(239,68,68,0.22)" : "rgba(0,0,0,0.45)",
+              border: flaggedReason ? "1.5px solid rgba(239,68,68,0.55)" : "1px solid rgba(255,255,255,0.12)",
+              backdropFilter: "blur(8px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", fontSize: 14,
+              boxShadow: flaggedReason ? "0 0 10px rgba(239,68,68,0.3)" : "none",
+            }}
+          >
+            🚩
+          </button>
+        )}
       </motion.div>
     </div>
   );

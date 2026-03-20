@@ -12,7 +12,7 @@ const BADGES = [
   { id: "tonight", icon: "🌙", label: "Free Tonight",    desc: "Available tonight for a meetup" },
   { id: "weekend", icon: "📅", label: "Free Weekend",    desc: "Open plans this weekend" },
   { id: "flash",   icon: "⚡", label: "Flash Date",      desc: "Quick spontaneous date, right now" },
-  { id: "room",    icon: "🚪", label: "Ghost Room",      desc: "Has a private Ghost Room" },
+  { id: "room",    icon: "🚪", label: "Ghost Vault",      desc: "Has a private Ghost Vault" },
   { id: "ghosted", icon: "👻", label: "Ghosted",         desc: "Premium Ghosted member" },
   { id: "drinks",  icon: "🍷", label: "Drinks",          desc: "Down for drinks" },
   { id: "coffee",  icon: "☕", label: "Coffee",          desc: "Casual coffee date" },

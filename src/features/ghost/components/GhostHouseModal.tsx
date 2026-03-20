@@ -17,7 +17,7 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
     { icon: "❤️", title: "Like for Free", desc: "Browse every profile and like as many as you want — completely free, no subscription needed." },
     { icon: "✨", title: "Ghost Match", desc: "When two ghosts like each other it becomes a mutual match. You'll get notified instantly." },
     { icon: "📱", title: "Connect on Match", desc: "After a mutual match, pay once to unlock their contact — WhatsApp, Telegram, WeChat, iMessage, any app they use. No in-app chat — real connection only." },
-    { icon: "🚪", title: "Ghost Room", desc: "Your private vault. All your matches live here with a 48-hour countdown. Don't let them fade." },
+    { icon: "🚪", title: "Ghost Vault", desc: "Your private vault. All your matches live here with a 48-hour countdown. Don't let them fade." },
     { icon: "🌍", title: "Global House", desc: "Members from Indonesia, Philippines, Thailand, Singapore, Malaysia, Vietnam and beyond — your next match could be anywhere in SEA." },
     { icon: "👁️", title: "You're Invisible", desc: "Others only see your Ghost ID, photo, age, and city — nothing else — until you both connect." },
   ];
@@ -86,7 +86,7 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
                 background: "linear-gradient(135deg, #4ade80, #22c55e)",
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               }}>
-                My House
+                Ghost Rooms
               </span>
             </h1>
             <p style={{
@@ -205,44 +205,64 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
   );
 }
 
-// ── Ghost House purchase modal ───────────────────────────────────────────────
+const GOLD_KEY = "https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png";
+
+// ── Ghost Rooms purchase modal ────────────────────────────────────────────────
 export default function GhostHouseModal({
   currentTier, onClose, onPurchase,
 }: {
-  currentTier: "black" | "house" | null;
+  currentTier: "gold" | "suite" | null;
   onClose: () => void;
-  onPurchase: (tier: "black" | "house") => void;
+  onPurchase: (tier: "gold" | "suite") => void;
 }) {
   const TIERS = [
     {
-      key: "house" as const,
-      icon: "🏠",
-      name: "Ghost House",
-      badge: "GH",
-      idr: "150,000",
-      usd: "~$9",
+      key: "suite" as const,
+      icon: "🏨",
+      name: "Ghost Suite",
+      price: "$4.99/mo",
       period: "per month",
-      desc: "Glowing house badge on your profile. Members know you're invested.",
       border: "rgba(74,222,128,0.35)",
       bg: "rgba(74,222,128,0.07)",
       glow: "rgba(74,222,128,0.4)",
       color: "#4ade80",
       gradient: "linear-gradient(135deg, #16a34a, #22c55e)",
+      features: [
+        "5 match unlocks/month included",
+        "Ghost Vault: 10 photos · 3 videos",
+        "Images max 10 MB · JPG PNG WEBP",
+        "Videos max 100 MB · 2 min · MP4 MOV WEBM",
+        "Ghost Flash: 4 sessions/month",
+        "1 weekly profile boost (1hr top of stack)",
+        "Suite badge on profile card",
+        "Ghost Butler access — service numbers visible",
+        "Priority in browse stack over free users",
+      ],
     },
     {
-      key: "black" as const,
-      icon: "🖤",
-      name: "Ghost Black",
-      badge: "GB",
-      idr: "500,000",
-      usd: "~$30",
-      period: "one-time · permanent",
-      desc: "Black badge. Gold border. No expiry. The rarest status in the Ghost House.",
+      key: "gold" as const,
+      icon: null,
+      name: "Gold Room",
+      price: "$9.99/mo",
+      period: "per month",
       border: "rgba(212,175,55,0.45)",
       bg: "rgba(212,175,55,0.06)",
       glow: "rgba(212,175,55,0.5)",
       color: "#d4af37",
       gradient: "linear-gradient(135deg, #92400e, #d4af37)",
+      features: [
+        "Unlimited match unlocks",
+        "Ghost Vault: 50 photos · 10 videos",
+        "Images max 20 MB · JPG PNG WEBP",
+        "Videos max 300 MB · 5 min · MP4 MOV WEBM",
+        "Ghost Flash: unlimited sessions",
+        "3 boosts per week",
+        "Gold Room key badge — top of every stack",
+        "Ghost Butler — all 7 service numbers visible",
+        "Tonight Mode always on",
+        "See who liked you",
+        "Profile featured in Ghost Pulse row",
+      ],
     },
   ];
 
@@ -262,33 +282,39 @@ export default function GhostHouseModal({
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%", maxWidth: 480,
-          background: "rgba(5,5,8,0.99)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
+          backgroundImage: "url('https://ik.imagekit.io/7grri5v7d/ghost%20rooms.png')",
+          backgroundSize: "cover", backgroundPosition: "center top",
+          backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
           borderRadius: "22px 22px 0 0",
           border: "1px solid rgba(255,255,255,0.08)", borderBottom: "none",
-          overflow: "hidden",
+          overflow: "hidden", position: "relative",
         }}
       >
-        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #d4af37)" }} />
-        <div style={{ padding: "22px 20px 36px", position: "relative" }}>
+        {/* Dark overlay over background image */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(3,6,3,0.82) 0%, rgba(5,8,5,0.92) 100%)", zIndex: 0, pointerEvents: "none" }} />
+        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #d4af37)", position: "relative", zIndex: 1 }} />
+        <div style={{ padding: "22px 20px 36px", position: "relative", zIndex: 1 }}>
           <button onClick={onClose} style={{ position: "absolute", top: 18, right: 16, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.5)" }}>
             <X size={13} />
           </button>
 
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 20 }}>
-            <div style={{ fontSize: 38, lineHeight: 1, marginBottom: 8 }}>🏠</div>
+            <div style={{ lineHeight: 1, marginBottom: 8 }}>
+              <img src={GOLD_KEY} alt="Ghost Rooms" style={{ width: 48, height: 48, objectFit: "contain" }} />
+            </div>
             <h3 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 6px" }}>
-              <span>Ghost House Membership</span>
+              <span>Ghost Rooms</span>
             </h3>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.55 }}>
-              <span>A badge that says everything without saying a word. Members notice. Women filter for it.</span>
+              <span>A Room's badge that says everything without saying a word. Members notice. Women filter for it.</span>
             </p>
           </div>
 
           {/* Tier cards */}
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
             {TIERS.map((t) => {
-              const owned = currentTier === t.key || (t.key === "house" && currentTier === "black");
+              const owned = currentTier === t.key || (t.key === "suite" && currentTier === "gold");
               return (
                 <motion.button
                   key={t.key}
@@ -306,34 +332,42 @@ export default function GhostHouseModal({
                   {/* Badge preview */}
                   <div style={{
                     width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
-                    background: t.key === "black" ? "#0a0a0a" : "rgba(5,5,8,0.8)",
+                    background: t.key === "gold" ? "#0a0a0a" : "rgba(5,5,8,0.8)",
                     border: `2px solid ${t.color}`,
                     boxShadow: `0 0 14px ${t.glow}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 22,
                   }}>
-                    {t.icon}
+                    {t.key === "gold"
+                      ? <img src={GOLD_KEY} alt="Gold Room" style={{ width: 30, height: 30, objectFit: "contain" }} />
+                      : t.icon}
                   </div>
 
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                      <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0 }}><span>{t.name}</span></p>
-                      {owned && (
-                        <span style={{ fontSize: 9, fontWeight: 800, color: t.color, background: t.bg, border: `1px solid ${t.border}`, borderRadius: 5, padding: "1px 6px", letterSpacing: "0.08em" }}>ACTIVE</span>
-                      )}
-                    </div>
-                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "0 0 4px" }}><span>{t.period}</span></p>
-                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.45 }}><span>{t.desc}</span></p>
-                  </div>
-
-                  <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <p style={{ fontSize: 17, fontWeight: 900, color: t.color, margin: 0 }}><span>{t.idr}</span></p>
-                    <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", margin: "2px 0 0" }}><span>IDR {t.usd}</span></p>
-                    {!owned && (
-                      <div style={{ marginTop: 6, height: 28, paddingInline: 10, borderRadius: 8, background: t.gradient, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: "#fff" }}>Join</span>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0 }}>{t.name}</p>
+                        {owned && (
+                          <span style={{ fontSize: 9, fontWeight: 800, color: t.color, background: t.bg, border: `1px solid ${t.border}`, borderRadius: 5, padding: "1px 6px", letterSpacing: "0.08em" }}>ACTIVE</span>
+                        )}
                       </div>
-                    )}
+                      <div style={{ textAlign: "right" }}>
+                        <p style={{ fontSize: 15, fontWeight: 900, color: t.color, margin: 0 }}>{t.price}</p>
+                        {!owned && (
+                          <div style={{ marginTop: 4, height: 26, paddingInline: 10, borderRadius: 7, background: t.gradient, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: "#fff" }}>Join</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                      {t.features.map((f) => (
+                        <div key={f} style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+                          <span style={{ color: t.color, fontSize: 10, marginTop: 1, flexShrink: 0 }}>✓</span>
+                          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>{f}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </motion.button>
               );

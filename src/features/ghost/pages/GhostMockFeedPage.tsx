@@ -37,7 +37,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
       name: "Women — Free Forever",
       idr: "0",
       usd: "Free",
-      period: "Browse · Like · Match · Connect — all free · Ghost Room 19k IDR",
+      period: "Browse · Like · Match · Connect — all free · Ghost Vault 19k IDR",
       color: "#4ade80",
       border: "rgba(74,222,128,0.45)",
       bg: "rgba(74,222,128,0.09)",
@@ -135,7 +135,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
             </h2>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.6 }}>
               <span>Join free · No card required</span><br />
-              <span>Ghost Room (media sharing) is paid for everyone.</span>
+              <span>Ghost Vault (media sharing) is paid for everyone.</span>
             </p>
           </div>
 
@@ -146,7 +146,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
             display: "flex", flexDirection: "column", gap: 12,
           }}>
             {[
-              { icon: "👩", title: "Women — Free to Join", desc: "Browse, like, match and connect free. Ghost Room (media sharing) is 19k IDR/month for everyone." },
+              { icon: "👩", title: "Women — Free to Join", desc: "Browse, like, match and connect free. Ghost Vault (media sharing) is 19k IDR/month for everyone." },
               { icon: "🔒", title: "Total Privacy", desc: "Your identity stays hidden until a mutual match" },
               { icon: "👻", title: "Ghost IDs Only", desc: "Every profile is anonymous — Ghost-XXXX until you connect" },
               { icon: "📱", title: "Connect on Match", desc: "No in-app chat. Unlock their contact — WhatsApp, Telegram, WeChat, iMessage, any app they use" },
@@ -464,10 +464,10 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
         </div>
       </div>
 
-      {/* ── Action strip: Ghost Room · VIP Profile · Flash Date · Filter ── */}
+      {/* ── Action strip: Ghost Vault · VIP Profile · Flash Date · Filter ── */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px 0", overflowX: "auto", scrollbarWidth: "none" }}>
         {[
-          { icon: "🚪", label: "Ghost Room", color: "rgba(74,222,128,0.9)", border: "rgba(74,222,128,0.25)", bg: "rgba(74,222,128,0.08)", action: () => navigate("/ghost/room") },
+          { icon: "🚪", label: "Ghost Vault", color: "rgba(74,222,128,0.9)", border: "rgba(74,222,128,0.25)", bg: "rgba(74,222,128,0.08)", action: () => navigate("/ghost/room") },
           { icon: "👻", label: "Ghosted", color: "rgba(168,85,247,0.9)", border: "rgba(168,85,247,0.25)", bg: "rgba(168,85,247,0.08)", action: lock },
           { icon: "⚡", label: "Flash Date",  color: "rgba(251,191,36,0.9)", border: "rgba(251,191,36,0.25)", bg: "rgba(251,191,36,0.08)", action: lock },
         ].map(({ icon, label, color, border, bg, action }) => (

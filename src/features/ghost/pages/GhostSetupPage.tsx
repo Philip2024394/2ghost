@@ -65,6 +65,7 @@ export default function GhostSetupPage() {
   const [lookingFor, setLookingFor] = useState("");
   const [saving, setSaving] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [gpsCoords, setGpsCoords] = useState<{ lat: number; lon: number } | null>(null);
 
   useEffect(() => {
     const cached = getCachedIpCountry();
@@ -76,6 +77,16 @@ export default function GhostSetupPage() {
     if (cached) apply(cached);
     else detectIpCountry().then(apply);
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Request GPS silently in the background — saved to profile if granted
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setGpsCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      () => {}, // silently ignore denial
+      { timeout: 10000, enableHighAccuracy: false }
+    );
   }, []);
 
   const selectedCountryObj = WORLD_COUNTRIES.find((c) => c.name === country);
@@ -125,6 +136,8 @@ export default function GhostSetupPage() {
       connectPhone: connectPhone.trim() || null,
       connectAlt: null,
       connectAltHandle: null,
+      latitude: gpsCoords?.lat ?? null,
+      longitude: gpsCoords?.lon ?? null,
       verified: false,
       idVerified: false,
       faceVerified: (() => { try { return localStorage.getItem("ghost_face_verified") === "1"; } catch { return false; } })(),
