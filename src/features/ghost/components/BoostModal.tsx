@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
-import { X, Zap } from "lucide-react";
+import { X } from "lucide-react";
+
+const BOOST_IMG = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsd.png";
 
 // ── Ghost Boost modal ────────────────────────────────────────────────────────
 export default function BoostModal({ onClose, onBoost }: { onClose: () => void; onBoost: () => void }) {
@@ -32,7 +34,7 @@ export default function BoostModal({ onClose, onBoost }: { onClose: () => void; 
           </button>
 
           <div style={{ textAlign: "center", marginBottom: 20 }}>
-            <div style={{ fontSize: 40, lineHeight: 1, marginBottom: 10 }}>⚡</div>
+            <div style={{ marginBottom: 10 }}><img src={BOOST_IMG} alt="boost" style={{ width: 64, height: 64, objectFit: "contain" }} /></div>
             <h3 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 6px" }}>
               <span>Ghost Boost</span>
             </h3>
@@ -79,7 +81,7 @@ export default function BoostModal({ onClose, onBoost }: { onClose: () => void; 
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}
           >
-            <Zap size={18} fill="currentColor" />
+            <img src={BOOST_IMG} alt="boost" style={{ width: 20, height: 20, objectFit: "contain" }} />
             <span>Boost Now — 15,000 IDR</span>
           </motion.button>
         </div>
