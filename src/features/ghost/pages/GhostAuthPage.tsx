@@ -112,6 +112,7 @@ export default function GhostAuthPage() {
       try {
         localStorage.setItem("ghost_gender", gender);
         localStorage.setItem("ghost_phone", countryCode.code + cleanPhone);
+        localStorage.removeItem("ghost_house_welcomed"); // always show welcome on new auth
       } catch {}
       navigate("/ghost/gateway");
     }, 1000);

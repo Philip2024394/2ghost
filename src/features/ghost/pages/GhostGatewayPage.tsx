@@ -184,14 +184,16 @@ export default function GhostGatewayPage() {
   const [countdown, setCountdown] = useState(false);
 
   useEffect(() => {
-    try {
-      if (localStorage.getItem("ghost_house_welcomed")) {
-        // Already accepted rules — skip modal, auto-slide after 3s
-        setCountdown(true);
-        return;
-      }
-    } catch {}
-    setShowWelcome(true);
+    const welcomed = (() => { try { return !!localStorage.getItem("ghost_house_welcomed"); } catch { return false; } })();
+    if (welcomed) {
+      // Already accepted — show mock feed for 3s then slide through
+      const t = setTimeout(() => setCountdown(true), 3000);
+      return () => clearTimeout(t);
+    } else {
+      // First visit — show mock feed for 3s, THEN show welcome modal
+      const t = setTimeout(() => setShowWelcome(true), 3000);
+      return () => clearTimeout(t);
+    }
   }, []);
 
   const hasProfile = (() => {
