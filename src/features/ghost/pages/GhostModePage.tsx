@@ -759,7 +759,7 @@ export default function GhostModePage() {
           <button onClick={() => navigate("/ghost/room")}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
           >
-            <span style={{ fontSize: 24, lineHeight: 1 }}>🚪</span>
+            <img src="https://ik.imagekit.io/7grri5v7d/weqweqw.png" alt="room" style={{ width: 28, height: 28, objectFit: "contain" }} />
             <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>Room</span>
           </button>
 
