@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./i18n/LanguageContext";
+import AnalyticsTracker from "./features/analytics/AnalyticsTracker";
 
 // Retry lazy imports once on failure (handles Vite cold-start timing issues)
 function lazyWithRetry<T extends { default: any }>(factory: () => Promise<T>) {
@@ -27,11 +28,15 @@ const AdminProfilesPage = lazyWithRetry(() => import("./features/admin/pages/Adm
 const AdminUsersPage    = lazyWithRetry(() => import("./features/admin/pages/AdminUsersPage"));
 const AdminPaymentsPage = lazyWithRetry(() => import("./features/admin/pages/AdminPaymentsPage"));
 const AdminServicesPage = lazyWithRetry(() => import("./features/admin/pages/AdminServicesPage"));
+const AdminTasksPage    = lazyWithRetry(() => import("./features/admin/pages/AdminTasksPage"));
+const AdminHealthPage   = lazyWithRetry(() => import("./features/admin/pages/AdminHealthPage"));
+const AdminTrafficPage  = lazyWithRetry(() => import("./features/admin/pages/AdminTrafficPage"));
 
 export default function App() {
   return (
     <LanguageProvider>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <AnalyticsTracker />
       <Suspense fallback={null}>
         <Routes>
           <Route path="/"               element={<Navigate to="/ghost" replace />} />
@@ -52,6 +57,9 @@ export default function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="/admin/overview" replace />} />
             <Route path="overview"  element={<AdminOverviewPage />} />
+            <Route path="tasks"     element={<AdminTasksPage />} />
+            <Route path="health"    element={<AdminHealthPage />} />
+            <Route path="traffic"   element={<AdminTrafficPage />} />
             <Route path="profiles"  element={<AdminProfilesPage />} />
             <Route path="users"     element={<AdminUsersPage />} />
             <Route path="payments"  element={<AdminPaymentsPage />} />

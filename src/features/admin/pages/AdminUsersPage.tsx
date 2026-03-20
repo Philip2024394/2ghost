@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Users, TrendingUp, Star, Shield } from "lucide-react";
-import { COUNTRY_STATS, MOCK_REAL_USERS } from "../adminMockData";
+import { Search, Users, TrendingUp, Star, Shield, RefreshCw } from "lucide-react";
+import { fetchUsers, fetchCountryStats, fetchOverviewStats, UserRow, CountryStatRow } from "../adminSupabaseService";
 
 type Tier = "all" | "free" | "suite" | "gold";
 
@@ -18,19 +18,36 @@ const CARD_STYLE = {
   padding: "20px",
 };
 
-const totalUsers   = COUNTRY_STATS.reduce((s, c) => s + c.users, 0);
-const totalPremium = COUNTRY_STATS.reduce((s, c) => s + c.premium, 0);
-const totalGold    = COUNTRY_STATS.reduce((s, c) => s + c.gold, 0);
-
 export default function AdminUsersPage() {
+  const [users, setUsers]                   = useState<UserRow[]>([]);
+  const [countries, setCountries]           = useState<CountryStatRow[]>([]);
+  const [totalUsers, setTotalUsers]         = useState(0);
+  const [totalPremium, setTotalPremium]     = useState(0);
+  const [totalGold, setTotalGold]           = useState(0);
+  const [newThisMonth, setNewThisMonth]     = useState(0);
+  const [loading, setLoading]               = useState(true);
   const [selectedCountry, setSelectedCountry] = useState("All");
   const [tierFilter, setTierFilter]           = useState<Tier>("all");
   const [genderFilter, setGenderFilter]       = useState<"All" | "Female" | "Male">("All");
   const [search, setSearch]                   = useState("");
 
-  const filtered = MOCK_REAL_USERS.filter((u) => {
+  const load = async () => {
+    setLoading(true);
+    const [u, c, s] = await Promise.all([fetchUsers(), fetchCountryStats(), fetchOverviewStats()]);
+    setUsers(u);
+    setCountries(c);
+    setTotalUsers(s.total_users);
+    setTotalPremium(s.premium_users);
+    setTotalGold(s.gold_users);
+    setNewThisMonth(s.new_this_month);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const filtered = users.filter((u) => {
     if (selectedCountry !== "All") {
-      const cs = COUNTRY_STATS.find((c) => c.flag === u.country);
+      const cs = countries.find((c) => c.flag === u.country);
       if (cs?.country !== selectedCountry) return false;
     }
     if (tierFilter !== "all" && u.tier !== tierFilter) return false;
@@ -41,15 +58,23 @@ export default function AdminUsersPage() {
 
   const countryData = selectedCountry === "All"
     ? null
-    : COUNTRY_STATS.find((c) => c.country === selectedCountry);
+    : countries.find((c) => c.country === selectedCountry);
 
   return (
     <div style={{ padding: "28px 32px" }}>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 900, color: "#fff", margin: "0 0 4px" }}>Real Users</h1>
-        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: 0 }}>
-          Registered accounts · {totalUsers.toLocaleString()} total
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 900, color: "#fff", margin: "0 0 4px" }}>Real Users</h1>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: 0 }}>
+            Registered accounts · {totalUsers.toLocaleString()} total
+          </p>
+        </div>
+        <button
+          onClick={load}
+          style={{ display: "flex", alignItems: "center", gap: 6, height: 34, padding: "0 14px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
+        >
+          <RefreshCw size={12} style={loading ? { animation: "spin 1s linear infinite" } : undefined} /> Refresh
+        </button>
       </div>
 
       {/* Stat cards */}
@@ -58,7 +83,7 @@ export default function AdminUsersPage() {
           { label: "Total Users",    value: totalUsers.toLocaleString(),   icon: Users,      color: "#4ade80" },
           { label: "Premium Users",  value: totalPremium.toLocaleString(), icon: Shield,     color: "#a78bfa" },
           { label: "Gold Members",   value: totalGold.toLocaleString(),    icon: Star,       color: "#d4af37" },
-          { label: "New This Month", value: "87",                           icon: TrendingUp, color: "#f472b6" },
+          { label: "New This Month", value: newThisMonth.toLocaleString(), icon: TrendingUp, color: "#f472b6" },
         ].map((s) => {
           const Icon = s.icon;
           return (
@@ -88,7 +113,7 @@ export default function AdminUsersPage() {
           >
             All Countries
           </button>
-          {COUNTRY_STATS.map((c) => (
+          {countries.map((c) => (
             <button
               key={c.country}
               onClick={() => setSelectedCountry(c.country)}
@@ -191,7 +216,11 @@ export default function AdminUsersPage() {
           ))}
         </div>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div style={{ padding: "40px", textAlign: "center" }}>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.3)", margin: 0 }}>Loading users…</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div style={{ padding: "40px", textAlign: "center" }}>
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.3)", margin: 0 }}>No users match your filters</p>
           </div>
@@ -210,10 +239,8 @@ export default function AdminUsersPage() {
                   alignItems: "center",
                 }}
               >
-                {/* Index */}
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", fontWeight: 600 }}>{i + 1}</span>
 
-                {/* User */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                   <div style={{
                     width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
@@ -230,13 +257,9 @@ export default function AdminUsersPage() {
                   </div>
                 </div>
 
-                {/* Country */}
                 <span style={{ fontSize: 16 }}>{u.country}</span>
-
-                {/* City */}
                 <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.city}</span>
 
-                {/* Tier badge */}
                 <span style={{
                   display: "inline-flex", alignItems: "center",
                   height: 22, borderRadius: 6, padding: "0 8px",
@@ -247,15 +270,10 @@ export default function AdminUsersPage() {
                   {tc?.label}
                 </span>
 
-                {/* Joined */}
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{u.joined}</span>
-
-                {/* Last active */}
                 <span style={{ fontSize: 11, color: u.lastActive.includes("h") || u.lastActive.includes("m") ? "#4ade80" : "rgba(255,255,255,0.3)" }}>
                   {u.lastActive}
                 </span>
-
-                {/* Gender */}
                 <span style={{ fontSize: 11, color: u.gender === "Female" ? "#f472b6" : "#60a5fa", fontWeight: 600 }}>{u.gender}</span>
               </div>
             );
@@ -263,9 +281,9 @@ export default function AdminUsersPage() {
         )}
       </div>
 
-      {filtered.length > 0 && (
+      {!loading && filtered.length > 0 && (
         <p style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", textAlign: "center", marginTop: 12 }}>
-          Showing {filtered.length} of {MOCK_REAL_USERS.length} registered users
+          Showing {filtered.length} of {users.length} registered users
         </p>
       )}
     </div>

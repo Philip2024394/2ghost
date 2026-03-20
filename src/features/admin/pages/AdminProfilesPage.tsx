@@ -1,19 +1,20 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, Upload, Check, Edit2, Star } from "lucide-react";
 import { MOCK_PROFILES, MockProfile } from "../../../data/mockProfiles";
+import { fetchMockOverrides, saveMockOverride, deleteMockOverride } from "../adminSupabaseService";
 
 const OVERRIDE_KEY = "admin_profile_overrides";
 
 type Override = Partial<Pick<MockProfile, "name" | "age" | "city" | "image" | "isVip">> & { id: string };
 
-function loadOverrides(): Record<string, Override> {
+function localLoadOverrides(): Record<string, Override> {
   try { return JSON.parse(localStorage.getItem(OVERRIDE_KEY) || "{}"); }
   catch { return {}; }
 }
 
-function saveOverride(override: Override) {
-  const all = loadOverrides();
+function localSaveOverride(override: Override) {
+  const all = localLoadOverrides();
   all[override.id] = override;
   localStorage.setItem(OVERRIDE_KEY, JSON.stringify(all));
 }
@@ -32,7 +33,7 @@ function applyOverride(p: MockProfile, overrides: Record<string, Override>): Moc
 }
 
 export default function AdminProfilesPage() {
-  const [overrides, setOverrides] = useState<Record<string, Override>>(loadOverrides);
+  const [overrides, setOverrides] = useState<Record<string, Override>>(localLoadOverrides);
   const [country, setCountry]     = useState("All");
   const [search, setSearch]       = useState("");
   const [gender, setGender]       = useState<"All" | "Female" | "Male">("All");
@@ -46,6 +47,20 @@ export default function AdminProfilesPage() {
   const [eVip, setEVip]       = useState(false);
   const [saved, setSaved]     = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Sync overrides from Supabase on mount
+  useEffect(() => {
+    fetchMockOverrides().then((data) => {
+      if (data && Object.keys(data).length > 0) {
+        const mapped: Record<string, Override> = {};
+        for (const [id, v] of Object.entries(data)) {
+          mapped[id] = { id, name: (v as any).name, age: (v as any).age, city: (v as any).city, image: (v as any).image, isVip: (v as any).isVip };
+        }
+        setOverrides(mapped);
+        localStorage.setItem(OVERRIDE_KEY, JSON.stringify(mapped));
+      }
+    });
+  }, []);
 
   const profiles = MOCK_PROFILES.map((p) => applyOverride(p, overrides));
 
@@ -84,17 +99,19 @@ export default function AdminProfilesPage() {
       image: eImage || editing.image,
       isVip: eVip,
     };
-    saveOverride(override);
-    setOverrides(loadOverrides());
+    localSaveOverride(override);
+    setOverrides((prev) => ({ ...prev, [override.id]: override }));
+    saveMockOverride({ id: override.id, name: override.name, age: override.age, city: override.city, image: override.image, isVip: override.isVip });
     setSaved(true);
     setTimeout(() => { setEditing(null); setSaved(false); }, 800);
   }, [editing, eName, eAge, eCity, eImage, eVip]);
 
   const handleReset = (id: string) => {
-    const all = loadOverrides();
+    const all = localLoadOverrides();
     delete all[id];
     localStorage.setItem(OVERRIDE_KEY, JSON.stringify(all));
     setOverrides(all);
+    deleteMockOverride(id);
   };
 
   const CARD = {
@@ -238,8 +255,8 @@ export default function AdminProfilesPage() {
               exit={{ opacity: 0, scale: 0.95, y: 16 }}
               transition={{ duration: 0.2 }}
               style={{
-                position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-                width: 460, maxHeight: "90dvh", overflowY: "auto",
+                position: "fixed", top: 40, left: "50%", transform: "translateX(-50%)",
+                width: 460, maxHeight: "calc(100dvh - 60px)", overflowY: "auto",
                 background: "#0e0e20", border: "1px solid rgba(255,255,255,0.1)",
                 borderRadius: 20, padding: "28px", zIndex: 101,
                 boxShadow: "0 32px 80px rgba(0,0,0,0.7)",

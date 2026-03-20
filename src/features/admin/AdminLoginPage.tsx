@@ -18,6 +18,11 @@ export default function AdminLoginPage() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= MIN_WIDTH);
 
   useEffect(() => {
+    document.body.classList.add("admin-mode");
+    return () => document.body.classList.remove("admin-mode");
+  }, []);
+
+  useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= MIN_WIDTH);
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);

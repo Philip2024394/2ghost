@@ -1,14 +1,15 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Edit2, Trash2, X, Check, Star, Shield, Phone } from "lucide-react";
 import { BUTLER_CATEGORIES, ALL_BUTLER_PROVIDERS } from "../../../features/ghost/data/butlerProviders";
 import type { ButlerProviderFull, ButlerCategory } from "../../../features/ghost/data/butlerProviders";
+import { fetchButlerProviders, saveButlerProvider, deleteButlerProvider } from "../adminSupabaseService";
 
 type ButlerProvider = ButlerProviderFull;
 
 const ADMIN_PROVIDERS_KEY = "admin_butler_providers";
 
-function loadProviders(): ButlerProvider[] {
+function localLoad(): ButlerProvider[] {
   try {
     const saved = localStorage.getItem(ADMIN_PROVIDERS_KEY);
     if (saved) return JSON.parse(saved);
@@ -16,8 +17,8 @@ function loadProviders(): ButlerProvider[] {
   return ALL_BUTLER_PROVIDERS;
 }
 
-function saveProviders(providers: ButlerProvider[]) {
-  localStorage.setItem(ADMIN_PROVIDERS_KEY, JSON.stringify(providers));
+function localSave(list: ButlerProvider[]) {
+  localStorage.setItem(ADMIN_PROVIDERS_KEY, JSON.stringify(list));
 }
 
 const CAT_COLORS: Record<ButlerCategory, string> = {
@@ -50,7 +51,7 @@ const INPUT_STYLE: React.CSSProperties = {
 };
 
 export default function AdminServicesPage() {
-  const [providers, setProviders]     = useState<ButlerProvider[]>(loadProviders);
+  const [providers, setProviders]     = useState<ButlerProvider[]>(localLoad);
   const [activeCategory, setActiveCat] = useState<ButlerCategory | "all">("all");
   const [editing, setEditing]          = useState<ButlerProvider | null>(null);
   const [isNew, setIsNew]              = useState(false);
@@ -59,6 +60,23 @@ export default function AdminServicesPage() {
   const [saved, setSaved]              = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Load from Supabase on mount (falls back to localStorage/hardcoded if not connected)
+  useEffect(() => {
+    fetchButlerProviders().then((data) => {
+      if (data && data.length > 0) {
+        const mapped = data.map((r: any) => ({
+          id: r.id, name: r.name, photo: r.photo || "", description: r.description || "",
+          specialty: r.specialty || "", city: r.city || "", countryCode: r.country_code || "",
+          whatsapp: r.whatsapp || "", rating: Number(r.rating) || 4.5,
+          deliveryNote: r.delivery_note || "", verified: !!r.is_verified,
+          category: r.category as ButlerCategory,
+        }));
+        setProviders(mapped);
+        localSave(mapped);
+      }
+    });
+  }, []);
 
   const filtered = providers.filter((p) => activeCategory === "all" || p.category === activeCategory);
 
@@ -80,29 +98,35 @@ export default function AdminServicesPage() {
 
   const handleSave = () => {
     let updated: ButlerProvider[];
+    let toSync: ButlerProvider;
     if (isNew) {
-      const newP: ButlerProvider = { id: `adm-${Date.now()}`, ...form, category: editCat } as any;
-      updated = [...providers, newP];
+      toSync = { id: `adm-${Date.now()}`, ...form, category: editCat } as any;
+      updated = [...providers, toSync];
     } else {
-      updated = providers.map((p) => p.id === editing!.id ? { ...p, ...form, category: editCat } : p);
+      toSync = { ...editing!, ...form, category: editCat };
+      updated = providers.map((p) => p.id === editing!.id ? toSync : p);
     }
-    saveProviders(updated);
+    localSave(updated);
     setProviders(updated);
+    saveButlerProvider({ id: toSync.id, name: toSync.name, photo: toSync.photo, description: toSync.description, specialty: toSync.specialty, city: toSync.city, country_code: toSync.countryCode, whatsapp: toSync.whatsapp, rating: toSync.rating, delivery_note: toSync.deliveryNote, is_verified: toSync.verified, category: toSync.category, is_active: true });
     setSaved(true);
     setTimeout(() => { setEditing(null); setSaved(false); }, 800);
   };
 
   const handleDelete = (id: string) => {
     const updated = providers.filter((p) => p.id !== id);
-    saveProviders(updated);
+    localSave(updated);
     setProviders(updated);
+    deleteButlerProvider(id);
     setDeleteConfirm(null);
   };
 
   const toggleVerified = (id: string) => {
     const updated = providers.map((p) => p.id === id ? { ...p, verified: !p.verified } : p);
-    saveProviders(updated);
+    localSave(updated);
     setProviders(updated);
+    const p = updated.find((x) => x.id === id)!;
+    saveButlerProvider({ id: p.id, is_verified: p.verified });
   };
 
   const handlePhotoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,7 +292,7 @@ export default function AdminServicesPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditing(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 100, backdropFilter: "blur(4px)" }} />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 16 }}
-              style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 500, maxHeight: "88dvh", overflowY: "auto", background: "#0e0e20", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "28px", zIndex: 101, boxShadow: "0 32px 80px rgba(0,0,0,0.7)" }}
+              style={{ position: "fixed", top: 40, left: "50%", transform: "translateX(-50%)", width: 500, maxHeight: "calc(100dvh - 60px)", overflowY: "auto", background: "#0e0e20", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "28px", zIndex: 101, boxShadow: "0 32px 80px rgba(0,0,0,0.7)" }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
                 <h2 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: 0 }}>{isNew ? "Add Provider" : "Edit Provider"}</h2>

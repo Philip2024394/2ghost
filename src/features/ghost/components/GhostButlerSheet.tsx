@@ -4,6 +4,7 @@ import {
   BUTLER_CATEGORIES, getProviders, isPackPurchased, markPackPurchased,
   isCitySupported, type ButlerCategory,
 } from "../data/butlerProviders";
+import { logServiceRequest } from "../../admin/adminSupabaseService";
 
 const PACK_PRICE = "$9.99";
 const G = "#4ade80";                          // primary green
@@ -324,6 +325,15 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
                       onClick={() => {
                         if (openWa === p.id) {
                           window.open(`https://wa.me/${p.whatsapp.replace(/\D/g, "")}`, "_blank");
+                          logServiceRequest({
+                            ghostId: ghostId,
+                            providerId: p.id,
+                            providerName: p.name,
+                            providerWhatsapp: p.whatsapp,
+                            category: activeMeta.label,
+                            emoji: activeMeta.emoji,
+                            city,
+                          });
                         } else {
                           setOpenWa(p.id);
                         }
