@@ -378,14 +378,6 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
   const hasWhatsApp = (() => { try { return !!localStorage.getItem("ghost_room_whatsapp"); } catch { return false; } })();
   const [showFilters, setShowFilters] = useState(false);
   const [ctaSecs, setCtaSecs] = useState(600); // 10-minute urgency countdown
-  const [showWelcome, setShowWelcome] = useState(() => {
-    try { return !sessionStorage.getItem("ghost_preview_seen"); } catch { return true; }
-  });
-
-  const dismissWelcome = () => {
-    try { sessionStorage.setItem("ghost_preview_seen", "1"); } catch {}
-    setShowWelcome(false);
-  };
 
   // Fluctuating online counter
   useEffect(() => {
@@ -633,119 +625,6 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
         </motion.button>
       </div>
 
-      {/* ── Welcome / preview explanation banner ── */}
-      <AnimatePresence>
-        {showWelcome && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={dismissWelcome}
-            style={{
-              position: "fixed", inset: 0, zIndex: 300,
-              background: "rgba(0,0,0,0.72)",
-              backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
-              display: "flex", alignItems: "flex-end", justifyContent: "center",
-            }}
-          >
-            <motion.div
-              initial={{ y: 60, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 60, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 280, damping: 28, delay: 0.08 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: "100%", maxWidth: 480,
-                background: "rgba(8,10,14,0.98)",
-                backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
-                borderRadius: "22px 22px 0 0",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderBottom: "none",
-                padding: "6px 20px max(28px, env(safe-area-inset-bottom, 28px))",
-              }}
-            >
-              {/* Handle */}
-              <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 16px" }}>
-                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)" }} />
-              </div>
-
-              {/* Icon + heading */}
-              <div style={{ textAlign: "center", marginBottom: 18 }}>
-                <motion.div
-                  animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
-                  transition={{ duration: 1.2, delay: 0.4 }}
-                  style={{ lineHeight: 1, marginBottom: 12 }}
-                >
-                  <img src={GHOST_LOGO} alt="ghost" style={{ width: 144, height: 144, objectFit: "contain" }} />
-                </motion.div>
-                <h2 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.01em" }}>
-                  You're in Preview Mode
-                </h2>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.6 }}>
-                  This is a live preview of Ghost Mode.<br />
-                  Profiles and features are locked until you join.
-                </p>
-              </div>
-
-              {/* Explanation points */}
-              <div style={{
-                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: 14, padding: "12px 14px", marginBottom: 16,
-                display: "flex", flexDirection: "column", gap: 10,
-              }}>
-                {[
-                  { icon: "🔒", text: "All buttons and profiles are locked in preview" },
-                  { icon: "👀", text: "You can browse — but can't like, message or connect" },
-                  { icon: "✅", text: "Join Ghost to unlock everything instantly" },
-                  { icon: "👩 Free", text: "Women join completely free — no payment needed" },
-                  { icon: "🌙", text: "Tonight Mode — see who's ready to meet right now" },
-                ].map((item) => (
-                  <div key={item.icon} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <span style={{
-                      fontSize: 11, fontWeight: 800, color: "rgba(74,222,128,0.9)",
-                      background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)",
-                      borderRadius: 8, padding: "4px 8px", flexShrink: 0, whiteSpace: "nowrap",
-                    }}>{item.icon}</span>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{item.text}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* CTA */}
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={() => { dismissWelcome(); setShowPopup(true); }}
-                style={{
-                  width: "100%", height: 50, borderRadius: 50, border: "none",
-                  background: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
-                  color: "#fff", fontSize: 15, fontWeight: 900,
-                  cursor: "pointer", marginBottom: 10,
-                  boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 24px rgba(34,197,94,0.45)",
-                  position: "relative", overflow: "hidden",
-                }}
-              >
-                <div style={{
-                  position: "absolute", top: 0, left: "10%", right: "10%", height: "45%",
-                  background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)",
-                  borderRadius: "50px 50px 60% 60%", pointerEvents: "none",
-                }} />
-                {t("btn.joinGhost")} — Unlock Now
-              </motion.button>
-
-              <button
-                onClick={dismissWelcome}
-                style={{
-                  width: "100%", height: 40, borderRadius: 50, border: "none",
-                  background: "transparent", color: "rgba(255,255,255,0.3)",
-                  fontSize: 13, fontWeight: 600, cursor: "pointer",
-                }}
-              >
-                {t("btn.justBrowsing")}
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ── Members-only popup ── */}
       <AnimatePresence>
