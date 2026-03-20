@@ -127,6 +127,7 @@ export default function GhostSetupPage() {
       connectAltHandle: null,
       verified: false,
       idVerified: false,
+      faceVerified: (() => { try { return localStorage.getItem("ghost_face_verified") === "1"; } catch { return false; } })(),
     };
 
     // Save to localStorage immediately (always works, instant)

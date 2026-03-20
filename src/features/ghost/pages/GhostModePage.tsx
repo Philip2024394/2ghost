@@ -37,6 +37,7 @@ import FoundBooBanner from "../components/FoundBooBanner";
 import { CountryTabBar } from "../components/CountryTabBar";
 import InternationalGhostModal from "../components/CountryTabBar";
 import GhostNewGuestsPopup from "../components/GhostNewGuestsPopup";
+import GhostIcebreakerPopup from "../components/GhostIcebreakerPopup";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
@@ -337,6 +338,7 @@ export default function GhostModePage() {
   const [selectedProfile, setSelectedProfile] = useState<GhostProfile | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [matchProfile, setMatchProfile] = useState<GhostProfile | null>(null);
+  const [icebreakerProfile, setIcebreakerProfile] = useState<GhostProfile | null>(null);
   const [matchPaywallProfile, setMatchPaywallProfile] = useState<GhostProfile | null>(null);
   const [connectNowProfile, setConnectNowProfile] = useState<GhostProfile | null>(null);
   const [savedMatches, setSavedMatches] = useState<GhostMatch[]>(loadMatches);
@@ -1224,7 +1226,7 @@ export default function GhostModePage() {
           <GhostMatchPopup
             profile={matchProfile}
             isSubscribed={isGhost}
-            onClose={() => setMatchProfile(null)}
+            onClose={() => { const p = matchProfile; setMatchProfile(null); setTimeout(() => setIcebreakerProfile(p), 350); }}
             onConnectWhatsApp={() => {
               if (isGhost) {
                 if (matchProfile) {
@@ -1237,6 +1239,15 @@ export default function GhostModePage() {
                 setMatchProfile(null);
               }
             }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {icebreakerProfile && (
+          <GhostIcebreakerPopup
+            profile={icebreakerProfile}
+            onClose={() => setIcebreakerProfile(null)}
           />
         )}
       </AnimatePresence>

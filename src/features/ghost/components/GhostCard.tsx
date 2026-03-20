@@ -124,6 +124,20 @@ export default function GhostCard({
           </div>
         )}
 
+        {/* Face verified badge */}
+        {profile.faceVerified && (
+          <div style={{
+            position: "absolute", top: 7, right: 7,
+            background: "rgba(74,222,128,0.15)", backdropFilter: "blur(6px)",
+            border: "1px solid rgba(74,222,128,0.4)",
+            borderRadius: 50, padding: "3px 8px",
+            display: "inline-flex", alignItems: "center", gap: 3,
+          }}>
+            <span style={{ fontSize: 9 }}>✅</span>
+            <span style={{ fontSize: 8, fontWeight: 800, color: "#4ade80", letterSpacing: "0.03em" }}>Verified</span>
+          </div>
+        )}
+
         {/* Badge */}
         {(() => {
           const badge = getBadge(profile.badge);

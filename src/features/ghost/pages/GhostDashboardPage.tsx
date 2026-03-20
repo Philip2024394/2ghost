@@ -7,6 +7,8 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { DATE_IDEAS } from "../data/dateIdeas";
 import { saveProfileToSupabase } from "../ghostProfileService";
 import { PROFILE_BADGES, BADGE_CATEGORIES } from "../data/profileBadges";
+import GhostFaceVerify from "../components/GhostFaceVerify";
+import GhostReferralSheet from "../components/GhostReferralSheet";
 
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 const FOUND_BOO_STAMP = "https://ik.imagekit.io/7grri5v7d/Found%20Boo%20postage%20stamp%20design.png";
@@ -141,6 +143,11 @@ export default function GhostDashboardPage() {
   const [profileBadge, setProfileBadge] = useState<string>(profileData?.badge ?? "");
   const [religion, setReligion] = useState<string>(profileData?.religion ?? "");
   const badgeObj = PROFILE_BADGES.find((b) => b.key === profileBadge) ?? null;
+  const [faceVerified, setFaceVerified] = useState<boolean>(() => {
+    try { return localStorage.getItem("ghost_face_verified") === "1"; } catch { return false; }
+  });
+  const [showFaceVerify, setShowFaceVerify] = useState(false);
+  const [showReferral, setShowReferral] = useState(false);
 
   const saveField = async (field: string, value: string | null) => {
     try {
@@ -582,7 +589,50 @@ export default function GhostDashboardPage() {
             </div>
           </motion.div>
 
-          {/* ── Section 6: Quick Actions ── */}
+          {/* ── Section 6: Verify & Invite ── */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+            {/* Face Verification */}
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setShowFaceVerify(true)}
+              style={{
+                flex: 1, borderRadius: 16, padding: "16px 12px", cursor: "pointer",
+                background: faceVerified ? "rgba(74,222,128,0.07)" : "rgba(255,255,255,0.04)",
+                border: faceVerified ? "1px solid rgba(74,222,128,0.3)" : "1px solid rgba(255,255,255,0.1)",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+              }}
+            >
+              <span style={{ fontSize: 26 }}>{faceVerified ? "✅" : "📷"}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: faceVerified ? "#4ade80" : "rgba(255,255,255,0.6)", textAlign: "center" }}>
+                {faceVerified ? "Face Verified" : "Verify Face"}
+              </span>
+              {!faceVerified && (
+                <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", textAlign: "center", lineHeight: 1.4 }}>
+                  Adds a ✅ badge to your card
+                </span>
+              )}
+            </motion.button>
+
+            {/* Invite Friends / Referral */}
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setShowReferral(true)}
+              style={{
+                flex: 1, borderRadius: 16, padding: "16px 12px", cursor: "pointer",
+                background: "rgba(74,222,128,0.05)",
+                border: "1px solid rgba(74,222,128,0.15)",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+              }}
+            >
+              <span style={{ fontSize: 26 }}>👻</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.6)", textAlign: "center" }}>Invite Friends</span>
+              <span style={{ fontSize: 9, color: "rgba(74,222,128,0.7)", textAlign: "center", lineHeight: 1.4 }}>
+                Earn Ghost Room & Black rewards
+              </span>
+            </motion.button>
+          </motion.div>
+
+          {/* ── Section 7: Quick Actions ── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
             <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>
               Quick Actions
@@ -726,6 +776,21 @@ export default function GhostDashboardPage() {
               </motion.button>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showFaceVerify && (
+          <GhostFaceVerify
+            onVerified={() => setFaceVerified(true)}
+            onClose={() => setShowFaceVerify(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showReferral && (
+          <GhostReferralSheet onClose={() => setShowReferral(false)} />
         )}
       </AnimatePresence>
 
