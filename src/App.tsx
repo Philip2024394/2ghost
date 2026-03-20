@@ -2,17 +2,22 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./i18n/LanguageContext";
 
-const GhostLandingPage  = lazy(() => import("./features/ghost/pages/GhostLandingPage"));
-const GhostGatewayPage  = lazy(() => import("./features/ghost/pages/GhostGatewayPage"));
-const GhostAuthPage     = lazy(() => import("./features/ghost/pages/GhostAuthPage"));
-const GhostSetupPage    = lazy(() => import("./features/ghost/pages/GhostSetupPage"));
-const GhostModePage     = lazy(() => import("./features/ghost/pages/GhostModePage"));
-const GhostMockFeedPage = lazy(() => import("./features/ghost/pages/GhostMockFeedPage"));
-const GhostPricingPage  = lazy(() => import("./features/ghost/pages/GhostPricingPage"));
-const GhostBlockPage    = lazy(() => import("./features/ghost/pages/GhostBlockPage"));
-const GhostRoomPage     = lazy(() => import("./features/ghost/pages/GhostRoomPage"));
-const GhostMapPage      = lazy(() => import("./features/ghost/pages/GhostMapPage"));
-const GhostDashboardPage = lazy(() => import("./features/ghost/pages/GhostDashboardPage"));
+// Retry lazy imports once on failure (handles Vite cold-start timing issues)
+function lazyWithRetry<T extends { default: any }>(factory: () => Promise<T>) {
+  return lazy(() => factory().catch(() => factory()));
+}
+
+const GhostLandingPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostLandingPage"));
+const GhostGatewayPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostGatewayPage"));
+const GhostAuthPage     = lazyWithRetry(() => import("./features/ghost/pages/GhostAuthPage"));
+const GhostSetupPage    = lazyWithRetry(() => import("./features/ghost/pages/GhostSetupPage"));
+const GhostModePage     = lazyWithRetry(() => import("./features/ghost/pages/GhostModePage"));
+const GhostMockFeedPage = lazyWithRetry(() => import("./features/ghost/pages/GhostMockFeedPage"));
+const GhostPricingPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostPricingPage"));
+const GhostBlockPage    = lazyWithRetry(() => import("./features/ghost/pages/GhostBlockPage"));
+const GhostRoomPage     = lazyWithRetry(() => import("./features/ghost/pages/GhostRoomPage"));
+const GhostMapPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostMapPage"));
+const GhostDashboardPage = lazyWithRetry(() => import("./features/ghost/pages/GhostDashboardPage"));
 
 export default function App() {
   return (
