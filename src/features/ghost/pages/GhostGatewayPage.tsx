@@ -48,19 +48,20 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
           borderRadius: "24px 24px 0 0",
           border: "1px solid rgba(74,222,128,0.12)",
           borderBottom: "none",
-          maxHeight: "92dvh", overflowY: "auto",
-          scrollbarWidth: "none",
+          maxHeight: "92dvh",
+          display: "flex", flexDirection: "column",
         }}
       >
         {/* Top accent */}
-        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e, #4ade80, #16a34a)" }} />
+        <div style={{ height: 3, flexShrink: 0, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e, #4ade80, #16a34a)" }} />
 
         {/* Handle */}
-        <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 0" }}>
+        <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 0", flexShrink: 0 }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
         </div>
 
-        <div style={{ padding: "20px 22px max(36px, env(safe-area-inset-bottom, 36px))" }}>
+        {/* Scrollable content */}
+        <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none", padding: "20px 22px 16px" }}>
 
           {/* Ghost hero */}
           <div style={{ textAlign: "center", marginBottom: 24 }}>
@@ -122,7 +123,7 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
           <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.2), transparent)", marginBottom: 22 }} />
 
           {/* How it works */}
-          <div style={{ marginBottom: 28 }}>
+          <div style={{ marginBottom: 8 }}>
             <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(74,222,128,0.6)", textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px" }}>
               ⚙️ {t("gateway.howItWorks")}
             </p>
@@ -140,8 +141,10 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
               ))}
             </div>
           </div>
+        </div>
 
-          {/* CTA */}
+        {/* Sticky footer — always visible */}
+        <div style={{ flexShrink: 0, padding: "14px 22px max(28px, env(safe-area-inset-bottom, 28px))", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(4,6,4,0.97)" }}>
           <motion.button
             whileTap={{ scale: 0.97 }}
             whileHover={{ y: -2 }}
@@ -156,10 +159,9 @@ function WelcomeModal({ onAccept }: { onAccept: () => void }) {
             }}
           >
             <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
-            <img src={GHOST_LOGO} alt="" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> {t("gateway.accept")}
+            Agree To Abide By Rules
           </motion.button>
-
-          <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "12px 0 0", lineHeight: 1.6 }}>
+          <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "10px 0 0", lineHeight: 1.6 }}>
             By entering you agree to the house rules above and our{" "}
             <span style={{ color: "rgba(255,255,255,0.35)" }}>Privacy Policy</span>
           </p>

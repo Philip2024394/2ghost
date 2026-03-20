@@ -8,7 +8,7 @@ import { detectIpCountry, getCachedIpCountry, COUNTRY_PHONE_PREFIX } from "@/sha
 import { useLanguage } from "@/i18n/LanguageContext";
 
 const GHOST_PROFILE_KEY = "ghost_profile";
-const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasd.png";
 
 const INTEREST_TAGS = [
   "Coffee ☕", "Travel ✈️", "Fitness 💪", "Music 🎵", "Food 🍜", "Art 🎨",
