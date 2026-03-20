@@ -132,7 +132,22 @@ export default function GhostDashboardPage() {
   const connectAlt: string | null = profileData?.connectAlt ?? null;
   const connectAltHandle: string | null = profileData?.connectAltHandle ?? null;
   const altPlatform = connectAlt ? getUsernamePlatform(connectAlt) : undefined;
-  const interests: string[] = profileData?.interests ?? [];
+  const firstDateIdea: string | null = profileData?.firstDateIdea ?? null;
+  const FIRST_DATE_IDEAS = [
+    { key: "french_restaurant", emoji: "🍷", label: "French Restaurant",  desc: "Candlelit dinner, good wine" },
+    { key: "beach_walk",        emoji: "🏖️", label: "Beach Shore Walk",   desc: "Sunset stroll, barefoot vibes" },
+    { key: "cinema_night",      emoji: "🎬", label: "Cinema Night",        desc: "Pick a film, share popcorn" },
+    { key: "coffee_date",       emoji: "☕", label: "Coffee & Cake",        desc: "Slow morning, easy conversation" },
+    { key: "night_market",      emoji: "🏮", label: "Night Market",         desc: "Street food, good energy" },
+    { key: "picnic",            emoji: "🌿", label: "Picnic in the Park",   desc: "Blanket, snacks, fresh air" },
+    { key: "live_music",        emoji: "🎶", label: "Live Music Night",     desc: "Jazz bar, concert, or rooftop" },
+    { key: "sushi",             emoji: "🍣", label: "Sushi Date",           desc: "Good food, clean vibes" },
+    { key: "city_explore",      emoji: "🚶", label: "City Explore",         desc: "Walk, discover, see where it leads" },
+    { key: "rooftop",           emoji: "🌆", label: "Rooftop Bar",          desc: "City views, cocktails, golden hour" },
+    { key: "bowling",           emoji: "🎳", label: "Bowling Night",        desc: "Playful, competitive, fun" },
+    { key: "boat_trip",         emoji: "⛵", label: "Boat Trip",            desc: "Open water, coastal adventure" },
+  ];
+  const dateIdeaObj = FIRST_DATE_IDEAS.find((d) => d.key === firstDateIdea) ?? null;
 
   // Activity
   const [likesToday] = useState(getLikesToday);
@@ -410,20 +425,16 @@ export default function GhostDashboardPage() {
                 </>
               )}
 
-              {interests.length > 0 && (
+              {dateIdeaObj && (
                 <>
                   <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "12px 0" }} />
-                  <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>Your Interests</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {interests.map((tag) => (
-                      <span key={tag} style={{
-                        fontSize: 11, fontWeight: 700,
-                        background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)",
-                        borderRadius: 50, padding: "3px 10px", color: "rgba(74,222,128,0.8)",
-                      }}>
-                        {tag}
-                      </span>
-                    ))}
+                  <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>Dream First Date</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.2)", borderRadius: 12, padding: "10px 12px" }}>
+                    <span style={{ fontSize: 24, flexShrink: 0 }}>{dateIdeaObj.emoji}</span>
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 800, color: "rgba(251,191,36,0.9)", margin: 0 }}>{dateIdeaObj.label}</p>
+                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>{dateIdeaObj.desc}</p>
+                    </div>
                   </div>
                 </>
               )}

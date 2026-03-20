@@ -17,6 +17,7 @@ export type GhostProfile = {
   isVerified?: boolean;
   bio?: string | null;
   interests?: string[] | null;
+  firstDateIdea?: string | null;
   religion?: string | null;
   connectPhone?: string | null;
   connectAlt?: string | null;

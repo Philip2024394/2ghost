@@ -7,6 +7,27 @@ import { toGhostId } from "../utils/ghostHelpers";
 
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
+const FIRST_DATE_IDEAS = [
+  { key: "french_restaurant", emoji: "🍷", label: "French Restaurant" },
+  { key: "beach_walk",        emoji: "🏖️", label: "Beach Shore Walk" },
+  { key: "cinema_night",      emoji: "🎬", label: "Cinema Night" },
+  { key: "coffee_date",       emoji: "☕", label: "Coffee & Cake" },
+  { key: "night_market",      emoji: "🏮", label: "Night Market" },
+  { key: "picnic",            emoji: "🌿", label: "Picnic in the Park" },
+  { key: "live_music",        emoji: "🎶", label: "Live Music Night" },
+  { key: "sushi",             emoji: "🍣", label: "Sushi Date" },
+  { key: "city_explore",      emoji: "🚶", label: "City Explore" },
+  { key: "rooftop",           emoji: "🌆", label: "Rooftop Bar" },
+  { key: "bowling",           emoji: "🎳", label: "Bowling Night" },
+  { key: "boat_trip",         emoji: "⛵", label: "Boat Trip" },
+];
+function getDateIdea(profileId: string, key?: string | null) {
+  if (key) return FIRST_DATE_IDEAS.find((d) => d.key === key) ?? null;
+  let h = 0;
+  for (let i = 0; i < profileId.length; i++) h = Math.imul(31, h) + profileId.charCodeAt(i) | 0;
+  return FIRST_DATE_IDEAS[Math.abs(h) % FIRST_DATE_IDEAS.length];
+}
+
 // ── Match popup ─────────────────────────────────────────────────────────────
 export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConnectWhatsApp }: {
   profile: GhostProfile;
@@ -60,16 +81,17 @@ export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConn
             <span>{profile.age} · {profile.city} {profile.countryFlag}</span>
           </p>
 
-          {/* Interests */}
-          {profile.interests && profile.interests.length > 0 && (
-            <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 4, margin: "8px 0 12px" }}>
-              {profile.interests.map((tag) => (
-                <span key={tag} style={{ fontSize: 10, fontWeight: 700, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)", borderRadius: 50, padding: "2px 8px", color: "rgba(74,222,128,0.8)" }}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
+          {/* Dream First Date */}
+          {(() => {
+            const idea = getDateIdea(profile.id, profile.firstDateIdea);
+            if (!idea) return null;
+            return (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, margin: "8px 0 12px", background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.22)", borderRadius: 50, padding: "4px 12px" }}>
+                <span style={{ fontSize: 15 }}>{idea.emoji}</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(251,191,36,0.85)" }}>{idea.label}</span>
+              </div>
+            );
+          })()}
 
           {isSubscribed ? (
             <>

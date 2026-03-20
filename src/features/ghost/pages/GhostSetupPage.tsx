@@ -5,15 +5,23 @@ import { useNavigate } from "react-router-dom";
 import { WORLD_COUNTRIES } from "../data/worldCountries";
 import { PHONE_APPS } from "../data/connectPlatforms";
 import { detectIpCountry, getCachedIpCountry, COUNTRY_PHONE_PREFIX } from "@/shared/hooks/useIpCountry";
-import { useLanguage } from "@/i18n/LanguageContext";
 
 const GHOST_PROFILE_KEY = "ghost_profile";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasd.png";
 
-const INTEREST_TAGS = [
-  "Coffee ☕", "Travel ✈️", "Fitness 💪", "Music 🎵", "Food 🍜", "Art 🎨",
-  "Gaming 🎮", "Hiking 🏔️", "Movies 🎬", "Books 📚", "Photography 📷",
-  "Dancing 💃", "Cooking 🍳", "Tech 💻", "Beaches 🏖️", "Nightlife 🌃", "Sports ⚽", "Yoga 🧘",
+const FIRST_DATE_IDEAS = [
+  { key: "french_restaurant", emoji: "🍷", label: "French Restaurant",  desc: "Candlelit dinner, good wine" },
+  { key: "beach_walk",        emoji: "🏖️", label: "Beach Shore Walk",   desc: "Sunset stroll, barefoot vibes" },
+  { key: "cinema_night",      emoji: "🎬", label: "Cinema Night",        desc: "Pick a film, share popcorn" },
+  { key: "coffee_date",       emoji: "☕", label: "Coffee & Cake",        desc: "Slow morning, easy conversation" },
+  { key: "night_market",      emoji: "🏮", label: "Night Market",         desc: "Street food, good energy" },
+  { key: "picnic",            emoji: "🌿", label: "Picnic in the Park",   desc: "Blanket, snacks, fresh air" },
+  { key: "live_music",        emoji: "🎶", label: "Live Music Night",     desc: "Jazz bar, concert, or rooftop" },
+  { key: "sushi",             emoji: "🍣", label: "Sushi Date",           desc: "Good food, clean vibes" },
+  { key: "city_explore",      emoji: "🚶", label: "City Explore",         desc: "Walk, discover, see where it leads" },
+  { key: "rooftop",           emoji: "🌆", label: "Rooftop Bar",          desc: "City views, cocktails, golden hour" },
+  { key: "bowling",           emoji: "🎳", label: "Bowling Night",        desc: "Playful, competitive, fun" },
+  { key: "boat_trip",         emoji: "⛵", label: "Boat Trip",            desc: "Open water, coastal adventure" },
 ];
 
 const RELIGIONS = [
@@ -44,7 +52,6 @@ const input = (hasError = false): React.CSSProperties => ({
 
 export default function GhostSetupPage() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [photo, setPhoto] = useState<string | null>(null);
@@ -58,7 +65,7 @@ export default function GhostSetupPage() {
   const [interest, setInterest] = useState<"Women" | "Men" | "Both" | "">("");
   const [connectPhone, setConnectPhone] = useState("");
   const [bio, setBio] = useState("");
-  const [interests, setInterests] = useState<string[]>([]);
+  const [firstDateIdea, setFirstDateIdea] = useState("");
   const [religion, setReligion] = useState("");
   const [lookingFor, setLookingFor] = useState("");
   const [saving, setSaving] = useState(false);
@@ -115,7 +122,7 @@ export default function GhostSetupPage() {
         countryCode: selectedCountryObj?.code ?? "",
         gender, interest,
         bio: bio.trim() || null,
-        interests: interests.length > 0 ? interests : null,
+        firstDateIdea: firstDateIdea || null,
         religion: religion || null,
         lookingFor: lookingFor || null,
         connectPhone: connectPhone.trim() || null,
@@ -406,26 +413,31 @@ export default function GhostSetupPage() {
           </div>
         </div>
 
-        {/* Interests */}
+        {/* Dream First Date */}
         <div style={{ marginBottom: 20 }}>
-          <label style={label}>Interests <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}>— pick up to 3</span></label>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {INTEREST_TAGS.map((tag) => {
-              const sel = interests.includes(tag);
-              const maxed = interests.length >= 3 && !sel;
+          <label style={label}>
+            Dream First Date
+            <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none", letterSpacing: 0 }}> — pick one</span>
+          </label>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {FIRST_DATE_IDEAS.map((idea) => {
+              const sel = firstDateIdea === idea.key;
               return (
                 <button
-                  key={tag}
-                  onClick={() => { if (maxed) return; setInterests(sel ? interests.filter((t) => t !== tag) : [...interests, tag]); }}
+                  key={idea.key}
+                  onClick={() => setFirstDateIdea(sel ? "" : idea.key)}
                   style={{
-                    height: 34, borderRadius: 50, padding: "0 12px",
-                    background: sel ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.04)",
-                    border: sel ? "1px solid rgba(74,222,128,0.4)" : "1px solid rgba(255,255,255,0.08)",
-                    color: sel ? "rgba(74,222,128,0.95)" : maxed ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.6)",
-                    fontSize: 12, fontWeight: 600, cursor: maxed ? "default" : "pointer",
+                    borderRadius: 14, padding: "14px 12px",
+                    background: sel ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.03)",
+                    border: sel ? "1px solid rgba(74,222,128,0.5)" : "1px solid rgba(255,255,255,0.07)",
+                    cursor: "pointer", textAlign: "left",
+                    boxShadow: sel ? "0 0 16px rgba(74,222,128,0.15)" : "none",
+                    transition: "all 0.15s",
                   }}
                 >
-                  {tag}
+                  <div style={{ fontSize: 26, marginBottom: 6, lineHeight: 1 }}>{idea.emoji}</div>
+                  <p style={{ fontSize: 12, fontWeight: 800, color: sel ? "rgba(74,222,128,0.95)" : "#fff", margin: "0 0 3px", lineHeight: 1.2 }}>{idea.label}</p>
+                  <p style={{ fontSize: 10, color: sel ? "rgba(74,222,128,0.6)" : "rgba(255,255,255,0.3)", margin: 0, lineHeight: 1.4 }}>{idea.desc}</p>
                 </button>
               );
             })}
