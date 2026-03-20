@@ -186,12 +186,12 @@ export default function GhostGatewayPage() {
   useEffect(() => {
     const welcomed = (() => { try { return !!localStorage.getItem("ghost_house_welcomed"); } catch { return false; } })();
     if (welcomed) {
-      // Already accepted — show mock feed for 3s then slide through
-      const t = setTimeout(() => setCountdown(true), 3000);
+      // Already accepted — show mock feed for 5s then slide directly, NO blur overlay
+      const t = setTimeout(() => { setUnlocking(true); setTimeout(() => setDone(true), 1400); }, 5000);
       return () => clearTimeout(t);
     } else {
-      // First visit — show mock feed for 3s, THEN show welcome modal
-      const t = setTimeout(() => setShowWelcome(true), 3000);
+      // First visit — show mock feed for 5s, THEN show welcome modal
+      const t = setTimeout(() => setShowWelcome(true), 5000);
       return () => clearTimeout(t);
     }
   }, []);
@@ -206,10 +206,10 @@ export default function GhostGatewayPage() {
     setCountdown(true);
   };
 
-  // After welcome is accepted: wait 3s then slide
+  // After welcome is accepted: wait 2s then slide
   useEffect(() => {
     if (!countdown) return;
-    const timer = setTimeout(() => handleUnlock(), 3000);
+    const timer = setTimeout(() => { setUnlocking(true); setTimeout(() => setDone(true), 1400); }, 2000);
     return () => clearTimeout(timer);
   }, [countdown]);
 
@@ -218,11 +218,6 @@ export default function GhostGatewayPage() {
     if (!done) return;
     navigate(hasProfile ? "/ghost/mode" : "/ghost/setup", { replace: true });
   }, [done, hasProfile, navigate]);
-
-  const handleUnlock = () => {
-    setUnlocking(true);
-    setTimeout(() => setDone(true), 1400);
-  };
 
   return (
     <div style={{ position: "relative", width: "100vw", height: "100dvh", overflow: "hidden", background: "#050508" }}>
