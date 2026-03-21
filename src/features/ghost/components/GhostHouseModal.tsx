@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 // ── Ghost House Welcome Modal ─────────────────────────────────────────────────
 export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
+  const a = useGenderAccent();
   const RULES = [
     { icon: "🤝", title: "Respect Every Ghost", desc: "No harassment, hate, or disrespect. Every person here deserves dignity — no exceptions." },
     { icon: "🔒", title: "Privacy is Sacred", desc: "Never share another member's identity, photos, or location outside the House." },
@@ -45,14 +47,14 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
           background: "linear-gradient(180deg, rgba(5,8,5,0.99) 0%, rgba(8,12,8,0.99) 100%)",
           backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
           borderRadius: "24px 24px 0 0",
-          border: "1px solid rgba(74,222,128,0.12)",
+          border: `1px solid ${a.glow(0.12)}`,
           borderBottom: "none",
           maxHeight: "94dvh", overflowY: "auto",
-          scrollbarWidth: "none",
+          scrollbarWidth: `none`,
         }}
       >
         {/* Top accent bar */}
-        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e, #4ade80, #16a34a)" }} />
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${a.accentDeep}, ${a.accentDark}, ${a.accent}, ${a.accentMid}, ${a.accentDark})` }} />
 
         {/* Handle */}
         <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 0" }}>
@@ -67,9 +69,9 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
               animate={{
                 y: [0, -12, 0],
                 filter: [
-                  "drop-shadow(0 0 16px rgba(74,222,128,0.4))",
-                  "drop-shadow(0 0 32px rgba(74,222,128,0.8))",
-                  "drop-shadow(0 0 16px rgba(74,222,128,0.4))",
+                  `drop-shadow(0 0 16px ${a.glow(0.4)})`,
+                  `drop-shadow(0 0 32px ${a.glow(0.8)})`,
+                  `drop-shadow(0 0 16px ${a.glow(0.4)})`,
                 ],
               }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -83,7 +85,7 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
             }}>
               Welcome to{" "}
               <span style={{
-                background: "linear-gradient(135deg, #4ade80, #22c55e)",
+                background: `linear-gradient(135deg, ${a.accent}, ${a.accentMid})`,
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               }}>
                 Ghost Rooms
@@ -94,18 +96,18 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
               maxWidth: 320, marginInline: "auto",
             }}>
               Before you settle in, we have some{" "}
-              <span style={{ color: "rgba(74,222,128,0.85)", fontWeight: 700 }}>house rules</span>{" "}
+              <span style={{ color: a.glow(0.85), fontWeight: 700 }}>house rules</span>{" "}
               that we must all abide by — to keep our house free from bad energies entering.
             </p>
           </div>
 
           {/* Divider */}
-          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.2), transparent)", marginBottom: 22 }} />
+          <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.2)}, transparent)`, marginBottom: 22 }} />
 
           {/* House Rules */}
           <div style={{ marginBottom: 26 }}>
             <p style={{
-              fontSize: 10, fontWeight: 800, color: "rgba(74,222,128,0.6)",
+              fontSize: 10, fontWeight: 800, color: a.glow(0.6),
               textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px",
             }}>🏠 The House Rules</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -114,13 +116,13 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
                   key={rule.title}
                   style={{
                     display: "flex", gap: 14, alignItems: "flex-start",
-                    background: "rgba(74,222,128,0.04)", border: "1px solid rgba(74,222,128,0.08)",
+                    background: a.glow(0.04), border: `1px solid ${a.glow(0.08)}`,
                     borderRadius: 14, padding: "12px 14px",
                   }}
                 >
                   <div style={{
                     width: 38, height: 38, borderRadius: 12, flexShrink: 0,
-                    background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.18)",
+                    background: a.glow(0.1), border: `1px solid ${a.glow(0.18)}`,
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
                   }}>
                     {rule.icon === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle" }} /> : rule.icon}
@@ -139,12 +141,12 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
           </div>
 
           {/* Divider */}
-          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.2), transparent)", marginBottom: 22 }} />
+          <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.2)}, transparent)`, marginBottom: 22 }} />
 
           {/* How it works */}
           <div style={{ marginBottom: 28 }}>
             <p style={{
-              fontSize: 10, fontWeight: 800, color: "rgba(74,222,128,0.6)",
+              fontSize: 10, fontWeight: 800, color: a.glow(0.6),
               textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px",
             }}>⚙️ How the House Works</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -177,10 +179,10 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
             onClick={onAccept}
             style={{
               width: "100%", height: 54, borderRadius: 50, border: "none",
-              background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+              background: a.gradient,
               color: "#fff", fontSize: 15, fontWeight: 900,
               cursor: "pointer", letterSpacing: "0.03em",
-              boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px rgba(34,197,94,0.5)",
+              boxShadow: `0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px ${a.glowMid(0.5)}`,
               position: "relative", overflow: "hidden",
             }}
           >
@@ -215,18 +217,19 @@ export default function GhostHouseModal({
   onClose: () => void;
   onPurchase: (tier: "gold" | "suite") => void;
 }) {
+  const a = useGenderAccent();
   const TIERS = [
     {
       key: "suite" as const,
       icon: "🏨",
       name: "Ghost Suite",
-      price: "$4.99/mo",
-      period: "per month",
-      border: "rgba(74,222,128,0.35)",
-      bg: "rgba(74,222,128,0.07)",
-      glow: "rgba(74,222,128,0.4)",
-      color: "#4ade80",
-      gradient: "linear-gradient(135deg, #16a34a, #22c55e)",
+      price: "🪙 500/mo",
+      period: "coins per month",
+      border: a.glow(0.35),
+      bg: a.glow(0.07),
+      glow: a.glow(0.4),
+      color: a.accent,
+      gradient: `linear-gradient(135deg, ${a.accentDark}, ${a.accentMid})`,
       features: [
         "5 match unlocks/month included",
         "Ghost Vault: 10 photos · 3 videos",
@@ -243,8 +246,8 @@ export default function GhostHouseModal({
       key: "gold" as const,
       icon: null,
       name: "Gold Room",
-      price: "$9.99/mo",
-      period: "per month",
+      price: "🪙 1,000/mo",
+      period: "coins per month",
       border: "rgba(212,175,55,0.45)",
       bg: "rgba(212,175,55,0.06)",
       glow: "rgba(212,175,55,0.5)",
@@ -292,7 +295,7 @@ export default function GhostHouseModal({
       >
         {/* Dark overlay over background image */}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(3,6,3,0.82) 0%, rgba(5,8,5,0.92) 100%)", zIndex: 0, pointerEvents: "none" }} />
-        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #d4af37)", position: "relative", zIndex: 1 }} />
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${a.accentDeep}, ${a.accentDark}, ${a.accent}, ${a.accentMid}, ${a.accentDark})`, position: "relative", zIndex: 1 }} />
         <div style={{ padding: "22px 20px 36px", position: "relative", zIndex: 1 }}>
           <button onClick={onClose} style={{ position: "absolute", top: 18, right: 16, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.5)" }}>
             <X size={13} />

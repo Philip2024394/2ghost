@@ -1,7 +1,9 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./i18n/LanguageContext";
 import AnalyticsTracker from "./features/analytics/AnalyticsTracker";
+import { getStoredGender } from "./shared/hooks/useGenderAccent";
+import DevPhonePreview from "./shared/components/DevPhonePreview";
 
 // Retry lazy imports once on failure (handles Vite cold-start timing issues)
 function lazyWithRetry<T extends { default: any }>(factory: () => Promise<T>) {
@@ -21,6 +23,9 @@ const GhostMapPage      = lazyWithRetry(() => import("./features/ghost/pages/Gho
 const GhostDashboardPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostDashboardPage"));
 const GhostPaymentSuccessPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostPaymentSuccessPage"));
 const GhostOnboardingPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostOnboardingPage"));
+const PenthouseFloorPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseFloorPage"));
+const PenthouseApplyPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseApplyPage"));
+const PenthouseVaultPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseVaultPage"));
 
 // Affiliate
 const AffiliateJoinPage      = lazyWithRetry(() => import("./features/affiliate/pages/AffiliateJoinPage"));
@@ -42,9 +47,16 @@ const AdminHealthPage   = lazyWithRetry(() => import("./features/admin/pages/Adm
 const AdminTrafficPage  = lazyWithRetry(() => import("./features/admin/pages/AdminTrafficPage"));
 
 export default function App() {
+  // Set data-gender on root so CSS variables can respond to gender theme
+  useEffect(() => {
+    const gender = getStoredGender();
+    document.documentElement.setAttribute("data-gender", gender);
+  }, []);
+
   return (
     <LanguageProvider>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <DevPhonePreview />
       <AnalyticsTracker />
       <Suspense fallback={null}>
         <Routes>
@@ -62,6 +74,9 @@ export default function App() {
           <Route path="/ghost/dashboard"       element={<GhostDashboardPage />} />
           <Route path="/ghost/payment-success" element={<GhostPaymentSuccessPage />} />
           <Route path="/ghost/onboarding"      element={<GhostOnboardingPage />} />
+          <Route path="/ghost/penthouse"       element={<PenthouseFloorPage />} />
+          <Route path="/ghost/penthouse/apply" element={<PenthouseApplyPage />} />
+          <Route path="/ghost/penthouse/vault/:matchId" element={<PenthouseVaultPage />} />
 
           {/* Affiliate */}
           <Route path="/affiliate/join"          element={<AffiliateJoinPage />} />

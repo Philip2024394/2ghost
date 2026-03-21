@@ -6,6 +6,7 @@ import {
 } from "../data/butlerProviders";
 import { logServiceRequest } from "../../admin/adminSupabaseService";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const PACK_PRICE = "$9.99";
 const G = "#4ade80";                          // primary green
 const G_DIM = "rgba(74,222,128,0.7)";
@@ -26,6 +27,7 @@ function Stars({ rating }: { rating: number }) {
 }
 
 export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
+  const a = useGenderAccent();
   const [activeTab, setActiveTab] = useState<ButlerCategory>("flowers");
   const [screen, setScreen]       = useState<Screen>("list");
   const [paying, setPaying]       = useState(false);
@@ -66,7 +68,7 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
           borderRadius: "24px 24px 0 0",
           border: `1px solid ${G_BORDER}`,
           borderBottom: "none",
-          boxShadow: `0 -8px 40px rgba(74,222,128,0.06)`,
+          boxShadow: `0 -8px 40px ${a.glow(0.06)}`,
           maxHeight: "93dvh", display: "flex", flexDirection: "column",
           position: "relative",
         }}
@@ -94,7 +96,7 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
 
           {/* City notice */}
           {!supported && (
-            <div style={{ background: "rgba(74,222,128,0.05)", border: `1px solid ${G_BORDER}`, borderRadius: 10, padding: "8px 12px", margin: "10px 0 4px" }}>
+            <div style={{ background: a.glow(0.05), border: `1px solid ${G_BORDER}`, borderRadius: 10, padding: "8px 12px", margin: "10px 0 4px" }}>
               <p style={{ fontSize: 11, color: G_DIM, margin: 0 }}>Butler coming to {city} soon — showing Jakarta providers</p>
             </div>
           )}
@@ -111,7 +113,7 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
                   style={{
                     flex: 1, height: 52, borderRadius: 14, border: "none", cursor: "pointer",
                     background: isActive ? G_BG : "rgba(255,255,255,0.03)",
-                    outline: isActive ? `2px solid rgba(74,222,128,0.45)` : "2px solid transparent",
+                    outline: isActive ? `2px solid ${a.glow(0.45)}` : "2px solid transparent",
                     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
                     position: "relative",
                   }}
@@ -166,7 +168,7 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
                       key={p.id}
                       style={{
                         background: "rgba(255,255,255,0.03)", borderRadius: 16,
-                        border: "1px solid rgba(74,222,128,0.08)",
+                        border: `1px solid ${a.glow(0.08)}`,
                         overflow: "hidden",
                       }}
                     >
@@ -181,7 +183,7 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
                             <span style={{
                               position: "absolute", bottom: 0, right: 0,
                               width: 18, height: 18, borderRadius: "50%",
-                              background: BG, border: `1.5px solid rgba(74,222,128,0.5)`,
+                              background: BG, border: `1.5px solid ${a.glow(0.5)}`,
                               display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9,
                             }}>✅</span>
                           )}
@@ -200,7 +202,7 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
 
                       {/* WhatsApp row */}
                       <div style={{
-                        borderTop: `1px solid rgba(74,222,128,0.07)`,
+                        borderTop: `1px solid ${a.glow(0.07)}`,
                         padding: "10px 14px", display: "flex", alignItems: "center", gap: 8,
                         background: "rgba(0,0,0,0.25)",
                       }}>
@@ -238,9 +240,9 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
                       onClick={() => setScreen("payment")}
                       style={{
                         width: "100%", height: 54, borderRadius: 50, border: "none",
-                        background: "linear-gradient(135deg, #4ade80, #16a34a)",
+                        background: `linear-gradient(135deg, ${a.accent}, #16a34a)`,
                         color: "#000", fontSize: 15, fontWeight: 900, cursor: "pointer",
-                        boxShadow: "0 4px 20px rgba(74,222,128,0.25)",
+                        boxShadow: `0 4px 20px ${a.glow(0.25)}`,
                       }}
                     >
                       <img src="https://ik.imagekit.io/7grri5v7d/butlers%20tray.png" alt="" style={{ width: 20, height: 20, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} />Unlock 5 Numbers — {PACK_PRICE}
@@ -262,12 +264,12 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
                   One-time unlock — {activeMeta.emoji} {activeMeta.label} · {city}
                 </p>
 
-                <div style={{ background: "rgba(255,255,255,0.03)", border: `1px solid rgba(74,222,128,0.1)`, borderRadius: 16, padding: 18, marginBottom: 16 }}>
+                <div style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${a.glow(0.1)}`, borderRadius: 16, padding: 18, marginBottom: 16 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
                     <span style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>{activeMeta.emoji} {activeMeta.label} — 5 numbers</span>
                     <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{PACK_PRICE}</span>
                   </div>
-                  <div style={{ height: 1, background: "rgba(74,222,128,0.08)", marginBottom: 10 }} />
+                  <div style={{ height: 1, background: a.glow(0.08), marginBottom: 10 }} />
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>Total</span>
                     <span style={{ fontSize: 18, fontWeight: 900, color: G }}>{PACK_PRICE}</span>
@@ -286,10 +288,10 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
                   disabled={paying}
                   style={{
                     width: "100%", height: 54, borderRadius: 50, border: "none",
-                    background: paying ? "rgba(255,255,255,0.07)" : "linear-gradient(135deg, #4ade80, #16a34a)",
+                    background: paying ? "rgba(255,255,255,0.07)" : `linear-gradient(135deg, ${a.accent}, #16a34a)`,
                     color: paying ? "rgba(255,255,255,0.3)" : "#000",
                     fontSize: 15, fontWeight: 900, cursor: paying ? "default" : "pointer", marginBottom: 10,
-                    boxShadow: paying ? "none" : "0 4px 20px rgba(74,222,128,0.25)",
+                    boxShadow: paying ? "none" : `0 4px 20px ${a.glow(0.25)}`,
                   }}
                 >
                   {paying ? "Processing…" : `Pay ${PACK_PRICE} — Unlock Numbers`}
@@ -340,8 +342,8 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
                       }}
                       style={{
                         display: "flex", alignItems: "center", gap: 12, padding: "12px 14px",
-                        background: openWa === p.id ? "rgba(74,222,128,0.08)" : "rgba(255,255,255,0.03)",
-                        border: `1px solid ${openWa === p.id ? "rgba(74,222,128,0.35)" : "rgba(74,222,128,0.08)"}`,
+                        background: openWa === p.id ? a.glow(0.08) : "rgba(255,255,255,0.03)",
+                        border: `1px solid ${openWa === p.id ? a.glow(0.35) : a.glow(0.08)}`,
                         borderRadius: 14, cursor: "pointer", textAlign: "left",
                       }}
                     >

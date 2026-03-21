@@ -5,6 +5,7 @@ import { ArrowLeft, SlidersHorizontal, X } from "lucide-react";
 import { generateIndonesianProfiles } from "@/data/indonesianProfiles";
 import { useGhostMode } from "@/features/ghost/hooks/useGhostMode";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 // ── Badges ────────────────────────────────────────────────────────────────────
@@ -51,6 +52,7 @@ type MapProfile = ReturnType<typeof generateIndonesianProfiles>[0] & {
 };
 
 function ProfilePopup({ profile, isGhost, onClose }: { profile: MapProfile; isGhost: boolean; onClose: () => void }) {
+  const a = useGenderAccent();
   const [flipped, setFlipped] = useState(false);
 
   return (
@@ -63,7 +65,7 @@ function ProfilePopup({ profile, isGhost, onClose }: { profile: MapProfile; isGh
         initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 300, damping: 32 }}
         onClick={e => e.stopPropagation()}
-        style={{ width: "100%", maxWidth: 480, background: "rgba(6,8,5,0.98)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(74,222,128,0.12)", borderBottom: "none", overflow: "hidden", paddingBottom: "max(24px,env(safe-area-inset-bottom,24px))" }}
+        style={{ width: "100%", maxWidth: 480, background: "rgba(6,8,5,0.98)", borderRadius: "22px 22px 0 0", border: `1px solid rgba(74,222,128,0.12)`, borderBottom: "none", overflow: "hidden", paddingBottom: "max(24px,env(safe-area-inset-bottom,24px))" }}
       >
         {/* Handle */}
         <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 0" }}>
@@ -102,9 +104,9 @@ function ProfilePopup({ profile, isGhost, onClose }: { profile: MapProfile; isGh
             </div>
 
             {/* Back — details (Ghosted users only) */}
-            <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", transform: "rotateY(180deg)", borderRadius: 18, background: "linear-gradient(135deg, rgba(10,18,8,0.98), rgba(6,14,4,0.98))", border: "1px solid rgba(74,222,128,0.15)", display: "flex", flexDirection: "column", padding: "20px 20px" }}>
+            <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", transform: "rotateY(180deg)", borderRadius: 18, background: "linear-gradient(135deg, rgba(10,18,8,0.98), rgba(6,14,4,0.98))", border: `1px solid rgba(74,222,128,0.15)`, display: "flex", flexDirection: "column", padding: "20px 20px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                <div style={{ width: 54, height: 54, borderRadius: 14, overflow: "hidden", border: "2px solid rgba(74,222,128,0.4)", flexShrink: 0 }}>
+                <div style={{ width: 54, height: 54, borderRadius: 14, overflow: "hidden", border: `2px solid rgba(74,222,128,0.4)`, flexShrink: 0 }}>
                   <img src={profile.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
                 <div>
@@ -128,7 +130,7 @@ function ProfilePopup({ profile, isGhost, onClose }: { profile: MapProfile; isGh
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {profile.badges.map(bid => {
                     const b = BADGES.find(x => x.id === bid);
-                    return b ? <span key={bid} style={{ fontSize: 11, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 8, padding: "3px 9px", color: "rgba(74,222,128,0.9)", fontWeight: 700 }}><span>{b.icon}</span> <span>{b.label}</span></span> : null;
+                    return b ? <span key={bid} style={{ fontSize: 11, background: "rgba(74,222,128,0.1)", border: `1px solid rgba(74,222,128,0.25)`, borderRadius: 8, padding: "3px 9px", color: "rgba(74,222,128,0.9)", fontWeight: 700 }}><span>{b.icon}</span> <span>{b.label}</span></span> : null;
                   })}
                 </div>
               </div>
@@ -144,7 +146,7 @@ function ProfilePopup({ profile, isGhost, onClose }: { profile: MapProfile; isGh
           <button onClick={onClose} style={{ flex: 1, height: 44, borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
             <span>Pass</span>
           </button>
-          <button style={{ flex: 2, height: 44, borderRadius: 12, border: "none", background: "linear-gradient(to bottom, #4ade80, #22c55e)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 16px rgba(34,197,94,0.35)" }}>
+          <button style={{ flex: 2, height: 44, borderRadius: 12, border: "none", background: `linear-gradient(to bottom, #4ade80, #22c55e)`, color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 16px rgba(34,197,94,0.35)` }}>
             <span><img src={GHOST_LOGO} alt="" style={{ width: 48, height: 48, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> Like Ghost</span>
           </button>
         </div>
@@ -155,6 +157,7 @@ function ProfilePopup({ profile, isGhost, onClose }: { profile: MapProfile; isGh
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function GhostMapPage() {
+  const a = useGenderAccent();
   const navigate       = useNavigate();
   const { isGhost }    = useGhostMode();
   const containerRef   = useRef<HTMLDivElement>(null);
@@ -214,8 +217,8 @@ export default function GhostMapPage() {
             <>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{selected.ghostId}</span>
-                <span style={{ fontSize: 11, color: "rgba(74,222,128,0.9)", fontWeight: 700 }}>· <span>{selected.distKm}</span> km</span>
-                {activeBadgeObj && <span style={{ fontSize: 10, background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 20, padding: "1px 7px", color: "rgba(74,222,128,0.9)", fontWeight: 700 }}><span>{activeBadgeObj.icon}</span> <span>{activeBadgeObj.label}</span></span>}
+                <span style={{ fontSize: 11, color: a.glow(0.9), fontWeight: 700 }}>· <span>{selected.distKm}</span> km</span>
+                {activeBadgeObj && <span style={{ fontSize: 10, background: a.glow(0.12), border: `1px solid ${a.glow(0.3)}`, borderRadius: 20, padding: "1px 7px", color: a.glow(0.9), fontWeight: 700 }}><span>{activeBadgeObj.icon}</span> <span>{activeBadgeObj.label}</span></span>}
               </div>
               <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}><span>{selected.city} · {selected.gender} · {selected.age}y</span></p>
             </>
@@ -227,7 +230,7 @@ export default function GhostMapPage() {
             </div>
           )}
         </div>
-        <div style={{ flexShrink: 0, background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 800, color: "rgba(74,222,128,0.9)" }}>
+        <div style={{ flexShrink: 0, background: a.glow(0.08), border: `1px solid ${a.glow(0.2)}`, borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 800, color: a.glow(0.9) }}>
           <span>{maxKm}</span> km
         </div>
       </div>
@@ -262,7 +265,7 @@ export default function GhostMapPage() {
 
             {/* Range rings */}
             {[0.25, 0.5, 0.75, 1].map(f => (
-              <circle key={f} cx={cx} cy={cy} r={radius * f} fill="none" stroke="rgba(74,222,128,0.08)" strokeWidth={1} strokeDasharray="6,8" />
+              <circle key={f} cx={cx} cy={cy} r={radius * f} fill="none" stroke={a.glow(0.08)} strokeWidth={1} strokeDasharray="6,8" />
             ))}
             {[0.25, 0.5, 0.75, 1].map(f => (
               <text key={f} x={cx + 5} y={cy - radius * f + 10} fill="rgba(180,160,80,0.35)" fontSize={8} fontFamily="system-ui,sans-serif">
@@ -281,11 +284,11 @@ export default function GhostMapPage() {
               const pos = toXY(p.distKm, p.bearing, radius, maxKm, cx, cy);
               return (
                 <g key={`ping-${p.id}`}>
-                  <circle cx={pos.x} cy={pos.y} r={22} fill="none" stroke="rgba(74,222,128,0.6)" strokeWidth={1.5}>
+                  <circle cx={pos.x} cy={pos.y} r={22} fill="none" stroke={a.glow(0.6)} strokeWidth={1.5}>
                     <animate attributeName="r"       values="18;34;18" dur="2.2s" repeatCount="indefinite" />
                     <animate attributeName="opacity" values="0.55;0;0.55" dur="2.2s" repeatCount="indefinite" />
                   </circle>
-                  <circle cx={pos.x} cy={pos.y} r={28} fill="none" stroke="rgba(74,222,128,0.3)" strokeWidth={1}>
+                  <circle cx={pos.x} cy={pos.y} r={28} fill="none" stroke={a.glow(0.3)} strokeWidth={1}>
                     <animate attributeName="r"       values="20;40;20" dur="2.2s" begin="0.4s" repeatCount="indefinite" />
                     <animate attributeName="opacity" values="0.3;0;0.3" dur="2.2s" begin="0.4s" repeatCount="indefinite" />
                   </circle>
@@ -300,12 +303,12 @@ export default function GhostMapPage() {
               const isNearest = nearest4Ids.has(p.id);
               const r        = isSel ? 19 : isNearest ? 17 : 15;
               const hasBadge = activeBadge ? p.badges.includes(activeBadge) : false;
-              const ringColor = isSel ? "#ef4444" : hasBadge ? "#4ade80" : isNearest ? "rgba(74,222,128,0.7)" : activeBadge ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.2)";
+              const ringColor = isSel ? "#ef4444" : hasBadge ? "#4ade80" : isNearest ? a.glow(0.7) : activeBadge ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.2)";
               const ringW = (isSel || hasBadge || isNearest) ? 2.5 : 1;
 
               return (
                 <g key={p.id} onClick={e => { e.stopPropagation(); setSelectedId(p.id); }} style={{ cursor: "pointer" }}>
-                  {(isSel || hasBadge) && <circle cx={pos.x} cy={pos.y} r={r + 5} fill={isSel ? "rgba(239,68,68,0.12)" : "rgba(74,222,128,0.1)"} stroke={isSel ? "rgba(239,68,68,0.3)" : "rgba(74,222,128,0.2)"} strokeWidth={1} />}
+                  {(isSel || hasBadge) && <circle cx={pos.x} cy={pos.y} r={r + 5} fill={isSel ? "rgba(239,68,68,0.12)" : a.glow(0.1)} stroke={isSel ? "rgba(239,68,68,0.3)" : a.glow(0.2)} strokeWidth={1} />}
                   <image href={p.image} x={pos.x - r} y={pos.y - r} width={r * 2} height={r * 2} clipPath={`url(#clip-${p.id})`} style={{ opacity: activeBadge && !hasBadge && !isSel ? 0.25 : 1 }} preserveAspectRatio="xMidYMid slice" />
                   <circle cx={pos.x} cy={pos.y} r={r} fill="none" stroke={ringColor} strokeWidth={ringW} />
                   {isSel && <text x={pos.x} y={pos.y + r + 11} textAnchor="middle" fill="rgba(255,255,255,0.9)" fontSize={8} fontFamily="system-ui,sans-serif" fontWeight="bold">{p.ghostId}</text>}
@@ -327,17 +330,17 @@ export default function GhostMapPage() {
 
         {/* Right drawer trigger */}
         <motion.button whileTap={{ scale: 0.93 }} onClick={() => setDrawerOpen(true)}
-          style={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)", zIndex: 20, width: 30, height: 64, background: "rgba(8,12,6,0.92)", border: "1px solid rgba(74,222,128,0.2)", borderRight: "none", borderRadius: "12px 0 0 12px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, cursor: "pointer" }}
+          style={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)", zIndex: 20, width: 30, height: 64, background: "rgba(8,12,6,0.92)", border: `1px solid ${a.glow(0.2)}`, borderRight: "none", borderRadius: "12px 0 0 12px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, cursor: "pointer" }}
         >
-          <SlidersHorizontal size={13} color="rgba(74,222,128,0.8)" />
-          <span style={{ fontSize: 7, color: "rgba(74,222,128,0.6)", fontWeight: 800, writingMode: "vertical-rl", letterSpacing: "0.06em" }}>BADGES</span>
+          <SlidersHorizontal size={13} color={a.glow(0.8)} />
+          <span style={{ fontSize: 7, color: a.glow(0.6), fontWeight: 800, writingMode: "vertical-rl", letterSpacing: "0.06em" }}>BADGES</span>
         </motion.button>
 
         {/* KM slider */}
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 10, padding: "12px 20px 14px", background: "linear-gradient(to top, rgba(5,7,3,0.95) 55%, transparent)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 9, color: "rgba(180,160,80,0.5)", fontWeight: 700, flexShrink: 0 }}>1km</span>
-            <input type="range" min={1} max={150} value={maxKm} onChange={e => { setMaxKm(Number(e.target.value)); setSelectedId(null); }} style={{ flex: 1, accentColor: "#4ade80", cursor: "pointer" }} />
+            <input type="range" min={1} max={150} value={maxKm} onChange={e => { setMaxKm(Number(e.target.value)); setSelectedId(null); }} style={{ flex: 1, accentColor: a.accent, cursor: "pointer" }} />
             <span style={{ fontSize: 9, color: "rgba(180,160,80,0.5)", fontWeight: 700, flexShrink: 0 }}>150km</span>
           </div>
         </div>
@@ -345,7 +348,7 @@ export default function GhostMapPage() {
 
       {/* ── Footer — always shows 4 nearest ── */}
       <div style={{ background: "rgba(6,8,5,0.98)", borderTop: "1px solid rgba(255,255,255,0.07)", padding: "10px 14px max(14px,env(safe-area-inset-bottom,14px))", flexShrink: 0 }}>
-        <p style={{ fontSize: 9, fontWeight: 700, color: "rgba(74,222,128,0.5)", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 8px" }}>Nearest ghosts</p>
+        <p style={{ fontSize: 9, fontWeight: 700, color: a.glow(0.5), textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 8px" }}>Nearest ghosts</p>
         <div style={{ display: "flex", gap: 10, overflowX: "auto", scrollbarWidth: "none" }}>
           {nearest4.length === 0 ? (
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", margin: 0 }}>No ghosts in range — expand the slider</p>
@@ -361,11 +364,11 @@ export default function GhostMapPage() {
                 >
                   <div style={{ position: "relative" }}>
                     {/* Ping ring on footer avatar */}
-                    <div style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px solid ${isSel ? "#ef4444" : "rgba(74,222,128,0.5)"}`, animation: "ping 2s ease-in-out infinite", pointerEvents: "none" }} />
-                    <div style={{ width: 52, height: 52, borderRadius: "50%", overflow: "hidden", border: `2px solid ${isSel ? "#ef4444" : "rgba(74,222,128,0.4)"}`, background: "rgba(74,222,128,0.05)" }}>
+                    <div style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px solid ${isSel ? "#ef4444" : a.glow(0.5)}`, animation: "ping 2s ease-in-out infinite", pointerEvents: "none" }} />
+                    <div style={{ width: 52, height: 52, borderRadius: "50%", overflow: "hidden", border: `2px solid ${isSel ? "#ef4444" : a.glow(0.4)}`, background: a.glow(0.05) }}>
                       <img src={p.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
-                    <span style={{ position: "absolute", bottom: -3, right: -3, background: isSel ? "#ef4444" : "rgba(74,222,128,0.9)", borderRadius: 6, padding: "1px 4px", fontSize: 7, fontWeight: 900, color: isSel ? "#fff" : "#000" }}>{p.distKm}km</span>
+                    <span style={{ position: "absolute", bottom: -3, right: -3, background: isSel ? "#ef4444" : a.glow(0.9), borderRadius: 6, padding: "1px 4px", fontSize: 7, fontWeight: 900, color: isSel ? "#fff" : "#000" }}>{p.distKm}km</span>
                   </div>
                   <span style={{ fontSize: 8, fontWeight: 700, color: isSel ? "rgba(239,68,68,0.9)" : "rgba(255,255,255,0.5)", textAlign: "center", lineHeight: 1.2 }}>{p.ghostId}</span>
                 </motion.div>
@@ -396,7 +399,7 @@ export default function GhostMapPage() {
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDrawerOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.5)" }} />
             <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", stiffness: 300, damping: 32 }}
-              style={{ position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 101, width: 280, maxWidth: "82vw", background: "rgba(8,12,6,0.98)", backdropFilter: "blur(24px)", borderLeft: "1px solid rgba(74,222,128,0.12)", display: "flex", flexDirection: "column" }}
+              style={{ position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 101, width: 280, maxWidth: "82vw", background: "rgba(8,12,6,0.98)", backdropFilter: "blur(24px)", borderLeft: `1px solid ${a.glow(0.12)}`, display: "flex", flexDirection: "column" }}
             >
               <div style={{ padding: "max(16px,env(safe-area-inset-top,16px)) 16px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
@@ -421,13 +424,13 @@ export default function GhostMapPage() {
                   return (
                     <motion.button key={badge.id} whileTap={{ scale: 0.97 }}
                       onClick={() => { setActiveBadge(a => a === badge.id ? null : badge.id); setDrawerOpen(false); }}
-                      style={{ width: "100%", marginBottom: 8, background: isActive ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${isActive ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.07)"}`, borderRadius: 14, padding: "11px 14px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", textAlign: "left" }}
+                      style={{ width: "100%", marginBottom: 8, background: isActive ? a.glow(0.1) : "rgba(255,255,255,0.03)", border: `1px solid ${isActive ? a.glow(0.4) : "rgba(255,255,255,0.07)"}`, borderRadius: 14, padding: "11px 14px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", textAlign: "left" }}
                     >
                       <span style={{ fontSize: 22, flexShrink: 0 }}>{badge.icon === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle" }} /> : badge.icon}</span>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                          <span style={{ fontSize: 13, fontWeight: 800, color: isActive ? "rgba(74,222,128,0.95)" : "#fff" }}>{badge.label}</span>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: isActive ? "rgba(74,222,128,0.8)" : "rgba(255,255,255,0.25)", background: isActive ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.05)", borderRadius: 10, padding: "1px 7px" }}>{count}</span>
+                          <span style={{ fontSize: 13, fontWeight: 800, color: isActive ? a.glow(0.95) : "#fff" }}>{badge.label}</span>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: isActive ? a.glow(0.8) : "rgba(255,255,255,0.25)", background: isActive ? a.glow(0.12) : "rgba(255,255,255,0.05)", borderRadius: 10, padding: "1px 7px" }}>{count}</span>
                         </div>
                         <p style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", margin: 0, marginTop: 2 }}>{badge.desc}</p>
                       </div>

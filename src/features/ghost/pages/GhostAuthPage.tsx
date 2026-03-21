@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_HERO = "https://ik.imagekit.io/7grri5v7d/find%20meddddd.png";
 
 const COUNTRY_CODES = [
@@ -21,6 +22,7 @@ const COUNTRY_CODES = [
 ];
 
 export default function GhostAuthPage() {
+  const a = useGenderAccent();
   const navigate = useNavigate();
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [gender, setGender] = useState<"Female" | "Male">("Female");
@@ -148,18 +150,18 @@ export default function GhostAuthPage() {
           onClick={() => setAgeConfirmed(true)}
           style={{
             width: "100%", maxWidth: 320, height: 52, borderRadius: 50, border: "none",
-            background: "linear-gradient(135deg,#16a34a,#4ade80)",
+            background: `linear-gradient(135deg,${a.accentDark},${a.accent})`,
             color: "#fff", fontSize: 16, fontWeight: 900, cursor: "pointer",
-            boxShadow: "0 8px 28px rgba(74,222,128,0.3)", marginBottom: 14,
+            boxShadow: `0 8px 28px ${a.glow(0.3)}`, marginBottom: 14,
           }}
         >
           I am 18 or older — Continue
         </motion.button>
         <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: 0, maxWidth: 260, lineHeight: 1.6 }}>
           By continuing you agree to our{" "}
-          <a href="/ghost/terms" style={{ color: "rgba(74,222,128,0.5)", textDecoration: "none" }}>Terms of Service</a>
+          <a href="/ghost/terms" style={{ color: a.glow(0.5), textDecoration: "none" }}>Terms of Service</a>
           {" "}and{" "}
-          <a href="/ghost/privacy" style={{ color: "rgba(74,222,128,0.5)", textDecoration: "none" }}>Privacy Policy</a>.
+          <a href="/ghost/privacy" style={{ color: a.glow(0.5), textDecoration: "none" }}>Privacy Policy</a>.
         </p>
       </div>
     );
@@ -220,7 +222,7 @@ export default function GhostAuthPage() {
                   onClick={() => { setCountryCode(c); setShowCountryPicker(false); }}
                   style={{
                     width: "100%", padding: "13px 20px",
-                    background: countryCode.code === c.code ? "rgba(74,222,128,0.08)" : "transparent",
+                    background: countryCode.code === c.code ? a.glow(0.08) : "transparent",
                     border: "none", cursor: "pointer",
                     display: "flex", alignItems: "center", gap: 12, textAlign: "left",
                   }}
@@ -258,14 +260,14 @@ export default function GhostAuthPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <div style={{ display: "flex", justifyContent: "flex-end", paddingRight: "4%" }}>
                     <span style={{
-                      fontSize: 10, fontWeight: 700, color: "rgba(74,222,128,0.85)",
+                      fontSize: 10, fontWeight: 700, color: a.glow(0.85),
                       letterSpacing: "0.04em",
                       display: "flex", alignItems: "center", gap: 4,
                     }}>
                       <span style={{
                         width: 6, height: 6, borderRadius: "50%",
-                        background: "#4ade80",
-                        boxShadow: "0 0 6px rgba(74,222,128,0.8)",
+                        background: a.accent,
+                        boxShadow: `0 0 6px ${a.glow(0.8)}`,
                         display: "inline-block", flexShrink: 0,
                       }} />
                       58.382 Online Now
@@ -285,15 +287,15 @@ export default function GhostAuthPage() {
                         style={{
                           flex: 1, height: 38, borderRadius: 50, border: "none",
                           background: gender === g
-                            ? g === "Female"
-                              ? "linear-gradient(to bottom, #4ade80, #22c55e)"
-                              : "linear-gradient(to bottom, #22c55e, #16a34a)"
+                            ? g === `Female`
+                              ? `linear-gradient(to bottom, ${a.accent}, ${a.accentMid})`
+                              : `linear-gradient(to bottom, ${a.accentMid}, ${a.accentDark})`
                             : "transparent",
                           color: gender === g ? "#fff" : "rgba(255,255,255,0.35)",
                           fontSize: 13, fontWeight: 800, cursor: "pointer",
                           transition: "all 0.2s",
                           boxShadow: gender === g
-                            ? "0 4px 14px rgba(34,197,94,0.4)"
+                            ? `0 4px 14px ${a.glowMid(0.4)}`
                             : "none",
                         }}
                       >
@@ -311,12 +313,12 @@ export default function GhostAuthPage() {
                     exit={{ opacity: 0, height: 0 }}
                     style={{
                       textAlign: "center",
-                      background: "rgba(34,197,94,0.08)",
-                      border: "1px solid rgba(34,197,94,0.25)",
+                      background: a.glowMid(0.08),
+                      border: `1px solid ${a.glowMid(0.25)}`,
                       borderRadius: 10, padding: "7px 14px", overflow: "hidden",
                     }}
                   >
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(74,222,128,0.9)" }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: a.glow(0.9) }}>
                       <span>Join free · No card required</span>
                     </span>
                   </motion.div>
@@ -397,13 +399,13 @@ export default function GhostAuthPage() {
                   style={{
                     width: "100%", height: 46, borderRadius: 50, border: "none",
                     background: isPhoneValid
-                      ? "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)"
+                      ? a.gradient
                       : "rgba(255,255,255,0.07)",
                     color: isPhoneValid ? "#fff" : "rgba(255,255,255,0.3)",
                     fontSize: 15, fontWeight: 900, letterSpacing: "0.04em",
                     cursor: isPhoneValid ? "pointer" : "default",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    boxShadow: isPhoneValid ? "0 1px 0 rgba(255,255,255,0.3) inset, 0 4px 16px rgba(34,197,94,0.4)" : "none",
+                    boxShadow: isPhoneValid ? `0 1px 0 rgba(255,255,255,0.3) inset, 0 4px 16px ${a.glowMid(0.4)}` : "none",
                     transition: "all 0.2s",
                     marginTop: 2, position: "relative", overflow: "hidden",
                     textShadow: isPhoneValid ? "0 1px 2px rgba(0,0,0,0.3)" : "none",
@@ -526,10 +528,10 @@ export default function GhostAuthPage() {
                       onKeyDown={(e) => handleOtpKey(i, e)}
                       style={{
                         width: 46, height: 54, borderRadius: 12,
-                        background: digit ? "rgba(74,222,128,0.12)" : "rgba(0,0,0,0.45)",
+                        background: digit ? a.glow(0.12) : "rgba(0,0,0,0.45)",
                         backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
                         border: digit
-                          ? "1px solid rgba(74,222,128,0.5)"
+                          ? `1px solid ${a.glow(0.5)}`
                           : "1px solid rgba(255,255,255,0.14)",
                         color: "#fff", fontSize: 22, fontWeight: 900,
                         textAlign: "center", outline: "none",
@@ -549,13 +551,13 @@ export default function GhostAuthPage() {
                   style={{
                     width: "100%", height: 46, borderRadius: 50, border: "none",
                     background: isOtpComplete
-                      ? "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)"
+                      ? a.gradient
                       : "rgba(255,255,255,0.07)",
                     color: isOtpComplete ? "#fff" : "rgba(255,255,255,0.3)",
                     fontSize: 15, fontWeight: 900, letterSpacing: "0.04em",
                     cursor: isOtpComplete ? "pointer" : "default",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    boxShadow: isOtpComplete ? "0 1px 0 rgba(255,255,255,0.3) inset, 0 4px 16px rgba(34,197,94,0.4)" : "none",
+                    boxShadow: isOtpComplete ? `0 1px 0 rgba(255,255,255,0.3) inset, 0 4px 16px ${a.glowMid(0.4)}` : "none",
                     transition: "all 0.2s",
                     marginTop: 2, position: "relative", overflow: "hidden",
                     textShadow: isOtpComplete ? "0 1px 2px rgba(0,0,0,0.3)" : "none",
@@ -585,7 +587,7 @@ export default function GhostAuthPage() {
                       onClick={handleSendCode}
                       style={{
                         background: "none", border: "none", cursor: "pointer",
-                        color: "#4ade80", fontWeight: 700, fontSize: 12, padding: 0,
+                        color: a.accent, fontWeight: 700, fontSize: 12, padding: 0,
                       }}
                     >
                       Resend code

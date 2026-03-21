@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import type { GhostProfile } from "../types/ghostTypes";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 export default function GhostNewGuestsPopup({
@@ -12,6 +13,7 @@ export default function GhostNewGuestsPopup({
   onEnterLobby: () => void;
   onDismiss: () => void;
 }) {
+  const a = useGenderAccent();
   const previews = newGuests.slice(0, 3);
 
   return (
@@ -41,15 +43,15 @@ export default function GhostNewGuestsPopup({
           width: "calc(100% - 36px)", maxWidth: 340,
           zIndex: 291,
           background: "rgba(6,10,6,0.97)",
-          border: "1px solid rgba(74,222,128,0.25)",
+          border: `1px solid ${a.glow(0.25)}`,
           borderRadius: 24,
           overflow: "hidden",
-          boxShadow: "0 0 60px rgba(74,222,128,0.12), 0 28px 56px rgba(0,0,0,0.75)",
-          backdropFilter: "blur(30px)",
+          boxShadow: `0 0 60px ${a.glow(0.12)}, 0 28px 56px rgba(0,0,0,0.75)`,
+          backdropFilter: `blur(30px)`,
         }}
       >
         {/* Top green bar */}
-        <div style={{ height: 3, background: "linear-gradient(90deg, #15803d, #4ade80, #22c55e)" }} />
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${a.accentDeep}, ${a.accent}, ${a.accentMid})` }} />
 
         <div style={{ padding: "26px 22px 24px", textAlign: "center" }}>
 
@@ -63,7 +65,7 @@ export default function GhostNewGuestsPopup({
           </motion.div>
 
           {/* Label */}
-          <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(74,222,128,0.75)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>
+          <p style={{ fontSize: 10, fontWeight: 800, color: a.glow(0.75), letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>
             New Arrivals
           </p>
 
@@ -88,8 +90,8 @@ export default function GhostNewGuestsPopup({
                   transition={{ delay: idx * 0.08, type: "spring", stiffness: 300, damping: 22 }}
                   style={{
                     width: 52, height: 52, borderRadius: "50%", overflow: "hidden",
-                    border: "2.5px solid rgba(74,222,128,0.5)",
-                    boxShadow: "0 0 12px rgba(74,222,128,0.2)",
+                    border: `2.5px solid ${a.glow(0.5)}`,
+                    boxShadow: `0 0 12px ${a.glow(0.2)}`,
                     marginLeft: idx === 0 ? 0 : -14,
                     zIndex: previews.length - idx,
                     position: "relative",
@@ -106,11 +108,11 @@ export default function GhostNewGuestsPopup({
               {newGuests.length > 3 && (
                 <div style={{
                   width: 52, height: 52, borderRadius: "50%",
-                  background: "rgba(74,222,128,0.1)",
-                  border: "2.5px solid rgba(74,222,128,0.35)",
+                  background: a.glow(0.1),
+                  border: `2.5px solid ${a.glow(0.35)}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   marginLeft: -14, zIndex: 0, position: "relative",
-                  fontSize: 12, fontWeight: 800, color: "rgba(74,222,128,0.9)",
+                  fontSize: 12, fontWeight: 800, color: a.glow(0.9),
                 }}>
                   +{newGuests.length - 3}
                 </div>
@@ -124,10 +126,10 @@ export default function GhostNewGuestsPopup({
             onClick={onEnterLobby}
             style={{
               width: "100%", height: 52, borderRadius: 50, border: "none",
-              background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+              background: a.gradient,
               color: "#fff", fontSize: 15, fontWeight: 900,
               cursor: "pointer", letterSpacing: "0.02em",
-              boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 24px rgba(34,197,94,0.4)",
+              boxShadow: `0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 24px ${a.glowMid(0.4)}`,
               position: "relative", overflow: "hidden", marginBottom: 10,
             }}
           >

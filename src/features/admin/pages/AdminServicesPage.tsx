@@ -198,7 +198,7 @@ export default function AdminServicesPage() {
             <button
               key={cat.key}
               onClick={() => setActiveCat(cat.key)}
-              style={{ height: 32, padding: "0 12px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 600, background: activeCategory === cat.key ? `${CAT_COLORS[cat.key]}15` : "rgba(255,255,255,0.04)", border: activeCategory === cat.key ? `1px solid ${CAT_COLORS[cat.key]}40` : "1px solid rgba(255,255,255,0.07)", color: activeCategory === cat.key ? CAT_COLORS[cat.key] : "rgba(255,255,255,0.4)" }}
+              style={{ height: 32, padding: "0 12px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 600, background: activeCategory === cat.key ? "${CAT_COLORS[cat.key]}15" : "rgba(255,255,255,0.04)", border: activeCategory === cat.key ? "1px solid ${CAT_COLORS[cat.key]}40" : "1px solid rgba(255,255,255,0.07)", color: activeCategory === cat.key ? CAT_COLORS[cat.key] : "rgba(255,255,255,0.4)" }}
             >{cat.emoji} {cat.label}</button>
           ))}
         </div>
@@ -307,7 +307,7 @@ export default function AdminServicesPage() {
                     <button
                       key={cat.key}
                       onClick={() => setEditCat(cat.key)}
-                      style={{ flex: 1, height: 38, borderRadius: 9, border: editCat === cat.key ? `1px solid ${CAT_COLORS[cat.key]}50` : "1px solid rgba(255,255,255,0.1)", background: editCat === cat.key ? `${CAT_COLORS[cat.key]}15` : "rgba(255,255,255,0.04)", color: editCat === cat.key ? CAT_COLORS[cat.key] : "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}
+                      style={{ flex: 1, height: 38, borderRadius: 9, border: editCat === cat.key ? `1px solid ${CAT_COLORS[cat.key]}50` : "1px solid rgba(255,255,255,0.1)", background: editCat === cat.key ? "${CAT_COLORS[cat.key]}15" : "rgba(255,255,255,0.04)", color: editCat === cat.key ? CAT_COLORS[cat.key] : "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}
                     >
                       {cat.emoji}
                     </button>

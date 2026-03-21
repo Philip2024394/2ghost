@@ -10,6 +10,7 @@ import { PROFILE_BADGES, BADGE_CATEGORIES } from "../data/profileBadges";
 import GhostFaceVerify from "../components/GhostFaceVerify";
 import GhostReferralSheet from "../components/GhostReferralSheet";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 const FOUND_BOO_STAMP = "https://ik.imagekit.io/7grri5v7d/Found%20Boo%20postage%20stamp%20design.png";
 
@@ -38,13 +39,13 @@ const CARD: React.CSSProperties = {
 };
 
 const BADGE_STYLES: Record<string, React.CSSProperties> = {
-  ACTIVE: { background: "rgba(74,222,128,0.12)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.3)" },
-  FREE: { background: "rgba(74,222,128,0.08)", color: "rgba(74,222,128,0.8)", border: "1px solid rgba(74,222,128,0.2)" },
+  ACTIVE: { background: "rgba(74,222,128,0.12)", color: "#4ade80", border: `1px solid rgba(74,222,128,0.3)` },
+  FREE: { background: "rgba(74,222,128,0.08)", color: "rgba(74,222,128,0.8)", border: `1px solid rgba(74,222,128,0.2)` },
   "PAY PER CONNECT": { background: "rgba(251,191,36,0.1)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.25)" },
   NEW: { background: "rgba(167,139,250,0.1)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.3)" },
   PREMIUM: { background: "rgba(251,191,36,0.1)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.25)" },
   MEMBERSHIP: { background: "rgba(212,175,55,0.1)", color: "#d4af37", border: "1px solid rgba(212,175,55,0.3)" },
-  "ALWAYS ON": { background: "rgba(74,222,128,0.12)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.3)" },
+  "ALWAYS ON": { background: "rgba(74,222,128,0.12)", color: "#4ade80", border: `1px solid rgba(74,222,128,0.3)` },
 };
 
 const FEATURES = [
@@ -114,6 +115,7 @@ function getStreak(): number {
 }
 
 export default function GhostDashboardPage() {
+  const a = useGenderAccent();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [quickExit, setQuickExit] = useState(false);
@@ -274,7 +276,7 @@ export default function GhostDashboardPage() {
           </button>
           <div style={{ flex: 1 }}>
             <h1 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>{t("dash.title")}</h1>
-            <p style={{ fontSize: 11, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600 }}>2Ghost.com</p>
+            <p style={{ fontSize: 11, color: a.glow(0.7), margin: 0, fontWeight: 600 }}>2Ghost.com</p>
           </div>
           <img src={GHOST_LOGO} alt="ghost" style={{ width: 72, height: 72, objectFit: "contain" }} />
         </motion.div>
@@ -297,8 +299,8 @@ export default function GhostDashboardPage() {
                   exit={{ opacity: 0 }}
                   style={{
                     ...CARD,
-                    border: "1px solid rgba(74,222,128,0.3)",
-                    background: "rgba(74,222,128,0.05)",
+                    border: `1px solid ${a.glow(0.3)}`,
+                    background: a.glow(0.05),
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
@@ -306,7 +308,7 @@ export default function GhostDashboardPage() {
                       <img
                         src={foundBoo.matchProfileImage}
                         alt={foundBoo.matchName}
-                        style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(74,222,128,0.5)" }}
+                        style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.5)}` }}
                       />
                       {/* Found Boo stamp on matched profile */}
                       <img src={FOUND_BOO_STAMP} alt="Found Boo" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", pointerEvents: "none", opacity: 0.9 }} />
@@ -315,7 +317,7 @@ export default function GhostDashboardPage() {
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: "0 0 3px" }}>Found Boo <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle" }} /></p>
                       <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 5px" }}>Connected with {foundBoo.matchName}</p>
-                      <p style={{ fontSize: 12, color: "#4ade80", fontWeight: 700, margin: 0 }}>
+                      <p style={{ fontSize: 12, color: a.accent, fontWeight: 700, margin: 0 }}>
                         Resumes in {fmtCountdown(foundBoo.pausedUntil - Date.now())}
                       </p>
                     </div>
@@ -324,7 +326,7 @@ export default function GhostDashboardPage() {
                     onClick={canReactivate ? handleReactivate : undefined}
                     style={{
                       width: "100%", height: 40, borderRadius: 10, border: "none",
-                      background: canReactivate ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.05)",
+                      background: canReactivate ? a.glow(0.2) : "rgba(255,255,255,0.05)",
                       color: canReactivate ? "#4ade80" : "rgba(255,255,255,0.2)",
                       fontSize: 13, fontWeight: 800, cursor: canReactivate ? "pointer" : "default",
                     }}
@@ -380,7 +382,7 @@ export default function GhostDashboardPage() {
               {[
                 { label: t("dash.likesToday"), value: likesToday, icon: "❤️", color: "#ec4899" },
                 { label: t("dash.streak"), value: streak, icon: "🔥", color: "#f97316" },
-                { label: t("dash.matches"), value: savedMatchCount, icon: "✨", color: "#4ade80" },
+                { label: t("dash.matches"), value: savedMatchCount, icon: "✨", color: a.accent },
               ].map(({ label, value, icon, color }) => (
                 <div key={label} style={{
                   flex: 1, ...CARD,
@@ -403,7 +405,7 @@ export default function GhostDashboardPage() {
               </p>
               <button
                 onClick={() => navigate("/ghost/setup")}
-                style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: "rgba(74,222,128,0.7)", fontSize: 11, fontWeight: 700, padding: 0 }}
+                style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: a.glow(0.7), fontSize: 11, fontWeight: 700, padding: 0 }}
               >
                 <Edit2 size={11} /> Change
               </button>
@@ -657,7 +659,7 @@ export default function GhostDashboardPage() {
             <div style={{
               borderRadius: 16,
               background: "linear-gradient(135deg, rgba(5,46,22,0.8) 0%, rgba(2,15,10,0.9) 100%)",
-              border: "1px solid rgba(74,222,128,0.15)",
+              border: `1px solid ${a.glow(0.15)}`,
               padding: "22px 18px",
             }}>
               <p style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: "0 0 14px", lineHeight: 1.3, letterSpacing: "-0.02em" }}>
@@ -666,7 +668,7 @@ export default function GhostDashboardPage() {
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: "0 0 16px", lineHeight: 1.65 }}>
                 2Ghost was built for people tired of performative dating. No followers. No stories. No dopamine loops. Just two people, a mutual choice, and a private conversation on the app you already use. The future of dating is anonymous until it's real.
               </p>
-              <p style={{ fontSize: 11, color: "rgba(74,222,128,0.6)", margin: 0, fontWeight: 700 }}>— 2Ghost.com</p>
+              <p style={{ fontSize: 11, color: a.glow(0.6), margin: 0, fontWeight: 700 }}>— 2Ghost.com</p>
             </div>
           </motion.div>
 
@@ -678,8 +680,8 @@ export default function GhostDashboardPage() {
               onClick={() => setShowFaceVerify(true)}
               style={{
                 flex: 1, borderRadius: 16, padding: "16px 12px", cursor: "pointer",
-                background: faceVerified ? "rgba(74,222,128,0.07)" : "rgba(255,255,255,0.04)",
-                border: faceVerified ? "1px solid rgba(74,222,128,0.3)" : "1px solid rgba(255,255,255,0.1)",
+                background: faceVerified ? a.glow(0.07) : "rgba(255,255,255,0.04)",
+                border: faceVerified ? `1px solid ${a.glow(0.3)}` : "1px solid rgba(255,255,255,0.1)",
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
               }}
             >
@@ -700,14 +702,14 @@ export default function GhostDashboardPage() {
               onClick={() => setShowReferral(true)}
               style={{
                 flex: 1, borderRadius: 16, padding: "16px 12px", cursor: "pointer",
-                background: "rgba(74,222,128,0.05)",
-                border: "1px solid rgba(74,222,128,0.15)",
+                background: a.glow(0.05),
+                border: `1px solid ${a.glow(0.15)}`,
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
               }}
             >
               <span style={{ fontSize: 26 }}>👻</span>
               <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.6)", textAlign: "center" }}>Invite Friends</span>
-              <span style={{ fontSize: 9, color: "rgba(74,222,128,0.7)", textAlign: "center", lineHeight: 1.4 }}>
+              <span style={{ fontSize: 9, color: a.glow(0.7), textAlign: "center", lineHeight: 1.4 }}>
                 Earn Ghost Vault & Black rewards
               </span>
             </motion.button>
@@ -787,12 +789,12 @@ export default function GhostDashboardPage() {
                 width: "100%", maxWidth: 480,
                 background: "rgba(4,8,4,0.97)",
                 borderRadius: "24px 24px 0 0",
-                border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none",
+                border: `1px solid ${a.glow(0.2)}`, borderBottom: "none",
                 padding: "0 22px max(36px, env(safe-area-inset-bottom, 36px))",
                 boxShadow: "0 -24px 80px rgba(0,0,0,0.7)",
               }}
             >
-              <div style={{ height: 3, background: "linear-gradient(90deg, #15803d, #4ade80, #22c55e)", marginLeft: -22, marginRight: -22 }} />
+              <div style={{ height: 3, background: `linear-gradient(90deg, #15803d, ${a.accent}, #22c55e)`, marginLeft: -22, marginRight: -22 }} />
               <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 18px" }}>
                 <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
               </div>
@@ -835,7 +837,7 @@ export default function GhostDashboardPage() {
                 ))}
               </motion.div>
 
-              <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.15), transparent)", marginBottom: 18 }} />
+              <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.15)}, transparent)`, marginBottom: 18 }} />
 
               <motion.button
                 initial={{ opacity: 0, y: 6 }}
@@ -845,10 +847,10 @@ export default function GhostDashboardPage() {
                 onClick={() => setShowDashWelcome(false)}
                 style={{
                   width: "100%", height: 52, borderRadius: 50, border: "none",
-                  background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                  background: a.gradient,
                   color: "#fff", fontSize: 15, fontWeight: 900,
                   cursor: "pointer", letterSpacing: "0.03em",
-                  boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 24px rgba(34,197,94,0.4)",
+                  boxShadow: `0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 24px ${a.glowMid(0.4)}`,
                   position: "relative", overflow: "hidden",
                 }}
               >

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
 const MAX_DISMISSALS = 5;
 const REPEAT_MS = 5 * 60 * 1000; // 5 minutes
@@ -31,6 +32,7 @@ function setLastDismissed() {
 }
 
 export default function GhostInstallBanner() {
+  const a = useGenderAccent();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [show, setShow] = useState(false);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
@@ -127,18 +129,18 @@ export default function GhostInstallBanner() {
             <div style={{
               width: "100%", maxWidth: 480,
               background: "rgba(6,8,6,0.97)",
-              border: "1px solid rgba(74,222,128,0.3)",
+              border: `1px solid ${a.glow(0.3)}`,
               borderRadius: 20,
               padding: "14px 16px",
               display: "flex", alignItems: "center", gap: 12,
-              boxShadow: "0 -4px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(74,222,128,0.06)",
+              boxShadow: `0 -4px 40px rgba(0,0,0,0.8), 0 0 0 1px ${a.glow(0.06)}`,
               backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
               pointerEvents: "all",
             }}>
               {/* Icon */}
               <div style={{
                 width: 46, height: 46, borderRadius: 13, flexShrink: 0,
-                background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)",
+                background: a.glow(0.1), border: `1px solid ${a.glow(0.25)}`,
                 display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
               }}>
                 <img src={GHOST_LOGO} alt="2Ghost" style={{ width: 60, height: 60, objectFit: "contain" }} />
@@ -161,7 +163,7 @@ export default function GhostInstallBanner() {
                   onClick={handleAdd}
                   style={{
                     height: 30, borderRadius: 8, padding: "0 14px", border: "none",
-                    background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                    background: `linear-gradient(135deg, ${a.accentDark}, ${a.accentMid})`,
                     color: "#fff", fontSize: 11, fontWeight: 800, cursor: "pointer",
                     whiteSpace: "nowrap",
                   }}
@@ -204,7 +206,7 @@ export default function GhostInstallBanner() {
               style={{
                 width: "100%", maxWidth: 480,
                 background: "rgba(8,8,14,0.99)", borderRadius: "20px 20px 0 0",
-                border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none",
+                border: `1px solid ${a.glow(0.2)}`, borderBottom: "none",
                 padding: "20px 22px max(28px, env(safe-area-inset-bottom, 28px))",
               }}
             >
@@ -213,7 +215,7 @@ export default function GhostInstallBanner() {
                   <img src={GHOST_LOGO} alt="ghost" style={{ width: 44, height: 44, objectFit: "contain" }} />
                   <div>
                     <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0 }}>Add to Home Screen</p>
-                    <p style={{ fontSize: 10, color: "rgba(74,222,128,0.6)", margin: 0 }}>3 quick steps</p>
+                    <p style={{ fontSize: 10, color: a.glow(0.6), margin: 0 }}>3 quick steps</p>
                   </div>
                 </div>
                 <button onClick={handleLater} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, width: 30, height: 30, cursor: "pointer", color: "rgba(255,255,255,0.4)", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -231,20 +233,20 @@ export default function GhostInstallBanner() {
                 <div key={step} style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 14 }}>
                   <div style={{
                     width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                    background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)",
+                    background: a.glow(0.08), border: `1px solid ${a.glow(0.2)}`,
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
                   }}>
                     {icon}
                   </div>
                   <div style={{ paddingTop: 7 }}>
                     <p style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", margin: 0, lineHeight: 1.5 }}>
-                      <strong style={{ color: "rgba(74,222,128,0.9)" }}>Step {step}: </strong>{text}
+                      <strong style={{ color: a.glow(0.9) }}>Step {step}: </strong>{text}
                     </p>
                   </div>
                 </div>
               ))}
 
-              <div style={{ marginTop: 8, padding: "12px 14px", background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.12)", borderRadius: 12 }}>
+              <div style={{ marginTop: 8, padding: "12px 14px", background: a.glow(0.05), border: `1px solid ${a.glow(0.12)}`, borderRadius: 12 }}>
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "0 0 4px", fontWeight: 700 }}>🔑 Remember</p>
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0, lineHeight: 1.5 }}>
                   When you open 2Ghost from your home screen, you'll need your sign-in verification code to access your account.

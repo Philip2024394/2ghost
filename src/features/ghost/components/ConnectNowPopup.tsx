@@ -4,8 +4,10 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { PHONE_APPS, getUsernamePlatform } from "../data/connectPlatforms";
 import type { GhostProfile } from "../types/ghostTypes";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 // ── Post-payment connect screen ──────────────────────────────────────────────
 export default function ConnectNowPopup({ profile, onDone }: { profile: GhostProfile; onDone: () => void }) {
+  const a = useGenderAccent();
   const { t } = useLanguage();
   const firstName = profile.name.split(" ")[0];
   const altPlatform = profile.connectAlt ? getUsernamePlatform(profile.connectAlt) : undefined;
@@ -34,7 +36,7 @@ export default function ConnectNowPopup({ profile, onDone }: { profile: GhostPro
           width: "100%", maxWidth: 480,
           background: "rgba(4,10,4,0.98)", backdropFilter: "blur(40px)",
           borderRadius: "24px 24px 0 0",
-          border: "1px solid rgba(74,222,128,0.25)", borderBottom: "none",
+          border: `1px solid ${a.glow(0.25)}`, borderBottom: "none",
           padding: "0 22px max(40px, env(safe-area-inset-bottom, 40px))",
           boxShadow: "0 -28px 80px rgba(0,0,0,0.8)",
         }}
@@ -64,7 +66,7 @@ export default function ConnectNowPopup({ profile, onDone }: { profile: GhostPro
 
         {/* Profile row */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.18)", borderRadius: 14, padding: "12px 14px", marginBottom: 20 }}>
-          <img src={profile.image} alt={firstName} style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(74,222,128,0.4)", flexShrink: 0 }} />
+          <img src={profile.image} alt={firstName} style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.4)}`, flexShrink: 0 }} />
           <div>
             <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>{profile.name}</p>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0 }}>{profile.age} · {profile.city} {profile.countryFlag}</p>
@@ -146,7 +148,7 @@ export default function ConnectNowPopup({ profile, onDone }: { profile: GhostPro
                   <p style={{ fontSize: 14, fontWeight: 800, color: altPlatform.color, margin: 0 }}>{altPlatform.label}</p>
                   <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: 0 }}>{profile.connectAltHandle}</p>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 800, color: copied === "alt" ? "#4ade80" : "rgba(255,255,255,0.4)" }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: copied === "alt" ? "${a.accent}" : "rgba(255,255,255,0.4)" }}>
                   {copied === "alt" ? "Copied ✓" : "Copy ID"}
                 </span>
               </motion.button>
@@ -154,7 +156,7 @@ export default function ConnectNowPopup({ profile, onDone }: { profile: GhostPro
           </div>
         )}
 
-        <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.15), transparent)", margin: "6px 0 16px" }} />
+        <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.15)}, transparent)`, margin: "6px 0 16px" }} />
 
         <button
           onClick={onDone}

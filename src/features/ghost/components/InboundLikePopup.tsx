@@ -3,6 +3,7 @@ import { Heart, X } from "lucide-react";
 import type { InboundLike } from "../types/ghostTypes";
 import { toGhostId } from "../utils/ghostHelpers";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 // ── Inbound like notification popup ─────────────────────────────────────────
@@ -13,6 +14,7 @@ export default function InboundLikePopup({
   onLikeBack: () => void;
   onPass: () => void;
 }) {
+  const a = useGenderAccent();
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -30,22 +32,22 @@ export default function InboundLikePopup({
         style={{
           width: "100%", maxWidth: 360,
           background: "rgba(6,6,10,0.95)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
-          borderRadius: 22, border: "1px solid rgba(74,222,128,0.25)",
+          borderRadius: 22, border: `1px solid ${a.glow(0.25)}`,
           overflow: "hidden",
-          boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 40px rgba(74,222,128,0.1)",
+          boxShadow: `0 24px 80px rgba(0,0,0,0.7), 0 0 40px ${a.glow(0.1)}`,
         }}
       >
         {/* Top accent */}
-        <div style={{ height: 3, background: "linear-gradient(90deg, #22c55e, #4ade80, #22c55e)" }} />
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${a.accentMid}, ${a.accent}, #22c55e)` }} />
 
         <div style={{ padding: "22px 20px 20px" }}>
           {/* Flag + country badge */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
             <div style={{
-              background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)",
+              background: a.glow(0.1), border: `1px solid ${a.glow(0.25)}`,
               borderRadius: 20, padding: "4px 14px",
               display: "flex", alignItems: "center", gap: 8,
-              fontSize: 12, fontWeight: 700, color: "rgba(74,222,128,0.9)",
+              fontSize: 12, fontWeight: 700, color: a.glow(0.9),
             }}>
               <span style={{ fontSize: 20 }}>{like.countryFlag}</span>
               Someone from {like.country} is interested
@@ -56,8 +58,8 @@ export default function InboundLikePopup({
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
             <div style={{
               width: 90, height: 90, borderRadius: "50%", overflow: "hidden",
-              border: "3px solid rgba(74,222,128,0.4)",
-              boxShadow: "0 0 24px rgba(74,222,128,0.2)",
+              border: `3px solid ${a.glow(0.4)}`,
+              boxShadow: `0 0 24px ${a.glow(0.2)}`,
               position: "relative",
             }}>
               <img
@@ -72,7 +74,7 @@ export default function InboundLikePopup({
 
           {/* Info */}
           <div style={{ textAlign: "center", marginBottom: 18 }}>
-            <p style={{ fontSize: 13, fontWeight: 800, color: "rgba(74,222,128,0.85)", margin: "0 0 4px", letterSpacing: "0.05em" }}>
+            <p style={{ fontSize: 13, fontWeight: 800, color: a.glow(0.85), margin: "0 0 4px", letterSpacing: "0.05em" }}>
               <span>{toGhostId(like.id)}</span>
             </p>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: "0 0 6px" }}>
@@ -104,10 +106,10 @@ export default function InboundLikePopup({
               onClick={onLikeBack}
               style={{
                 flex: 2, height: 48, borderRadius: 14, border: "none",
-                background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                background: `linear-gradient(135deg, ${a.accentDark}, ${a.accentMid})`,
                 color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                boxShadow: "0 4px 20px rgba(34,197,94,0.4)",
+                boxShadow: `0 4px 20px ${a.glowMid(0.4)}`,
               }}
             >
               <Heart size={15} fill="currentColor" /> Like Back

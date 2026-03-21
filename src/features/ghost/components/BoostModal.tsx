@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const BOOST_IMG = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsd.png";
 
 // ── Ghost Boost modal ────────────────────────────────────────────────────────
 export default function BoostModal({ onClose, onBoost }: { onClose: () => void; onBoost: () => void }) {
+  const a = useGenderAccent();
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -24,11 +26,11 @@ export default function BoostModal({ onClose, onBoost }: { onClose: () => void; 
           background: "rgba(6,6,10,0.98)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
           borderRadius: "22px 22px 0 0",
           border: "1px solid rgba(255,255,255,0.08)", borderBottom: "none",
-          overflow: "hidden",
+          overflow: `hidden`,
         }}
       >
-        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)" }} />
-        <div style={{ padding: "22px 20px 36px" }}>
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${a.accentDark}, ${a.accent}, ${a.accentMid})` }} />
+        <div style={{ padding: `22px 20px 36px` }}>
           <button onClick={onClose} style={{ position: "absolute", top: 18, right: 16, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.5)" }}>
             <X size={13} />
           </button>
@@ -44,7 +46,7 @@ export default function BoostModal({ onClose, onBoost }: { onClose: () => void; 
           </div>
 
           {/* What you get */}
-          <div style={{ background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 14, padding: "12px 14px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 14, padding: "12px 14px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 8 }}>
             {[
               "⚡ Top of feed for all members",
               "👁 Up to 10× more profile views",
@@ -59,14 +61,14 @@ export default function BoostModal({ onClose, onBoost }: { onClose: () => void; 
           </div>
 
           {/* Price */}
-          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 14, padding: "14px 16px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid ${a.glow(0.25)}", borderRadius: 14, padding: "14px 16px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <p style={{ fontSize: 14, fontWeight: 800, color: "#fff", margin: 0 }}><span>24-hour Boost</span></p>
               <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: "2px 0 0" }}><span>One time · no subscription</span></p>
             </div>
             <div style={{ textAlign: "right" }}>
-              <p style={{ fontSize: 20, fontWeight: 900, color: "#4ade80", margin: 0 }}><span>15,000 IDR</span></p>
-              <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", margin: 0 }}><span>~$1</span></p>
+              <p style={{ fontSize: 20, fontWeight: 900, color: a.accent, margin: 0 }}><span>🪙 100 coins</span></p>
+              <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", margin: 0 }}><span>one time</span></p>
             </div>
           </div>
 
@@ -75,9 +77,9 @@ export default function BoostModal({ onClose, onBoost }: { onClose: () => void; 
             onClick={onBoost}
             style={{
               width: "100%", height: 52, borderRadius: 16, border: "none",
-              background: "linear-gradient(135deg, #16a34a, #22c55e)",
+              background: `linear-gradient(135deg, ${a.accentDark}, ${a.accentMid})`,
               color: "#fff", fontWeight: 900, fontSize: 15, cursor: "pointer",
-              boxShadow: "0 6px 28px rgba(34,197,94,0.45)",
+              boxShadow: `0 6px 28px ${a.glowMid(0.45)}`,
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}
           >

@@ -4,6 +4,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { SEA_COUNTRY_LIST } from "../types/ghostTypes";
 import { activateIntlGhost, saveIntlCountries } from "../utils/ghostHelpers";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 // ── Country tab bar ───────────────────────────────────────────────────────────
 export function CountryTabBar({ homeCode, homeName, homeFlag, activeCode, onChange }: {
   homeCode: string;
@@ -12,6 +13,7 @@ export function CountryTabBar({ homeCode, homeName, homeFlag, activeCode, onChan
   activeCode: string | null; // null = home country
   onChange: (code: string | null) => void;
 }) {
+  const a = useGenderAccent();
   const others = SEA_COUNTRY_LIST.filter((c) => c.code !== homeCode);
   return (
     <div style={{
@@ -24,9 +26,9 @@ export function CountryTabBar({ homeCode, homeName, homeFlag, activeCode, onChan
         onClick={() => onChange(null)}
         style={{
           flexShrink: 0, height: 34, borderRadius: 50, padding: "0 14px",
-          background: activeCode === null ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.05)",
-          border: activeCode === null ? "1px solid rgba(74,222,128,0.5)" : "1px solid rgba(255,255,255,0.1)",
-          color: activeCode === null ? "rgba(74,222,128,0.95)" : "rgba(255,255,255,0.6)",
+          background: activeCode === null ? a.glow(0.15) : "rgba(255,255,255,0.05)",
+          border: activeCode === null ? `1px solid ${a.glow(0.5)}` : "1px solid rgba(255,255,255,0.1)",
+          color: activeCode === null ? a.glow(0.95) : "rgba(255,255,255,0.6)",
           fontSize: 12, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap",
           display: "flex", alignItems: "center", gap: 6,
         }}
@@ -65,6 +67,7 @@ export default function InternationalGhostModal({ userCountryCode, isFemale, onA
   onActivate: (countries: string[]) => void;
   onClose: () => void;
 }) {
+  const a = useGenderAccent();
   const { t } = useLanguage();
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const available = SEA_COUNTRY_LIST.filter((c) => c.code !== userCountryCode);
@@ -112,8 +115,8 @@ export default function InternationalGhostModal({ userCountryCode, isFemale, onA
             List your profile in other countries — appear in their local feed.
           </p>
           {isFemale ? (
-            <div style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 10, padding: "8px 12px", marginTop: 10 }}>
-              <p style={{ fontSize: 12, color: "rgba(74,222,128,0.9)", margin: 0, fontWeight: 700 }}>
+            <div style={{ background: a.glow(0.1), border: `1px solid ${a.glow(0.25)}`, borderRadius: 10, padding: "8px 12px", marginTop: 10 }}>
+              <p style={{ fontSize: 12, color: a.glow(0.9), margin: 0, fontWeight: 700 }}>
                 {t("intl.freeForWomen")} 🎁
               </p>
             </div>

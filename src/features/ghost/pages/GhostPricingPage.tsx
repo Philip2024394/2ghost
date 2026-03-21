@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { getCachedIpCountry } from "@/shared/hooks/useIpCountry";
 import { getLocalPrice, buildStripeLink } from "../data/stripePlans";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GOLD_KEY = "https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png";
 
 const PLANS = [
@@ -41,7 +42,7 @@ const PLANS = [
     glowColor: "rgba(74,222,128,0.35)",
     borderColor: "rgba(74,222,128,0.35)",
     bg: "rgba(74,222,128,0.06)",
-    gradient: "linear-gradient(135deg,#16a34a,#22c55e)",
+    gradient: `linear-gradient(135deg,#16a34a,${"#22c55e"})`,
     perks: [
       "5 match unlocks per month included",
       "Ghost Vault: 10 photos · 3 videos (2 min · 100 MB)",
@@ -99,6 +100,7 @@ const COMPARE = [
 ];
 
 export default function GhostPricingPage() {
+  const a = useGenderAccent();
   const navigate  = useNavigate();
   const [selected, setSelected] = useState("suite");
 
@@ -137,7 +139,7 @@ export default function GhostPricingPage() {
           <ArrowLeft size={16} />
         </button>
         <div style={{ flex: 1, textAlign: "center" }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(74,222,128,0.7)", letterSpacing: "0.16em", textTransform: "uppercase", margin: 0 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: a.glow(0.7), letterSpacing: "0.16em", textTransform: "uppercase", margin: 0 }}>
             Ghost Rooms
           </p>
         </div>
@@ -148,7 +150,7 @@ export default function GhostPricingPage() {
       <div style={{ textAlign: "center", padding: "20px 24px 0" }}>
         <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 6px", lineHeight: 1.2 }}>
           Choose Your{" "}
-          <span style={{ background: "linear-gradient(135deg,#4ade80,#d4af37)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          <span style={{ background: `linear-gradient(135deg,${a.accent},#d4af37)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             Room
           </span>
         </h1>
@@ -268,7 +270,7 @@ export default function GhostPricingPage() {
           {/* Column headers */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 54px 54px 54px", padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", fontWeight: 700, textTransform: "uppercase" }}>Feature</span>
-            {[{ label: "Free", color: "rgba(255,255,255,0.4)" }, { label: "Suite", color: "#4ade80" }, { label: "Gold", color: "#d4af37" }].map((h) => (
+            {[{ label: "Free", color: "rgba(255,255,255,0.4)" }, { label: "Suite", color: a.accent }, { label: "Gold", color: "#d4af37" }].map((h) => (
               <span key={h.label} style={{ fontSize: 9, color: h.color, fontWeight: 800, textAlign: "center", textTransform: "uppercase" }}>{h.label}</span>
             ))}
           </div>

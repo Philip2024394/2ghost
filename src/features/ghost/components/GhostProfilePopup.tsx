@@ -5,14 +5,20 @@ import { isOnline } from "@/shared/hooks/useOnlineStatus";
 import type { GhostProfile } from "../types/ghostTypes";
 import { toGhostId, fmtKm } from "../utils/ghostHelpers";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 // ── Profile popup overlay ───────────────────────────────────────────────────
 export default function GhostProfilePopup({
-  profile, liked, onLike, onClose, onPass,
+  profile, liked, onLike, onClose, onPass, isLobby = false, cooldownSecs = 0, onCallButler,
 }: {
   profile: GhostProfile; liked: boolean; onLike: () => void; onClose: () => void; onPass: () => void;
+  isLobby?: boolean; cooldownSecs?: number; onCallButler?: () => void;
 }) {
+  const a = useGenderAccent();
+  const accent = isLobby ? "#d4af37" : a.accent;
+  const accentRgb = isLobby ? "212,175,55" : "74,222,128";
+  const accentDark = isLobby ? "#92660a" : a.accentDark;
   const { t } = useLanguage();
   const online = isOnline(profile.last_seen_at);
   const ghostId = toGhostId(profile.id);
@@ -36,10 +42,10 @@ export default function GhostProfilePopup({
         style={{
           width: "100%", maxWidth: 320,
           background: "rgba(8,8,12,0.92)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
-          borderRadius: 22, border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden",
+          borderRadius: 22, border: isLobby ? "1px solid rgba(212,175,55,0.35)" : "1px solid rgba(255,255,255,0.08)", overflow: "hidden",
         }}
       >
-        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #16a34a)" }} />
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${accentDark}, ${accent}, ${accentDark})` }} />
         <div style={{ position: "relative" }}>
           <img
             src={profile.image} alt={ghostId}
@@ -53,29 +59,29 @@ export default function GhostProfilePopup({
             position: "absolute", top: 12, left: 12,
             background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)",
             borderRadius: 20, padding: "4px 10px",
-            border: "1px solid rgba(74,222,128,0.3)",
-            fontSize: 10, fontWeight: 700, color: "rgba(74,222,128,0.9)", letterSpacing: "0.1em",
+            border: `1px solid rgba(${accentRgb},0.3)`,
+            fontSize: 10, fontWeight: 700, color: `rgba(${accentRgb},0.9)`, letterSpacing: "0.1em",
           }}><img src={GHOST_LOGO} alt="" style={{ width: 30, height: 30, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> GHOST</div>
 
           {/* Online */}
           {online && (
             <div style={{ position: "absolute", top: 12, right: 12, display: "flex", alignItems: "center", gap: 5 }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 8px rgba(74,222,128,0.8)", display: "block" }} />
-              <span style={{ fontSize: 10, color: "rgba(74,222,128,0.9)", fontWeight: 600 }}>Online</span>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: accent, boxShadow: "0 0 8px rgba(${accentRgb},0.8)", display: "block" }} />
+              <span style={{ fontSize: 10, color: `rgba(${accentRgb},0.9)`, fontWeight: 600 }}>Online</span>
             </div>
           )}
 
           {/* Ghost ID / age / city */}
           <div style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-              <p style={{ fontSize: 14, fontWeight: 800, color: "rgba(74,222,128,0.9)", margin: 0, letterSpacing: "0.06em" }}>
+              <p style={{ fontSize: 14, fontWeight: 800, color: `rgba(${accentRgb},0.9)`, margin: 0, letterSpacing: "0.06em" }}>
                 <span>{ghostId}</span>
               </p>
               {profile.isVerified && (
                 <span style={{
-                  fontSize: 10, fontWeight: 800, background: "rgba(74,222,128,0.2)",
-                  border: "1px solid rgba(74,222,128,0.5)", borderRadius: 5,
-                  padding: "1px 6px", color: "rgba(74,222,128,0.95)",
+                  fontSize: 10, fontWeight: 800, background: `rgba(${accentRgb},0.2)`,
+                  border: `1px solid rgba(${accentRgb},0.5)`, borderRadius: 5,
+                  padding: "1px 6px", color: `rgba(${accentRgb},0.95)`,
                 }}>✅ {t("card.verified")}</span>
               )}
             </div>
@@ -89,9 +95,9 @@ export default function GhostProfilePopup({
               </div>
               {profile.distanceKm !== undefined ? (
                 <span style={{
-                  background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)",
+                  background: `rgba(${accentRgb},0.15)`, border: `1px solid rgba(${accentRgb},0.3)`,
                   borderRadius: 6, padding: "1px 6px", fontSize: 10, fontWeight: 700,
-                  color: "rgba(74,222,128,0.9)",
+                  color: `rgba(${accentRgb},0.9)`,
                 }}>
                   📍 {fmtKm(profile.distanceKm)}
                 </span>
@@ -113,7 +119,8 @@ export default function GhostProfilePopup({
           </p>
         </div>
 
-        <div style={{ padding: "10px 20px 20px", display: "flex", gap: 12 }}>
+        <div style={{ padding: "10px 20px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", gap: 12 }}>
           <button
             onClick={onPass}
             style={{
@@ -126,19 +133,46 @@ export default function GhostProfilePopup({
             <X size={16} /> Pass
           </button>
           <button
-            onClick={onLike} disabled={liked}
+            onClick={onLike} disabled={liked || cooldownSecs > 0}
             style={{
-              flex: 2, height: 48, borderRadius: 14, border: "none",
-              background: liked ? "rgba(34,197,94,0.2)" : "linear-gradient(135deg, #16a34a, #22c55e)",
-              color: liked ? "#4ade80" : "#fff",
-              fontSize: 13, fontWeight: 800, cursor: liked ? "default" : "pointer",
+              flex: 2, height: 48, borderRadius: 14,
+              border: liked ? "none" : cooldownSecs > 0 ? "1px solid rgba(${accentRgb},0.2)" : "none",
+              background: liked
+                ? `rgba(${accentRgb},0.2)`
+                : cooldownSecs > 0
+                  ? "rgba(255,255,255,0.06)"
+                  : `linear-gradient(135deg, ${accentDark}, ${accent})`,
+              color: liked ? accent : cooldownSecs > 0 ? `rgba(${accentRgb},0.55)` : (isLobby ? "#000" : "#fff"),
+              fontSize: 13, fontWeight: 800, cursor: liked || cooldownSecs > 0 ? "default" : "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-              boxShadow: liked ? "none" : "0 4px 18px rgba(34,197,94,0.4)", transition: "all 0.2s",
+              boxShadow: liked || cooldownSecs > 0 ? "none" : `0 4px 18px rgba(${accentRgb},0.4)`,
+              transition: "all 0.2s",
             }}
           >
-            <Heart size={16} fill={liked ? "currentColor" : "none"} />
-            {liked ? "Liked ✓" : "Like"}
+            {cooldownSecs > 0 ? (
+              <>
+                <span style={{ fontSize: 14 }}>⏱</span>
+                <span>Next like in {Math.floor(cooldownSecs / 60)}:{String(cooldownSecs % 60).padStart(2, "0")}</span>
+              </>
+            ) : (
+              <>
+                <Heart size={16} fill={liked ? "currentColor" : "none"} />
+                {liked ? "Liked ✓" : "Like"}
+              </>
+            )}
           </button>
+          </div>
+          {onCallButler && (
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                onClick={onCallButler}
+                style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+              >
+                <img src="https://ik.imagekit.io/7grri5v7d/butlers%20tray.png" alt="butler" style={{ width: 16, height: 16, objectFit: "contain" }} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(212,175,55,0.6)" }}>Send a gift via Butler</span>
+              </button>
+            </div>
+          )}
         </div>
       </motion.div>
     </motion.div>

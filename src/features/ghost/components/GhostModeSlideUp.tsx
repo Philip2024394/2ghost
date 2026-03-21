@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Check } from "lucide-react";
 import { useGhostMode } from "../hooks/useGhostMode";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 interface GhostModeSlideUpProps {
@@ -26,6 +27,7 @@ const BUNDLE_EXTRAS = [
 ];
 
 export default function GhostModeSlideUp({ onClose, onEnterGhost }: GhostModeSlideUpProps) {
+  const a = useGenderAccent();
   const { activate } = useGhostMode();
 
   const handleSubscribe = (plan: "ghost" | "bundle") => {
@@ -66,7 +68,7 @@ export default function GhostModeSlideUp({ onClose, onEnterGhost }: GhostModeSli
           }}
         >
           {/* Top accent */}
-          <div style={{ height: 3, background: "linear-gradient(90deg, #22c55e, #4ade80, #22c55e)" }} />
+          <div style={{ height: 3, background: `linear-gradient(90deg, ${a.accentMid}, ${a.accent}, #22c55e)` }} />
 
           <div style={{ padding: "20px 20px 32px" }}>
             {/* Close */}
@@ -87,12 +89,12 @@ export default function GhostModeSlideUp({ onClose, onEnterGhost }: GhostModeSli
             {/* Header */}
             <div style={{ textAlign: "center", marginBottom: 20 }}>
               <div style={{ lineHeight: 1, marginBottom: 8 }}><img src={GHOST_LOGO} alt="ghost" style={{ width: 132, height: 132, objectFit: "contain" }} /></div>
-              <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(74,222,128,0.8)", letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 6px" }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: a.glow(0.8), letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 6px" }}>
                 Introducing
               </p>
               <h2 style={{
                 fontSize: 22, fontWeight: 900, margin: "0 0 6px",
-                background: "linear-gradient(135deg, #4ade80, #22c55e, #86efac)",
+                background: `linear-gradient(135deg, ${a.accent}, ${a.accentMid}, #86efac)`,
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               }}>
                 2dateme Ghost Mode
@@ -108,7 +110,7 @@ export default function GhostModeSlideUp({ onClose, onEnterGhost }: GhostModeSli
               {/* Ghost Mode solo */}
               <div style={{
                 background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(74,222,128,0.25)",
+                border: `1px solid ${a.glow(0.25)}`,
                 borderRadius: 16, padding: "14px 16px",
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -117,14 +119,14 @@ export default function GhostModeSlideUp({ onClose, onEnterGhost }: GhostModeSli
                     <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Private dating — photo + name + age + city only</p>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <p style={{ fontSize: 18, fontWeight: 900, color: "#4ade80", margin: 0 }}>$9.99</p>
-                    <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: 0 }}>/month</p>
+                    <p style={{ fontSize: 18, fontWeight: 900, color: a.accent, margin: 0 }}>🪙 1,000</p>
+                    <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: 0 }}>coins/month</p>
                   </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 12 }}>
                   {GHOST_PERKS.map((perk) => (
                     <div key={perk} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                      <Check size={11} style={{ color: "#4ade80", flexShrink: 0 }} />
+                      <Check size={11} style={{ color: a.accent, flexShrink: 0 }} />
                       <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)" }}>{perk}</span>
                     </div>
                   ))}
@@ -133,13 +135,13 @@ export default function GhostModeSlideUp({ onClose, onEnterGhost }: GhostModeSli
                   onClick={() => handleSubscribe("ghost")}
                   style={{
                     width: "100%", height: 42, borderRadius: 12, border: "none",
-                    background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                    background: `linear-gradient(135deg, ${a.accentDark}, ${a.accentMid})`,
                     color: "#fff", fontWeight: 800, fontSize: 13,
                     cursor: "pointer",
-                    boxShadow: "0 4px 20px rgba(34,197,94,0.35)",
+                    boxShadow: `0 4px 20px ${a.glowMid(0.35)}`,
                   }}
                 >
-                  Start Ghost Mode — $9.99/mo
+                  Start Ghost Mode — 🪙 1,000/mo
                 </button>
               </div>
 
@@ -161,11 +163,11 @@ export default function GhostModeSlideUp({ onClose, onEnterGhost }: GhostModeSli
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                   <div>
                     <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: 0 }}><img src={GHOST_LOGO} alt="" style={{ width: 48, height: 48, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> Ghost + VIP</p>
-                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Everything — save $4/mo</p>
+                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Everything — save 🪙 500/mo</p>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <p style={{ fontSize: 18, fontWeight: 900, color: "#f472b6", margin: 0 }}>$14.99</p>
-                    <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: 0 }}>/month</p>
+                    <p style={{ fontSize: 18, fontWeight: 900, color: "#f472b6", margin: 0 }}>🪙 1,500</p>
+                    <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: 0 }}>coins/month</p>
                   </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 12 }}>
@@ -186,7 +188,7 @@ export default function GhostModeSlideUp({ onClose, onEnterGhost }: GhostModeSli
                     boxShadow: "0 4px 20px rgba(236,72,153,0.35)",
                   }}
                 >
-                  Ghost + VIP Bundle — $14.99/mo
+                  Ghost + VIP Bundle — 🪙 1,500/mo
                 </button>
               </div>
             </div>

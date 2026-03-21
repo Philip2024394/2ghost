@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Moon, Settings, Check, Gift, SlidersHorizontal, LayoutDashboard } from "lucide-react";
+import { Moon, Settings, Gift, SlidersHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
@@ -9,13 +9,14 @@ import { generateIndonesianProfiles } from "@/data/indonesianProfiles";
 import GhostInstallBanner from "../components/GhostInstallBanner";
 import { detectIpCountry, getCachedIpCountry, getCountryProximity, type IpCountryResult } from "@/shared/hooks/useIpCountry";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 // Types & constants
 import type { GhostProfile, GhostMatch, InboundLike, GenderFilter, KmFilter } from "../types/ghostTypes";
 import { MATCH_EXPIRY_MS, SEA_COUNTRY_LIST, FLAG_TO_CODE, INTL_PROFILES, DEMO_INBOUND } from "../types/ghostTypes";
 
 // Helpers
 import {
-  loadMatches, persistMatches, matchCountdown, activeHoursAgo,
+  loadMatches, persistMatches, activeHoursAgo,
   profileHouseTier, tonightMidnight, isProfileTonight, isFlashProfile,
   getFlaggedProfiles, saveFlaggedProfiles, hasIntlGhost, getIntlCountries,
   haversineKm, profileIsVerified, toGhostId,
@@ -31,15 +32,15 @@ import InboundLikePopup from "../components/InboundLikePopup";
 import GhostCard from "../components/GhostCard";
 import MatchPaywallModal from "../components/MatchPaywallModal";
 import GhostHouseModal from "../components/GhostHouseModal";
-import GhostFlashSection, { GhostFlashMatchPopup } from "../components/GhostFlashSection";
-import GhostPulseRow from "../components/GhostPulseRow";
+import { GhostFlashMatchPopup } from "../components/GhostFlashSection";
 import FoundBooBanner from "../components/FoundBooBanner";
-import { CountryTabBar } from "../components/CountryTabBar";
 import InternationalGhostModal from "../components/CountryTabBar";
 import GhostNewGuestsPopup from "../components/GhostNewGuestsPopup";
 import GhostIcebreakerPopup from "../components/GhostIcebreakerPopup";
 import GhostButlerSheet from "../components/GhostButlerSheet";
 import { isCitySupported } from "../data/butlerProviders";
+import MatchActionPopup, { type MatchActionContext } from "../components/MatchActionPopup";
+import GhostCoinShop from "../components/GhostCoinShop";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
@@ -211,12 +212,12 @@ function DevPanel({
               position: "fixed", bottom: 126, right: 14, zIndex: 8999,
               width: 280,
               background: "rgba(6,6,12,0.97)", backdropFilter: "blur(30px)",
-              borderRadius: 16, border: "1px solid rgba(74,222,128,0.2)",
+              borderRadius: 16, border: `1px solid rgba(74,222,128,0.2)`,
               boxShadow: "0 16px 48px rgba(0,0,0,0.8)",
               overflow: "hidden",
             }}
           >
-            <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80)" }} />
+            <div style={{ height: 3, background: `linear-gradient(90deg, #16a34a, #4ade80)` }} />
             <div style={{ padding: "12px 12px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
 
               {/* Header */}
@@ -279,7 +280,7 @@ function DevPanel({
               <div>
                 <span style={label}>Admin Shortcut</span>
                 <button
-                  style={{ ...btnBase, width: "100%", background: "rgba(74,222,128,0.15)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.4)", fontWeight: 900, fontSize: 12 }}
+                  style={{ ...btnBase, width: "100%", background: "rgba(74,222,128,0.15)", color: "#4ade80", border: `1px solid rgba(74,222,128,0.4)`, fontWeight: 900, fontSize: 12 }}
                   onClick={unlockAll}
                 >
                   🔓 Unlock All Features
@@ -299,8 +300,9 @@ function DevPanel({
 
 // ── Main page ───────────────────────────────────────────────────────────────
 export default function GhostModePage() {
+  const a = useGenderAccent();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  useLanguage();
   const { isGhost, plan, activate, deactivate } = useGhostMode();
 
   // IP country detection — runs once, cached 24h
@@ -312,7 +314,7 @@ export default function GhostModePage() {
   }, []);
 
   // International Ghost state
-  const [isIntlGhost, setIsIntlGhost] = useState(hasIntlGhost);
+  const [_isIntlGhost, setIsIntlGhost] = useState(hasIntlGhost);
   const [intlCountries, setIntlCountries] = useState<string[]>(getIntlCountries);
   const [showIntlModal, setShowIntlModal] = useState(false);
   void intlCountries; // consumed by parent context only
@@ -440,6 +442,18 @@ export default function GhostModePage() {
   };
   void toggleTonightActive; // kept for external use
 
+  // Coin balance — reads from localStorage, refreshes on focus
+  const [coinBalance, setCoinBalance] = useState(() => {
+    try { return Number(localStorage.getItem("ghost_coins") || "0"); } catch { return 0; }
+  });
+  useEffect(() => {
+    const refresh = () => {
+      try { setCoinBalance(Number(localStorage.getItem("ghost_coins") || "0")); } catch {}
+    };
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
+  }, []);
+
   // Quick Exit — renders a blank screen instantly
   const [quickExit, setQuickExit] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -466,7 +480,7 @@ export default function GhostModePage() {
 
   // Filter button randomly cycling glow
   const FILTER_GLOWS = [
-    "rgba(74,222,128,0.8)",
+    a.glow(0.8),
     "rgba(168,85,247,0.8)",
     "rgba(251,191,36,0.8)",
     "rgba(96,165,250,0.8)",
@@ -484,7 +498,7 @@ export default function GhostModePage() {
     }, 1800);
     return () => clearInterval(t);
   }, []);
-  const [settingsGateFeature, setSettingsGateFeature] = useState<string | null>(null);
+  const [_settingsGateFeature, setSettingsGateFeature] = useState<string | null>(null);
 
   // Ghost Flash — 60-minute live pool
   const FLASH_CONTACT_LIMIT = 3;
@@ -492,13 +506,42 @@ export default function GhostModePage() {
     try { const v = Number(localStorage.getItem("ghost_flash_until") || 0); return v > Date.now() ? v : 0; } catch { return 0; }
   });
   const isFlashActive = flashUntil > Date.now();
-  const [flashTick, setFlashTick] = useState(0);
+  const [_flashTick, setFlashTick] = useState(0);
   const [flashMatchProfile, setFlashMatchProfile] = useState<GhostProfile | null>(null);
   const [showFlashPaywall, setShowFlashPaywall] = useState(false);
   const [flashPaywallPaying, setFlashPaywallPaying] = useState(false);
   const [flashConnectedIds, setFlashConnectedIds] = useState<Set<string>>(() => {
     try { return new Set(JSON.parse(localStorage.getItem("ghost_flash_connected") || "[]")); } catch { return new Set(); }
   });
+  const [connectedMatchIds, setConnectedMatchIds] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("ghost_connected_matches") || "[]")); } catch { return new Set(); }
+  });
+  const [matchTab, setMatchTab] = useState<"matches" | "ilike" | "liked" | "lobby">("matches");
+  // Match-action popup
+  const [matchActionProfile, setMatchActionProfile] = useState<GhostProfile | null>(null);
+  const [matchActionContext, setMatchActionContext] = useState<MatchActionContext>("match");
+  // Live shuffle seed — increments every 20s to rotate profile order
+  const [shuffleSeed, setShuffleSeed] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setShuffleSeed(s => s + 1), 20000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Auto-revert: if user switches to I Like / Liked Me and does nothing for 10s → back to Matches
+  const tabRevertRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startTabRevert = useCallback(() => {
+    if (tabRevertRef.current) clearTimeout(tabRevertRef.current);
+    tabRevertRef.current = setTimeout(() => setMatchTab("matches"), 10000);
+  }, []);
+  const cancelTabRevert = useCallback(() => {
+    if (tabRevertRef.current) { clearTimeout(tabRevertRef.current); tabRevertRef.current = null; }
+  }, []);
+  useEffect(() => {
+    if (matchTab === "ilike" || matchTab === "liked" || matchTab === "lobby") startTabRevert();
+    else cancelTabRevert();
+    if (matchTab === "lobby") setShowLobbyWelcome(true);
+    return () => cancelTabRevert();
+  }, [matchTab, startTabRevert, cancelTabRevert]);
   const [flashContactsUsed, setFlashContactsUsed] = useState<number>(() => {
     try {
       const until = Number(localStorage.getItem("ghost_flash_until") || 0);
@@ -757,6 +800,31 @@ export default function GhostModePage() {
       });
   }, [allProfiles, gender, ageMin, ageMax, maxKm, filterCountry, onlineOnly, passedIds, browsingCountryCode, lobbyMode, filterBadge]);
 
+  // ── Computed match-tab lists ───────────────────────────────────────────────
+  // Profiles the user has liked
+  const iLikeList = useMemo(
+    () => allProfiles.filter(p => likedIds.has(p.id)),
+    [allProfiles, likedIds]
+  );
+  // Hotel lobby profiles — seeded 20% of all profiles
+  const lobbyList = useMemo(
+    () => allProfiles.filter(p => isFlashProfile(p.id)).slice(0, 24),
+    [allProfiles]
+  );
+
+  // Profiles that "liked" the user — seeded demo: unfiltered profiles the user hasn't liked back
+  // A seeded-shuffle changes their order every shuffleSeed tick so it feels "live"
+  const likedMeList = useMemo(() => {
+    const base = allProfiles.filter(p => !likedIds.has(p.id)).slice(0, 20);
+    if (base.length <= 3) return base;
+    const arr = [...base];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.abs(Math.sin(i * 127 + shuffleSeed * 4093)) * (i + 1) | 0;
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [allProfiles, likedIds, shuffleSeed]);
+
   const saveMatch = (profile: GhostProfile) => {
     const next = [
       ...savedMatches.filter((m) => m.id !== profile.id && Date.now() - m.matchedAt < MATCH_EXPIRY_MS),
@@ -814,6 +882,36 @@ export default function GhostModePage() {
     }
   };
 
+  const [showCoinShop, setShowCoinShop] = useState(false);
+  const [showLobbyWelcome, setShowLobbyWelcome] = useState(false);
+
+  // ── Match-action popup handlers ──────────────────────────────────────────
+  const openMatchAction = (profile: GhostProfile, ctx: MatchActionContext) => {
+    cancelTabRevert();
+    setMatchActionProfile(profile);
+    setMatchActionContext(ctx);
+  };
+  const handleLikeBack = (profile: GhostProfile) => {
+    handleLike(profile);
+    saveMatch(profile);
+    setMatchActionProfile(null);
+    setMatchTab("matches");
+  };
+  const handleSendGift = (_emoji: string, coins: number) => {
+    const next = Math.max(0, coinBalance - coins);
+    setCoinBalance(next);
+    try { localStorage.setItem("ghost_coins", String(next)); } catch {}
+  };
+  const handleMatchConnect = (profile: GhostProfile) => {
+    setMatchActionProfile(null);
+    if (matchActionContext === "lobby") {
+      enterFlash();
+      setMatchTab("matches");
+    } else {
+      setConnectNowProfile(profile);
+    }
+  };
+
   // ── Quick Exit ───────────────────────────────────────────────────────────
   if (quickExit) {
     return (
@@ -855,34 +953,34 @@ export default function GhostModePage() {
         paddingTop: `max(12px, env(safe-area-inset-top, 12px))`,
       }}>
         {/* Top row: title + primary actions */}
-        <div style={{ padding: "0 16px 10px", display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
-            <img src="https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasd.png" alt="2Ghost" style={{ width: 78, height: 78, objectFit: "contain" }} />
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <h1 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
-                  <span style={{ color: "#4ade80", fontWeight: 900 }}>2</span>Ghost
-                </h1>
-                <span style={{ background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 6, padding: "1px 6px", fontSize: 9, fontWeight: 700, color: "rgba(74,222,128,0.9)", letterSpacing: "0.08em" }}>
-                  {plan === "bundle" ? "GHOST + VIP" : "ACTIVE"}
-                </span>
-              </div>
-              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", margin: 0 }}>Invisible · Photo · Name · Age · City only</p>
+        <div style={{ padding: "0 16px 6px", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+            <img src="https://ik.imagekit.io/7grri5v7d/asdfasdfasdwq.png" alt="2Ghost" style={{ width: 52, height: 52, objectFit: "contain" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <h1 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
+                <span style={{ color: a.accent, fontWeight: 900 }}>2</span>Ghost
+              </h1>
+              <span style={{ background: a.glow(0.15), border: `1px solid ${a.glow(0.3)}`, borderRadius: 6, padding: "1px 6px", fontSize: 9, fontWeight: 700, color: a.glow(0.9), letterSpacing: "0.08em" }}>
+                {plan === "bundle" ? "GHOST + VIP" : "ACTIVE"}
+              </span>
             </div>
           </div>
+          {/* Coin balance */}
+          <button
+            onClick={() => navigate("/ghost/dashboard")}
+            style={{
+              display: "flex", alignItems: "center", gap: 5,
+              background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)",
+              borderRadius: 20, padding: "5px 10px",
+              cursor: "pointer", flexShrink: 0,
+            }}
+          >
+            <span style={{ fontSize: 14 }}>🪙</span>
+            <span style={{ fontSize: 13, fontWeight: 900, color: "#d4af37", fontVariantNumeric: "tabular-nums" }}>
+              {coinBalance.toLocaleString()}
+            </span>
+          </button>
           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-            <button
-              onClick={() => navigate("/ghost/dashboard")}
-              title="Dashboard"
-              style={{
-                width: 34, height: 34, borderRadius: 10,
-                background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.2)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", color: "rgba(74,222,128,0.7)",
-              }}
-            >
-              <LayoutDashboard size={15} />
-            </button>
             <button
               onClick={() => { setSettingsGateFeature(null); setShowSettingsSheet(true); }}
               style={{
@@ -897,97 +995,319 @@ export default function GhostModePage() {
           </div>
         </div>
 
-        {/* Feature strip */}
-        <div style={{ padding: "0 10px 12px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      </div>
 
-          {/* Room */}
-          <button onClick={() => navigate("/ghost/room")}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
-          >
-            <img src="https://ik.imagekit.io/7grri5v7d/weqweqw.png" alt="room" style={{ width: 28, height: 28, objectFit: "contain" }} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>Room</span>
-          </button>
 
-          {/* Ghost Vaults */}
-          <button onClick={() => setShowHouseModal(true)}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
-          >
-            <span style={{ fontSize: 24, lineHeight: 1 }}>
-              {houseTier === "gold"
-                ? <img src="https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png" alt="Gold Room" style={{ width: 24, height: 24, objectFit: "contain" }} />
-                : "🏨"}
-            </span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: houseTier === "gold" ? "rgba(212,175,55,0.9)" : houseTier === "suite" ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)" }}>
-              {houseTier === "gold" ? "Gold" : "Rooms"}
-            </span>
-          </button>
+      {/* ── Matches container ── */}
+      {(() => {
+        const activeMatches = savedMatches
+          .filter((m) => Date.now() - m.matchedAt < MATCH_EXPIRY_MS && !connectedMatchIds.has(m.id));
+        const PLACEHOLDER_IMG = isFemale
+          ? "https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdftewrtewrtDASDASD.png?updatedAt=1774110335030"
+          : "https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdftewrtewrtDASDASDDSDS.png?updatedAt=1774110383388";
 
-          {/* Tonight */}
-          <button onClick={toggleTonight}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px", position: "relative" }}
-          >
-            <div style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-              <Moon size={22} color={isTonightMode ? "#4ade80" : "rgba(255,255,255,0.55)"} fill={isTonightMode ? "rgba(74,222,128,0.35)" : "none"} />
-              {isTonightMode && (
-                <motion.span
-                  animate={{ opacity: [1, 0.3, 1], scale: [1, 1.3, 1] }}
-                  transition={{ duration: 1.2, repeat: Infinity }}
+        // Use component-level computed lists (shuffled live)
+        const iLikeProfiles = iLikeList;
+        const likedMeProfiles = likedMeList;
+
+        // Avatar size: exactly 3 fit in screen width
+        // 28px margins + 2×8px item gaps = 44px, plus 8px flex-gap + 4px marginLeft + 52px buttons = 64px → 108px total
+        const avatarSize = "calc((100vw - 108px) / 3)";
+        // Height: profile item (avatar + 4px gap + ~12px label) should equal button stack (44+6+44 = 94px)
+        const avatarH = 78;
+
+        // Header label
+        const tabLabel = matchTab === "ilike" ? "I Like" : matchTab === "liked" ? "Liked Me" : matchTab === "lobby" ? "Hotel Lobby" : "Matches";
+        const tabCount = matchTab === "ilike" ? iLikeProfiles.length : matchTab === "liked" ? likedMeProfiles.length : matchTab === "lobby" ? lobbyList.length : activeMatches.length;
+        // Lobby uses gender accent (same as everything else — pink/green)
+        const dotColor = a.accent;
+        const dotGlow  = a.glow(0.9);
+        const labelColor = a.glow(0.85);
+
+        // Build scroll content
+        const renderScrollContent = () => {
+          if (matchTab === "ilike") {
+            const TOTAL = Math.max(3, iLikeProfiles.length);
+            const phCount = TOTAL - iLikeProfiles.length;
+            return (
+              <>
+                {iLikeProfiles.map((p, i) => (
+                  <div key={p.id} onClick={() => openMatchAction(p, "ilike")}
+                    style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
+                  >
+                    <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
+                      <motion.div
+                        animate={{ scale: [1, 1.22, 1], opacity: [0.6, 0, 0.6] }}
+                        transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.2 }}
+                        style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px solid ${a.glow(0.7)}`, pointerEvents: "none" }}
+                      />
+                      <img src={p.image} alt=""
+                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.55)}`, display: "block" }}
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                      />
+                    </div>
+                    <p style={{ fontSize: 8, color: a.glow(0.8), fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name}</p>
+                  </div>
+                ))}
+                {Array.from({ length: phCount }).map((_, i) => (
+                  <div key={`ph-${i}`} style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <div style={{ width: avatarSize, height: avatarH, borderRadius: "50%", border: `2px dashed ${a.glow(0.2)}`, background: "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontSize: 14, opacity: 0.3 }}>👻</span>
+                    </div>
+                    <p style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", margin: 0 }}>Soon…</p>
+                  </div>
+                ))}
+              </>
+            );
+          }
+          if (matchTab === "liked") {
+            const TOTAL = Math.max(3, likedMeProfiles.length);
+            const phCount = TOTAL - likedMeProfiles.length;
+            return (
+              <>
+                {likedMeProfiles.map((p, i) => (
+                  <div key={p.id} onClick={() => openMatchAction(p, "liked")}
+                    style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
+                  >
+                    <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
+                      <motion.div
+                        animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity, delay: i * 0.18 }}
+                        style={{ position: "absolute", inset: -4, borderRadius: "50%", border: "2px solid rgba(244,114,182,0.65)", pointerEvents: "none" }}
+                      />
+                      <img src={p.image} alt=""
+                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(244,114,182,0.45)", display: "block" }}
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                      />
+                    </div>
+                    <p style={{ fontSize: 8, color: "rgba(244,114,182,0.85)", fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name}</p>
+                  </div>
+                ))}
+                {Array.from({ length: phCount }).map((_, i) => (
+                  <div key={`ph-${i}`} style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <div style={{ width: avatarSize, height: avatarH, borderRadius: "50%", border: "2px dashed rgba(244,114,182,0.2)", background: "rgba(244,114,182,0.03)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontSize: 14, opacity: 0.3 }}>💗</span>
+                    </div>
+                    <p style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", margin: 0 }}>Soon…</p>
+                  </div>
+                ))}
+              </>
+            );
+          }
+          if (matchTab === "lobby") {
+            const TOTAL = Math.max(3, lobbyList.length);
+            const phCount = TOTAL - lobbyList.length;
+            return (
+              <>
+                {lobbyList.map((p, i) => (
+                  <div key={p.id} onClick={() => openMatchAction(p, "lobby")}
+                    style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
+                  >
+                    <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
+                      <motion.div
+                        animate={{ scale: [1, 1.18, 1], opacity: [0.6, 0, 0.6] }}
+                        transition={{ duration: 1.9, repeat: Infinity, delay: i * 0.18 }}
+                        style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px solid ${a.glow(0.65)}`, pointerEvents: "none" }}
+                      />
+                      <img src={p.image} alt=""
+                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.45)}`, display: "block" }}
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                      />
+                      {isOnline(p.last_seen_at) && (
+                        <motion.span
+                          animate={{ opacity: [1, 0.3, 1], scale: [1, 1.3, 1] }}
+                          transition={{ duration: 1.4, repeat: Infinity }}
+                          style={{ position: "absolute", bottom: 1, right: 1, width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)", display: "block" }}
+                        />
+                      )}
+                    </div>
+                    <p style={{ fontSize: 8, color: a.glow(0.8), fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name}</p>
+                  </div>
+                ))}
+                {Array.from({ length: phCount }).map((_, i) => (
+                  <div key={`ph-${i}`} style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <div style={{ width: avatarSize, height: avatarH, borderRadius: "50%", border: `2px dashed ${a.glow(0.2)}`, background: a.glow(0.03), display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontSize: 16, opacity: 0.3 }}>🏨</span>
+                    </div>
+                    <p style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", margin: 0 }}>Soon…</p>
+                  </div>
+                ))}
+              </>
+            );
+          }
+
+          // Default: matches tab
+          const TOTAL_SLOTS = Math.max(3, activeMatches.length);
+          const placeholderCount = TOTAL_SLOTS - activeMatches.length;
+          return (
+            <>
+              {activeMatches.map((m, i) => (
+                <div key={m.id} onClick={() => openMatchAction(m.profile, "match")}
+                  style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
+                >
+                  <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
+                    <motion.div
+                      animate={{ scale: [1, 1.22, 1], opacity: [0.6, 0, 0.6] }}
+                      transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.2 }}
+                      style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px solid ${a.glow(0.7)}`, pointerEvents: "none" }}
+                    />
+                    <img src={m.profile.image} alt=""
+                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.55)}`, display: "block" }}
+                      onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                    />
+                    {(m.profile.lastActiveHoursAgo ?? 99) <= 0.5 && (
+                      <motion.span
+                        animate={{ opacity: [1, 0.3, 1], scale: [1, 1.3, 1] }}
+                        transition={{ duration: 1.4, repeat: Infinity }}
+                        style={{ position: "absolute", bottom: 1, right: 1, width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)", display: "block" }}
+                      />
+                    )}
+                  </div>
+                  <p style={{ fontSize: 8, color: a.glow(0.8), fontWeight: 700, margin: 0, letterSpacing: "0.04em", textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{m.profile.name}</p>
+                </div>
+              ))}
+              {Array.from({ length: placeholderCount }).map((_, i) => (
+                <div key={`ph-${i}`} style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                  <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
+                    <motion.div
+                      animate={{ scale: [1, 1.22, 1], opacity: [0.4, 0, 0.4] }}
+                      transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.15 }}
+                      style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px solid ${a.glow(0.35)}`, pointerEvents: "none" }}
+                    />
+                    <img src={PLACEHOLDER_IMG} alt=""
+                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.3)}`, display: "block", opacity: 0.6 }}
+                    />
+                  </div>
+                  <p style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", fontWeight: 700, margin: 0 }}>Soon…</p>
+                </div>
+              ))}
+            </>
+          );
+        };
+
+        return (
+          <div style={{ margin: "10px 14px 0" }}>
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16 }}>
+              <motion.span
+                animate={{ opacity: [1, 0.3, 1], scale: [1, 1.2, 1] }}
+                transition={{ duration: 1.6, repeat: Infinity }}
+                style={{ width: 7, height: 7, borderRadius: "50%", background: dotColor, display: "block", boxShadow: `0 0 8px ${dotGlow}`, flexShrink: 0 }}
+              />
+              <span style={{ fontSize: 13, fontWeight: 800, color: labelColor, letterSpacing: "0.1em", textTransform: "uppercase" }}>{tabLabel}</span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", flex: 1 }}>
+                · {tabCount > 0 ? `${tabCount} ${matchTab === "liked" ? "liked you" : matchTab === "lobby" ? "in lobby" : "waiting"}` : "waiting for you"}
+              </span>
+              {/* Butler — right side */}
+              <div
+                onClick={() => { if (isCitySupported(userCity)) { setButlerMatchName(undefined); setShowButler(true); } else setShowButlerUnavailable(true); }}
+                style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", flexShrink: 0, padding: "6px 0 6px 10px" }}
+              >
+                <img src="https://ik.imagekit.io/7grri5v7d/butlers%20tray.png" alt="butler" style={{ width: 16, height: 16, objectFit: "contain" }} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap" }}>Butler Service</span>
+              </div>
+            </div>
+            {/* Main row: scroll area + tab buttons */}
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+              {/* Scrollable profiles */}
+              <style>{`.matches-row::-webkit-scrollbar { display: none; }`}</style>
+              <div className="matches-row" onScroll={() => { if (matchTab !== "matches") startTabRevert(); }} style={{ flex: 1, display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, scrollbarWidth: "none" }}>
+                {renderScrollContent()}
+              </div>
+              {/* Tab buttons — stacked vertically */}
+              <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 6, paddingBottom: 8, marginLeft: 4 }}>
+                <button
+                  onClick={() => setMatchTab(matchTab === "ilike" ? "matches" : "ilike")}
                   style={{
-                    position: "absolute", top: -3, right: -3,
-                    width: 7, height: 7, borderRadius: "50%",
-                    background: "#4ade80", display: "block",
-                    boxShadow: "0 0 6px rgba(74,222,128,0.9)",
+                    width: 52, height: 44, borderRadius: 10,
+                    background: matchTab === "ilike" ? a.gradient : "rgba(255,255,255,0.07)",
+                    border: matchTab === "ilike" ? "none" : "1.5px solid rgba(255,255,255,0.15)",
+                    cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+                    boxShadow: matchTab === "ilike" ? `0 0 14px ${a.glow(0.5)}` : "none",
                   }}
-                />
-              )}
+                >
+                  <span style={{ fontSize: 15 }}>👍</span>
+                  <span style={{ fontSize: 8, fontWeight: 700, color: matchTab === "ilike" ? "#fff" : "rgba(255,255,255,0.5)", letterSpacing: "0.02em" }}>I Like</span>
+                </button>
+                <button
+                  onClick={() => setMatchTab(matchTab === "liked" ? "matches" : "liked")}
+                  style={{
+                    width: 52, height: 44, borderRadius: 10,
+                    background: matchTab === "liked" ? "linear-gradient(to bottom, #f472b6 0%, #ec4899 40%, #db2777 100%)" : "rgba(255,255,255,0.07)",
+                    border: matchTab === "liked" ? "none" : "1.5px solid rgba(255,255,255,0.15)",
+                    cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+                    boxShadow: matchTab === "liked" ? "0 0 14px rgba(244,114,182,0.5)" : "none",
+                  }}
+                >
+                  <span style={{ fontSize: 15 }}>❤️</span>
+                  <span style={{ fontSize: 8, fontWeight: 700, color: matchTab === "liked" ? "#fff" : "rgba(255,255,255,0.5)", letterSpacing: "0.02em" }}>Liked</span>
+                </button>
+              </div>
             </div>
-            <span style={{ fontSize: 10, fontWeight: 700, color: isTonightMode ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)" }}>
-              {isTonightMode ? "LIVE" : "Tonight"}
-            </span>
-          </button>
+          </div>
+        );
+      })()}
 
-          {/* Shield */}
-          <button onClick={() => navigate("/ghost/block")}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
-          >
-            <img src={SHIELD_LOGO} alt="shield" style={{ width: 26, height: 26, objectFit: "contain" }} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>Shield</span>
-          </button>
-
-          {/* Ghost Butler */}
-          <button
-            onClick={() => {
-              if (isCitySupported(userCity)) {
-                setButlerMatchName(undefined);
-                setShowButler(true);
-              } else {
-                setShowButlerUnavailable(true);
-              }
-            }}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
-          >
-            <span style={{ fontSize: 22, lineHeight: 1 }}>🎩</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(251,191,36,0.9)" }}>Butler</span>
-          </button>
-
-          {/* Filter */}
-          <button
-            onClick={() => setShowFilters(true)}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
-          >
-            <div style={{
-              width: 28, height: 28, borderRadius: "50%",
-              background: FILTER_GLOWS[filterGlowIdx].replace("0.8", "0.12"),
-              border: `1.5px solid ${FILTER_GLOWS[filterGlowIdx].replace("0.8", "0.6")}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "background 0.6s, border-color 0.6s",
-            }}>
-              <SlidersHorizontal size={14} color={FILTER_GLOWS[filterGlowIdx].replace("0.8", "1")} />
-            </div>
-            <span style={{ fontSize: 10, fontWeight: 700, color: FILTER_GLOWS[filterGlowIdx].replace("0.8", "0.9"), transition: "color 0.6s" }}>Filter</span>
-          </button>
-
-        </div>
+      {/* ── Quick-action buttons ── */}
+      <div style={{ margin: "12px 14px 0", display: "flex", justifyContent: "space-between", gap: 8 }}>
+        {/* Lobby button — "Leave" when flash active */}
+        {(() => {
+          const isLobbyActive = isFlashActive;
+          const isLobbyTab = matchTab === "lobby";
+          return (
+            <button
+              onClick={() => {
+                if (isLobbyActive) { exitFlash(); setMatchTab("matches"); }
+                else setMatchTab(isLobbyTab ? "matches" : "lobby");
+              }}
+              style={{
+                flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+                background: isLobbyActive ? "rgba(239,68,68,0.1)" : isLobbyTab ? a.glow(0.1) : a.glow(0.06),
+                border: isLobbyActive ? "1px solid rgba(239,68,68,0.3)" : isLobbyTab ? `1px solid ${a.glow(0.35)}` : `1px solid ${a.glow(0.15)}`,
+                borderRadius: 16, padding: "10px 4px", cursor: "pointer",
+              }}
+            >
+              <div style={{ width: 38, height: 38, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                background: isLobbyActive ? "rgba(239,68,68,0.15)" : isLobbyTab ? a.glow(0.15) : a.glow(0.1),
+                border: isLobbyActive ? "1px solid rgba(239,68,68,0.3)" : isLobbyTab ? `1px solid ${a.glow(0.35)}` : `1px solid ${a.glow(0.2)}`,
+              }}>
+                <span style={{ fontSize: 20 }}>{isLobbyActive ? "🚪" : "🏨"}</span>
+              </div>
+              <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase",
+                color: isLobbyActive ? "rgba(239,68,68,0.9)" : isLobbyTab ? a.glow(0.9) : a.glow(0.7),
+              }}>
+                {isLobbyActive ? "Leave" : "Lobby"}
+              </span>
+            </button>
+          );
+        })()}
+        {/* Vault */}
+        <button onClick={() => navigate("/ghost/room")}
+          style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 16, padding: "10px 4px", cursor: "pointer" }}
+        >
+          <div style={{ width: 38, height: 38, borderRadius: "50%", background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <img src="https://ik.imagekit.io/7grri5v7d/weqweqw.png" alt="vault" style={{ width: 22, height: 22, objectFit: "contain" }} />
+          </div>
+          <span style={{ fontSize: 9, fontWeight: 800, color: a.glow(0.7), letterSpacing: "0.05em", textTransform: "uppercase" }}>Vault</span>
+        </button>
+        {/* Shield */}
+        <button onClick={() => navigate("/ghost/block")}
+          style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 16, padding: "10px 4px", cursor: "pointer" }}
+        >
+          <div style={{ width: 38, height: 38, borderRadius: "50%", background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <img src={SHIELD_LOGO} alt="shield" style={{ width: 22, height: 22, objectFit: "contain" }} />
+          </div>
+          <span style={{ fontSize: 9, fontWeight: 800, color: a.glow(0.7), letterSpacing: "0.05em", textTransform: "uppercase" }}>Shield</span>
+        </button>
+        {/* Rooms */}
+        <button onClick={() => setShowHouseModal(true)}
+          style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 16, padding: "10px 4px", cursor: "pointer" }}
+        >
+          <div style={{ width: 38, height: 38, borderRadius: "50%", background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: 20 }}>🏠</span>
+          </div>
+          <span style={{ fontSize: 9, fontWeight: 800, color: a.glow(0.7), letterSpacing: "0.05em", textTransform: "uppercase" }}>Rooms</span>
+        </button>
       </div>
 
       {/* Filter slide-up sheet */}
@@ -1027,7 +1347,7 @@ export default function GhostModePage() {
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 18px 14px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <SlidersHorizontal size={16} color="rgba(74,222,128,0.9)" />
+                  <SlidersHorizontal size={16} color={a.glow(0.9)} />
                   <span style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>Filters</span>
                 </div>
                 <button
@@ -1045,7 +1365,7 @@ export default function GhostModePage() {
                   { label: "Showing", value: profiles.length },
                   ...(ipCountry ? [{ label: ipCountry.countryName, value: "📍" }] : []),
                 ].map(({ label, value }) => (
-                  <div key={label} style={{ flex: 1, background: "rgba(74,222,128,0.05)", borderRadius: 10, border: "1px solid rgba(74,222,128,0.1)", padding: "8px 0", textAlign: "center" }}>
+                  <div key={label} style={{ flex: 1, background: a.glow(0.05), borderRadius: 10, border: `1px solid ${a.glow(0.1)}`, padding: "8px 0", textAlign: "center" }}>
                     <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0 }}>{value}</p>
                     <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: 0 }}>{label}</p>
                   </div>
@@ -1070,9 +1390,9 @@ export default function GhostModePage() {
                   onClick={() => setShowFilters(false)}
                   style={{
                     width: "100%", height: 44, borderRadius: 12, border: "none",
-                    background: "linear-gradient(to bottom, #4ade80, #22c55e)",
+                    background: `linear-gradient(to bottom, ${a.accent}, #22c55e)`,
                     color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer",
-                    boxShadow: "0 4px 16px rgba(34,197,94,0.35)",
+                    boxShadow: `0 4px 16px ${a.glowMid(0.35)}`,
                   }}
                 >
                   Apply Filters
@@ -1083,114 +1403,25 @@ export default function GhostModePage() {
         )}
       </AnimatePresence>
 
-      {/* Ghost banner */}
-      <div style={{ margin: "10px 14px 0", background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 12, padding: "7px 14px", display: "flex", alignItems: "center", gap: 8 }}>
-        <img src={GHOST_LOGO} alt="ghost" style={{ width: 42, height: 42, objectFit: "contain" }} />
-        <p style={{ fontSize: 11, color: "rgba(74,222,128,0.8)", margin: 0, fontWeight: 600 }}>
-          You are invisible. Others only see your photo, name, age & city.
-        </p>
-      </div>
 
       {/* Tonight Mode banner */}
       <AnimatePresence>
         {isTonightMode && (
           <motion.div
             initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-            style={{ margin: "8px 14px 0", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 10, padding: "7px 12px", display: "flex", alignItems: "center", gap: 8, overflow: "hidden" }}
+            style={{ margin: "8px 14px 0", background: a.glow(0.1), border: `1px solid ${a.glow(0.3)}`, borderRadius: 10, padding: "7px 12px", display: "flex", alignItems: "center", gap: 8, overflow: "hidden" }}
           >
-            <Moon size={12} color="rgba(74,222,128,0.9)" fill="rgba(74,222,128,0.3)" />
-            <p style={{ fontSize: 11, color: "rgba(74,222,128,0.9)", margin: 0, fontWeight: 700 }}>
+            <Moon size={12} color={a.glow(0.9)} fill={a.glow(0.3)} />
+            <p style={{ fontSize: 11, color: a.glow(0.9), margin: 0, fontWeight: 700 }}>
               <span>Tonight Mode is ON · resets at midnight</span>
             </p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Ghost Flash ── */}
-      <GhostFlashSection
-        isActive={isFlashActive}
-        flashUntil={flashUntil}
-        flashTick={flashTick}
-        flashProfiles={profiles.filter((p) => isFlashProfile(p.id) && !flashConnectedIds.has(p.id)).slice(0, 10)}
-        onEnter={() => setShowFlashPaywall(true)}
-        onExit={exitFlash}
-        onSelectProfile={(p) => setSelectedProfile(p)}
-        contactsUsed={flashContactsUsed}
-        contactLimit={FLASH_CONTACT_LIMIT}
-      />
 
       {/* ── Ghost Pulse row — hidden when Flash is active ── */}
-      {!isFlashActive && <GhostPulseRow profiles={profiles} onSelect={(p) => setSelectedProfile(p)} />}
 
-      {/* ── Country tab bar ── */}
-      <CountryTabBar
-        homeCode={homeCountryCode}
-        homeName={homeCountryName}
-        homeFlag={homeFlag}
-        activeCode={browsingCountryCode}
-        onChange={setBrowsingCountryCode}
-      />
-
-      {/* ── Browsing another country notice ── */}
-      {browsingCountryCode && (() => {
-        const c = SEA_COUNTRY_LIST.find((x) => x.code === browsingCountryCode)!;
-        return (
-          <div style={{ margin: "0 14px 8px", background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 20 }}>{c.flag}</span>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 12, fontWeight: 800, color: "#818cf8", margin: 0 }}>Browsing {c.name} Ghost House</p>
-              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>Liking and matching works across countries</p>
-            </div>
-            {!isIntlGhost && !isFemale && (
-              <button
-                onClick={() => setShowIntlModal(true)}
-                style={{ height: 30, borderRadius: 50, padding: "0 12px", background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.4)", color: "#818cf8", fontSize: 11, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap" }}
-              >
-                {t("feed.listHere")}
-              </button>
-            )}
-          </div>
-        );
-      })()}
-
-      {/* ── Active matches row (48h expiry) ── */}
-      {savedMatches.filter((m) => Date.now() - m.matchedAt < MATCH_EXPIRY_MS).length > 0 && (
-        <div style={{ margin: "10px 14px 0" }}>
-          <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.35)", margin: "0 0 6px", letterSpacing: "0.07em", textTransform: "uppercase" }}>
-            <span>Matches · expires in</span>
-          </p>
-          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
-            {savedMatches
-              .filter((m) => Date.now() - m.matchedAt < MATCH_EXPIRY_MS)
-              .map((m) => (
-                <div
-                  key={m.id}
-                  onClick={() => setMatchProfile(m.profile)}
-                  style={{
-                    flexShrink: 0, width: 70, cursor: "pointer",
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                  }}
-                >
-                  <div style={{ position: "relative", width: 54, height: 54 }}>
-                    <img
-                      src={m.profile.image} alt=""
-                      style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(74,222,128,0.5)" }}
-                      onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
-                    />
-                    <div style={{
-                      position: "absolute", inset: 0, borderRadius: "50%",
-                      background: "conic-gradient(rgba(74,222,128,0.6) 0%, transparent 0%)",
-                      opacity: 0.4,
-                    }} />
-                  </div>
-                  <p style={{ fontSize: 8, color: "rgba(255,183,0,0.85)", margin: 0, fontWeight: 700, textAlign: "center", lineHeight: 1.2 }}>
-                    <span>{matchCountdown(m.matchedAt)}</span>
-                  </p>
-                </div>
-              ))}
-          </div>
-        </div>
-      )}
 
       {/* ── Invite popup (shown after 7 min for all users) ── */}
       <AnimatePresence>
@@ -1216,13 +1447,13 @@ export default function GhostModePage() {
               style={{
                 width: "100%", maxWidth: 320,
                 background: "linear-gradient(160deg, rgba(5,8,5,0.98) 0%, rgba(8,12,8,0.98) 100%)",
-                border: "1px solid rgba(74,222,128,0.2)",
+                border: `1px solid ${a.glow(0.2)}`,
                 borderRadius: 20, padding: "22px 20px 20px",
                 position: "relative", overflow: "hidden",
               }}
             >
               {/* Top accent */}
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)" }} />
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, #16a34a, ${a.accent}, #22c55e)` }} />
 
               {/* Close */}
               <button
@@ -1238,7 +1469,7 @@ export default function GhostModePage() {
               {/* Header */}
               <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", textAlign: "center", margin: "0 0 6px", lineHeight: 1.3 }}>
                 Rooms Remain Available<br />
-                <span style={{ color: "#4ade80" }}>Invite a Guest for Free Access</span>
+                <span style={{ color: a.accent }}>Invite a Guest for Free Access</span>
               </p>
 
               {/* Subtext */}
@@ -1263,10 +1494,10 @@ export default function GhostModePage() {
                 }}
                 style={{
                   width: "100%", height: 44, borderRadius: 12, border: "none",
-                  background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                  background: a.gradient,
                   color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                  boxShadow: "0 4px 16px rgba(74,222,128,0.3)",
+                  boxShadow: `0 4px 16px ${a.glow(0.3)}`,
                 }}
               >
                 <Gift size={14} />
@@ -1303,15 +1534,15 @@ export default function GhostModePage() {
             exit={{ opacity: 0, y: -8 }}
             style={{
               margin: "10px 14px 0",
-              background: "rgba(74,222,128,0.07)",
-              border: "1px solid rgba(74,222,128,0.25)",
+              background: a.glow(0.07),
+              border: `1px solid ${a.glow(0.25)}`,
               borderRadius: 12, padding: "10px 14px",
               display: "flex", alignItems: "center", gap: 10,
             }}
           >
             <span style={{ fontSize: 18 }}>🏨</span>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 12, fontWeight: 800, color: "#4ade80", margin: 0 }}>The Lobby — New Guests</p>
+              <p style={{ fontSize: 12, fontWeight: 800, color: a.accent, margin: 0 }}>The Lobby — New Guests</p>
               <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>Showing {newGuestProfiles.length} guests who just arrived</p>
             </div>
             <button
@@ -1323,6 +1554,44 @@ export default function GhostModePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Country + Filter floating bar ── */}
+      <div style={{ margin: "10px 14px 6px", display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Country dropdown — left */}
+        <div style={{ position: "relative", flex: 1 }}>
+          <select
+            value={browsingCountryCode ?? ""}
+            onChange={(e) => setBrowsingCountryCode(e.target.value || null)}
+            style={{
+              width: "100%", height: 36, borderRadius: 10,
+              background: browsingCountryCode ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.05)",
+              border: browsingCountryCode ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.1)",
+              color: browsingCountryCode ? "#818cf8" : "rgba(255,255,255,0.6)",
+              fontSize: 12, fontWeight: 700, padding: "0 10px",
+              appearance: "none", WebkitAppearance: "none", cursor: "pointer",
+              outline: "none",
+            }}
+          >
+            <option value="">{homeFlag} {homeCountryName}</option>
+            {SEA_COUNTRY_LIST.filter((c) => c.code !== homeCountryCode).map((c) => (
+              <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
+            ))}
+          </select>
+          <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>▾</span>
+        </div>
+        {/* Filter button — right */}
+        <button onClick={() => setShowFilters(true)} title="Filter"
+          style={{
+            width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+            background: FILTER_GLOWS[filterGlowIdx].replace("0.8", "0.12"),
+            border: `1.5px solid ${FILTER_GLOWS[filterGlowIdx].replace("0.8", "0.6")}`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", transition: "background 0.6s, border-color 0.6s",
+          }}
+        >
+          <SlidersHorizontal size={15} color={FILTER_GLOWS[filterGlowIdx].replace("0.8", "1")} />
+        </button>
+      </div>
 
       {/* Profile grid */}
       {profiles.length === 0 ? (
@@ -1338,6 +1607,7 @@ export default function GhostModePage() {
               profile={profile}
               liked={likedIds.has(profile.id)}
               onClick={() => setSelectedProfile(profile)}
+              onLike={() => handleLike(profile)}
               isRevealed={revealedIds.has(profile.id)}
               onReveal={() => handleReveal(profile.id)}
               canReveal={isGhost || isFemale}
@@ -1354,6 +1624,130 @@ export default function GhostModePage() {
       <AnimatePresence>
         {selectedProfile && (
           <GhostProfilePopup profile={selectedProfile} liked={likedIds.has(selectedProfile.id)} onLike={() => handleLike(selectedProfile)} onClose={() => setSelectedProfile(null)} onPass={() => handlePass(selectedProfile.id)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {matchActionProfile && (
+          <MatchActionPopup
+            profile={matchActionProfile}
+            context={matchActionContext}
+            coinBalance={coinBalance}
+            onClose={() => setMatchActionProfile(null)}
+            onConnect={() => handleMatchConnect(matchActionProfile)}
+            onLikeBack={() => handleLikeBack(matchActionProfile)}
+            onGift={(emoji, coins) => handleSendGift(emoji, coins)}
+            onPass={() => {
+              if (matchActionContext === "liked" || matchActionContext === "ilike") handlePass(matchActionProfile.id);
+              setMatchActionProfile(null);
+            }}
+            onNeedCoins={() => { setMatchActionProfile(null); setShowCoinShop(true); }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Lobby Welcome Popup ── */}
+      <AnimatePresence>
+        {showLobbyWelcome && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowLobbyWelcome(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 490, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+          >
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                width: "100%", maxWidth: 480,
+                background: "rgba(8,8,12,0.98)",
+                borderRadius: "24px 24px 0 0",
+                border: `1px solid ${a.glow(0.2)}`,
+                borderBottom: "none",
+                overflow: "hidden",
+              }}
+            >
+              {/* Accent bar */}
+              <motion.div
+                animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
+                style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)` }}
+              />
+
+              <div style={{ padding: "24px 22px 32px", display: "flex", flexDirection: "column", gap: 16 }}>
+                {/* Header */}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <motion.span
+                    animate={{ scale: [1, 1.12, 1] }} transition={{ duration: 1.6, repeat: Infinity }}
+                    style={{ fontSize: 32, display: "block", flexShrink: 0 }}
+                  >🏨</motion.span>
+                  <div>
+                    <p style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: "0 0 4px", lineHeight: 1.2 }}>
+                      The Lobby is Open — <span style={{ color: a.accent }}>Right Now</span>
+                    </p>
+                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, fontWeight: 600 }}>
+                      Real Ghost members. Live. Tonight.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Body copy */}
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", margin: 0, lineHeight: 1.65 }}>
+                  Ghost members are in the Lobby <strong style={{ color: a.accent }}>at this very moment</strong> — anonymous, available, and searching for exactly what you are. No bios, no small talk. Just instinct and the right moment.
+                </p>
+
+                {/* 3 action tiles */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {[
+                    { icon: "❤️", title: "Like a profile", desc: "Tap any profile below and like them — if they like you back it's an instant match." },
+                    { icon: "🎁", title: "Send a gift first", desc: "Stand out before they even know your name. Gifts get noticed." },
+                    { icon: "🚀", title: "Join the 60-min session", desc: "Step fully into the Lobby and let tonight bring someone straight to you." },
+                  ].map(item => (
+                    <div key={item.icon} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 12px", borderRadius: 12, background: a.glow(0.05), border: `1px solid ${a.glow(0.1)}` }}>
+                      <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
+                      <div>
+                        <p style={{ fontSize: 12, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>{item.title}</p>
+                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.45 }}>{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Urgency note */}
+                <p style={{ fontSize: 10, color: a.glow(0.5), textAlign: "center", margin: 0, fontWeight: 700, letterSpacing: "0.04em" }}>
+                  ⚡ The Lobby resets every hour — don't miss this window
+                </p>
+
+                {/* CTA */}
+                <button
+                  onClick={() => setShowLobbyWelcome(false)}
+                  style={{
+                    width: "100%", height: 52, borderRadius: 16, border: "none",
+                    background: a.gradient,
+                    color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
+                    boxShadow: `0 4px 20px ${a.glow(0.4)}`,
+                    letterSpacing: "0.03em",
+                  }}
+                >
+                  Browse the Lobby →
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showCoinShop && (
+          <GhostCoinShop
+            coinBalance={coinBalance}
+            onClose={() => setShowCoinShop(false)}
+            onAddCoins={(amount) => {
+              const next = coinBalance + amount;
+              setCoinBalance(next);
+              try { localStorage.setItem("ghost_coins", String(next)); } catch {}
+              setShowCoinShop(false);
+            }}
+          />
         )}
       </AnimatePresence>
 
@@ -1559,7 +1953,17 @@ export default function GhostModePage() {
         {connectNowProfile && (
           <ConnectNowPopup
             profile={connectNowProfile}
-            onDone={() => setConnectNowProfile(null)}
+            onDone={() => {
+              if (connectNowProfile) {
+                const matchEntry = savedMatches.find((m) => m.profile.id === connectNowProfile.id);
+                if (matchEntry) {
+                  const next = new Set(connectedMatchIds).add(matchEntry.id);
+                  setConnectedMatchIds(next);
+                  try { localStorage.setItem("ghost_connected_matches", JSON.stringify([...next])); } catch {}
+                }
+              }
+              setConnectNowProfile(null);
+            }}
           />
         )}
       </AnimatePresence>
@@ -1634,23 +2038,23 @@ export default function GhostModePage() {
                 width: "calc(100% - 40px)", maxWidth: 340,
                 zIndex: 9991,
                 background: "rgba(6,10,6,0.97)",
-                border: "1px solid rgba(74,222,128,0.35)",
+                border: `1px solid ${a.glow(0.35)}`,
                 borderRadius: 22,
                 padding: "26px 22px 20px",
-                boxShadow: "0 0 60px rgba(74,222,128,0.1), 0 24px 48px rgba(0,0,0,0.7)",
+                boxShadow: `0 0 60px ${a.glow(0.1)}, 0 24px 48px rgba(0,0,0,0.7)`,
                 backdropFilter: "blur(24px)",
                 textAlign: "center",
               }}
             >
-              <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: "4px 4px 0 0", position: "absolute", top: 0, left: 0, right: 0 }} />
+              <div style={{ height: 3, background: `linear-gradient(90deg, #16a34a, ${a.accent}, #22c55e)`, borderRadius: "4px 4px 0 0", position: "absolute", top: 0, left: 0, right: 0 }} />
               <motion.div
                 animate={{ scale: [1, 1.07, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
                 style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}
               >
-                <img src={SHIELD_LOGO} alt="shield" style={{ width: 64, height: 64, objectFit: "contain", filter: "drop-shadow(0 0 12px rgba(74,222,128,0.5))" }} />
+                <img src={SHIELD_LOGO} alt="shield" style={{ width: 64, height: 64, objectFit: "contain", filter: `drop-shadow(0 0 12px ${a.glow(0.5)})` }} />
               </motion.div>
-              <p style={{ fontSize: 11, fontWeight: 800, color: "rgba(74,222,128,0.8)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>
+              <p style={{ fontSize: 11, fontWeight: 800, color: a.glow(0.8), letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>
                 🛡️ Alert Ghost
               </p>
               <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: "0 0 10px", lineHeight: 1.35 }}>
@@ -1664,9 +2068,9 @@ export default function GhostModePage() {
                 onClick={() => setShowBlockedAlert(false)}
                 style={{
                   width: "100%", height: 46, borderRadius: 50, border: "none",
-                  background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                  background: a.gradient,
                   color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer",
-                  boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 20px rgba(34,197,94,0.4)",
+                  boxShadow: `0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 20px ${a.glowMid(0.4)}`,
                   position: "relative", overflow: "hidden",
                 }}
               >
@@ -1712,103 +2116,85 @@ export default function GhostModePage() {
       <AnimatePresence>
         {showSettingsSheet && (
           <>
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowSettingsSheet(false)}
-              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 9000, backdropFilter: "blur(4px)" }}
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 9000, backdropFilter: "blur(4px)" }}
             />
+            {/* Right drawer */}
             <motion.div
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 320 }}
+              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 320 }}
               style={{
-                position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
-                width: "100%", maxWidth: 480, zIndex: 9001,
-                background: "rgba(10,12,16,0.98)", borderTop: "1px solid rgba(74,222,128,0.18)",
-                borderRadius: "24px 24px 0 0", padding: "20px 20px 36px",
+                position: "fixed", top: 0, right: 0, bottom: 0,
+                width: 260, zIndex: 9001,
+                background: "rgba(8,10,14,0.99)",
+                borderLeft: `1px solid ${a.glow(0.15)}`,
+                display: "flex", flexDirection: "column",
+                paddingTop: "max(48px, env(safe-area-inset-top, 48px))",
+                paddingBottom: "max(32px, env(safe-area-inset-bottom, 32px))",
               }}
             >
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)", margin: "0 auto 20px" }} />
-              <p style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.9)", margin: "0 0 6px", letterSpacing: 0.3 }}>
-                Ghost Settings
-              </p>
-              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "0 0 20px" }}>
-                Manage what you share in Ghost Mode
-              </p>
+              {/* Top rim */}
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)` }} />
 
-              {settingsGateFeature ? (
-                <div style={{
-                  background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.2)",
-                  borderRadius: 16, padding: "20px 18px", textAlign: "center",
-                }}>
-                  <div style={{ fontSize: 36, marginBottom: 10 }}>🚪</div>
-                  <p style={{ fontSize: 14, fontWeight: 800, color: "rgba(74,222,128,0.9)", margin: "0 0 6px" }}>
-                    Ghost Vault Required
-                  </p>
-                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 18px", lineHeight: 1.5 }}>
-                    You need to create your Ghost Vault before sharing {settingsGateFeature.toLowerCase()}. Your room is the private link ghosts use to access your content.
-                  </p>
-                  <button
-                    onClick={() => { setShowSettingsSheet(false); navigate("/ghost/room"); }}
-                    style={{
-                      height: 40, paddingInline: 24, borderRadius: 12,
-                      background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.35)",
-                      color: "rgba(74,222,128,0.9)", fontSize: 13, fontWeight: 800, cursor: "pointer",
-                    }}
-                  >
-                    Set Up Ghost Vault
-                  </button>
-                  <button
-                    onClick={() => setSettingsGateFeature(null)}
-                    style={{
-                      display: "block", margin: "12px auto 0", background: "none", border: "none",
-                      color: "rgba(255,255,255,0.35)", fontSize: 12, cursor: "pointer",
-                    }}
-                  >
-                    ← Back
-                  </button>
+              {/* Header */}
+              <div style={{ padding: "0 20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div>
+                  <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0 }}>Menu</p>
+                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>2Ghost</p>
                 </div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  {[
-                    { icon: "🎥", label: "Video", desc: "Share video clips" },
-                    { icon: "🖼️", label: "Images", desc: "Share photo gallery" },
-                    { icon: "👥", label: "Contacts", desc: "Share contact list" },
-                    { icon: null, label: "Shield", desc: "Block unwanted ghosts", isShield: true },
-                  ].map(({ icon, label, desc, isShield }) => (
-                    <button
-                      key={label}
-                      onClick={() => {
-                        if (isShield) {
-                          setShowSettingsSheet(false);
-                          navigate("/ghost/block");
-                        } else {
-                          const hasRoom = !!localStorage.getItem("ghost_room_code");
-                          if (!hasRoom) {
-                            setSettingsGateFeature(label);
-                          } else {
-                            setShowSettingsSheet(false);
-                            navigate("/ghost/room");
-                          }
-                        }
-                      }}
-                      style={{
-                        background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
-                        borderRadius: 16, padding: "18px 14px", textAlign: "left", cursor: "pointer",
-                        display: "flex", flexDirection: "column", gap: 8,
-                      }}
-                    >
+                <button onClick={() => setShowSettingsSheet(false)}
+                  style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                >✕</button>
+              </div>
+
+              <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.15)}, transparent)`, margin: "0 20px 16px" }} />
+
+              {/* Nav items */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "0 12px" }}>
+                {[
+                  { icon: "📊", label: "Dashboard", desc: "Your stats & activity", action: () => { setShowSettingsSheet(false); navigate("/ghost/dashboard"); } },
+                  { icon: null, label: "Shield", desc: "Block & privacy controls", isShield: true, action: () => { setShowSettingsSheet(false); navigate("/ghost/block"); } },
+                  { icon: "🏨", label: "Rooms", desc: "Ghost Hotel floor", action: () => { setShowSettingsSheet(false); setShowHouseModal(true); } },
+                  { icon: null, label: "Room Vault", desc: "Your private ghost room", isRoom: true, action: () => { setShowSettingsSheet(false); navigate("/ghost/room"); } },
+                  { icon: "📄", label: "Terms & Conditions", desc: "Privacy & usage policy", action: () => { setShowSettingsSheet(false); window.open("https://2ghost.com/terms", "_blank"); } },
+                ].map(({ icon, label, desc, isShield, isRoom, action }) => (
+                  <button key={label} onClick={action}
+                    style={{
+                      width: "100%", display: "flex", alignItems: "center", gap: 14,
+                      background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)",
+                      borderRadius: 14, padding: "13px 14px", marginBottom: 8,
+                      cursor: "pointer", textAlign: "left",
+                    }}
+                  >
+                    <div style={{
+                      width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+                      background: isShield ? "rgba(255,255,255,0.04)" : a.glow(0.07),
+                      border: `1px solid ${a.glow(0.15)}`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
                       {isShield
-                        ? <img src={SHIELD_LOGO} alt="shield" style={{ width: 72, height: 72, objectFit: "contain" }} />
-                        : <span style={{ fontSize: 28 }}>{icon}</span>
+                        ? <img src={SHIELD_LOGO} alt="shield" style={{ width: 22, height: 22, objectFit: "contain" }} />
+                        : isRoom
+                        ? <img src="https://ik.imagekit.io/7grri5v7d/weqweqw.png" alt="room" style={{ width: 22, height: 22, objectFit: "contain" }} />
+                        : <span style={{ fontSize: 18 }}>{icon}</span>
                       }
-                      <div>
-                        <p style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.85)", margin: 0 }}>{label}</p>
-                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>{desc}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>{label}</p>
+                      <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>{desc}</p>
+                    </div>
+                    <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 14 }}>›</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Footer */}
+              <div style={{ padding: "16px 20px 0", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <p style={{ fontSize: 10, color: "rgba(255,255,255,0.18)", margin: 0, textAlign: "center" }}>2Ghost · Find your boo 👻</p>
+              </div>
             </motion.div>
           </>
         )}
@@ -1922,7 +2308,7 @@ export default function GhostModePage() {
               style={{
                 width: "100%", maxWidth: 340,
                 background: "rgba(8,10,8,0.98)",
-                border: "1px solid rgba(74,222,128,0.18)",
+                border: `1px solid ${a.glow(0.18)}`,
                 borderRadius: 20,
                 padding: "28px 24px 22px",
                 boxShadow: "0 24px 80px rgba(0,0,0,0.8)",
@@ -1930,7 +2316,7 @@ export default function GhostModePage() {
               }}
             >
               <img src={GHOST_LOGO} alt="ghost" style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 14 }} />
-              <p style={{ fontSize: 11, fontWeight: 800, color: "rgba(74,222,128,0.7)", textTransform: "uppercase", letterSpacing: "0.12em", margin: "0 0 8px" }}>
+              <p style={{ fontSize: 11, fontWeight: 800, color: a.glow(0.7), textTransform: "uppercase", letterSpacing: "0.12em", margin: "0 0 8px" }}>
                 🔒 Security Notice
               </p>
               <h3 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: "0 0 10px", lineHeight: 1.3 }}>
@@ -1944,10 +2330,10 @@ export default function GhostModePage() {
                 onClick={() => { setShowSecurityPopup(false); setShowHouseRules(true); }}
                 style={{
                   width: "100%", height: 46, borderRadius: 50, border: "none",
-                  background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                  background: a.gradient,
                   color: "#fff", fontSize: 14, fontWeight: 900,
                   cursor: "pointer",
-                  boxShadow: "0 4px 20px rgba(34,197,94,0.4)",
+                  boxShadow: `0 4px 20px ${a.glowMid(0.4)}`,
                 }}
               >
                 View House Rules
@@ -1987,12 +2373,12 @@ export default function GhostModePage() {
                 backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdfasdASD.png)",
                 backgroundSize: "cover", backgroundPosition: "center top",
                 borderRadius: "24px 24px 0 0",
-                border: "1px solid rgba(74,222,128,0.12)", borderBottom: "none",
+                border: `1px solid ${a.glow(0.12)}`, borderBottom: "none",
                 maxHeight: "92dvh",
                 display: "flex", flexDirection: "column",
               }}
             >
-              <div style={{ height: 3, flexShrink: 0, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e, #4ade80, #16a34a)" }} />
+              <div style={{ height: 3, flexShrink: 0, background: `linear-gradient(90deg, ${a.accentDeep}, ${a.accent}, ${a.accentMid}, ${a.accent}, ${a.accentDeep})` }} />
               <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 0", flexShrink: 0 }}>
                 <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
               </div>
@@ -2001,12 +2387,12 @@ export default function GhostModePage() {
               <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none", padding: "20px 22px 16px" }}>
 
                 <div style={{ textAlign: "center", marginBottom: 24 }}>
-                  <h1 style={{ fontSize: 24, fontWeight: 900, margin: "0 0 10px", letterSpacing: "-0.02em", lineHeight: 1.2, background: "linear-gradient(135deg, #fff 40%, #4ade80)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                  <h1 style={{ fontSize: 24, fontWeight: 900, margin: "0 0 10px", letterSpacing: "-0.02em", lineHeight: 1.2, background: `linear-gradient(135deg, #fff 40%, ${a.accent})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                     Welcome to the Ghost Hotel 👻
                   </h1>
                   <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7, maxWidth: 320, marginInline: "auto" }}>
                     Before you settle in, we have some{" "}
-                    <span style={{ color: "rgba(74,222,128,0.85)", fontWeight: 700 }}>hotel rules</span>{" "}
+                    <span style={{ color: a.glow(0.85), fontWeight: 700 }}>hotel rules</span>{" "}
                     that keep our hotel free from bad energy.
                   </p>
                 </div>
@@ -2014,20 +2400,20 @@ export default function GhostModePage() {
                 {/* Preview avatars */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 16 }}>
                   {PREVIEW_AVATARS.map((src, i) => (
-                    <img key={i} src={src} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(74,222,128,0.45)", marginLeft: i === 0 ? 0 : -10, zIndex: PREVIEW_AVATARS.length - i, position: "relative" }} />
+                    <img key={i} src={src} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.45)}`, marginLeft: i === 0 ? 0 : -10, zIndex: PREVIEW_AVATARS.length - i, position: "relative" }} />
                   ))}
                   <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.45)", marginLeft: 10 }}>+120 ghosts inside</span>
                 </div>
 
-                <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.2), transparent)", marginBottom: 22 }} />
+                <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.2)}, transparent)`, marginBottom: 22 }} />
 
                 {/* Rules */}
                 <div style={{ marginBottom: 26 }}>
-                  <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(74,222,128,0.6)", textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px" }}>🏠 House Rules</p>
+                  <p style={{ fontSize: 10, fontWeight: 800, color: a.glow(0.6), textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px" }}>🏠 House Rules</p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {HOUSE_RULES.map((rule) => (
-                      <div key={rule.title} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "rgba(74,222,128,0.04)", border: "1px solid rgba(74,222,128,0.08)", borderRadius: 14, padding: "12px 14px" }}>
-                        <div style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.18)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
+                      <div key={rule.title} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: a.glow(0.04), border: `1px solid ${a.glow(0.08)}`, borderRadius: 14, padding: "12px 14px" }}>
+                        <div style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: a.glow(0.1), border: `1px solid ${a.glow(0.18)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
                           {rule.icon === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain" }} /> : rule.icon}
                         </div>
                         <div>
@@ -2039,11 +2425,11 @@ export default function GhostModePage() {
                   </div>
                 </div>
 
-                <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.2), transparent)", marginBottom: 22 }} />
+                <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.2)}, transparent)`, marginBottom: 22 }} />
 
                 {/* How it works */}
                 <div style={{ marginBottom: 8 }}>
-                  <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(74,222,128,0.6)", textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px" }}>⚙️ How It Works</p>
+                  <p style={{ fontSize: 10, fontWeight: 800, color: a.glow(0.6), textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px" }}>⚙️ How It Works</p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {HOW_IT_WORKS.map((item) => (
                       <div key={item.title} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -2068,10 +2454,10 @@ export default function GhostModePage() {
                   onClick={handleHouseRulesAccept}
                   style={{
                     width: "100%", height: 54, borderRadius: 50, border: "none",
-                    background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                    background: a.gradient,
                     color: "#fff", fontSize: 15, fontWeight: 900,
                     cursor: "pointer", letterSpacing: "0.03em",
-                    boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px rgba(34,197,94,0.5)",
+                    boxShadow: `0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px ${a.glowMid(0.5)}`,
                     position: "relative", overflow: "hidden",
                   }}
                 >
@@ -2116,15 +2502,15 @@ export default function GhostModePage() {
               initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
               onClick={(e) => e.stopPropagation()}
-              style={{ width: "100%", maxWidth: 480, background: "rgb(5,5,10)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none", padding: "24px 24px max(28px, env(safe-area-inset-bottom, 28px))" }}
+              style={{ width: "100%", maxWidth: 480, background: "rgb(5,5,10)", borderRadius: "22px 22px 0 0", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none", padding: "24px 24px max(28px, env(safe-area-inset-bottom, 28px))" }}
             >
               <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)", margin: "0 auto 20px" }} />
               {/* Header */}
               <div style={{ textAlign: "center", marginBottom: 22 }}>
                 <motion.div animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.35)", borderRadius: 50, padding: "6px 16px", marginBottom: 14 }}>
+                  style={{ display: "inline-flex", alignItems: "center", gap: 7, background: a.glow(0.12), border: `1px solid ${a.glow(0.35)}`, borderRadius: 50, padding: "6px 16px", marginBottom: 14 }}>
                   <span style={{ fontSize: 16 }}>⚡</span>
-                  <span style={{ fontSize: 13, fontWeight: 900, color: "rgba(74,222,128,0.95)", letterSpacing: "0.1em" }}>GHOST FLASH</span>
+                  <span style={{ fontSize: 13, fontWeight: 900, color: a.glow(0.95), letterSpacing: "0.1em" }}>GHOST FLASH</span>
                 </motion.div>
                 <p style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 6px" }}>Go Live for 60 Minutes</p>
                 <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.6 }}>
@@ -2132,7 +2518,7 @@ export default function GhostModePage() {
                 </p>
               </div>
               {/* Features */}
-              <div style={{ background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.12)", borderRadius: 14, padding: "14px 16px", marginBottom: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ background: a.glow(0.05), border: `1px solid ${a.glow(0.12)}`, borderRadius: 14, padding: "14px 16px", marginBottom: 20, display: "flex", flexDirection: "column", gap: 10 }}>
                 {[
                   ["⚡", "60-minute live session in the Flash pool"],
                   ["💚", "Up to 3 instant WhatsApp connections"],
@@ -2159,11 +2545,11 @@ export default function GhostModePage() {
                 }}
                 style={{
                   width: "100%", height: 54, borderRadius: 50, border: "none",
-                  background: flashPaywallPaying ? "rgba(255,255,255,0.07)" : "linear-gradient(135deg, #4ade80, #16a34a)",
+                  background: flashPaywallPaying ? "rgba(255,255,255,0.07)" : `linear-gradient(135deg, ${a.accent}, #16a34a)`,
                   color: flashPaywallPaying ? "rgba(255,255,255,0.3)" : "#000",
                   fontSize: 16, fontWeight: 900, cursor: flashPaywallPaying ? "default" : "pointer",
                   marginBottom: 10,
-                  boxShadow: flashPaywallPaying ? "none" : "0 4px 24px rgba(74,222,128,0.3)",
+                  boxShadow: flashPaywallPaying ? "none" : `0 4px 24px ${a.glow(0.3)}`,
                 }}
               >
                 {flashPaywallPaying ? "Processing…" : "⚡ Join Flash — $2.99"}

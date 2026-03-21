@@ -15,15 +15,15 @@ export default function GhostGatewayPage() {
 
     const onboarded = (() => { try { return !!localStorage.getItem("ghost_onboarded"); } catch { return false; } })();
 
-    if (localProfile) {
-      // Returning user — skip onboarding
-      navigate("/ghost/mode", { replace: true });
+    // First-time user — show feature intro before anything else
+    if (!onboarded) {
+      navigate("/ghost/onboarding", { replace: true });
       return;
     }
 
-    // First-time user — show feature intro before app
-    if (!onboarded) {
-      navigate("/ghost/onboarding", { replace: true });
+    if (localProfile) {
+      // Returning user who already saw onboarding
+      navigate("/ghost/mode", { replace: true });
       return;
     }
 

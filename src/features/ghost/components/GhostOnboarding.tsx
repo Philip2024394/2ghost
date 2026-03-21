@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const ONBOARDING_KEY = "ghost_onboarding_v1_done";
 
 export function hasSeenOnboarding(): boolean {
@@ -14,6 +15,7 @@ function markOnboardingDone() {
 // ── Visual mockups ─────────────────────────────────────────────────────────────
 
 function VisualGhostMode() {
+  const a = useGenderAccent();
   return (
     <div style={{ position: "relative", width: 220, height: 220, margin: "0 auto" }}>
       {/* Profile cards stacked */}
@@ -28,10 +30,10 @@ function VisualGhostMode() {
           width: 120, height: 155, borderRadius: 18,
           background: card.blur
             ? "rgba(255,255,255,0.04)"
-            : "linear-gradient(160deg, rgba(74,222,128,0.12), rgba(34,197,94,0.06))",
+            : `linear-gradient(160deg, ${a.glow(0.12)}, ${a.glowMid(0.06)})`,
           border: card.blur
             ? "1px solid rgba(255,255,255,0.07)"
-            : "1px solid rgba(74,222,128,0.3)",
+            : `1px solid ${a.glow(0.3)}`,
           zIndex: card.z,
           backdropFilter: card.blur ? "blur(6px)" : "none",
           overflow: "hidden",
@@ -43,7 +45,7 @@ function VisualGhostMode() {
             width: 52, height: 52, borderRadius: "50%",
             background: card.blur
               ? "rgba(255,255,255,0.08)"
-              : "linear-gradient(135deg, rgba(74,222,128,0.3), rgba(34,197,94,0.15))",
+              : `linear-gradient(135deg, ${a.glow(0.3)}, ${a.glowMid(0.15)})`,
             filter: card.blur ? "blur(4px)" : "none",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
@@ -55,7 +57,7 @@ function VisualGhostMode() {
           }}>
             <div style={{
               height: 8, borderRadius: 4, marginBottom: 5,
-              background: card.blur ? "rgba(255,255,255,0.06)" : "rgba(74,222,128,0.4)",
+              background: card.blur ? "rgba(255,255,255,0.06)" : a.glow(0.4),
               filter: card.blur ? "blur(3px)" : "none",
               width: card.blur ? "70%" : "85%",
             }} />
@@ -74,8 +76,8 @@ function VisualGhostMode() {
         style={{
           position: "absolute", bottom: 14, right: 14, zIndex: 10,
           width: 36, height: 36, borderRadius: "50%",
-          background: "rgba(74,222,128,0.15)",
-          border: "1px solid rgba(74,222,128,0.4)",
+          background: a.glow(0.15),
+          border: `1px solid ${a.glow(0.4)}`,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 16,
         }}
@@ -85,6 +87,7 @@ function VisualGhostMode() {
 }
 
 function VisualGhostRoom() {
+  const a = useGenderAccent();
   return (
     <div style={{ position: "relative", width: 220, height: 220, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
       {/* Phone frame */}
@@ -106,15 +109,15 @@ function VisualGhostRoom() {
           <motion.div
             animate={{ opacity: [1, 0.4, 1] }}
             transition={{ duration: 1.6, repeat: Infinity }}
-            style={{ marginLeft: "auto", width: 5, height: 5, borderRadius: "50%", background: "#4ade80" }}
+            style={{ marginLeft: "auto", width: 5, height: 5, borderRadius: "50%", background: a.accent }}
           />
         </div>
         {/* Photo grid */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3, padding: 6 }}>
           {[
-            "rgba(74,222,128,0.15)",
+            a.glow(0.15),
             "rgba(212,175,55,0.15)",
-            "rgba(74,222,128,0.1)",
+            a.glow(0.1),
             "rgba(168,85,247,0.12)",
           ].map((bg, i) => (
             <div key={i} style={{
@@ -150,13 +153,14 @@ function VisualGhostRoom() {
 }
 
 function VisualButler() {
+  const a = useGenderAccent();
   return (
     <div style={{ position: "relative", width: 220, height: 220, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
       {/* Arrow path */}
       <svg width="200" height="80" style={{ position: "absolute", top: 40 }} viewBox="0 0 200 80">
         <motion.path
           d="M 30 60 Q 100 10 170 60"
-          stroke="rgba(74,222,128,0.3)"
+          stroke={a.glow(0.3)}
           strokeWidth="1.5"
           strokeDasharray="6 4"
           fill="none"
@@ -166,7 +170,7 @@ function VisualButler() {
         />
         <motion.polygon
           points="164,55 174,60 164,65"
-          fill="rgba(74,222,128,0.5)"
+          fill={a.glow(0.5)}
           initial={{ opacity: 0 }}
           animate={{ opacity: [0, 1, 1, 0] }}
           transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 1, times: [0, 0.7, 0.9, 1] }}
@@ -177,8 +181,8 @@ function VisualButler() {
       <div style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", textAlign: "center" }}>
         <div style={{
           width: 48, height: 48, borderRadius: "50%",
-          background: "linear-gradient(135deg, rgba(74,222,128,0.2), rgba(34,197,94,0.1))",
-          border: "1.5px solid rgba(74,222,128,0.3)",
+          background: `linear-gradient(135deg, ${a.glow(0.2)}, ${a.glowMid(0.1)})`,
+          border: `1.5px solid ${a.glow(0.3)}`,
           display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, marginBottom: 4,
         }}>👻</div>
         <span style={{ fontSize: 8, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>You</span>
@@ -213,12 +217,12 @@ function VisualButler() {
       {/* No address label */}
       <div style={{
         position: "absolute", bottom: 18,
-        background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)",
+        background: a.glow(0.08), border: `1px solid ${a.glow(0.2)}`,
         borderRadius: 20, padding: "4px 10px",
         display: "flex", alignItems: "center", gap: 5,
       }}>
         <span style={{ fontSize: 9 }}>🚫</span>
-        <span style={{ fontSize: 9, color: "rgba(74,222,128,0.8)", fontWeight: 700 }}>No address needed</span>
+        <span style={{ fontSize: 9, color: a.glow(0.8), fontWeight: 700 }}>No address needed</span>
       </div>
     </div>
   );
@@ -231,8 +235,8 @@ const SLIDES = [
     visual:   <VisualGhostMode />,
     emoji:    "👻",
     tag:      "Ghost Mode",
-    heading:  "Browse\nAnonymously",
-    body:     "You see their profile. They don't know you looked. Your identity stays hidden until you both choose to connect.",
+    heading:  "Privacy From\nthe first Second",
+    body:     "2Ghost will never display your real name to anyone searching unless your connection is real. You control your privacy until you decide when to share. Total privacy from the first second.",
     accent:   "#4ade80",
     accentBg: "rgba(74,222,128,0.1)",
     accentBorder: "rgba(74,222,128,0.25)",
@@ -266,10 +270,14 @@ interface Props {
 }
 
 export default function GhostOnboarding({ onDone }: Props) {
+  const a = useGenderAccent();
   const [slide, setSlide] = useState(0);
   const [dir,   setDir]   = useState(1); // 1 = forward, -1 = back
 
-  const current = SLIDES[slide];
+  const _current = SLIDES[slide];
+  const current = slide === 0
+    ? { ..._current, accent: a.accent, accentBg: a.glow(0.1), accentBorder: a.glow(0.25) }
+    : _current;
   const isLast  = slide === SLIDES.length - 1;
 
   const go = (next: number) => {

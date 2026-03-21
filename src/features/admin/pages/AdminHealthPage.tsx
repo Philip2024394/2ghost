@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { ghostSupabase } from "../../ghost/ghostSupabase";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type CheckStatus = "ok" | "warn" | "fail" | "running" | "idle";
@@ -173,13 +174,14 @@ const STATUS_LABEL: Record<CheckStatus, string> = {
 };
 
 function OverallBanner({ checks }: { checks: HealthCheck[] }) {
+  const a = useGenderAccent();
   const ran = checks.filter((c) => c.status !== "idle" && c.status !== "running");
   if (ran.length === 0) return null;
   const critFails = ran.filter((c) => c.critical && c.status === "fail");
   const anyFail   = ran.filter((c) => c.status === "fail");
   const anyWarn   = ran.filter((c) => c.status === "warn");
 
-  let color = "#4ade80", bg = "rgba(74,222,128,0.08)", border = "rgba(74,222,128,0.2)";
+  let color = a.accent, bg = a.glow(0.08), border = a.glow(0.2);
   let icon = <CheckCircle2 size={28} style={{ color }} />;
   let headline = "All Systems Operational";
   let sub = `${ran.length} checks passed · ${isConnected() ? "Live Supabase" : "Demo mode"}`;
@@ -213,7 +215,7 @@ function OverallBanner({ checks }: { checks: HealthCheck[] }) {
       </div>
       <div style={{ marginLeft: "auto", display: "flex", gap: 20 }}>
         {[
-          { label: "Passing",  count: ran.filter((c) => c.status === "ok").length,   color: "#4ade80" },
+          { label: "Passing",  count: ran.filter((c) => c.status === "ok").length,   color: a.accent },
           { label: "Warnings", count: ran.filter((c) => c.status === "warn").length,  color: "#facc15" },
           { label: "Failing",  count: ran.filter((c) => c.status === "fail").length,  color: "#f87171" },
         ].map((s) => (
@@ -228,6 +230,7 @@ function OverallBanner({ checks }: { checks: HealthCheck[] }) {
 }
 
 function CheckRow({ check, expanded, onToggle }: { check: HealthCheck; expanded: boolean; onToggle: () => void }) {
+  const a = useGenderAccent();
   const color = STATUS_COLOR[check.status];
   const bg    = STATUS_BG[check.status];
 
@@ -258,7 +261,7 @@ function CheckRow({ check, expanded, onToggle }: { check: HealthCheck; expanded:
         <div style={{ flexShrink: 0 }}>
           {check.status === "running"
             ? <span style={{ display: "inline-flex" }}><motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}><RefreshCw size={16} style={{ color: "#60a5fa" }} /></motion.div></span>
-            : check.status === "ok"   ? <CheckCircle2 size={18} style={{ color: "#4ade80" }} />
+            : check.status === "ok"   ? <CheckCircle2 size={18} style={{ color: a.accent }} />
             : check.status === "fail" ? <XCircle      size={18} style={{ color: "#f87171" }} />
             : check.status === "warn" ? <AlertTriangle size={16} style={{ color: "#facc15" }} />
             : <Circle size={18} style={{ color: "rgba(255,255,255,0.2)" }} />
@@ -332,6 +335,7 @@ function Circle({ size, style }: { size: number; style?: React.CSSProperties }) 
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function AdminHealthPage() {
+  const a = useGenderAccent();
   const [checks, setChecks]       = useState<HealthCheck[]>(initChecks);
   const [running, setRunning]     = useState(false);
   const [lastRun, setLastRun]     = useState<Date | null>(null);
@@ -397,7 +401,7 @@ export default function AdminHealthPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <Activity size={20} style={{ color: "#4ade80" }} />
+            <Activity size={20} style={{ color: a.accent }} />
             <h1 style={{ fontSize: 24, fontWeight: 900, color: "#fff", margin: 0 }}>App Health Monitor</h1>
           </div>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: 0 }}>
@@ -411,10 +415,10 @@ export default function AdminHealthPage() {
           <div style={{
             display: "flex", alignItems: "center", gap: 6,
             padding: "6px 12px", borderRadius: 9,
-            background: isConnected() ? "rgba(74,222,128,0.08)" : "rgba(251,146,60,0.08)",
-            border: isConnected() ? "1px solid rgba(74,222,128,0.2)" : "1px solid rgba(251,146,60,0.2)",
+            background: isConnected() ? a.glow(0.08) : "rgba(251,146,60,0.08)",
+            border: isConnected() ? `1px solid ${a.glow(0.2)}` : "1px solid rgba(251,146,60,0.2)",
           }}>
-            {isConnected() ? <Wifi size={12} style={{ color: "#4ade80" }} /> : <WifiOff size={12} style={{ color: "#fb923c" }} />}
+            {isConnected() ? <Wifi size={12} style={{ color: a.accent }} /> : <WifiOff size={12} style={{ color: "#fb923c" }} />}
             <span style={{ fontSize: 11, fontWeight: 700, color: isConnected() ? "#4ade80" : "#fb923c" }}>
               {isConnected() ? "Supabase Connected" : "Demo Mode"}
             </span>
@@ -437,10 +441,10 @@ export default function AdminHealthPage() {
               display: "flex", alignItems: "center", gap: 6,
               height: 36, padding: "0 16px", borderRadius: 9,
               border: "none",
-              background: running ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg,#4ade80,#22c55e)",
+              background: running ? "rgba(255,255,255,0.05)" : `linear-gradient(135deg,${a.accent},#22c55e)`,
               color: running ? "rgba(255,255,255,0.3)" : "#fff",
               fontSize: 12, fontWeight: 700, cursor: running ? "default" : "pointer",
-              boxShadow: running ? "none" : "0 4px 14px rgba(74,222,128,0.3)",
+              boxShadow: running ? "none" : `0 4px 14px ${a.glow(0.3)}`,
             }}
           >
             {running

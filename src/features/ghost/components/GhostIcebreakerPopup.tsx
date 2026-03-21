@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { GhostProfile } from "../types/ghostTypes";
 import { filterContent, addStrike, getStrikes, isAccountDeactivated } from "../utils/contentFilter";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
 
 const PRESET_QUESTIONS = [
@@ -21,6 +22,7 @@ type Props = {
 type Screen = "question" | "strike1" | "deactivated" | "sent";
 
 export default function GhostIcebreakerPopup({ profile, onClose }: Props) {
+  const a = useGenderAccent();
   const [selected, setSelected]     = useState<string | null>(null);
   const [custom, setCustom]         = useState("");
   const [useCustom, setUseCustom]   = useState(false);
@@ -195,11 +197,11 @@ export default function GhostIcebreakerPopup({ profile, onClose }: Props) {
           style={{
             width: "100%", maxWidth: 480, background: "#0d0d0f",
             borderRadius: "24px 24px 0 0", padding: "36px 24px 52px", textAlign: "center",
-            border: "1px solid rgba(74,222,128,0.15)", borderBottom: "none",
+            border: `1px solid ${a.glow(0.15)}`, borderBottom: "none",
           }}
         >
           <img src={GHOST_LOGO} alt="ghost" style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 16 }} />
-          <p style={{ fontSize: 20, fontWeight: 800, color: "#4ade80", margin: "0 0 8px" }}>Question Sent 👻</p>
+          <p style={{ fontSize: 20, fontWeight: 800, color: a.accent, margin: "0 0 8px" }}>Question Sent 👻</p>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 28px", lineHeight: 1.5 }}>
             {profile.name} will see it when they open the match.
             If they reply, you'll both unlock the conversation naturally — no rush.
@@ -208,7 +210,7 @@ export default function GhostIcebreakerPopup({ profile, onClose }: Props) {
             onClick={onClose}
             style={{
               width: "100%", height: 50, borderRadius: 50, border: "none",
-              background: "linear-gradient(135deg,#4ade80,#22c55e)",
+              background: `linear-gradient(135deg,${a.accent},${a.accentMid})`,
               color: "#000", fontSize: 14, fontWeight: 800, cursor: "pointer",
             }}
           >
@@ -238,7 +240,7 @@ export default function GhostIcebreakerPopup({ profile, onClose }: Props) {
       >
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-          <img src={profile.image} alt={profile.name} style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(74,222,128,0.4)" }} />
+          <img src={profile.image} alt={profile.name} style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.4)}` }} />
           <div>
             <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: 0 }}>It's a Match with {profile.name}! 👻</p>
             <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>Send one opening question — keep it genuine</p>
@@ -246,7 +248,7 @@ export default function GhostIcebreakerPopup({ profile, onClose }: Props) {
         </div>
 
         {/* Policy notice */}
-        <div style={{ background: "rgba(74,222,128,0.04)", border: "1px solid rgba(74,222,128,0.12)", borderRadius: 10, padding: "10px 14px", marginBottom: 18, display: "flex", gap: 8, alignItems: "flex-start" }}>
+        <div style={{ background: a.glow(0.04), border: `1px solid ${a.glow(0.12)}`, borderRadius: 10, padding: "10px 14px", marginBottom: 18, display: "flex", gap: 8, alignItems: "flex-start" }}>
           <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>🔒</span>
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.55 }}>
             No phone numbers, links, or social handles. Contact details are shared only after a mutual unlock. Violations earn strikes — 2 strikes = account deactivated.
@@ -261,9 +263,9 @@ export default function GhostIcebreakerPopup({ profile, onClose }: Props) {
               onClick={() => { setSelected(q); setUseCustom(false); }}
               style={{
                 textAlign: "left", padding: "12px 14px", borderRadius: 12,
-                background: selected === q && !useCustom ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.04)",
-                border: selected === q && !useCustom ? "1px solid rgba(74,222,128,0.4)" : "1px solid rgba(255,255,255,0.07)",
-                color: selected === q && !useCustom ? "#4ade80" : "rgba(255,255,255,0.65)",
+                background: selected === q && !useCustom ? a.glow(0.12) : "rgba(255,255,255,0.04)",
+                border: selected === q && !useCustom ? `1px solid ${a.glow(0.4)}` : "1px solid rgba(255,255,255,0.07)",
+                color: selected === q && !useCustom ? `${a.accent}` : "rgba(255,255,255,0.65)",
                 fontSize: 13, fontWeight: selected === q && !useCustom ? 700 : 500,
                 cursor: "pointer", lineHeight: 1.4,
               }}
@@ -322,7 +324,7 @@ export default function GhostIcebreakerPopup({ profile, onClose }: Props) {
           disabled={!canSend}
           style={{
             width: "100%", height: 50, borderRadius: 50, border: "none",
-            background: canSend ? "linear-gradient(135deg,#4ade80,#22c55e)" : "rgba(255,255,255,0.06)",
+            background: canSend ? `linear-gradient(135deg,${a.accent},${a.accentMid})` : "rgba(255,255,255,0.06)",
             color: canSend ? "#000" : "rgba(255,255,255,0.2)",
             fontSize: 15, fontWeight: 800, cursor: canSend ? "pointer" : "default",
             transition: "all 0.2s",

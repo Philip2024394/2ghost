@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { ghostSupabase } from "../../ghost/ghostSupabase";
 import { RefreshCw, Users, Clock, Globe, TrendingUp, Monitor, Smartphone, Tablet, Eye, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 // ── Types ──────────────────────────────────────────────────────────────────
 
 interface Session {
@@ -160,6 +161,7 @@ function StatCard({ label, value, sub, icon: Icon, trend }: {
   label: string; value: string; sub?: string;
   icon: React.ElementType; trend?: number;
 }) {
+  const a = useGenderAccent();
   return (
     <div style={{
       background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
@@ -167,15 +169,15 @@ function StatCard({ label, value, sub, icon: Icon, trend }: {
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}</span>
-        <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(74,222,128,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Icon size={14} style={{ color: "#4ade80" }} />
+        <div style={{ width: 30, height: 30, borderRadius: 8, background: a.glow(0.1), display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Icon size={14} style={{ color: a.accent }} />
         </div>
       </div>
       <p style={{ fontSize: 26, fontWeight: 900, color: "#fff", margin: "0 0 4px", lineHeight: 1 }}>{value}</p>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         {trend !== undefined && (
           trend >= 0
-            ? <ArrowUpRight size={12} style={{ color: "#4ade80" }} />
+            ? <ArrowUpRight size={12} style={{ color: a.accent }} />
             : <ArrowDownRight size={12} style={{ color: "#ef4444" }} />
         )}
         {sub && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{sub}</span>}
@@ -198,6 +200,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 // ── Main page ──────────────────────────────────────────────────────────────
 
 export default function AdminTrafficPage() {
+  const a = useGenderAccent();
   const [sessions,   setSessions]   = useState<Session[]>([]);
   const [pageviews,  setPageviews]  = useState<PageView[]>([]);
   const [loading,    setLoading]    = useState(true);
@@ -345,8 +348,8 @@ export default function AdminTrafficPage() {
           {([7, 30] as const).map(r => (
             <button key={r} onClick={() => setRange(r)} style={{
               padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer",
-              background: range === r ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
-              border: range === r ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.08)",
+              background: range === r ? a.glow(0.15) : "rgba(255,255,255,0.04)",
+              border: range === r ? `1px solid ${a.glow(0.35)}` : "1px solid rgba(255,255,255,0.08)",
               color: range === r ? "#4ade80" : "rgba(255,255,255,0.5)",
             }}>
               {r}d
@@ -390,7 +393,7 @@ export default function AdminTrafficPage() {
                   <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }} title={`${d.label}: ${d.count} sessions`}>
                     <div style={{
                       width: "100%", height: h,
-                      background: isToday ? "#4ade80" : "rgba(74,222,128,0.35)",
+                      background: isToday ? "#4ade80" : a.glow(0.35),
                       borderRadius: "3px 3px 0 0",
                       transition: "height 0.3s ease",
                     }} />
@@ -430,7 +433,7 @@ export default function AdminTrafficPage() {
                     <span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{pct}%</span>
                   </div>
                   <div style={{ height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 3 }}>
-                    <div style={{ height: "100%", width: `${pct}%`, background: "#4ade80", borderRadius: 3, transition: "width 0.5s ease" }} />
+                    <div style={{ height: "100%", width: `${pct}%`, background: a.accent, borderRadius: 3, transition: "width 0.5s ease" }} />
                   </div>
                 </div>
               );
@@ -463,7 +466,7 @@ export default function AdminTrafficPage() {
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{c.sessions} · {c.pct}%</span>
                   </div>
                   <div style={{ height: 3, background: "rgba(255,255,255,0.07)", borderRadius: 2 }}>
-                    <div style={{ height: "100%", width: `${c.pct}%`, background: "rgba(74,222,128,0.55)", borderRadius: 2 }} />
+                    <div style={{ height: "100%", width: `${c.pct}%`, background: a.glow(0.55), borderRadius: 2 }} />
                   </div>
                 </div>
               </div>
@@ -502,7 +505,7 @@ export default function AdminTrafficPage() {
                 <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", textAlign: "right" }}>{fmtDuration(p.avg_secs)}</span>
                 <span style={{
                   fontSize: 12, fontWeight: 700, textAlign: "right",
-                  color: p.exit_rate > 60 ? "#ef4444" : p.exit_rate > 35 ? "#f59e0b" : "#4ade80",
+                  color: p.exit_rate > 60 ? "#ef4444" : p.exit_rate > 35 ? "#f59e0b" : a.accent,
                 }}>{p.exit_rate}%</span>
               </div>
             ))}
@@ -606,7 +609,7 @@ export default function AdminTrafficPage() {
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: "#fff" }}>{s.page_count}</span>
                 {s.ghost_id && (
-                  <span style={{ fontSize: 9, background: "rgba(74,222,128,0.15)", color: "#4ade80", borderRadius: 4, padding: "1px 5px", fontWeight: 700 }}>User</span>
+                  <span style={{ fontSize: 9, background: a.glow(0.15), color: a.accent, borderRadius: 4, padding: "1px 5px", fontWeight: 700 }}>User</span>
                 )}
               </div>
             </div>

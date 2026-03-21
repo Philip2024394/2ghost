@@ -8,6 +8,7 @@ import {
   type AdminOverviewStats, type RevenueRow, type CountryStatRow, type TransactionRow,
 } from "../adminSupabaseService";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const CARD_STYLE = {
   background: "rgba(255,255,255,0.03)",
   border: "1px solid rgba(255,255,255,0.07)",
@@ -30,6 +31,7 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export default function AdminOverviewPage() {
+  const a = useGenderAccent();
   const [stats,        setStats]        = useState<AdminOverviewStats | null>(null);
   const [revenue,      setRevenue]      = useState<RevenueRow[]>([]);
   const [countries,    setCountries]    = useState<CountryStatRow[]>([]);
@@ -69,7 +71,7 @@ export default function AdminOverviewPage() {
   const mrrGrowth  = prevRev > 0 ? (((currentRev - prevRev) / prevRev) * 100).toFixed(1) : "0";
 
   const KPI_CARDS = [
-    { label: "Total Users",    value: stats ? stats.total_users.toLocaleString() : "—",    sub: stats ? `${stats.premium_users} premium accounts` : "loading…", icon: Users,      color: "#4ade80", glow: "rgba(74,222,128,0.15)"  },
+    { label: "Total Users",    value: stats ? stats.total_users.toLocaleString() : "—",    sub: stats ? `${stats.premium_users} premium accounts` : "loading…", icon: Users,      color: a.accent, glow: a.glow(0.15)  },
     { label: "Monthly Revenue",value: `$${currentRev.toLocaleString()}`,                   sub: `+${mrrGrowth}% from last month`,                               icon: DollarSign, color: "#d4af37", glow: "rgba(212,175,55,0.15)"  },
     { label: "Active Countries",value: stats ? String(stats.active_countries) : "—",       sub: "Asia-Pacific · Europe · USA",                                  icon: Globe,      color: "#a78bfa", glow: "rgba(167,139,250,0.15)" },
     { label: "Active Today",   value: stats ? stats.active_today.toLocaleString() : "—",   sub: stats ? `${stats.new_this_month} joined this month` : "loading…",icon: TrendingUp, color: "#f472b6", glow: "rgba(244,114,182,0.15)" },
@@ -87,7 +89,7 @@ export default function AdminOverviewPage() {
           </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {loading && <span style={{ fontSize: 11, color: "rgba(74,222,128,0.6)", fontWeight: 600 }}>Fetching live data…</span>}
+          {loading && <span style={{ fontSize: 11, color: a.glow(0.6), fontWeight: 600 }}>Fetching live data…</span>}
           <button
             onClick={load}
             style={{ display: "flex", alignItems: "center", gap: 6, height: 34, padding: "0 14px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
@@ -102,8 +104,8 @@ export default function AdminOverviewPage() {
 
       {/* Live indicator */}
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-        <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px #4ade80" }} />
-        <span style={{ fontSize: 11, color: "rgba(74,222,128,0.7)", fontWeight: 600 }}>Live — updates automatically on new payments & signups</span>
+        <div style={{ width: 7, height: 7, borderRadius: "50%", background: a.accent, boxShadow: `0 0 6px ${a.accent}` }} />
+        <span style={{ fontSize: 11, color: a.glow(0.7), fontWeight: 600 }}>Live — updates automatically on new payments & signups</span>
       </div>
 
       {/* KPI Cards */}
@@ -137,7 +139,7 @@ export default function AdminOverviewPage() {
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "2px 0 0" }}>Suite & Gold breakdown</p>
             </div>
             <div style={{ display: "flex", gap: 16 }}>
-              {[{ label: "Ghost Suite", color: "#4ade80" }, { label: "Gold Room", color: "#d4af37" }].map((l) => (
+              {[{ label: "Ghost Suite", color: a.accent }, { label: "Gold Room", color: "#d4af37" }].map((l) => (
                 <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
                   <div style={{ width: 10, height: 10, borderRadius: 2, background: l.color }} />
                   <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>{l.label}</span>
@@ -149,8 +151,8 @@ export default function AdminOverviewPage() {
             <AreaChart data={revenue} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="gSuite" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#4ade80" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#4ade80" stopOpacity={0}   />
+                  <stop offset="5%"  stopColor={a.accent} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={a.accent} stopOpacity={0}   />
                 </linearGradient>
                 <linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%"  stopColor="#d4af37" stopOpacity={0.3} />
@@ -161,7 +163,7 @@ export default function AdminOverviewPage() {
               <XAxis dataKey="month" tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
               <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="suite" name="Ghost Suite" stroke="#4ade80" fill="url(#gSuite)" strokeWidth={2} />
+              <Area type="monotone" dataKey="suite" name="Ghost Suite" stroke={a.accent} fill="url(#gSuite)" strokeWidth={2} />
               <Area type="monotone" dataKey="gold"  name="Gold Room"  stroke="#d4af37" fill="url(#gGold)"  strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
@@ -212,14 +214,14 @@ export default function AdminOverviewPage() {
                   return (
                     <div style={{ background: "#0f0f1e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px" }}>
                       <p style={{ fontSize: 12, fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>{row?.country}</p>
-                      <p style={{ fontSize: 11, color: "#4ade80", margin: "2px 0" }}>Total: {row?.users}</p>
+                      <p style={{ fontSize: 11, color: a.accent, margin: "2px 0" }}>Total: {row?.users}</p>
                       <p style={{ fontSize: 11, color: "#d4af37", margin: "2px 0" }}>Premium: {row?.premium}</p>
                     </div>
                   );
                 }}
               />
-              <Bar dataKey="users"   fill="rgba(74,222,128,0.25)" radius={[0,4,4,0]} />
-              <Bar dataKey="premium" fill="#4ade80"                radius={[0,4,4,0]} />
+              <Bar dataKey="users"   fill={a.glow(0.25)} radius={[0,4,4,0]} />
+              <Bar dataKey="premium" fill={a.accent}                radius={[0,4,4,0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -228,8 +230,8 @@ export default function AdminOverviewPage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", margin: 0 }}>Recent Transactions</p>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 4px #4ade80" }} />
-              <span style={{ fontSize: 10, color: "rgba(74,222,128,0.6)", fontWeight: 600 }}>Live</span>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: a.accent, boxShadow: `0 0 4px ${a.accent}` }} />
+              <span style={{ fontSize: 10, color: a.glow(0.6), fontWeight: 600 }}>Live</span>
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
@@ -247,8 +249,8 @@ export default function AdminOverviewPage() {
                   <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: "2px 0 0" }}>{tx.id} · {tx.date}</p>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: tx.pkg === "Gold Room" ? "#d4af37" : "#4ade80", margin: 0 }}>{tx.amount}</p>
-                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: tx.status === "paid" ? "rgba(74,222,128,0.7)" : "rgba(239,68,68,0.7)" }}>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: tx.pkg === "Gold Room" ? "#d4af37" : a.accent, margin: 0 }}>{tx.amount}</p>
+                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: tx.status === "paid" ? a.glow(0.7) : "rgba(239,68,68,0.7)" }}>
                     {tx.status}
                   </span>
                 </div>

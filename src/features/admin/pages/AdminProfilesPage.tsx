@@ -4,6 +4,7 @@ import { Search, X, Upload, Check, Edit2, Star } from "lucide-react";
 import { MOCK_PROFILES, MockProfile } from "../../../data/mockProfiles";
 import { fetchMockOverrides, saveMockOverride, deleteMockOverride } from "../adminSupabaseService";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const OVERRIDE_KEY = "admin_profile_overrides";
 
 type Override = Partial<Pick<MockProfile, "name" | "age" | "city" | "image" | "isVip">> & { id: string };
@@ -33,6 +34,7 @@ function applyOverride(p: MockProfile, overrides: Record<string, Override>): Moc
 }
 
 export default function AdminProfilesPage() {
+  const a = useGenderAccent();
   const [overrides, setOverrides] = useState<Record<string, Override>>(localLoadOverrides);
   const [country, setCountry]     = useState("All");
   const [search, setSearch]       = useState("");
@@ -155,8 +157,8 @@ export default function AdminProfilesPage() {
               onClick={() => setGender(g)}
               style={{
                 height: 38, borderRadius: 10, padding: "0 14px",
-                background: gender === g ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
-                border: gender === g ? "1px solid rgba(74,222,128,0.3)" : "1px solid rgba(255,255,255,0.07)",
+                background: gender === g ? a.glow(0.15) : "rgba(255,255,255,0.04)",
+                border: gender === g ? `1px solid ${a.glow(0.3)}` : "1px solid rgba(255,255,255,0.07)",
                 color: gender === g ? "#4ade80" : "rgba(255,255,255,0.5)",
                 fontSize: 12, fontWeight: 600, cursor: "pointer",
               } as any}
@@ -197,7 +199,7 @@ export default function AdminProfilesPage() {
               whileHover={{ y: -2 }}
               style={{
                 background: "rgba(255,255,255,0.03)",
-                border: isOverridden ? "1px solid rgba(74,222,128,0.3)" : "1px solid rgba(255,255,255,0.07)",
+                border: isOverridden ? `1px solid ${a.glow(0.3)}` : "1px solid rgba(255,255,255,0.07)",
                 borderRadius: 14, overflow: "hidden", cursor: "pointer",
                 position: "relative",
               }}
@@ -211,7 +213,7 @@ export default function AdminProfilesPage() {
                   onError={(e) => { (e.target as HTMLImageElement).src = `https://i.pravatar.cc/200?u=${p.id}`; }}
                 />
                 {isOverridden && (
-                  <div style={{ position: "absolute", top: 6, right: 6, width: 18, height: 18, borderRadius: "50%", background: "#4ade80", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ position: "absolute", top: 6, right: 6, width: 18, height: 18, borderRadius: "50%", background: a.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Check size={10} style={{ color: "#000" }} />
                   </div>
                 )}
@@ -280,8 +282,8 @@ export default function AdminProfilesPage() {
                   <button
                     onClick={() => fileRef.current?.click()}
                     style={{
-                      width: "100%", height: 40, borderRadius: 10, border: "1px dashed rgba(74,222,128,0.4)",
-                      background: "rgba(74,222,128,0.06)", color: "#4ade80", fontSize: 12, fontWeight: 700,
+                      width: "100%", height: 40, borderRadius: 10, border: `1px dashed ${a.glow(0.4)}`,
+                      background: a.glow(0.06), color: a.accent, fontSize: 12, fontWeight: 700,
                       cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                     }}
                   >
@@ -349,10 +351,10 @@ export default function AdminProfilesPage() {
                   onClick={handleSave}
                   style={{
                     flex: 2, height: 46, borderRadius: 12, border: "none",
-                    background: saved ? "rgba(74,222,128,0.2)" : "linear-gradient(135deg,#4ade80,#22c55e)",
+                    background: saved ? a.glow(0.2) : `linear-gradient(135deg,${a.accent},#22c55e)`,
                     color: saved ? "#4ade80" : "#fff", fontSize: 13, fontWeight: 900,
                     cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                    boxShadow: saved ? "none" : "0 6px 20px rgba(74,222,128,0.3)",
+                    boxShadow: saved ? "none" : `0 6px 20px ${a.glow(0.3)}`,
                   }}
                 >
                   {saved ? <><Check size={14} /> Saved!</> : "Save Changes"}

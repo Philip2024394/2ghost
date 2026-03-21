@@ -6,6 +6,7 @@ import {
   loadConversions, Conversion, upsertAffiliate, PayoutDetails,
 } from "../affiliateStorage";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const BG   = "https://ik.imagekit.io/7grri5v7d/ghost%20roomssadasdasdfasdfasdf.png";
 const LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
@@ -31,6 +32,7 @@ const S = {
 function fmt(n: number) { return n.toLocaleString("id-ID"); }
 
 export default function AffiliateDashboard() {
+  const a = useGenderAccent();
   const [params]          = useSearchParams();
   const [code, setCode]   = useState(params.get("code")?.toUpperCase() || "");
   const [input, setInput] = useState(code);
@@ -91,16 +93,16 @@ export default function AffiliateDashboard() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           style={{
             position: "relative", zIndex: 1, width: "100%", maxWidth: 380,
-            background: "rgba(4,6,4,0.97)", border: "1px solid rgba(74,222,128,0.2)",
+            background: "rgba(4,6,4,0.97)", border: `1px solid ${a.glow(0.2)}`,
             borderRadius: 24, padding: "28px 22px", backdropFilter: "blur(20px)",
           }}
         >
-          <div style={{ height: 3, background: "linear-gradient(90deg,#16a34a,#4ade80)", borderRadius: "3px 3px 0 0", margin: "-28px -22px 22px" }} />
+          <div style={{ height: 3, background: `linear-gradient(90deg,#16a34a,${a.accent})`, borderRadius: "3px 3px 0 0", margin: "-28px -22px 22px" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
             <img src={LOGO} alt="2Ghost" style={{ width: 40, height: 40, objectFit: "contain" }} />
             <div>
               <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Affiliate Dashboard</p>
-              <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0 }}>Enter your code to continue</p>
+              <p style={{ fontSize: 10, color: a.glow(0.7), margin: 0 }}>Enter your code to continue</p>
             </div>
           </div>
           <input
@@ -113,13 +115,13 @@ export default function AffiliateDashboard() {
           {error && <p style={{ fontSize: 11, color: "#f87171", margin: "6px 0 0" }}>{error}</p>}
           <button onClick={login} style={{
             width: "100%", marginTop: 12,
-            background: "linear-gradient(135deg,#16a34a,#4ade80)",
+            background: `linear-gradient(135deg,#16a34a,${a.accent})`,
             border: "none", borderRadius: 12, padding: "12px 0",
             fontSize: 13, fontWeight: 900, color: "#000", cursor: "pointer",
           }}>View My Dashboard →</button>
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", textAlign: "center", margin: "12px 0 0" }}>
             Not signed up yet?{" "}
-            <a href="/affiliate/join" style={{ color: "#4ade80", textDecoration: "none" }}>Join here →</a>
+            <a href="/affiliate/join" style={{ color: a.accent, textDecoration: "none" }}>Join here →</a>
           </p>
         </motion.div>
       </div>
@@ -168,31 +170,31 @@ export default function AffiliateDashboard() {
 
         {/* Header */}
         <div style={{
-          background: "rgba(4,6,4,0.97)", borderBottom: "1px solid rgba(74,222,128,0.15)",
+          background: "rgba(4,6,4,0.97)", borderBottom: `1px solid ${a.glow(0.15)}`,
           padding: "max(16px, env(safe-area-inset-top, 16px)) 18px 0",
           position: "sticky", top: 0, zIndex: 10,
         }}>
-          <div style={{ height: 3, background: "linear-gradient(90deg,#16a34a,#4ade80)", margin: "-16px -18px 14px" }} />
+          <div style={{ height: 3, background: `linear-gradient(90deg,#16a34a,${a.accent})`, margin: "-16px -18px 14px" }} />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <img src={LOGO} alt="2Ghost" style={{ width: 32, height: 32, objectFit: "contain" }} />
               <div>
                 <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", margin: 0 }}>{affiliate.name}</p>
                 <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: 0 }}>
-                  {affiliate.city} · Code: <span style={{ color: "#4ade80", fontWeight: 700 }}>{code}</span>
+                  {affiliate.city} · Code: <span style={{ color: a.accent, fontWeight: 700 }}>{code}</span>
                 </p>
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6,
-              background: affiliate.status === "active" ? "rgba(74,222,128,0.08)" : "rgba(239,68,68,0.08)",
-              border: `1px solid ${affiliate.status === "active" ? "rgba(74,222,128,0.2)" : "rgba(239,68,68,0.2)"}`,
+              background: affiliate.status === "active" ? "${a.glow(0.08)}" : "rgba(239,68,68,0.08)",
+              border: `1px solid ${affiliate.status === "active" ? "${a.glow(0.2)}" : "rgba(239,68,68,0.2)"}`,
               borderRadius: 20, padding: "5px 12px",
             }}>
               {affiliate.status === "active" ? (
                 <motion.div
                   animate={{ opacity: [1, 0.15, 1] }}
                   transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
-                  style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 7px #4ade80", flexShrink: 0 }}
+                  style={{ width: 8, height: 8, borderRadius: "50%", background: a.accent, boxShadow: `0 0 7px ${a.accent}`, flexShrink: 0 }}
                 />
               ) : (
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f87171", flexShrink: 0 }} />
@@ -209,9 +211,9 @@ export default function AffiliateDashboard() {
                 style={{
                   flexShrink: 0, height: 32, borderRadius: 8, border: "none", cursor: "pointer",
                   padding: "0 12px", fontSize: 11, fontWeight: 700,
-                  background: tab === key ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
+                  background: tab === key ? "${a.glow(0.15)}" : "rgba(255,255,255,0.04)",
                   color: tab === key ? "#4ade80" : "rgba(255,255,255,0.45)",
-                  outline: tab === key ? "1px solid rgba(74,222,128,0.3)" : "none",
+                  outline: tab === key ? "1px solid ${a.glow(0.3)}" : "none",
                 }}
               >{label}</button>
             ))}
@@ -227,13 +229,13 @@ export default function AffiliateDashboard() {
               {tab === "stats" && stats && (
                 <div>
                   <div style={{
-                    background: "linear-gradient(135deg,rgba(74,222,128,0.1),rgba(22,163,74,0.06))",
-                    border: "1px solid rgba(74,222,128,0.2)",
+                    background: `linear-gradient(135deg,${a.glow(0.1)},rgba(22,163,74,0.06))`,
+                    border: `1px solid ${a.glow(0.2)}`,
                     borderRadius: 16, padding: "20px 18px", marginBottom: 12,
                   }}>
                     <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "0 0 4px", fontWeight: 700, letterSpacing: 1 }}>TOTAL EARNED</p>
-                    <p style={{ fontSize: 32, fontWeight: 900, color: "#4ade80", margin: "0 0 12px" }}>
-                      {fmt(stats.earned)} <span style={{ fontSize: 14, color: "rgba(74,222,128,0.6)" }}>IDR</span>
+                    <p style={{ fontSize: 32, fontWeight: 900, color: a.accent, margin: "0 0 12px" }}>
+                      {fmt(stats.earned)} <span style={{ fontSize: 14, color: a.glow(0.6) }}>IDR</span>
                     </p>
                     <div style={{ display: "flex", gap: 20 }}>
                       <div>
@@ -268,13 +270,13 @@ export default function AffiliateDashboard() {
                 <div>
                   <div style={S.card}>
                     <p style={S.label}>YOUR REFERRAL LINK</p>
-                    <p style={{ fontSize: 12, color: "rgba(74,222,128,0.8)", wordBreak: "break-all", margin: "0 0 10px", lineHeight: 1.5 }}>{shareLink}</p>
+                    <p style={{ fontSize: 12, color: a.glow(0.8), wordBreak: "break-all", margin: "0 0 10px", lineHeight: 1.5 }}>{shareLink}</p>
                     <button
                       onClick={() => copy(shareLink, "link")}
                       style={{
                         width: "100%",
-                        background: copied === "link" ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.06)",
-                        border: `1px solid ${copied === "link" ? "rgba(74,222,128,0.3)" : "rgba(255,255,255,0.1)"}`,
+                        background: copied === "link" ? "${a.glow(0.15)}" : "rgba(255,255,255,0.06)",
+                        border: `1px solid ${copied === "link" ? "${a.glow(0.3)}" : "rgba(255,255,255,0.1)"}`,
                         borderRadius: 10, padding: "10px 0",
                         fontSize: 13, fontWeight: 800,
                         color: copied === "link" ? "#4ade80" : "#fff", cursor: "pointer",
@@ -300,14 +302,14 @@ export default function AffiliateDashboard() {
                         🏨 Guys, this app changed how I meet people in {affiliate.city}.<br />
                         2Ghost Hotel — anonymous, private rooms, real vibes.<br />
                         Try it free 👇<br />
-                        <span style={{ color: "#4ade80" }}>{shareLink}</span>
+                        <span style={{ color: a.accent }}>{shareLink}</span>
                       </p>
                     </div>
                     <button
                       onClick={() => copy(`🏨 Guys, this app changed how I meet people in ${affiliate.city}.\n2Ghost Hotel — anonymous, private rooms, real vibes.\nTry it free 👇\n${shareLink}`, "caption")}
                       style={{
-                        width: "100%", background: copied === "caption" ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.05)",
-                        border: `1px solid ${copied === "caption" ? "rgba(74,222,128,0.25)" : "rgba(255,255,255,0.1)"}`,
+                        width: "100%", background: copied === "caption" ? "${a.glow(0.1)}" : "rgba(255,255,255,0.05)",
+                        border: `1px solid ${copied === "caption" ? "${a.glow(0.25)}" : "rgba(255,255,255,0.1)"}`,
                         borderRadius: 10, padding: "9px 0",
                         fontSize: 12, fontWeight: 700,
                         color: copied === "caption" ? "#4ade80" : "rgba(255,255,255,0.7)", cursor: "pointer",
@@ -338,7 +340,7 @@ export default function AffiliateDashboard() {
                           <button
                             onClick={() => copy(b.imageUrl, `banner-${b.id}`)}
                             style={{
-                              background: copied === `banner-${b.id}` ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.06)",
+                              background: copied === `banner-${b.id}` ? "${a.glow(0.12)}" : "rgba(255,255,255,0.06)",
                               border: "1px solid rgba(255,255,255,0.1)", borderRadius: 7,
                               padding: "6px 12px", fontSize: 11, fontWeight: 700,
                               color: copied === `banner-${b.id}` ? "#4ade80" : "#fff", cursor: "pointer",
@@ -346,9 +348,9 @@ export default function AffiliateDashboard() {
                           >{copied === `banner-${b.id}` ? "✓ Copied" : "Copy URL"}</button>
                           <a href={b.imageUrl} download target="_blank" rel="noreferrer"
                             style={{
-                              background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)",
+                              background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`,
                               borderRadius: 7, padding: "6px 12px",
-                              fontSize: 11, fontWeight: 700, color: "#4ade80", textDecoration: "none",
+                              fontSize: 11, fontWeight: 700, color: a.accent, textDecoration: "none",
                             }}
                           >Download</a>
                         </div>
@@ -370,7 +372,7 @@ export default function AffiliateDashboard() {
                   ) : videos.map((v) => (
                     <div key={v.id} style={S.card}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                        <div style={{ width: 40, height: 40, borderRadius: 8, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>🎬</div>
+                        <div style={{ width: 40, height: 40, borderRadius: 8, background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>🎬</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", margin: "0 0 2px" }}>{v.name}</p>
                           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: 0 }}>{v.platform}</p>
@@ -382,8 +384,8 @@ export default function AffiliateDashboard() {
                           onClick={() => copy(v.videoUrl, `video-${v.id}`)}
                           style={{
                             flex: 1,
-                            background: copied === `video-${v.id}` ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.06)",
-                            border: `1px solid ${copied === `video-${v.id}` ? "rgba(74,222,128,0.25)" : "rgba(255,255,255,0.1)"}`,
+                            background: copied === `video-${v.id}` ? "${a.glow(0.12)}" : "rgba(255,255,255,0.06)",
+                            border: `1px solid ${copied === `video-${v.id}` ? "${a.glow(0.25)}" : "rgba(255,255,255,0.1)"}`,
                             borderRadius: 9, padding: "9px 0",
                             fontSize: 12, fontWeight: 700,
                             color: copied === `video-${v.id}` ? "#4ade80" : "#fff", cursor: "pointer",
@@ -391,9 +393,9 @@ export default function AffiliateDashboard() {
                         >{copied === `video-${v.id}` ? "✓ Copied!" : "📋 Copy Video Link"}</button>
                         <a href={v.videoUrl} target="_blank" rel="noreferrer"
                           style={{
-                            background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)",
+                            background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`,
                             borderRadius: 9, padding: "9px 14px",
-                            fontSize: 12, fontWeight: 700, color: "#4ade80", textDecoration: "none",
+                            fontSize: 12, fontWeight: 700, color: a.accent, textDecoration: "none",
                           }}
                         >▶ View</a>
                       </div>
@@ -427,7 +429,7 @@ export default function AffiliateDashboard() {
                         </p>
                         <span style={{
                           fontSize: 9, fontWeight: 800, padding: "2px 7px", borderRadius: 5,
-                          background: c.paidOut ? "rgba(74,222,128,0.12)" : "rgba(251,191,36,0.12)",
+                          background: c.paidOut ? "${a.glow(0.12)}" : "rgba(251,191,36,0.12)",
                           color: c.paidOut ? "#4ade80" : "#fbbf24",
                         }}>{c.paidOut ? "PAID" : "PENDING"}</span>
                       </div>
@@ -442,8 +444,8 @@ export default function AffiliateDashboard() {
                   {/* Status card */}
                   <div style={{
                     ...S.card,
-                    borderColor: hasPayout ? "rgba(74,222,128,0.25)" : "rgba(251,191,36,0.2)",
-                    background: hasPayout ? "rgba(74,222,128,0.05)" : "rgba(251,191,36,0.04)",
+                    borderColor: hasPayout ? "${a.glow(0.25)}" : "rgba(251,191,36,0.2)",
+                    background: hasPayout ? "${a.glow(0.05)}" : "rgba(251,191,36,0.04)",
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                       <span style={{ fontSize: 18 }}>{hasPayout ? "✅" : "⚠️"}</span>
@@ -514,9 +516,9 @@ export default function AffiliateDashboard() {
                             style={{
                               flex: 1, height: 38, borderRadius: 9, border: "none", cursor: "pointer",
                               fontWeight: 800, fontSize: 12,
-                              background: pIdType === t ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
+                              background: pIdType === t ? "${a.glow(0.15)}" : "rgba(255,255,255,0.04)",
                               color: pIdType === t ? "#4ade80" : "rgba(255,255,255,0.4)",
-                              outline: pIdType === t ? "1px solid rgba(74,222,128,0.3)" : "none",
+                              outline: pIdType === t ? "1px solid ${a.glow(0.3)}" : "none",
                             }}
                           >{t}</button>
                         ))}
@@ -527,8 +529,8 @@ export default function AffiliateDashboard() {
 
                     <button onClick={savePayout} style={{
                       width: "100%",
-                      background: pSaved ? "rgba(74,222,128,0.12)" : "linear-gradient(135deg,#16a34a,#4ade80)",
-                      border: pSaved ? "1px solid rgba(74,222,128,0.3)" : "none",
+                      background: pSaved ? "${a.glow(0.12)}" : `linear-gradient(135deg,#16a34a,${a.accent})`,
+                      border: pSaved ? "1px solid ${a.glow(0.3)}" : "none",
                       borderRadius: 12, padding: "12px 0",
                       fontSize: 13, fontWeight: 900,
                       color: pSaved ? "#4ade80" : "#000", cursor: "pointer",

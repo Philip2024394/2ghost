@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
 
 type VerifyStatus = "idle" | "camera" | "preview" | "verifying" | "done";
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function GhostFaceVerify({ onVerified, onClose }: Props) {
+  const a = useGenderAccent();
   const [status, setStatus]         = useState<VerifyStatus>("idle");
   const [capturedUrl, setCapturedUrl] = useState<string | null>(null);
   const [error, setError]           = useState<string | null>(null);
@@ -101,7 +103,7 @@ export default function GhostFaceVerify({ onVerified, onClose }: Props) {
         style={{
           width: "100%", maxWidth: 480, background: "#0d0d0f",
           borderRadius: "24px 24px 0 0", padding: "28px 20px 48px",
-          border: "1px solid rgba(74,222,128,0.12)", borderBottom: "none",
+          border: `1px solid ${a.glow(0.12)}`, borderBottom: "none",
         }}
       >
         {/* Drag handle */}
@@ -119,7 +121,7 @@ export default function GhostFaceVerify({ onVerified, onClose }: Props) {
                 Your photo is <strong style={{ color: "rgba(255,255,255,0.7)" }}>never stored</strong> and only used for a one-time check.
               </p>
 
-              <div style={{ background: "rgba(74,222,128,0.04)", border: "1px solid rgba(74,222,128,0.12)", borderRadius: 14, padding: 16, marginBottom: 24, textAlign: "left" }}>
+              <div style={{ background: a.glow(0.04), border: `1px solid ${a.glow(0.12)}`, borderRadius: 14, padding: 16, marginBottom: 24, textAlign: "left" }}>
                 {[
                   ["✅", "Face in good lighting"],
                   ["✅", "Look directly at the camera"],
@@ -139,7 +141,7 @@ export default function GhostFaceVerify({ onVerified, onClose }: Props) {
                 onClick={startCamera}
                 style={{
                   width: "100%", height: 52, borderRadius: 50, border: "none",
-                  background: "linear-gradient(135deg,#4ade80,#22c55e)",
+                  background: `linear-gradient(135deg,${a.accent},${a.accentMid})`,
                   color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer", marginBottom: 12,
                 }}
               >
@@ -157,7 +159,7 @@ export default function GhostFaceVerify({ onVerified, onClose }: Props) {
               <p style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.6)", textAlign: "center", marginBottom: 16 }}>
                 Position your face inside the circle
               </p>
-              <div style={{ position: "relative", width: "100%", maxWidth: 320, margin: "0 auto 20px", borderRadius: "50%", overflow: "hidden", aspectRatio: "1", border: "3px solid rgba(74,222,128,0.5)" }}>
+              <div style={{ position: "relative", width: "100%", maxWidth: 320, margin: "0 auto 20px", borderRadius: "50%", overflow: "hidden", aspectRatio: "1", border: `3px solid ${a.glow(0.5)}` }}>
                 <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scaleX(-1)" }} />
               </div>
               <canvas ref={canvasRef} style={{ display: "none" }} />
@@ -165,7 +167,7 @@ export default function GhostFaceVerify({ onVerified, onClose }: Props) {
                 onClick={capture}
                 style={{
                   width: "100%", height: 52, borderRadius: 50, border: "none",
-                  background: "linear-gradient(135deg,#4ade80,#22c55e)",
+                  background: `linear-gradient(135deg,${a.accent},${a.accentMid})`,
                   color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer", marginBottom: 12,
                 }}
               >
@@ -183,14 +185,14 @@ export default function GhostFaceVerify({ onVerified, onClose }: Props) {
               <p style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: 16 }}>
                 Does this look good?
               </p>
-              <div style={{ width: 220, height: 220, borderRadius: "50%", overflow: "hidden", margin: "0 auto 20px", border: "3px solid rgba(74,222,128,0.5)" }}>
+              <div style={{ width: 220, height: 220, borderRadius: "50%", overflow: "hidden", margin: "0 auto 20px", border: `3px solid ${a.glow(0.5)}` }}>
                 <img src={capturedUrl} alt="selfie" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
               <button
                 onClick={submitVerify}
                 style={{
                   width: "100%", height: 52, borderRadius: 50, border: "none",
-                  background: "linear-gradient(135deg,#4ade80,#22c55e)",
+                  background: `linear-gradient(135deg,${a.accent},${a.accentMid})`,
                   color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer", marginBottom: 10,
                 }}
               >
@@ -216,7 +218,7 @@ export default function GhostFaceVerify({ onVerified, onClose }: Props) {
           {status === "done" && (
             <motion.div key="done" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} style={{ textAlign: "center", padding: "16px 0" }}>
               <div style={{ fontSize: 52, marginBottom: 16 }}>✅</div>
-              <p style={{ fontSize: 20, fontWeight: 800, color: "#4ade80", margin: "0 0 8px" }}>Verified!</p>
+              <p style={{ fontSize: 20, fontWeight: 800, color: a.accent, margin: "0 0 8px" }}>Verified!</p>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 28px", lineHeight: 1.5 }}>
                 A verified badge now shows on your card — other members know you're real.
               </p>
@@ -224,7 +226,7 @@ export default function GhostFaceVerify({ onVerified, onClose }: Props) {
                 onClick={handleClose}
                 style={{
                   width: "100%", height: 50, borderRadius: 50, border: "none",
-                  background: "linear-gradient(135deg,#4ade80,#22c55e)",
+                  background: `linear-gradient(135deg,${a.accent},${a.accentMid})`,
                   color: "#000", fontSize: 14, fontWeight: 800, cursor: "pointer",
                 }}
               >

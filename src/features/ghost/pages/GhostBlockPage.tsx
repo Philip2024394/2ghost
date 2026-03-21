@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Plus, Trash2, ArrowRight, Phone, X, Globe, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
@@ -192,6 +193,7 @@ function saveHiddenCities(arr: string[]) {
 }
 
 export default function GhostBlockPage() {
+  const a = useGenderAccent();
   const navigate = useNavigate();
   const [pkg, setPkg] = useState<number>(getBlockPackage);
   const [blocked, setBlocked] = useState<string[]>(getBlockedNumbers);
@@ -294,7 +296,7 @@ export default function GhostBlockPage() {
       <div style={{
         position: "sticky", top: 0, zIndex: 50,
         background: "rgba(4,5,8,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(74,222,128,0.12)",
+        borderBottom: `1px solid ${a.glow(0.12)}`,
         padding: "max(14px, env(safe-area-inset-top, 14px)) 16px 14px",
         display: "flex", alignItems: "center", gap: 12,
       }}>
@@ -311,7 +313,7 @@ export default function GhostBlockPage() {
         </button>
         <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>No Vacancy</h1>
-          <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600 }}>You control the guest list — hotel rooms full for who you choose</p>
+          <p style={{ fontSize: 10, color: a.glow(0.7), margin: 0, fontWeight: 600 }}>You control the guest list — hotel rooms full for who you choose</p>
         </div>
         <img src={SHIELD_LOGO} alt="shield" style={{ width: 64, height: 64, objectFit: "contain" }} />
       </div>
@@ -321,13 +323,13 @@ export default function GhostBlockPage() {
 
         {/* ── Intro text ── */}
         <div style={{
-          background: "rgba(4,8,4,0.75)", border: "1px solid rgba(74,222,128,0.15)",
+          background: "rgba(4,8,4,0.75)", border: `1px solid ${a.glow(0.15)}`,
           borderRadius: 14, padding: "14px 16px",
           backdropFilter: "blur(10px)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
             <img src={SHIELD_LOGO} alt="" style={{ width: 28, height: 28, objectFit: "contain" }} />
-            <p style={{ fontSize: 13, fontWeight: 900, color: "#4ade80", margin: 0 }}>How No Vacancy Works</p>
+            <p style={{ fontSize: 13, fontWeight: 900, color: a.accent, margin: 0 }}>How No Vacancy Works</p>
           </div>
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7 }}>
             You're the hotel manager. You decide who gets a room and who walks away. Turn away specific guests, close the hotel to entire countries, or go off the map for certain cities — all invisible. Turned-away guests simply see "No Vacancy" — they never know it's personal.
@@ -336,29 +338,29 @@ export default function GhostBlockPage() {
 
         {/* ── FREE: Block Likes from Countries ── */}
         <div style={{
-          background: "rgba(4,8,4,0.75)", border: "1px solid rgba(74,222,128,0.18)",
+          background: "rgba(4,8,4,0.75)", border: `1px solid ${a.glow(0.18)}`,
           borderRadius: 16, overflow: "hidden",
           backdropFilter: "blur(10px)",
         }}>
           {/* Section header */}
           <div style={{
             padding: "14px 16px",
-            borderBottom: blockedCountries.length > 0 ? "1px solid rgba(74,222,128,0.1)" : "none",
+            borderBottom: blockedCountries.length > 0 ? "1px solid ${a.glow(0.1)}" : "none",
             display: "flex", alignItems: "center", gap: 10,
           }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10,
-              background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)",
+              background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`,
               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}>
-              <Globe size={16} color="#4ade80" />
+              <Globe size={16} color={a.accent} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: 0 }}>Block Likes from Countries</p>
                 <span style={{
-                  fontSize: 9, fontWeight: 800, color: "#4ade80",
-                  background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.3)",
+                  fontSize: 9, fontWeight: 800, color: a.accent,
+                  background: a.glow(0.12), border: `1px solid ${a.glow(0.3)}`,
                   borderRadius: 4, padding: "1px 6px", letterSpacing: "0.06em",
                 }}>FREE</span>
               </div>
@@ -372,8 +374,8 @@ export default function GhostBlockPage() {
               onClick={() => setShowCountryBlockSheet(true)}
               style={{
                 height: 32, borderRadius: 8, padding: "0 12px",
-                background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)",
-                color: "#4ade80", fontSize: 12, fontWeight: 800, cursor: "pointer",
+                background: a.glow(0.1), border: `1px solid ${a.glow(0.3)}`,
+                color: a.accent, fontSize: 12, fontWeight: 800, cursor: "pointer",
               }}
             >
               {blockedCountries.length === 0 ? "Set Up" : "Edit"}
@@ -388,7 +390,7 @@ export default function GhostBlockPage() {
                 return (
                   <div key={name} style={{
                     display: "flex", alignItems: "center", gap: 5,
-                    background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)",
+                    background: a.glow(0.08), border: `1px solid ${a.glow(0.2)}`,
                     borderRadius: 20, padding: "4px 10px 4px 8px",
                   }}>
                     <span style={{ fontSize: 14 }}>{c?.flag}</span>
@@ -412,24 +414,24 @@ export default function GhostBlockPage() {
 
         {/* ── FREE: Hide from Cities ── */}
         <div style={{
-          background: "rgba(4,8,4,0.75)", border: "1px solid rgba(74,222,128,0.18)",
+          background: "rgba(4,8,4,0.75)", border: `1px solid ${a.glow(0.18)}`,
           borderRadius: 16, overflow: "hidden",
           backdropFilter: "blur(10px)",
         }}>
           <div style={{ padding: "14px 16px 0", display: "flex", alignItems: "flex-start", gap: 10 }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10,
-              background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)",
+              background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`,
               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}>
-              <MapPin size={16} color="#4ade80" />
+              <MapPin size={16} color={a.accent} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: 0 }}>Hide from Cities</p>
                 <span style={{
-                  fontSize: 9, fontWeight: 800, color: "#4ade80",
-                  background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.3)",
+                  fontSize: 9, fontWeight: 800, color: a.accent,
+                  background: a.glow(0.12), border: `1px solid ${a.glow(0.3)}`,
                   borderRadius: 4, padding: "1px 6px", letterSpacing: "0.06em",
                 }}>FREE</span>
               </div>
@@ -460,9 +462,9 @@ export default function GhostBlockPage() {
               style={{
                 width: 40, height: 40, borderRadius: 10, border: "none",
                 background: newCity.trim() && !hiddenCities.includes(newCity.trim())
-                  ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.05)",
+                  ? a.glow(0.2) : "rgba(255,255,255,0.05)",
                 color: newCity.trim() && !hiddenCities.includes(newCity.trim())
-                  ? "#4ade80" : "rgba(255,255,255,0.2)",
+                  ? a.accent : "rgba(255,255,255,0.2)",
                 cursor: newCity.trim() ? "pointer" : "default",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0,
@@ -478,10 +480,10 @@ export default function GhostBlockPage() {
               {hiddenCities.map((city) => (
                 <div key={city} style={{
                   display: "flex", alignItems: "center", gap: 5,
-                  background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)",
+                  background: a.glow(0.08), border: `1px solid ${a.glow(0.2)}`,
                   borderRadius: 20, padding: "4px 10px 4px 10px",
                 }}>
-                  <MapPin size={10} color="rgba(74,222,128,0.6)" />
+                  <MapPin size={10} color={a.glow(0.6)} />
                   <span style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{city}</span>
                   <button
                     onClick={() => removeCity(city)}
@@ -509,9 +511,9 @@ export default function GhostBlockPage() {
         <div style={{
           display: "flex", alignItems: "center", gap: 10,
         }}>
-          <div style={{ flex: 1, height: 1, background: "rgba(74,222,128,0.1)" }} />
+          <div style={{ flex: 1, height: 1, background: a.glow(0.1) }} />
           <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>Personal No Vacancy</span>
-          <div style={{ flex: 1, height: 1, background: "rgba(74,222,128,0.1)" }} />
+          <div style={{ flex: 1, height: 1, background: a.glow(0.1) }} />
         </div>
 
         {/* ── Shield inactive — show info card + activate CTA ── */}
@@ -522,15 +524,15 @@ export default function GhostBlockPage() {
             transition={{ duration: 0.4, ease: "easeOut" }}
             style={{
               background: "rgba(4,8,4,0.82)",
-              border: "1px solid rgba(74,222,128,0.3)",
+              border: `1px solid ${a.glow(0.3)}`,
               borderRadius: 24, padding: "28px 22px 24px",
               backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-              boxShadow: "0 0 60px rgba(74,222,128,0.08), 0 24px 48px rgba(0,0,0,0.5)",
+              boxShadow: `0 0 60px ${a.glow(0.08)}, 0 24px 48px rgba(0,0,0,0.5)`,
               textAlign: "center",
             }}
           >
             {/* Top accent */}
-            <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: "4px 4px 0 0", marginBottom: 24, marginLeft: -22, marginRight: -22, marginTop: -28 }} />
+            <div style={{ height: 3, background: `linear-gradient(90deg, #16a34a, ${a.accent}, #22c55e)`, borderRadius: "4px 4px 0 0", marginBottom: 24, marginLeft: -22, marginRight: -22, marginTop: -28 }} />
 
             {/* Icon */}
             <motion.div
@@ -538,7 +540,7 @@ export default function GhostBlockPage() {
               transition={{ duration: 2.4, repeat: Infinity }}
               style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}
             >
-              <img src={SHIELD_LOGO} alt="shield" style={{ width: 120, height: 120, objectFit: "contain", filter: "drop-shadow(0 0 18px rgba(74,222,128,0.45))" }} />
+              <img src={SHIELD_LOGO} alt="shield" style={{ width: 120, height: 120, objectFit: "contain", filter: `drop-shadow(0 0 18px ${a.glow(0.45)})` }} />
             </motion.div>
 
             <h2 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.01em" }}>
@@ -565,7 +567,7 @@ export default function GhostBlockPage() {
             </div>
 
             {/* Divider */}
-            <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.2), transparent)", marginBottom: 18 }} />
+            <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.2)}, transparent)`, marginBottom: 18 }} />
 
             {/* Activate Now CTA */}
             <motion.button
@@ -574,10 +576,10 @@ export default function GhostBlockPage() {
               onClick={() => setShowPurchase(true)}
               style={{
                 width: "100%", height: 52, borderRadius: 50, border: "none",
-                background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                background: a.gradient,
                 color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
                 letterSpacing: "0.04em",
-                boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 28px rgba(34,197,94,0.45)",
+                boxShadow: `0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 28px ${a.glowMid(0.45)}`,
                 position: "relative", overflow: "hidden",
               }}
             >
@@ -637,7 +639,7 @@ export default function GhostBlockPage() {
                       onClick={() => setShowPurchase(true)}
                       style={{
                         background: "none", border: "none", cursor: "pointer",
-                        color: "rgba(74,222,128,0.6)", fontSize: 11, fontWeight: 700, padding: 0,
+                        color: a.glow(0.6), fontSize: 11, fontWeight: 700, padding: 0,
                       }}
                     >
                       More No Vacancy slots →
@@ -654,7 +656,7 @@ export default function GhostBlockPage() {
 
             {blocked.length === 0 && (
               <div style={{
-                background: "rgba(4,8,4,0.7)", border: "1px solid rgba(74,222,128,0.1)",
+                background: "rgba(4,8,4,0.7)", border: `1px solid ${a.glow(0.1)}`,
                 borderRadius: 14, padding: "20px 16px", textAlign: "center",
                 backdropFilter: "blur(8px)",
               }}>
@@ -668,7 +670,7 @@ export default function GhostBlockPage() {
                 const local = num.slice(cc.code.length);
                 return (
                   <div key={num} style={{
-                    background: "rgba(4,8,4,0.75)", border: "1px solid rgba(74,222,128,0.12)",
+                    background: "rgba(4,8,4,0.75)", border: `1px solid ${a.glow(0.12)}`,
                     borderRadius: 12, padding: "12px 14px",
                     display: "flex", alignItems: "center", justifyContent: "space-between",
                     backdropFilter: "blur(8px)",
@@ -676,7 +678,7 @@ export default function GhostBlockPage() {
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{
                         width: 36, height: 36, borderRadius: "50%",
-                        background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)",
+                        background: a.glow(0.08), border: `1px solid ${a.glow(0.2)}`,
                         display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
                       }}>
                         {cc.flag}
@@ -708,8 +710,8 @@ export default function GhostBlockPage() {
                 onClick={() => setShowAddModal(true)}
                 style={{
                   width: "100%", height: 50, borderRadius: 14,
-                  background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.3)",
-                  color: "#4ade80", fontSize: 14, fontWeight: 800,
+                  background: a.glow(0.08), border: `1px solid ${a.glow(0.3)}`,
+                  color: a.accent, fontSize: 14, fontWeight: 800,
                   cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 }}
               >
@@ -741,18 +743,18 @@ export default function GhostBlockPage() {
                 width: "100%", maxWidth: 480,
                 background: "rgba(6,6,10,0.98)",
                 borderRadius: "20px 20px 0 0",
-                border: "1px solid rgba(74,222,128,0.15)", borderBottom: "none",
+                border: `1px solid ${a.glow(0.15)}`, borderBottom: "none",
                 maxHeight: "78dvh", display: "flex", flexDirection: "column",
               }}
             >
-              <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: "4px 4px 0 0" }} />
+              <div style={{ height: 3, background: `linear-gradient(90deg, #16a34a, ${a.accent}, #22c55e)`, borderRadius: "4px 4px 0 0" }} />
               <div style={{ padding: "14px 18px 10px", flexShrink: 0 }}>
                 <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
                   <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
                   <h3 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>Block Countries</h3>
-                  <span style={{ fontSize: 12, color: "rgba(74,222,128,0.7)", fontWeight: 700 }}>
+                  <span style={{ fontSize: 12, color: a.glow(0.7), fontWeight: 700 }}>
                     {blockedCountries.length} selected
                   </span>
                 </div>
@@ -784,18 +786,18 @@ export default function GhostBlockPage() {
                       onClick={() => toggleCountry(c.name)}
                       style={{
                         width: "100%", padding: "11px 18px",
-                        background: selected ? "rgba(74,222,128,0.08)" : "transparent",
+                        background: selected ? a.glow(0.08) : "transparent",
                         border: "none", cursor: "pointer",
                         display: "flex", alignItems: "center", gap: 12, textAlign: "left",
                         borderBottom: "1px solid rgba(255,255,255,0.04)",
                       }}
                     >
                       <span style={{ fontSize: 22, flexShrink: 0 }}>{c.flag}</span>
-                      <span style={{ flex: 1, fontSize: 14, color: selected ? "#4ade80" : "rgba(255,255,255,0.8)", fontWeight: selected ? 700 : 500 }}>{c.name}</span>
+                      <span style={{ flex: 1, fontSize: 14, color: selected ? a.accent : "rgba(255,255,255,0.8)", fontWeight: selected ? 700 : 500 }}>{c.name}</span>
                       <div style={{
                         width: 20, height: 20, borderRadius: 6, flexShrink: 0,
                         border: selected ? "none" : "1.5px solid rgba(255,255,255,0.2)",
-                        background: selected ? "#22c55e" : "transparent",
+                        background: selected ? a.accentMid : "transparent",
                         display: "flex", alignItems: "center", justifyContent: "center",
                       }}>
                         {selected && <span style={{ color: "#fff", fontSize: 13, lineHeight: 1 }}>✓</span>}
@@ -811,9 +813,9 @@ export default function GhostBlockPage() {
                   onClick={() => setShowCountryBlockSheet(false)}
                   style={{
                     width: "100%", height: 48, borderRadius: 50, border: "none",
-                    background: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
+                    background: `linear-gradient(to bottom, ${a.accent}, #22c55e, #16a34a)`,
                     color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
-                    boxShadow: "0 4px 16px rgba(34,197,94,0.4)",
+                    boxShadow: `0 4px 16px ${a.glowMid(0.4)}`,
                   }}
                 >
                   Done
@@ -848,7 +850,7 @@ export default function GhostBlockPage() {
                 padding: "20px 18px max(28px, env(safe-area-inset-bottom, 28px))",
               }}
             >
-              <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: 4, marginBottom: 18, marginLeft: -18, marginRight: -18, marginTop: -20 }} />
+              <div style={{ height: 3, background: `linear-gradient(90deg, #16a34a, ${a.accent}, #22c55e)`, borderRadius: 4, marginBottom: 18, marginLeft: -18, marginRight: -18, marginTop: -20 }} />
 
               <h3 style={{ fontSize: 16, fontWeight: 900, margin: "0 0 4px" }}>🚪 No Vacancy — Set for This Guest</h3>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: "0 0 18px" }}>
@@ -904,11 +906,11 @@ export default function GhostBlockPage() {
                 style={{
                   width: "100%", height: 46, borderRadius: 50, border: "none",
                   background: canAdd
-                    ? "linear-gradient(to bottom, #86efac, #4ade80, #16a34a)"
+                    ? `linear-gradient(to bottom, #86efac, ${a.accent}, ${a.accentDark})`
                     : "rgba(255,255,255,0.07)",
                   color: canAdd ? "#fff" : "rgba(255,255,255,0.3)",
                   fontSize: 14, fontWeight: 900, cursor: canAdd ? "pointer" : "default",
-                  boxShadow: canAdd ? "0 4px 16px rgba(74,222,128,0.4)" : "none",
+                  boxShadow: canAdd ? "0 4px 16px ${a.glow(0.4)}" : "none",
                   transition: "all 0.2s",
                 }}
               >
@@ -953,7 +955,7 @@ export default function GhostBlockPage() {
                   onClick={() => { setCountryCode(c); setShowCountryPicker(false); }}
                   style={{
                     width: "100%", padding: "13px 20px",
-                    background: countryCode.code === c.code ? "rgba(74,222,128,0.08)" : "transparent",
+                    background: countryCode.code === c.code ? a.glow(0.08) : "transparent",
                     border: "none", cursor: "pointer",
                     display: "flex", alignItems: "center", gap: 12, textAlign: "left",
                   }}
@@ -1042,18 +1044,18 @@ export default function GhostBlockPage() {
                 width: "100%", maxWidth: 480,
                 background: "rgba(4,6,4,0.98)",
                 borderRadius: "22px 22px 0 0",
-                border: "1px solid rgba(74,222,128,0.18)", borderBottom: "none",
+                border: `1px solid ${a.glow(0.18)}`, borderBottom: "none",
                 padding: "6px 18px max(32px, env(safe-area-inset-bottom, 32px))",
               }}
             >
               {/* Top accent + handle */}
-              <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: "4px 4px 0 0", marginLeft: -18, marginRight: -18 }} />
+              <div style={{ height: 3, background: `linear-gradient(90deg, #16a34a, ${a.accent}, #22c55e)`, borderRadius: "4px 4px 0 0", marginLeft: -18, marginRight: -18 }} />
               <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 18px" }}>
                 <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
               </div>
 
               <h3 style={{ fontSize: 18, fontWeight: 900, margin: "0 0 4px", color: "#fff" }}>Set Your No Vacancy</h3>
-              <p style={{ fontSize: 12, color: "rgba(74,222,128,0.7)", margin: "0 0 18px", fontWeight: 600 }}>
+              <p style={{ fontSize: 12, color: a.glow(0.7), margin: "0 0 18px", fontWeight: 600 }}>
                 Active with membership · 1 month per connection payment
               </p>
 
@@ -1093,7 +1095,7 @@ export default function GhostBlockPage() {
                           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>IDR</span>
                           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>· {p.usd}</span>
                         </div>
-                        <p style={{ fontSize: 10, color: "rgba(74,222,128,0.55)", margin: "5px 0 0", fontWeight: 600 }}>
+                        <p style={{ fontSize: 10, color: a.glow(0.55), margin: "5px 0 0", fontWeight: 600 }}>
                           Active with membership · 1 month per connection
                         </p>
                       </div>
@@ -1139,12 +1141,12 @@ export default function GhostBlockPage() {
                 width: "100%", maxWidth: 480,
                 background: "rgba(4,8,4,0.97)",
                 borderRadius: "24px 24px 0 0",
-                border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none",
+                border: `1px solid ${a.glow(0.2)}`, borderBottom: "none",
                 padding: "0 22px max(36px, env(safe-area-inset-bottom, 36px))",
                 boxShadow: "0 -24px 80px rgba(0,0,0,0.7)",
               }}
             >
-              <div style={{ height: 3, background: "linear-gradient(90deg, #15803d, #4ade80, #22c55e)", marginLeft: -22, marginRight: -22 }} />
+              <div style={{ height: 3, background: `linear-gradient(90deg, #15803d, ${a.accent}, #22c55e)`, marginLeft: -22, marginRight: -22 }} />
               <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 18px" }}>
                 <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
               </div>
@@ -1187,9 +1189,9 @@ export default function GhostBlockPage() {
                       <span style={{
                         fontSize: 9, fontWeight: 800, letterSpacing: "0.08em",
                         padding: "1px 6px", borderRadius: 4, marginRight: 6,
-                        background: badge === "FREE" ? "rgba(74,222,128,0.12)" : "rgba(251,191,36,0.12)",
-                        color: badge === "FREE" ? "#4ade80" : "#fbbf24",
-                        border: `1px solid ${badge === "FREE" ? "rgba(74,222,128,0.25)" : "rgba(251,191,36,0.25)"}`,
+                        background: badge === "FREE" ? a.glow(0.12) : "rgba(251,191,36,0.12)",
+                        color: badge === "FREE" ? a.accent : "#fbbf24",
+                        border: `1px solid ${badge === "FREE" ? a.glow(0.25) : "rgba(251,191,36,0.25)"}`,
                       }}>{badge}</span>
                       <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: "4px 0 0", lineHeight: 1.55 }}>{text}</p>
                     </div>
@@ -1197,7 +1199,7 @@ export default function GhostBlockPage() {
                 ))}
               </motion.div>
 
-              <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(74,222,128,0.15), transparent)", marginBottom: 18 }} />
+              <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.15)}, transparent)`, marginBottom: 18 }} />
 
               <motion.button
                 initial={{ opacity: 0, y: 6 }}
@@ -1207,10 +1209,10 @@ export default function GhostBlockPage() {
                 onClick={() => setShowShieldWelcome(false)}
                 style={{
                   width: "100%", height: 52, borderRadius: 50, border: "none",
-                  background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+                  background: a.gradient,
                   color: "#fff", fontSize: 15, fontWeight: 900,
                   cursor: "pointer", letterSpacing: "0.03em",
-                  boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 24px rgba(34,197,94,0.4)",
+                  boxShadow: `0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 24px ${a.glowMid(0.4)}`,
                   position: "relative", overflow: "hidden",
                 }}
               >

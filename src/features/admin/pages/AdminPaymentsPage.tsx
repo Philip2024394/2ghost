@@ -9,6 +9,7 @@ import {
   TransactionRow, RevenueRow, CountryStatRow,
 } from "../adminSupabaseService";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const CARD_STYLE = {
   background: "rgba(255,255,255,0.03)",
   border: "1px solid rgba(255,255,255,0.07)",
@@ -31,6 +32,7 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export default function AdminPaymentsPage() {
+  const a = useGenderAccent();
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [revenue, setRevenue]           = useState<RevenueRow[]>([]);
   const [countries, setCountries]       = useState<CountryStatRow[]>([]);
@@ -86,7 +88,7 @@ export default function AdminPaymentsPage() {
       {/* KPI row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 22 }}>
         {[
-          { label: "Monthly Revenue",   value: `$${totalRev.toLocaleString()}`, sub: `+${growth}% vs last month`, color: "#4ade80", icon: TrendingUp  },
+          { label: "Monthly Revenue",   value: `$${totalRev.toLocaleString()}`, sub: `+${growth}% vs last month`, color: a.accent, icon: TrendingUp  },
           { label: "Total MRR",         value: `$${totalMRR.toFixed(0)}`,       sub: "All active subscriptions",  color: "#d4af37", icon: DollarSign },
           { label: "ARPU",              value: `$${arpu}`,                       sub: "Avg revenue per paid user", color: "#a78bfa", icon: Users      },
           { label: "YTD Revenue",       value: `$${ytd.toLocaleString()}`,       sub: "Last 3 months",             color: "#f472b6", icon: DollarSign },
@@ -116,7 +118,7 @@ export default function AdminPaymentsPage() {
             <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "3px 0 0" }}>12-month view · Suite + Gold breakdown</p>
           </div>
           <div style={{ display: "flex", gap: 16 }}>
-            {[{ label: "Ghost Suite", color: "#4ade80" }, { label: "Gold Room", color: "#d4af37" }].map((l) => (
+            {[{ label: "Ghost Suite", color: a.accent }, { label: "Gold Room", color: "#d4af37" }].map((l) => (
               <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <div style={{ width: 10, height: 10, borderRadius: 2, background: l.color }} />
                 <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>{l.label}</span>
@@ -128,8 +130,8 @@ export default function AdminPaymentsPage() {
           <AreaChart data={revenue} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="pgSuite" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor="#4ade80" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#4ade80" stopOpacity={0}    />
+                <stop offset="5%"  stopColor={a.accent} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={a.accent} stopOpacity={0}    />
               </linearGradient>
               <linearGradient id="pgGold" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%"  stopColor="#d4af37" stopOpacity={0.25} />
@@ -140,7 +142,7 @@ export default function AdminPaymentsPage() {
             <XAxis dataKey="month" tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
             <Tooltip content={<CustomTooltip />} />
-            <Area type="monotone" dataKey="suite" name="Ghost Suite" stroke="#4ade80" fill="url(#pgSuite)" strokeWidth={2} />
+            <Area type="monotone" dataKey="suite" name="Ghost Suite" stroke={a.accent} fill="url(#pgSuite)" strokeWidth={2} />
             <Area type="monotone" dataKey="gold"  name="Gold Room"  stroke="#d4af37" fill="url(#pgGold)"  strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>
@@ -171,7 +173,7 @@ export default function AdminPaymentsPage() {
                   );
                 }}
               />
-              <Bar dataKey="suite" name="Suite" fill="#4ade80" stackId="a" radius={[0,0,0,0]} />
+              <Bar dataKey="suite" name="Suite" fill={a.accent} stackId="a" radius={[0,0,0,0]} />
               <Bar dataKey="gold"  name="Gold"  fill="#d4af37" stackId="a" radius={[0,4,4,0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -236,9 +238,9 @@ export default function AdminPaymentsPage() {
             <span style={{
               display: "inline-flex", height: 20, alignItems: "center",
               padding: "0 8px", borderRadius: 5, fontSize: 10, fontWeight: 700,
-              background: tx.pkg === "Gold Room" ? "rgba(212,175,55,0.12)" : "rgba(74,222,128,0.1)",
-              color: tx.pkg === "Gold Room" ? "#d4af37" : "#4ade80",
-              border: `1px solid ${tx.pkg === "Gold Room" ? "rgba(212,175,55,0.3)" : "rgba(74,222,128,0.25)"}`,
+              background: tx.pkg === "Gold Room" ? "rgba(212,175,55,0.12)" : a.glow(0.1),
+              color: tx.pkg === "Gold Room" ? "#d4af37" : a.accent,
+              border: `1px solid ${tx.pkg === "Gold Room" ? "rgba(212,175,55,0.3)" : a.glow(0.25)}`,
               whiteSpace: "nowrap",
             }}>
               {tx.pkg}

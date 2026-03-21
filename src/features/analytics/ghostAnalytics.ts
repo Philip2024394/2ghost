@@ -92,11 +92,12 @@ let currentPageId: string | null = null;
 async function closeCurrentPage() {
   if (!currentPageId || !isConnected()) return;
   const duration = Math.round((Date.now() - currentPageEntered) / 1000);
-  await ghostSupabase
-    .from("ghost_analytics_pageviews")
-    .update({ exited_at: new Date().toISOString(), duration_secs: duration })
-    .eq("id", currentPageId)
-    .catch(() => null);
+  await Promise.resolve(
+    ghostSupabase
+      .from("ghost_analytics_pageviews")
+      .update({ exited_at: new Date().toISOString(), duration_secs: duration })
+      .eq("id", currentPageId)
+  ).catch(() => null);
 }
 
 function getPageLabel(path: string): string {
@@ -157,7 +158,7 @@ export async function trackPageView(path: string) {
         started_at:   new Date().toISOString(),
         page_count:   0,
         duration_secs: 0,
-      }, { onConflict: "id", ignoreDuplicates: true }).catch(() => null);
+      }, { onConflict: "id", ignoreDuplicates: true }).then(() => null, () => null);
     }
 
     // Log page view
@@ -173,12 +174,12 @@ export async function trackPageView(path: string) {
       })
       .select("id")
       .single()
-      .catch(() => ({ data: null })) as any;
+      .then((r) => r, () => ({ data: null })) as any;
 
     if (data?.id) currentPageId = data.id;
 
     // Increment session page count
-    await ghostSupabase.rpc("increment_session_pages", { sid }).catch(() => null);
+    await ghostSupabase.rpc("increment_session_pages", { sid }).then(null, () => null);
 
   } catch { /* silent */ }
 }
@@ -204,7 +205,7 @@ export function flushSession() {
     .from("ghost_analytics_sessions")
     .update({ ended_at: new Date().toISOString(), duration_secs: Math.round((Date.now() - currentPageEntered) / 1000) })
     .eq("id", sid)
-    .catch(() => null);
+    .then(null, () => null);
 }
 
 export { getSessionId };

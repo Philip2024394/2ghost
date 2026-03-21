@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, RefreshCw, Upload, X, Link, Users, Lock, Unlock, Image, Video, ShieldOff, Copy, Check, MessageCircle, ChevronRight, Settings } from "lucide-react";
 import { uploadGhostImage, deleteGhostImage, uploadGhostVideo, deleteGhostVideo, isSupabaseStorageUrl } from "../ghostStorage";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const ROOM_BG = "https://ik.imagekit.io/7grri5v7d/ghost%20roomssadasdasdfasdfasdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 const SESSION_KEY   = "ghost_room_session_until";
@@ -40,6 +41,7 @@ function mockSendOtp(phone: string): string {
 
 // ── Room Vault subscription paywall ──────────────────────────────────────────
 function RoomPaywall({ onPaid }: { onPaid: () => void }) {
+  const a = useGenderAccent();
   const navigate = useNavigate();
   return (
     <div style={{
@@ -58,20 +60,20 @@ function RoomPaywall({ onPaid }: { onPaid: () => void }) {
           position: "relative", zIndex: 1,
           width: "100%", maxWidth: 480,
           background: "rgba(4,6,4,0.97)",
-          border: "1px solid rgba(74,222,128,0.2)",
+          border: `1px solid ${a.glow(0.2)}`,
           borderRadius: 24, padding: "28px 22px 24px",
           backdropFilter: "blur(20px)",
-          boxShadow: "0 0 60px rgba(74,222,128,0.08)",
+          boxShadow: `0 0 60px ${a.glow(0.08)}`,
           marginBottom: 8,
         }}
       >
-        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: "4px 4px 0 0", marginLeft: -22, marginRight: -22, marginTop: -28, marginBottom: 24 }} />
+        <div style={{ height: 3, background: `linear-gradient(90deg, #16a34a, ${"#4ade80"}, #22c55e)`, borderRadius: "4px 4px 0 0", marginLeft: -22, marginRight: -22, marginTop: -28, marginBottom: 24 }} />
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <img src={GHOST_LOGO} alt="ghost" style={{ width: 52, height: 52, objectFit: "contain" }} />
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0 }}>Room Vault</h2>
-            <p style={{ fontSize: 11, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600 }}>Private shared space · media storage</p>
+            <p style={{ fontSize: 11, color: a.glow(0.7), margin: 0, fontWeight: 600 }}>Private shared space · media storage</p>
           </div>
         </div>
 
@@ -79,7 +81,7 @@ function RoomPaywall({ onPaid }: { onPaid: () => void }) {
           Room Vault stores your shared photos and videos on secure private servers. Storage has a real cost — so Room Vault requires a small subscription for everyone, including women.
         </p>
 
-        <div style={{ background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 12, padding: "12px 14px", marginBottom: 20 }}>
+        <div style={{ background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 12, padding: "12px 14px", marginBottom: 20 }}>
           {[
             "Private photo & video sharing with your match",
             "Files auto-delete — nothing stored permanently",
@@ -87,14 +89,14 @@ function RoomPaywall({ onPaid }: { onPaid: () => void }) {
             "One room per connection — clean and simple",
           ].map((t) => (
             <div key={t} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
-              <span style={{ color: "#4ade80", fontSize: 12, marginTop: 1, flexShrink: 0 }}>✓</span>
+              <span style={{ color: a.accent, fontSize: 12, marginTop: 1, flexShrink: 0 }}>✓</span>
               <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>{t}</span>
             </div>
           ))}
         </div>
 
         <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 20 }}>
-          <span style={{ fontSize: 28, fontWeight: 900, color: "#4ade80" }}>19,000</span>
+          <span style={{ fontSize: 28, fontWeight: 900, color: a.accent }}>19,000</span>
           <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>IDR / month</span>
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginLeft: 4 }}>· ~$1.20 · everyone pays</span>
         </div>
@@ -104,9 +106,9 @@ function RoomPaywall({ onPaid }: { onPaid: () => void }) {
           onClick={() => { activateRoomSub(); onPaid(); }}
           style={{
             width: "100%", height: 52, borderRadius: 50, border: "none",
-            background: "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
+            background: a.gradient,
             color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
-            boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 28px rgba(34,197,94,0.45)",
+            boxShadow: `0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 28px ${a.glowMid(0.45)}`,
             position: "relative", overflow: "hidden", marginBottom: 12,
           }}
         >
@@ -127,6 +129,7 @@ function RoomPaywall({ onPaid }: { onPaid: () => void }) {
 
 // ── WhatsApp Auth Gate ────────────────────────────────────────────────────────
 function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
+  const a = useGenderAccent();
   const navigate = useNavigate();
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [phone, setPhone] = useState(() => {
@@ -218,7 +221,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
         >
           <motion.div
             animate={{ y: [0, -8, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            style={{ marginBottom: 12, filter: "drop-shadow(0 0 20px rgba(74,222,128,0.4))" }}
+            style={{ marginBottom: 12, filter: `drop-shadow(0 0 20px ${a.glow(0.4)})` }}
           >
             <img src={GHOST_LOGO} alt="ghost" style={{ width: 168, height: 168, objectFit: "contain" }} />
           </motion.div>
@@ -238,7 +241,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
           style={{
             width: "100%", maxWidth: 360,
             background: "rgba(5,5,8,0.88)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
-            border: "1px solid rgba(74,222,128,0.2)", borderRadius: 22,
+            border: `1px solid ${a.glow(0.2)}`, borderRadius: 22,
             padding: "24px 22px",
           }}
         >
@@ -248,8 +251,8 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
             {step === "phone" && (
               <motion.div key="phone" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <MessageCircle size={16} color="rgba(74,222,128,0.9)" />
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: a.glow(0.12), border: `1px solid ${a.glow(0.25)}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <MessageCircle size={16} color={a.glow(0.9)} />
                   </div>
                   <div>
                     <p style={{ fontSize: 14, fontWeight: 800, color: "#fff", margin: 0 }}>WhatsApp Verification</p>
@@ -284,10 +287,10 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
                   disabled={sending}
                   style={{
                     width: "100%", height: 50, borderRadius: 13, border: "none",
-                    background: sending ? "rgba(74,222,128,0.3)" : "linear-gradient(135deg, #16a34a, #22c55e)",
+                    background: sending ? a.glow(0.3) : `linear-gradient(135deg, #16a34a, ${"#22c55e"})`,
                     color: "#fff", fontSize: 15, fontWeight: 900, cursor: sending ? "default" : "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    boxShadow: sending ? "none" : "0 4px 20px rgba(34,197,94,0.4)",
+                    boxShadow: sending ? "none" : `0 4px 20px ${a.glowMid(0.4)}`,
                   }}
                 >
                   {sending ? (
@@ -316,15 +319,15 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
                     Enter the 6-digit code
                   </p>
                   <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: 0 }}>
-                    Sent to <span style={{ color: "rgba(74,222,128,0.8)", fontWeight: 700 }}>{phone}</span>
+                    Sent to <span style={{ color: a.glow(0.8), fontWeight: 700 }}>{phone}</span>
                   </p>
                 </div>
 
                 {/* DEV ONLY: show code for testing */}
                 {generatedCode && (
-                  <div style={{ background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", borderRadius: 10, padding: "7px 12px", marginBottom: 14, textAlign: "center" }}>
+                  <div style={{ background: a.glow(0.08), border: `1px solid ${a.glow(0.2)}`, borderRadius: 10, padding: "7px 12px", marginBottom: 14, textAlign: "center" }}>
                     <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: "0 0 2px" }}>DEV — your code</p>
-                    <p style={{ fontSize: 22, fontWeight: 900, color: "rgba(74,222,128,0.9)", margin: 0, letterSpacing: "0.25em" }}>{generatedCode}</p>
+                    <p style={{ fontSize: 22, fontWeight: 900, color: a.glow(0.9), margin: 0, letterSpacing: "0.25em" }}>{generatedCode}</p>
                   </div>
                 )}
 
@@ -342,8 +345,8 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
                       onKeyDown={(e) => handleKeyDown(i, e)}
                       style={{
                         width: 44, height: 52, borderRadius: 12, textAlign: "center",
-                        background: d ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.07)",
-                        border: `1px solid ${d ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.12)"}`,
+                        background: d ? a.glow(0.12) : "rgba(255,255,255,0.07)",
+                        border: `1px solid ${d ? a.glow(0.4) : "rgba(255,255,255,0.12)"}`,
                         color: "#fff", fontSize: 22, fontWeight: 900, outline: "none",
                         transition: "all 0.15s",
                       }}
@@ -370,7 +373,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
                   ) : (
                     <button
                       onClick={handleSend}
-                      style={{ background: "none", border: "none", color: "rgba(74,222,128,0.8)", fontSize: 12, fontWeight: 700, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 4 }}
+                      style={{ background: "none", border: "none", color: a.glow(0.8), fontSize: 12, fontWeight: 700, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 4 }}
                     >
                       <span>Resend code</span> <ChevronRight size={12} />
                     </button>
@@ -386,7 +389,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
           style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 8 }}
         >
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(74,222,128,0.7)" }} />
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: a.glow(0.7) }} />
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", margin: 0 }}>
             Code expires in 60 seconds · Session lasts 24 hours
           </p>
@@ -632,6 +635,7 @@ function SendMediaPanel({
   inputStyle: React.CSSProperties;
   roomTier: RoomTier;
 }) {
+  const a = useGenderAccent();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [targetId, setTargetId] = useState("");
@@ -706,7 +710,7 @@ function SendMediaPanel({
   // Free users cannot send — show locked state with upgrade CTA
   if (roomTier === "free") {
     return (
-      <div style={{ ...cardStyle, borderColor: "rgba(74,222,128,0.12)", position: "relative", overflow: "hidden" }}>
+      <div style={{ ...cardStyle, borderColor: a.glow(0.12), position: "relative", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
           <span style={{ fontSize: 20 }}>🔒</span>
           <div>
@@ -720,7 +724,7 @@ function SendMediaPanel({
         <button
           onClick={() => navigate("/ghost/pricing")}
           style={{
-            width: "100%", background: "linear-gradient(135deg, #16a34a, #4ade80)",
+            width: "100%", background: `linear-gradient(135deg, #16a34a, ${"#4ade80"})`,
             border: "none", borderRadius: 12, padding: "11px 0",
             fontSize: 13, fontWeight: 900, color: "#000", cursor: "pointer",
           }}
@@ -768,9 +772,9 @@ function SendMediaPanel({
                 {([["image","🖼️ Photo"], ["video","🎬 Video"], ["note","💬 Memory"]] as const).map(([t, label]) => (
                   <button key={t} onClick={() => setSendType(t)}
                     style={{ flex: 1, height: 36, borderRadius: 10, border: "none", cursor: "pointer", fontWeight: 800, fontSize: 11,
-                      background: sendType === t ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
-                      color: sendType === t ? "rgba(74,222,128,0.95)" : "rgba(255,255,255,0.4)",
-                      outline: sendType === t ? "1px solid rgba(74,222,128,0.3)" : "none",
+                      background: sendType === t ? a.glow(0.15) : "rgba(255,255,255,0.04)",
+                      color: sendType === t ? a.glow(0.95) : "rgba(255,255,255,0.4)",
+                      outline: sendType === t ? `1px solid ${a.glow(0.3)}` : "none",
                     }}>
                     {label}
                   </button>
@@ -791,7 +795,7 @@ function SendMediaPanel({
                     </div>
                   ) : (
                     <motion.button whileTap={{ scale: 0.97 }} onClick={() => imgRef.current?.click()}
-                      style={{ width: "100%", height: 64, borderRadius: 12, border: "1.5px dashed rgba(74,222,128,0.3)", background: "rgba(74,222,128,0.04)", color: "rgba(74,222,128,0.6)", cursor: "pointer", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 10 }}>
+                      style={{ width: "100%", height: 64, borderRadius: 12, border: `1.5px dashed ${a.glow(0.3)}`, background: a.glow(0.04), color: a.glow(0.6), cursor: "pointer", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 10 }}>
                       <Upload size={14} /> Upload Image
                     </motion.button>
                   )}
@@ -802,7 +806,7 @@ function SendMediaPanel({
                       <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
                         {myImages.map((src, i) => (
                           <img key={i} src={src} alt="" onClick={() => pickFromRoom(src)}
-                            style={{ width: 52, height: 52, borderRadius: 8, objectFit: "cover", cursor: "pointer", flexShrink: 0, border: selectedImage === src ? "2px solid rgba(74,222,128,0.8)" : "2px solid transparent" }} />
+                            style={{ width: 52, height: 52, borderRadius: 8, objectFit: "cover", cursor: "pointer", flexShrink: 0, border: selectedImage === src ? `2px solid ${a.glow(0.8)}` : "2px solid transparent" }} />
                         ))}
                       </div>
                     </div>
@@ -824,7 +828,7 @@ function SendMediaPanel({
                       <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: "0 0 6px" }}>Or pick from your room:</p>
                       {myVideoUrls.map((url, i) => (
                         <button key={i} onClick={() => pickVideoFromRoom(url)}
-                          style={{ width: "100%", padding: "6px 10px", borderRadius: 8, border: `1px solid ${videoUrl === url ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)"}`, background: videoUrl === url ? "rgba(74,222,128,0.08)" : "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.6)", fontSize: 11, textAlign: "left", cursor: "pointer", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          style={{ width: "100%", padding: "6px 10px", borderRadius: 8, border: `1px solid ${videoUrl === url ? a.glow(0.4) : "rgba(255,255,255,0.08)"}`, background: videoUrl === url ? a.glow(0.08) : "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.6)", fontSize: 11, textAlign: "left", cursor: "pointer", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           🎬 {url}
                         </button>
                       ))}
@@ -860,7 +864,7 @@ function SendMediaPanel({
                     rows={4}
                     style={{
                       width: "100%", borderRadius: 12,
-                      background: "rgba(255,255,255,0.06)", border: "1px solid rgba(74,222,128,0.25)",
+                      background: "rgba(255,255,255,0.06)", border: `1px solid ${a.glow(0.25)}`,
                       color: "#fff", fontSize: 14, padding: "12px 14px",
                       outline: "none", resize: "none", boxSizing: "border-box",
                       lineHeight: 1.6, fontFamily: "inherit",
@@ -879,7 +883,7 @@ function SendMediaPanel({
                 onClick={handleSend}
                 disabled={sending || sent}
                 style={{ width: "100%", height: 44, borderRadius: 12, border: "none", marginTop: 10, cursor: sending || sent ? "default" : "pointer",
-                  background: sent ? "rgba(74,222,128,0.2)" : sending ? "rgba(74,222,128,0.3)" : "linear-gradient(135deg,#16a34a,#22c55e)",
+                  background: sent ? a.glow(0.2) : sending ? a.glow(0.3) : `linear-gradient(135deg,#16a34a,${"#22c55e"})`,
                   color: "#fff", fontSize: 13, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 {sent ? (
                   <><Check size={14} /> Sent — they'll see it in their Inbox</>
@@ -900,6 +904,7 @@ function SendMediaPanel({
 
 // ── Small helper: paste a video URL and confirm ───────────────────────────────
 function VideoUrlInput({ onAdd, inputStyle }: { onAdd: (url: string) => void; inputStyle: React.CSSProperties }) {
+  const a = useGenderAccent();
   const [val, setVal] = useState("");
   return (
     <div style={{ display: "flex", gap: 8 }}>
@@ -916,7 +921,7 @@ function VideoUrlInput({ onAdd, inputStyle }: { onAdd: (url: string) => void; in
       <motion.button
         whileTap={{ scale: 0.95 }}
         onClick={() => { if (val.trim()) { onAdd(val); setVal(""); } }}
-        style={{ height: 46, borderRadius: 12, padding: "0 14px", border: "none", background: "linear-gradient(135deg,#16a34a,#22c55e)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", flexShrink: 0 }}
+        style={{ height: 46, borderRadius: 12, padding: "0 14px", border: "none", background: `linear-gradient(135deg,#16a34a,${"#22c55e"})`, color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", flexShrink: 0 }}
       >
         Add
       </motion.button>
@@ -927,6 +932,7 @@ function VideoUrlInput({ onAdd, inputStyle }: { onAdd: (url: string) => void; in
 // ── Main page ─────────────────────────────────────────────────────────────────
 // ── Room Active Welcome Popup ─────────────────────────────────────────────────
 function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
+  const a = useGenderAccent();
   return (
     <div
       style={{
@@ -943,7 +949,7 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
           backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/dsafasdfasdfasdfasdf.png?updatedAt=1773915218854)",
           backgroundSize: "cover", backgroundPosition: "center top",
           borderRadius: "24px 24px 0 0",
-          border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none",
+          border: `1px solid ${a.glow(0.2)}`, borderBottom: "none",
           maxHeight: "88dvh", overflowY: "auto", scrollbarWidth: "none" as const,
           position: "relative",
         }}
@@ -955,24 +961,24 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
 
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 18 }}>
-            <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #4ade80, #22c55e, #4ade80, transparent)", marginBottom: 20, borderRadius: 2 }} />
+            <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${"#4ade80"}, #22c55e, #4ade80, transparent)`, marginBottom: 20, borderRadius: 2 }} />
             <h2 style={{ fontSize: 28, fontWeight: 900, color: "#fff", margin: "0 0 10px", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
               Room Vault
             </h2>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
               <span style={{
-                width: 9, height: 9, borderRadius: "50%", background: "#4ade80",
+                width: 9, height: 9, borderRadius: "50%", background: a.accent,
                 display: "inline-block",
-                boxShadow: "0 0 8px #4ade80",
+                boxShadow: `0 0 8px ${"#4ade80"}`,
                 animation: "pulse-dot 1.4s ease-in-out infinite",
               }} />
-              <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(74,222,128,0.9)", letterSpacing: "0.06em", textTransform: "uppercase" }}>Active</span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: a.glow(0.9), letterSpacing: "0.06em", textTransform: "uppercase" }}>Active</span>
             </div>
           </div>
 
           {/* Free tier highlight */}
-          <div style={{ background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 16, padding: "14px 16px", marginBottom: 14 }}>
-            <p style={{ fontSize: 12, fontWeight: 800, color: "#4ade80", margin: "0 0 8px", textTransform: "uppercase", letterSpacing: "0.07em" }}>🆓 Your Free Room</p>
+          <div style={{ background: a.glow(0.08), border: `1px solid ${a.glow(0.25)}`, borderRadius: 16, padding: "14px 16px", marginBottom: 14 }}>
+            <p style={{ fontSize: 12, fontWeight: 800, color: a.accent, margin: "0 0 8px", textTransform: "uppercase", letterSpacing: "0.07em" }}>🆓 Your Free Room</p>
             <div style={{ display: "flex", gap: 16 }}>
               <div style={{ flex: 1, textAlign: "center", background: "rgba(255,255,255,0.06)", borderRadius: 10, padding: "10px 8px" }}>
                 <p style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: 0 }}>3</p>
@@ -982,9 +988,9 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
                 <p style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: 0 }}>1</p>
                 <p style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", margin: 0 }}>Video</p>
               </div>
-              <div style={{ flex: 1, textAlign: "center", background: "rgba(74,222,128,0.1)", borderRadius: 10, padding: "10px 8px", border: "1px solid rgba(74,222,128,0.2)" }}>
-                <p style={{ fontSize: 14, fontWeight: 900, color: "#4ade80", margin: 0 }}>Free</p>
-                <p style={{ fontSize: 10, color: "rgba(74,222,128,0.6)", margin: 0 }}>Forever</p>
+              <div style={{ flex: 1, textAlign: "center", background: a.glow(0.1), borderRadius: 10, padding: "10px 8px", border: `1px solid ${a.glow(0.2)}` }}>
+                <p style={{ fontSize: 14, fontWeight: 900, color: a.accent, margin: 0 }}>Free</p>
+                <p style={{ fontSize: 10, color: a.glow(0.6), margin: 0 }}>Forever</p>
               </div>
             </div>
           </div>
@@ -996,7 +1002,7 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
               { icon: "📤", title: "Share with any Ghost instantly", body: "Send media to another 2Ghost user in seconds — just enter their Ghost ID and hit Send." },
               { icon: "🔒", title: "One touch. Total lockdown.", body: "Need to go? One tap locks your room and clears all files from view — nothing visible, nothing exposed." },
             ].map(item => (
-              <div key={item.icon} style={{ display: "flex", gap: 13, alignItems: "flex-start", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(74,222,128,0.1)", borderRadius: 14, padding: "12px 14px" }}>
+              <div key={item.icon} style={{ display: "flex", gap: 13, alignItems: "flex-start", background: "rgba(255,255,255,0.06)", border: `1px solid ${a.glow(0.1)}`, borderRadius: 14, padding: "12px 14px" }}>
                 <span style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>{item.icon}</span>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 3px" }}>{item.title}</p>
@@ -1018,9 +1024,9 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
             onClick={onClose}
             style={{
               width: "100%", marginTop: 22, height: 52, borderRadius: 50, border: "none",
-              background: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
+              background: `linear-gradient(to bottom, ${"#4ade80"}, #22c55e, #16a34a)`,
               color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
-              letterSpacing: "0.03em", boxShadow: "0 6px 24px rgba(34,197,94,0.45)",
+              letterSpacing: "0.03em", boxShadow: `0 6px 24px ${a.glowMid(0.45)}`,
               position: "relative", overflow: "hidden",
             }}
           >
@@ -1034,6 +1040,7 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
 }
 
 export default function GhostRoomPage() {
+  const a = useGenderAccent();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [hasSub, setHasSub] = useState(hasRoomSub);
@@ -1574,7 +1581,7 @@ export default function GhostRoomPage() {
             backgroundSize: "cover", backgroundPosition: "center top",
             backgroundColor: "rgb(6,8,5)",
             borderRadius: "22px 22px 0 0",
-            border: "1px solid rgba(74,222,128,0.12)", borderBottom: "none",
+            border: `1px solid ${a.glow(0.12)}`, borderBottom: "none",
             maxHeight: "88dvh", display: "flex", flexDirection: "column",
             overflow: "hidden",
           }}>
@@ -1614,7 +1621,7 @@ export default function GhostRoomPage() {
                 <>
                   <div style={{ flex: 1 }}>
                     <span style={{ fontSize: 15, fontWeight: 900, color: "#fff", display: "block" }}>Room Storage</span>
-                    <span style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", fontWeight: 600, lineHeight: 1.4, display: "block", marginTop: 2 }}>Your files are stored on top-security servers</span>
+                    <span style={{ fontSize: 10, color: a.glow(0.7), fontWeight: 600, lineHeight: 1.4, display: "block", marginTop: 2 }}>Your files are stored on top-security servers</span>
                   </div>
                   <button onClick={() => setShowSettings(false)} style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>
                     <X size={13} />
@@ -1653,7 +1660,7 @@ export default function GhostRoomPage() {
                         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)" }} />
                         <div style={{ position: "relative", zIndex: 1, padding: "0 12px 12px" }}>
                           <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>{label}</p>
-                          <p style={{ fontSize: 10, fontWeight: 700, color: "#4ade80", margin: 0 }}>{sub}</p>
+                          <p style={{ fontSize: 10, fontWeight: 700, color: a.accent, margin: 0 }}>{sub}</p>
                         </div>
                       </motion.button>
                     ))}
@@ -1662,7 +1669,7 @@ export default function GhostRoomPage() {
                   <div style={{ marginTop: 16, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "12px 16px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
                       <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)" }}>Storage Used</span>
-                      <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(74,222,128,0.9)" }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: a.glow(0.9) }}>
                         {myImages.length + myVideoUrls.length} / {ROOM_TIERS[roomTier].images + ROOM_TIERS[roomTier].videos} files
                       </span>
                     </div>
@@ -1732,8 +1739,8 @@ export default function GhostRoomPage() {
                 return (
                   <div style={{ padding: "14px 18px max(32px,env(safe-area-inset-bottom,32px))" }}>
                     {/* Privacy notice */}
-                    <div style={{ background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.18)", borderRadius: 12, padding: "9px 14px", marginBottom: 14 }}>
-                      <p style={{ fontSize: 11, color: "rgba(74,222,128,0.85)", margin: 0, fontWeight: 700 }}>
+                    <div style={{ background: a.glow(0.07), border: `1px solid ${a.glow(0.18)}`, borderRadius: 12, padding: "9px 14px", marginBottom: 14 }}>
+                      <p style={{ fontSize: 11, color: a.glow(0.85), margin: 0, fontWeight: 700 }}>
                         Images are private — never saved to your device
                       </p>
                     </div>
@@ -1752,10 +1759,10 @@ export default function GhostRoomPage() {
                             animate={{ x: 0, opacity: 1 }}
                             transition={{ delay: i * 0.055, duration: 0.22 }}
                             onClick={() => setViewingImage(img.url)}
-                            style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(74,222,128,0.1)", borderRadius: 16, padding: "12px 14px", cursor: "pointer" }}
+                            style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(255,255,255,0.04)", border: `1px solid ${a.glow(0.1)}`, borderRadius: 16, padding: "12px 14px", cursor: "pointer" }}
                           >
                             {/* Thumbnail */}
-                            <div style={{ width: 66, height: 66, borderRadius: 12, overflow: "hidden", flexShrink: 0, border: "1px solid rgba(74,222,128,0.2)" }}>
+                            <div style={{ width: 66, height: 66, borderRadius: 12, overflow: "hidden", flexShrink: 0, border: `1px solid ${a.glow(0.2)}` }}>
                               <img src={img.url} alt="" draggable="false" className="ghost-no-save" style={{ width: "100%", height: "100%", objectFit: "cover" }} onContextMenu={e => e.preventDefault()} />
                             </div>
                             {/* Info */}
@@ -1768,17 +1775,17 @@ export default function GhostRoomPage() {
                               </p>
                               <span style={{
                                 fontSize: 9, borderRadius: 6, padding: "2px 8px", fontWeight: 700,
-                                background: img.src === "me" ? "rgba(74,222,128,0.12)" : "rgba(96,165,250,0.1)",
-                                border: `1px solid ${img.src === "me" ? "rgba(74,222,128,0.25)" : "rgba(96,165,250,0.2)"}`,
-                                color: img.src === "me" ? "rgba(74,222,128,0.9)" : "rgba(96,165,250,0.8)",
+                                background: img.src === "me" ? a.glow(0.12) : "rgba(96,165,250,0.1)",
+                                border: `1px solid ${img.src === "me" ? a.glow(0.25) : "rgba(96,165,250,0.2)"}`,
+                                color: img.src === "me" ? a.glow(0.9) : "rgba(96,165,250,0.8)",
                               }}>
                                 {img.src === "me" ? "Uploaded by you" : `Ghost · ${img.src}`}
                               </span>
                             </div>
                             {/* Actions */}
                             <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
-                              <div style={{ width: 32, height: 32, borderRadius: 9, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <Image size={13} color="rgba(74,222,128,0.8)" />
+                              <div style={{ width: 32, height: 32, borderRadius: 9, background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <Image size={13} color={a.glow(0.8)} />
                               </div>
                               {img.src === "me" && (
                                 <button
@@ -1806,8 +1813,8 @@ export default function GhostRoomPage() {
                 return (
                   <div style={{ padding: "14px 18px max(32px,env(safe-area-inset-bottom,32px))" }}>
                     {/* Privacy notice */}
-                    <div style={{ background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.18)", borderRadius: 12, padding: "9px 14px", marginBottom: 14 }}>
-                      <p style={{ fontSize: 11, color: "rgba(74,222,128,0.85)", margin: 0, fontWeight: 700 }}>
+                    <div style={{ background: a.glow(0.07), border: `1px solid ${a.glow(0.18)}`, borderRadius: 12, padding: "9px 14px", marginBottom: 14 }}>
+                      <p style={{ fontSize: 11, color: a.glow(0.85), margin: 0, fontWeight: 700 }}>
                         Videos are private — never saved to your device
                       </p>
                     </div>
@@ -1893,18 +1900,18 @@ export default function GhostRoomPage() {
                             initial={{ x: -36, opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}
                             transition={{ delay: i * 0.055 }}
-                            style={{ display: "flex", alignItems: "center", gap: 12, background: isActive ? "rgba(74,222,128,0.04)" : "rgba(255,255,255,0.03)", border: `1px solid ${isActive ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.07)"}`, borderRadius: 16, padding: "12px 14px" }}
+                            style={{ display: "flex", alignItems: "center", gap: 12, background: isActive ? a.glow(0.04) : "rgba(255,255,255,0.03)", border: `1px solid ${isActive ? a.glow(0.15) : "rgba(255,255,255,0.07)"}`, borderRadius: 16, padding: "12px 14px" }}
                           >
                             {/* Avatar */}
                             <div style={{ position: "relative", flexShrink: 0 }}>
-                              <div style={{ width: 52, height: 52, borderRadius: "50%", overflow: "hidden", border: `2px solid ${isActive ? "rgba(74,222,128,0.5)" : "rgba(255,255,255,0.12)"}` }}>
+                              <div style={{ width: 52, height: 52, borderRadius: "50%", overflow: "hidden", border: `2px solid ${isActive ? a.glow(0.5) : "rgba(255,255,255,0.12)"}` }}>
                                 {c.image
                                   ? <img src={c.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                  : <div style={{ width: "100%", height: "100%", background: "rgba(74,222,128,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}><img src={GHOST_LOGO} alt="ghost" style={{ width: 66, height: 66, objectFit: "contain" }} /></div>
+                                  : <div style={{ width: "100%", height: "100%", background: a.glow(0.1), display: "flex", alignItems: "center", justifyContent: "center" }}><img src={GHOST_LOGO} alt="ghost" style={{ width: 66, height: 66, objectFit: "contain" }} /></div>
                                 }
                               </div>
                               {isActive && (
-                                <span style={{ position: "absolute", bottom: 1, right: 1, width: 12, height: 12, borderRadius: "50%", background: "#4ade80", border: "2px solid #050508", animation: "pulse-dot 1.4s ease-in-out infinite" }} />
+                                <span style={{ position: "absolute", bottom: 1, right: 1, width: 12, height: 12, borderRadius: "50%", background: a.accent, border: "2px solid #050508", animation: "pulse-dot 1.4s ease-in-out infinite" }} />
                               )}
                             </div>
                             {/* Info */}
@@ -1917,16 +1924,16 @@ export default function GhostRoomPage() {
                               </p>
                               <span style={{
                                 fontSize: 9, borderRadius: 6, padding: "2px 7px", fontWeight: 700,
-                                background: isActive ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.05)",
-                                border: `1px solid ${isActive ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.08)"}`,
-                                color: isActive ? "rgba(74,222,128,0.85)" : "rgba(255,255,255,0.3)",
+                                background: isActive ? a.glow(0.1) : "rgba(255,255,255,0.05)",
+                                border: `1px solid ${isActive ? a.glow(0.2) : "rgba(255,255,255,0.08)"}`,
+                                color: isActive ? a.glow(0.85) : "rgba(255,255,255,0.3)",
                               }}>
                                 {isActive ? "● Active now" : "Offline"}
                               </span>
                             </div>
                             {/* Message button */}
-                            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                              <MessageCircle size={15} color="rgba(74,222,128,0.7)" />
+                            <div style={{ width: 36, height: 36, borderRadius: 10, background: a.glow(0.08), border: `1px solid ${a.glow(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                              <MessageCircle size={15} color={a.glow(0.7)} />
                             </div>
                           </motion.div>
                         );
@@ -1953,7 +1960,7 @@ export default function GhostRoomPage() {
                   {
                     key: "img", label: "🖼 Image Room", desc: "Recipient sees your images only — videos stay locked",
                     code: imgShareCode, setCode: setImgShareCode, storageKey: KEYS.imgShare,
-                    accent: "#4ade80", border: "rgba(74,222,128,0.25)", bg: "rgba(74,222,128,0.06)",
+                    accent: a.accent, border: a.glow(0.25), bg: a.glow(0.06),
                     count: `${myImages.length} image${myImages.length !== 1 ? "s" : ""}`,
                   },
                   {
@@ -1986,10 +1993,10 @@ export default function GhostRoomPage() {
                 return (
                   <div style={{ padding: "14px 18px max(32px,env(safe-area-inset-bottom,32px))" }}>
                     {/* Security notice */}
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 12, padding: "10px 14px", marginBottom: 16 }}>
-                      <Lock size={13} color="rgba(74,222,128,0.8)" style={{ marginTop: 1, flexShrink: 0 }} />
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 12, padding: "10px 14px", marginBottom: 16 }}>
+                      <Lock size={13} color={a.glow(0.8)} style={{ marginTop: 1, flexShrink: 0 }} />
                       <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.5 }}>
-                        Each code grants access <span style={{ color: "rgba(74,222,128,0.9)", fontWeight: 800 }}>only</span> to the selected room type. Share only with ghosts you trust — codes can be reset at any time.
+                        Each code grants access <span style={{ color: a.glow(0.9), fontWeight: 800 }}>only</span> to the selected room type. Share only with ghosts you trust — codes can be reset at any time.
                       </p>
                     </div>
 
@@ -2051,7 +2058,7 @@ export default function GhostRoomPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 15 }}>🚪</span>
             <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Room Vault</h1>
-            <span style={{ fontSize: 10, background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 6, padding: "1px 6px", color: "rgba(74,222,128,0.9)", fontWeight: 800 }}>PRIVATE</span>
+            <span style={{ fontSize: 10, background: a.glow(0.15), border: `1px solid ${a.glow(0.3)}`, borderRadius: 6, padding: "1px 6px", color: a.glow(0.9), fontWeight: 800 }}>PRIVATE</span>
           </div>
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>{myGhostId} · code-gated vault</p>
         </div>
@@ -2092,8 +2099,8 @@ export default function GhostRoomPage() {
             style={{
               flex: 1, height: 44, border: "none", cursor: "pointer",
               background: "none",
-              borderBottom: tab === key ? "2px solid rgba(74,222,128,0.9)" : "2px solid transparent",
-              color: tab === key ? "rgba(74,222,128,0.95)" : "rgba(255,255,255,0.35)",
+              borderBottom: tab === key ? `2px solid ${a.glow(0.9)}` : "2px solid transparent",
+              color: tab === key ? a.glow(0.95) : "rgba(255,255,255,0.35)",
               fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
               position: "relative",
             }}
@@ -2198,17 +2205,17 @@ export default function GhostRoomPage() {
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                 <div style={{
                   flex: 1, height: 52, borderRadius: 12,
-                  background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.3)",
+                  background: a.glow(0.08), border: `1px solid ${a.glow(0.3)}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  <span style={{ fontSize: 22, fontWeight: 900, color: "rgba(74,222,128,0.95)", letterSpacing: "0.2em", fontVariantNumeric: "tabular-nums" }}>
+                  <span style={{ fontSize: 22, fontWeight: 900, color: a.glow(0.95), letterSpacing: "0.2em", fontVariantNumeric: "tabular-nums" }}>
                     {roomCode}
                   </span>
                 </div>
                 <motion.button
                   whileTap={{ scale: 0.93 }}
                   onClick={copyCode}
-                  style={{ width: 44, height: 52, borderRadius: 12, border: "1px solid rgba(74,222,128,0.3)", background: "rgba(74,222,128,0.1)", color: "rgba(74,222,128,0.9)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  style={{ width: 44, height: 52, borderRadius: 12, border: `1px solid ${a.glow(0.3)}`, background: a.glow(0.1), color: a.glow(0.9), cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
                   {codeCopied ? <Check size={16} /> : <Copy size={16} />}
                 </motion.button>
@@ -2225,7 +2232,7 @@ export default function GhostRoomPage() {
                   setCodeCopied(true);
                   setTimeout(() => setCodeCopied(false), 2000);
                 }}
-                style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 10, padding: "7px 12px", color: "rgba(74,222,128,0.9)", fontSize: 12, fontWeight: 700, cursor: "pointer", marginBottom: 10 }}
+                style={{ display: "flex", alignItems: "center", gap: 7, background: a.glow(0.1), border: `1px solid ${a.glow(0.25)}`, borderRadius: 10, padding: "7px 12px", color: a.glow(0.9), fontSize: 12, fontWeight: 700, cursor: "pointer", marginBottom: 10 }}
               >
                 <Link size={12} />
                 {codeCopied ? "Link copied!" : "Copy Vault Link — share with your match"}
@@ -2270,10 +2277,10 @@ export default function GhostRoomPage() {
                       onClick={() => saveExpiry(v)}
                       style={{
                         flex: 1, height: 40, borderRadius: 10, border: "none", cursor: "pointer",
-                        background: isSelected ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)",
-                        color: isSelected ? "rgba(74,222,128,0.95)" : "rgba(255,255,255,0.4)",
+                        background: isSelected ? a.glow(0.15) : "rgba(255,255,255,0.04)",
+                        color: isSelected ? a.glow(0.95) : "rgba(255,255,255,0.4)",
                         fontSize: 11, fontWeight: 700,
-                        outline: isSelected ? "1px solid rgba(74,222,128,0.35)" : "none",
+                        outline: isSelected ? `1px solid ${a.glow(0.35)}` : "none",
                         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
                       }}
                     >
@@ -2294,7 +2301,7 @@ export default function GhostRoomPage() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>Room Vault Rental</p>
-                  <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", fontWeight: 600, margin: 0 }}>100% secure private rooms</p>
+                  <p style={{ fontSize: 10, color: a.glow(0.7), fontWeight: 600, margin: 0 }}>100% secure private rooms</p>
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 800, color: tierInfo.color }}>{tierInfo.badge} {tierInfo.label}</span>
               </div>
@@ -2328,7 +2335,7 @@ export default function GhostRoomPage() {
             <div style={S.card}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Image size={13} color="rgba(74,222,128,0.8)" />
+                  <Image size={13} color={a.glow(0.8)} />
                   <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>Image Room</p>
                 </div>
                 <span style={{ fontSize: 10, color: atImageLimit ? "#f87171" : "rgba(255,255,255,0.3)" }}>
@@ -2350,9 +2357,9 @@ export default function GhostRoomPage() {
                   </div>
                 ))}
                 {imgUploading && (
-                  <div style={{ width: 80, height: 80, borderRadius: 10, background: "rgba(74,222,128,0.06)", border: "1.5px dashed rgba(74,222,128,0.3)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
-                    <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid rgba(74,222,128,0.2)", borderTop: "2px solid rgba(74,222,128,0.9)", animation: "spin 0.8s linear infinite" }} />
-                    <span style={{ fontSize: 8, color: "rgba(74,222,128,0.6)", fontWeight: 700 }}>Uploading</span>
+                  <div style={{ width: 80, height: 80, borderRadius: 10, background: a.glow(0.06), border: `1.5px dashed ${a.glow(0.3)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                    <div style={{ width: 20, height: 20, borderRadius: "50%", border: `2px solid ${a.glow(0.2)}`, borderTop: `2px solid ${a.glow(0.9)}`, animation: "spin 0.8s linear infinite" }} />
+                    <span style={{ fontSize: 8, color: a.glow(0.6), fontWeight: 700 }}>Uploading</span>
                   </div>
                 )}
                 {!atImageLimit && !imgUploading ? (
@@ -2361,8 +2368,8 @@ export default function GhostRoomPage() {
                     onClick={() => imgRef.current?.click()}
                     style={{
                       width: 80, height: 80, borderRadius: 10,
-                      background: "rgba(74,222,128,0.06)", border: "1.5px dashed rgba(74,222,128,0.3)",
-                      color: "rgba(74,222,128,0.6)", cursor: "pointer",
+                      background: a.glow(0.06), border: `1.5px dashed ${a.glow(0.3)}`,
+                      color: a.glow(0.6), cursor: "pointer",
                       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
                     }}
                   >
@@ -2391,7 +2398,7 @@ export default function GhostRoomPage() {
             <div style={S.card}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Video size={13} color="rgba(74,222,128,0.8)" />
+                  <Video size={13} color={a.glow(0.8)} />
                   <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>Video Room</p>
                 </div>
                 <span style={{ fontSize: 10, color: atVideoLimit ? "#f87171" : "rgba(255,255,255,0.3)" }}>
@@ -2429,11 +2436,11 @@ export default function GhostRoomPage() {
                   {vidUploading && (
                     <div style={{ marginBottom: 10 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                        <span style={{ fontSize: 11, color: "rgba(74,222,128,0.7)", fontWeight: 700 }}>Uploading video…</span>
-                        <span style={{ fontSize: 11, color: "rgba(74,222,128,0.5)" }}>{vidProgress}%</span>
+                        <span style={{ fontSize: 11, color: a.glow(0.7), fontWeight: 700 }}>Uploading video…</span>
+                        <span style={{ fontSize: 11, color: a.glow(0.5) }}>{vidProgress}%</span>
                       </div>
                       <div style={{ height: 4, borderRadius: 4, background: "rgba(255,255,255,0.06)" }}>
-                        <div style={{ height: "100%", borderRadius: 4, background: "rgba(74,222,128,0.7)", width: `${vidProgress || 10}%`, transition: "width 0.3s ease" }} />
+                        <div style={{ height: "100%", borderRadius: 4, background: a.glow(0.7), width: `${vidProgress || 10}%`, transition: "width 0.3s ease" }} />
                       </div>
                     </div>
                   )}
@@ -2442,7 +2449,7 @@ export default function GhostRoomPage() {
                     <motion.button
                       whileTap={{ scale: 0.97 }}
                       onClick={() => vidRef.current?.click()}
-                      style={{ width: "100%", height: 44, borderRadius: 10, border: "1.5px dashed rgba(74,222,128,0.3)", background: "rgba(74,222,128,0.04)", color: "rgba(74,222,128,0.7)", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                      style={{ width: "100%", height: 44, borderRadius: 10, border: `1.5px dashed ${a.glow(0.3)}`, background: a.glow(0.04), color: a.glow(0.7), fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
                     >
                       <Upload size={14} />
                       Upload Video — {tierInfo.videoFormats}
@@ -2543,7 +2550,7 @@ export default function GhostRoomPage() {
                                       width: "100%", height: 36, borderRadius: 10, border: "none", cursor: "pointer",
                                       background: key === "gold"
                                         ? "linear-gradient(135deg, #92660a, #d4af37)"
-                                        : "linear-gradient(135deg, #16a34a, #22c55e)",
+                                        : `linear-gradient(135deg, #16a34a, ${a.accentMid})`,
                                       color: key === "gold" ? "#000" : "#fff",
                                       fontSize: 11, fontWeight: 900,
                                     }}
@@ -2588,8 +2595,8 @@ export default function GhostRoomPage() {
                   <div
                     key={req.ghostId}
                     style={{
-                      background: req.status === "pending" ? "rgba(74,222,128,0.04)" : "rgba(255,255,255,0.02)",
-                      border: `1px solid ${req.status === "pending" ? "rgba(74,222,128,0.2)" : req.status === "granted" ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.06)"}`,
+                      background: req.status === "pending" ? a.glow(0.04) : "rgba(255,255,255,0.02)",
+                      border: `1px solid ${req.status === "pending" ? a.glow(0.2) : req.status === "granted" ? a.glow(0.15) : "rgba(255,255,255,0.06)"}`,
                       borderRadius: 12, padding: "10px 12px",
                     }}
                   >
@@ -2598,7 +2605,7 @@ export default function GhostRoomPage() {
                         <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>{req.ghostId}</p>
                         <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>
                           Requested {fmtAgo(req.requestedAt)} ·{" "}
-                          <span style={{ color: req.status === "granted" ? "rgba(74,222,128,0.8)" : req.status === "denied" ? "#f87171" : "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+                          <span style={{ color: req.status === "granted" ? a.glow(0.8) : req.status === "denied" ? "#f87171" : "rgba(255,255,255,0.4)", fontWeight: 700 }}>
                             {req.status}
                           </span>
                         </p>
@@ -2608,7 +2615,7 @@ export default function GhostRoomPage() {
                           <>
                             <button
                               onClick={() => grantRequest(req.ghostId)}
-                              style={{ height: 30, borderRadius: 8, padding: "0 10px", border: "none", background: "rgba(74,222,128,0.2)", color: "rgba(74,222,128,0.95)", fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+                              style={{ height: 30, borderRadius: 8, padding: "0 10px", border: "none", background: a.glow(0.2), color: a.glow(0.95), fontSize: 11, fontWeight: 800, cursor: "pointer" }}
                             >
                               Grant
                             </button>
@@ -2681,7 +2688,7 @@ export default function GhostRoomPage() {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleEnterRoom}
-                  style={{ height: 46, borderRadius: 12, padding: "0 18px", border: "none", background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer", flexShrink: 0 }}
+                  style={{ height: 46, borderRadius: 12, padding: "0 18px", border: "none", background: `linear-gradient(135deg, #16a34a, ${a.accentMid})`, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer", flexShrink: 0 }}
                 >
                   Enter
                 </motion.button>
@@ -2690,7 +2697,7 @@ export default function GhostRoomPage() {
                 <p style={{ fontSize: 11, color: "#f87171", margin: 0, fontWeight: 700 }}>✕ {enterError}</p>
               )}
               {enterSuccess && (
-                <p style={{ fontSize: 11, color: "rgba(74,222,128,0.9)", margin: 0, fontWeight: 700 }}>✓ {enterSuccess}</p>
+                <p style={{ fontSize: 11, color: a.glow(0.9), margin: 0, fontWeight: 700 }}>✓ {enterSuccess}</p>
               )}
             </div>
 
@@ -2698,12 +2705,12 @@ export default function GhostRoomPage() {
             <div style={S.card}>
               <p style={S.label}>Your Ghost ID — share this so others can request your room</p>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ flex: 1, height: 44, borderRadius: 10, background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.2)", display: "flex", alignItems: "center", paddingLeft: 14 }}>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: "rgba(74,222,128,0.9)" }}>{myGhostId}</span>
+                <div style={{ flex: 1, height: 44, borderRadius: 10, background: a.glow(0.06), border: `1px solid ${a.glow(0.2)}`, display: "flex", alignItems: "center", paddingLeft: 14 }}>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: a.glow(0.9) }}>{myGhostId}</span>
                 </div>
                 <button
                   onClick={() => { navigator.clipboard.writeText(myGhostId).catch(() => {}); }}
-                  style={{ width: 44, height: 44, borderRadius: 10, border: "1px solid rgba(74,222,128,0.2)", background: "rgba(74,222,128,0.08)", color: "rgba(74,222,128,0.8)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  style={{ width: 44, height: 44, borderRadius: 10, border: `1px solid ${a.glow(0.2)}`, background: a.glow(0.08), color: a.glow(0.8), cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
                   <Copy size={14} />
                 </button>
@@ -2720,7 +2727,7 @@ export default function GhostRoomPage() {
                   <div key={room.ghostId} style={S.card}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                       <div>
-                        <p style={{ fontSize: 14, fontWeight: 800, color: "rgba(74,222,128,0.9)", margin: 0 }}>{room.ghostId}'s Room</p>
+                        <p style={{ fontSize: 14, fontWeight: 800, color: a.glow(0.9), margin: 0 }}>{room.ghostId}'s Room</p>
                         <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>Granted {fmtAgo(room.grantedAt)}</p>
                       </div>
                     </div>
@@ -2729,7 +2736,7 @@ export default function GhostRoomPage() {
                     {room.images.length > 0 && (
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
                         {room.images.map((src, i) => (
-                          <img key={i} src={src} alt="" style={{ width: 72, height: 72, borderRadius: 8, objectFit: "cover", border: "1px solid rgba(74,222,128,0.2)" }} />
+                          <img key={i} src={src} alt="" style={{ width: 72, height: 72, borderRadius: 8, objectFit: "cover", border: `1px solid ${a.glow(0.2)}` }} />
                         ))}
                       </div>
                     )}
@@ -2841,8 +2848,8 @@ export default function GhostRoomPage() {
                 <div
                   key={item.id}
                   style={{
-                    background: item.status === "pending" ? "rgba(74,222,128,0.04)" : "rgba(255,255,255,0.02)",
-                    border: `1px solid ${item.status === "pending" ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.06)"}`,
+                    background: item.status === "pending" ? a.glow(0.04) : "rgba(255,255,255,0.02)",
+                    border: `1px solid ${item.status === "pending" ? a.glow(0.2) : "rgba(255,255,255,0.06)"}`,
                     borderRadius: 16, overflow: "hidden",
                   }}
                 >
@@ -2851,14 +2858,14 @@ export default function GhostRoomPage() {
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 18 }}>{item.type === "image" ? "🖼️" : item.type === "video" ? "🎬" : "💬"}</span>
                       <div>
-                        <p style={{ fontSize: 13, fontWeight: 800, color: item.status === "pending" ? "rgba(74,222,128,0.9)" : "rgba(255,255,255,0.5)", margin: 0 }}>
+                        <p style={{ fontSize: 13, fontWeight: 800, color: item.status === "pending" ? a.glow(0.9) : "rgba(255,255,255,0.5)", margin: 0 }}>
                           From {item.senderGhostId}
                         </p>
                         <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>
                           {fmtAgo(item.sentAt)} ·{" "}
                           <span style={{
                             fontWeight: 700,
-                            color: item.status === "pending" ? "rgba(255,165,0,0.9)" : item.status === "accepted" ? "rgba(74,222,128,0.8)" : "#f87171",
+                            color: item.status === "pending" ? "rgba(255,165,0,0.9)" : item.status === "accepted" ? a.glow(0.8) : "#f87171",
                           }}>
                             {item.status}
                           </span>
@@ -2880,9 +2887,9 @@ export default function GhostRoomPage() {
                       return (
                         <span style={{
                           fontSize: 9, borderRadius: 5, padding: "2px 7px", fontWeight: 800,
-                          background: urgent ? "rgba(239,68,68,0.15)" : warning ? "rgba(251,191,36,0.12)" : "rgba(74,222,128,0.12)",
-                          border: `1px solid ${urgent ? "rgba(239,68,68,0.4)" : warning ? "rgba(251,191,36,0.3)" : "rgba(74,222,128,0.25)"}`,
-                          color: urgent ? "#f87171" : warning ? "#fbbf24" : "rgba(74,222,128,0.85)",
+                          background: urgent ? "rgba(239,68,68,0.15)" : warning ? "rgba(251,191,36,0.12)" : a.glow(0.12),
+                          border: `1px solid ${urgent ? "rgba(239,68,68,0.4)" : warning ? "rgba(251,191,36,0.3)" : a.glow(0.25)}`,
+                          color: urgent ? "#f87171" : warning ? "#fbbf24" : a.glow(0.85),
                         }}>
                           {urgent ? `🔴 ${daysLeft}d left` : warning ? `⏳ ${daysLeft}d left` : `✅ ${daysLeft}d left`}
                         </span>
@@ -2909,7 +2916,7 @@ export default function GhostRoomPage() {
                   </div>
                   {/* Caption / memory note attached to media */}
                   {item.note && item.type !== "note" && (
-                    <div style={{ margin: "-4px 14px 12px", padding: "8px 12px", borderRadius: 8, background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)" }}>
+                    <div style={{ margin: "-4px 14px 12px", padding: "8px 12px", borderRadius: 8, background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}` }}>
                       <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>
                         "{item.note}"
                       </p>
@@ -2922,7 +2929,7 @@ export default function GhostRoomPage() {
                       <motion.button
                         whileTap={{ scale: 0.96 }}
                         onClick={() => acceptItem(item.id)}
-                        style={{ flex: 1, height: 40, borderRadius: 10, border: "none", background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                        style={{ flex: 1, height: 40, borderRadius: 10, border: "none", background: `linear-gradient(135deg, #16a34a, ${a.accentMid})`, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
                       >
                         <Check size={14} /> Accept & Save to Room
                       </motion.button>
@@ -2977,16 +2984,16 @@ export default function GhostRoomPage() {
                       <div style={{ position: "relative", flexShrink: 0 }}>
                         <img
                           src={profile.image} alt=""
-                          style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(74,222,128,0.3)" }}
+                          style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.3)}` }}
                           onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
                         />
                         <span style={{ position: "absolute", bottom: -2, right: -2, fontSize: 12 }}>{profile.countryFlag}</span>
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <p style={{ fontSize: 13, fontWeight: 800, color: "rgba(74,222,128,0.9)", margin: 0 }}>{ghostId}</p>
+                          <p style={{ fontSize: 13, fontWeight: 800, color: a.glow(0.9), margin: 0 }}>{ghostId}</p>
                           {isGranted && (
-                            <span style={{ fontSize: 9, background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 4, padding: "1px 5px", color: "rgba(74,222,128,0.8)", fontWeight: 700 }}>Room Access</span>
+                            <span style={{ fontSize: 9, background: a.glow(0.15), border: `1px solid ${a.glow(0.3)}`, borderRadius: 4, padding: "1px 5px", color: a.glow(0.8), fontWeight: 700 }}>Room Access</span>
                           )}
                         </div>
                         <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "1px 0" }}>
@@ -3002,7 +3009,7 @@ export default function GhostRoomPage() {
                       <motion.button
                         whileTap={{ scale: 0.96 }}
                         onClick={() => window.open(`https://wa.me/?text=Hey%20from%202Ghost!`, "_blank")}
-                        style={{ flex: 1, height: 36, borderRadius: 10, border: "none", background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
+                        style={{ flex: 1, height: 36, borderRadius: 10, border: "none", background: `linear-gradient(135deg, #16a34a, ${a.accentMid})`, color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
                       >
                         <span>💬</span> WhatsApp
                       </motion.button>
@@ -3010,7 +3017,7 @@ export default function GhostRoomPage() {
                         <motion.button
                           whileTap={{ scale: 0.96 }}
                           onClick={() => grantRequest(ghostId)}
-                          style={{ flex: 1, height: 36, borderRadius: 10, border: "1px solid rgba(74,222,128,0.25)", background: "rgba(74,222,128,0.08)", color: "rgba(74,222,128,0.9)", fontSize: 12, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
+                          style={{ flex: 1, height: 36, borderRadius: 10, border: `1px solid ${a.glow(0.25)}`, background: a.glow(0.08), color: a.glow(0.9), fontSize: 12, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
                         >
                           <span>🚪</span> Give Room Access
                         </motion.button>

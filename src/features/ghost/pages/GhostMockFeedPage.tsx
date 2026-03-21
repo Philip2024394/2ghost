@@ -5,6 +5,7 @@ import { Lock, Settings, ArrowRight, X, SlidersHorizontal } from "lucide-react";
 import { MOCK_PROFILES, PROFILE_IMAGES, isOnlineNow, type MockProfile } from "../../../data/mockProfiles";
 import { useLanguage } from "@/i18n/LanguageContext";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
@@ -28,6 +29,7 @@ function isProfileTonight(id: string): boolean {
 
 // ── Members-only popup ────────────────────────────────────────────────────────
 function MembersPopup({ onClose }: { onClose: () => void }) {
+  const a = useGenderAccent();
   const navigate = useNavigate();
 
   const PLANS = [
@@ -37,13 +39,13 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
       name: "Women — Free Forever",
       idr: "0",
       usd: "Free",
-      period: "Browse · Like · Match · Connect — all free · Ghost Vault 19k IDR",
-      color: "#4ade80",
-      border: "rgba(74,222,128,0.45)",
-      bg: "rgba(74,222,128,0.09)",
-      gradient: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
-      glow: "rgba(34,197,94,0.4)",
-      badge: "WOMEN FREE",
+      period: `Browse · Like · Match · Connect — all free · Ghost Vault 19k IDR`,
+      color: a.accent,
+      border: a.glow(0.45),
+      bg: a.glow(0.09),
+      gradient: `linear-gradient(to bottom, ${a.accent}, ${a.accentMid}, ${a.accentDark})`,
+      glow: a.glowMid(0.4),
+      badge: `WOMEN FREE`,
     },
     {
       key: "founding",
@@ -65,12 +67,12 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
       name: "Ghost Monthly",
       idr: "29,000",
       usd: "~$2",
-      period: "per month · cancel anytime",
-      color: "#22c55e",
-      border: "rgba(74,222,128,0.4)",
-      bg: "rgba(34,197,94,0.07)",
-      gradient: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
-      glow: "rgba(34,197,94,0.4)",
+      period: `per month · cancel anytime`,
+      color: a.accentMid,
+      border: a.glow(0.4),
+      bg: a.glowMid(0.07),
+      gradient: `linear-gradient(to bottom, ${a.accent}, ${a.accentMid}, ${a.accentDark})`,
+      glow: a.glowMid(0.4),
     },
   ];
 
@@ -81,7 +83,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
       exit={{ opacity: 0 }}
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, zIndex: 200,
+        position: `fixed`, inset: 0, zIndex: 200,
         background: "rgba(0,0,0,0.82)",
         backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
         display: "flex", alignItems: "flex-end", justifyContent: "center",
@@ -104,7 +106,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
         }}
       >
         {/* Top accent */}
-        <div style={{ height: 3, background: "linear-gradient(90deg, #22c55e, #4ade80, #a855f7)" }} />
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${a.accentMid}, ${a.accent}, #a855f7)` }} />
 
         <div style={{ padding: "20px 18px max(28px, env(safe-area-inset-bottom, 28px))", position: "relative" }}>
 
@@ -129,7 +131,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
             <h2 style={{ fontSize: 22, fontWeight: 900, margin: "0 0 6px" }}>
               <span>Welcome to the </span>
               <span style={{
-                background: "linear-gradient(135deg, #4ade80, #22c55e)",
+                background: `linear-gradient(135deg, ${a.accent}, ${a.accentMid})`,
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               }}>Ghost House</span>
             </h2>
@@ -155,7 +157,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
               <div key={f.title} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                 <div style={{
                   width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                  background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.15)",
+                  background: a.glow(0.08), border: `1px solid ${a.glow(0.15)}`,
                   display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
                 }}>
                   {f.icon === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain", verticalAlign: "middle" }} /> : <span>{f.icon}</span>}
@@ -231,7 +233,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
             <span>Already a member? </span>
             <button
               onClick={() => navigate("/ghost/auth")}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "#4ade80", fontWeight: 700, fontSize: 12, padding: 0 }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: a.accent, fontWeight: 700, fontSize: 12, padding: 0 }}
             >
               <span>Sign in</span>
             </button>
@@ -245,6 +247,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
 
 // ── Locked profile card (mirrors real GhostCard exactly) ─────────────────────
 function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => void }) {
+  const a = useGenderAccent();
   const { t } = useLanguage();
   const ghostId = toGhostId(profile.id);
   const isTonight = isProfileTonight(profile.id);
@@ -254,9 +257,9 @@ function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => voi
       onClick={onTap}
       style={{
         borderRadius: 16, overflow: "hidden", cursor: "pointer", position: "relative",
-        border: isTonight ? "1.5px solid rgba(74,222,128,0.5)" : "1px solid rgba(255,255,255,0.07)",
+        border: isTonight ? `1.5px solid ${a.glow(0.5)}` : "1px solid rgba(255,255,255,0.07)",
         background: "rgba(255,255,255,0.03)",
-        boxShadow: isTonight ? "0 0 12px rgba(74,222,128,0.2)" : undefined,
+        boxShadow: isTonight ? `0 0 12px ${a.glow(0.2)}` : undefined,
       }}
     >
       <div style={{ position: "relative", aspectRatio: "3/4" }}>
@@ -268,7 +271,7 @@ function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => voi
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 55%)" }} />
 
         {/* Ghost / Tonight badge */}
-        <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "3px 7px", fontSize: 8, fontWeight: 700, color: "rgba(74,222,128,0.85)" }}>
+        <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "3px 7px", fontSize: 8, fontWeight: 700, color: a.glow(0.85) }}>
           {isTonight ? `🌙 ${t("card.tonight")}` : <img src={GHOST_LOGO} alt="ghost" style={{ width: 30, height: 30, objectFit: "contain" }} />}
         </div>
 
@@ -299,12 +302,12 @@ function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => voi
 
         {/* Online dot */}
         {isOnlineNow(profile) && (
-          <span style={{ position: "absolute", top: 7, right: 72, width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.8)", display: "block" }} />
+          <span style={{ position: "absolute", top: 7, right: 72, width: 8, height: 8, borderRadius: "50%", background: a.accent, boxShadow: "0 0 6px ${a.glow(0.8)}", display: "block" }} />
         )}
 
         {/* Info */}
         <div style={{ position: "absolute", bottom: 8, left: 8, right: 8 }}>
-          <p style={{ fontSize: 11, fontWeight: 800, color: "rgba(74,222,128,0.9)", margin: "0 0 1px", lineHeight: 1, letterSpacing: "0.04em" }}>
+          <p style={{ fontSize: 11, fontWeight: 800, color: a.glow(0.9), margin: "0 0 1px", lineHeight: 1, letterSpacing: "0.04em" }}>
             <span>{ghostId}</span>
           </p>
           <p style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)", margin: "0 0 2px", lineHeight: 1 }}>
@@ -315,7 +318,7 @@ function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => voi
               <span style={{ fontSize: 9 }}>{profile.countryFlag}</span>
               <span style={{ fontSize: 9, color: "rgba(255,255,255,0.5)" }}>{profile.city}</span>
             </div>
-            <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(74,222,128,0.8)" }}>
+            <span style={{ fontSize: 9, fontWeight: 700, color: a.glow(0.8) }}>
               <span>{profile.distanceKm} km</span>
             </span>
           </div>
@@ -327,6 +330,7 @@ function LockedCard({ profile, onTap }: { profile: MockProfile; onTap: () => voi
 
 // ── Locked filter slide-up sheet ──────────────────────────────────────────────
 function LockedFilterSheet({ onClose, onTap }: { onClose: () => void; onTap: () => void }) {
+  const a = useGenderAccent();
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -352,7 +356,7 @@ function LockedFilterSheet({ onClose, onTap }: { onClose: () => void; onTap: () 
           <div key={label} onClick={onTap} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", cursor: "pointer" }}>
             <span style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>{label}</span>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(74,222,128,0.9)" }}>{value}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: a.glow(0.9) }}>{value}</span>
               <Lock size={12} color="rgba(255,255,255,0.2)" />
             </div>
           </div>
@@ -360,7 +364,7 @@ function LockedFilterSheet({ onClose, onTap }: { onClose: () => void; onTap: () 
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={onTap}
-          style={{ width: "100%", height: 48, borderRadius: 50, border: "none", marginTop: 20, background: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 20px rgba(34,197,94,0.4)" }}
+          style={{ width: "100%", height: 48, borderRadius: 50, border: "none", marginTop: 20, background: `linear-gradient(to bottom, ${a.accent}, ${a.accentMid}, ${a.accentDark})`, color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 20px ${a.glowMid(0.4)}` }}
         >
           Apply Filters
         </motion.button>
@@ -371,6 +375,7 @@ function LockedFilterSheet({ onClose, onTap }: { onClose: () => void; onTap: () 
 
 // ── Main mock feed page ───────────────────────────────────────────────────────
 export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: () => void }) {
+  const a = useGenderAccent();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
@@ -445,12 +450,12 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
             onClick={lock}
             style={{
               display: "flex", alignItems: "center", gap: 5,
-              background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)",
+              background: a.glow(0.1), border: `1px solid ${a.glow(0.25)}`,
               borderRadius: 20, padding: "5px 10px", cursor: "pointer",
             }}
           >
-            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px #4ade80", display: "block" }} />
-            <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(74,222,128,0.95)" }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: a.accent, boxShadow: "0 0 6px ${a.accent}", display: "block" }} />
+            <span style={{ fontSize: 11, fontWeight: 800, color: a.glow(0.95) }}>
               <span>{onlineCount}</span>
             </span>
           </motion.div>
@@ -467,7 +472,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
       {/* ── Action strip: Ghost Vault · VIP Profile · Flash Date · Filter ── */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px 0", overflowX: "auto", scrollbarWidth: "none" }}>
         {[
-          { icon: "🚪", label: "Ghost Vault", color: "rgba(74,222,128,0.9)", border: "rgba(74,222,128,0.25)", bg: "rgba(74,222,128,0.08)", action: () => navigate("/ghost/room") },
+          { icon: "🚪", label: "Ghost Vault", color: a.glow(0.9), border: a.glow(0.25), bg: a.glow(0.08), action: () => navigate("/ghost/room") },
           { icon: "👻", label: "Ghosted", color: "rgba(168,85,247,0.9)", border: "rgba(168,85,247,0.25)", bg: "rgba(168,85,247,0.08)", action: lock },
           { icon: "⚡", label: "Flash Date",  color: "rgba(251,191,36,0.9)", border: "rgba(251,191,36,0.25)", bg: "rgba(251,191,36,0.08)", action: lock },
         ].map(({ icon, label, color, border, bg, action }) => (
@@ -511,7 +516,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
         onClick={lock}
         style={{
           margin: "10px 14px 0",
-          background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.18)",
+          background: a.glow(0.07), border: `1px solid ${a.glow(0.18)}`,
           borderRadius: 12, padding: "9px 14px",
           display: "flex", alignItems: "center", justifyContent: "space-between",
           cursor: "pointer",
@@ -530,7 +535,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
                 style={{
                   width: 26, height: 26, borderRadius: "50%",
                   objectFit: "cover",
-                  border: "2px solid rgba(74,222,128,0.5)",
+                  border: `2px solid ${a.glow(0.5)}`,
                   marginLeft: i === 0 ? 0 : -8,
                   zIndex: 3 - i,
                   position: "relative",
@@ -538,7 +543,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
               />
             ))}
           </div>
-          <p style={{ fontSize: 12, color: "rgba(74,222,128,0.9)", margin: 0, fontWeight: 700 }}>
+          <p style={{ fontSize: 12, color: a.glow(0.9), margin: 0, fontWeight: 700 }}>
             <span>{onlineCount} {t("feed.activeNear")}</span>
           </p>
         </div>
@@ -586,14 +591,14 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
           style={{
             width: "100%", borderRadius: 50, border: "none",
             background: ctaSecs === 0
-              ? "linear-gradient(to bottom, #f97316, #ea580c)"
-              : "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)",
+              ? `linear-gradient(to bottom, #f97316, #ea580c)`
+              : `linear-gradient(to bottom, ${a.accent}, ${a.accentMid}, ${a.accentDark})`,
             color: "#fff", cursor: "pointer",
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
             gap: 1, padding: "10px 20px",
             boxShadow: ctaSecs === 0
               ? "0 8px 32px rgba(249,115,22,0.55)"
-              : "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px rgba(34,197,94,0.5)",
+              : `0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px ${a.glowMid(0.5)}`,
             position: "relative", overflow: "hidden",
           }}
         >

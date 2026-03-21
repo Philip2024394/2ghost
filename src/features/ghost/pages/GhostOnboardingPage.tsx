@@ -1,18 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 const SLIDES = [
   {
-    icon: "🕵️",
-    gradient: "linear-gradient(135deg, rgba(74,222,128,0.15), rgba(22,163,74,0.05))",
-    border: "rgba(74,222,128,0.2)",
-    accent: "#4ade80",
-    title: "Browse Anonymously",
-    subtitle: "No name. No photo. No trace.",
-    body: "You appear as a Ghost ID to everyone. No one sees your real name, face, or number until you both choose to connect. Total privacy from the first second.",
+    icon: "🔒",
+    gradient: null, // gender-driven, set at render time
+    border: null,   // gender-driven
+    accent: null,   // gender-driven
+    title: "Privacy From the first Second",
+    subtitle: "Your real name is never exposed.",
+    body: "2Ghost will never display your real name to anyone searching unless your connection is real. You control your privacy until you decide when to share. Total privacy from the first second.",
     detail: [
       "🔒 Hidden until you match",
       "📵 No social login required",
@@ -63,7 +64,7 @@ const SLIDES = [
   },
   {
     icon: "💛",
-    gradient: "linear-gradient(135deg, rgba(74,222,128,0.15), rgba(212,175,55,0.08))",
+    gradient: `linear-gradient(135deg, rgba(74,222,128,0.15), rgba(212,175,55,0.08))`,
     border: "rgba(74,222,128,0.2)",
     accent: "#4ade80",
     title: "Ghost Match",
@@ -77,7 +78,72 @@ const SLIDES = [
   },
 ];
 
+const GHOST_IDS = ["Ghost#4821", "Ghost#7163", "Ghost#2094", "Ghost#5538", "Ghost#8847"];
+const AVATARS = [
+  "https://i.pravatar.cc/80?img=32",
+  "https://i.pravatar.cc/80?img=47",
+  "https://i.pravatar.cc/80?img=11",
+];
+
+function GhostIDVisual({ accent, glow }: { accent: string; glow: (o: number) => string }) {
+  const [nameIdx, setNameIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const cycle = () => {
+      setVisible(false);
+      setTimeout(() => {
+        setNameIdx((i) => (i + 1) % GHOST_IDS.length);
+        setVisible(true);
+      }, 350);
+    };
+    const id = setInterval(cycle, 1800);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, padding: "14px 16px", background: "rgba(0,0,0,0.3)", borderRadius: 16, border: `1px solid ${glow(0.15)}` }}>
+      {/* Avatar — blurred to suggest hidden identity */}
+      <div style={{ position: "relative", flexShrink: 0 }}>
+        <img
+          src={AVATARS[nameIdx % AVATARS.length]}
+          alt=""
+          style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", filter: "blur(5px)", border: `2px solid ${glow(0.3)}` }}
+        />
+        <div style={{
+          position: "absolute", inset: 0, borderRadius: "50%",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 20,
+        }}>👻</div>
+      </div>
+
+      {/* Name block */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: "0 0 4px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          Identity hidden
+        </p>
+        <motion.p
+          animate={{ opacity: visible ? 1 : 0 }}
+          transition={{ duration: 0.25 }}
+          style={{ fontSize: 15, fontWeight: 900, color: accent, margin: 0, letterSpacing: "0.04em", fontFamily: "monospace" }}
+        >
+          {GHOST_IDS[nameIdx]}
+        </motion.p>
+        <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: "3px 0 0" }}>
+          Real name · · · · · · ·
+        </p>
+      </div>
+
+      {/* Lock badge */}
+      <div style={{ flexShrink: 0, width: 28, height: 28, borderRadius: "50%", background: glow(0.15), border: `1px solid ${glow(0.3)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>
+        🔒
+      </div>
+    </div>
+  );
+}
+
 export default function GhostOnboardingPage() {
+  const a = useGenderAccent();
   const navigate  = useNavigate();
   const [slide, setSlide]   = useState(0);
   const [dir, setDir]       = useState(1);
@@ -93,7 +159,13 @@ export default function GhostOnboardingPage() {
     navigate("/ghost/mode", { replace: true });
   };
 
-  const s = SLIDES[slide];
+  const _s = SLIDES[slide];
+  const s = {
+    ..._s,
+    gradient: _s.gradient ?? a.gradientSubtle,
+    border:   _s.border   ?? a.glow(0.25),
+    accent:   _s.accent   ?? a.accent,
+  };
 
   return (
     <div style={{
@@ -141,6 +213,8 @@ export default function GhostOnboardingPage() {
               borderRadius: 24, padding: "28px 22px",
               marginBottom: 24,
             }}>
+              {/* Ghost ID visual — only for slide 0 */}
+              {slide === 0 && <GhostIDVisual accent={s.accent} glow={a.glow} />}
               <div style={{ fontSize: 56, marginBottom: 16, lineHeight: 1 }}>{s.icon}</div>
               <p style={{ fontSize: 11, fontWeight: 800, color: s.accent, letterSpacing: 1.5, margin: "0 0 8px", textTransform: "uppercase" }}>
                 {s.subtitle}
@@ -194,9 +268,9 @@ export default function GhostOnboardingPage() {
             onClick={finish}
             style={{
               width: "100%", border: "none", borderRadius: 16, padding: "16px 0",
-              background: "linear-gradient(135deg,#16a34a,#4ade80)",
+              background: `linear-gradient(135deg,#16a34a,${a.accent})`,
               fontSize: 16, fontWeight: 900, color: "#000", cursor: "pointer",
-              boxShadow: "0 0 32px rgba(74,222,128,0.25)",
+              boxShadow: `0 0 32px ${a.glow(0.25)}`,
             }}
           >
             Enter Ghost Hotel →

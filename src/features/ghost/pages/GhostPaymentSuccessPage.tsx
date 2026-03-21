@@ -4,7 +4,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ghostSupabase } from "../ghostSupabase";
 import { recordConversion } from "../../affiliate/affiliateStorage";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 export default function GhostPaymentSuccessPage() {
+  const a = useGenderAccent();
   const navigate       = useNavigate();
   const [params]       = useSearchParams();
   const [done, setDone] = useState(false);
@@ -27,7 +29,7 @@ export default function GhostPaymentSuccessPage() {
             .from("ghost_profiles")
             .update({ tier: plan, updated_at: new Date().toISOString() })
             .eq("ghost_id", profile.ghost_id)
-            .catch(() => null);
+            .then(null, () => null);
         }
       }
     } catch {}
@@ -40,7 +42,7 @@ export default function GhostPaymentSuccessPage() {
   }, [plan]);
 
   const planLabel = plan === "gold" ? "Gold Room 🔑" : "Ghost Suite 🏨";
-  const planColor = plan === "gold" ? "#d4af37" : "#4ade80";
+  const planColor = plan === "gold" ? "#d4af37" : a.accent;
 
   return (
     <div style={{
@@ -115,7 +117,7 @@ export default function GhostPaymentSuccessPage() {
           width: "100%", maxWidth: 320, height: 52, borderRadius: 50, border: "none",
           background: plan === "gold"
             ? "linear-gradient(135deg,#92400e,#d4af37)"
-            : "linear-gradient(135deg,#16a34a,#4ade80)",
+            : `linear-gradient(135deg,#16a34a,${a.accent})`,
           color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
           boxShadow: `0 8px 28px ${planColor}44`,
         }}

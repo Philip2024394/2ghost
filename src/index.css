@@ -58,16 +58,37 @@
 
 }
 
+/* ── Gender accent CSS variables ─────────────────────────────────────────────
+   Used by any CSS class rules. Inline styles use useGenderAccent() hook.      */
+:root, [data-gender="Male"] {
+  --accent:      #4ade80;
+  --accent-mid:  #22c55e;
+  --accent-dark: #16a34a;
+  --accent-deep: #15803d;
+  --accent-glow: rgba(74,222,128,0.4);
+  --accent-glow-sm: rgba(74,222,128,0.15);
+  --accent-gradient: linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%);
+}
+[data-gender="Female"] {
+  --accent:      #f472b6;
+  --accent-mid:  #ec4899;
+  --accent-dark: #db2777;
+  --accent-deep: #be185d;
+  --accent-glow: rgba(244,114,182,0.4);
+  --accent-glow-sm: rgba(244,114,182,0.15);
+  --accent-gradient: linear-gradient(to bottom, #f472b6 0%, #ec4899 40%, #db2777 100%);
+}
+
 @layer base {
   * {
     @apply border-border;
     /* Prevent text selection flash on tap */
     -webkit-tap-highlight-color: transparent;
-    /* Disable blue text-selection highlight throughout the app */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+    /* DEV: text selection enabled for development */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
   }
 
   /* Re-enable selection only where text input is expected */
@@ -197,6 +218,10 @@ html::before {
   .ghost-flash-scroll::-webkit-scrollbar-track { background: transparent; }
   .ghost-flash-scroll::-webkit-scrollbar-thumb { background: rgba(74,222,128,0.45); border-radius: 4px; }
   .ghost-flash-scroll::-webkit-scrollbar-thumb:hover { background: rgba(74,222,128,0.7); }
+
+  /* ── Lobby scrollbar — hidden ── */
+  .lobby-scroll { scrollbar-width: none; }
+  .lobby-scroll::-webkit-scrollbar { display: none; }
 
   /* ── Green thin scrollbar for profile info ── */
   .scrollbar-pink::-webkit-scrollbar { width: 3px; }

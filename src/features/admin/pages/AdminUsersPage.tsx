@@ -143,7 +143,7 @@ export default function AdminUsersPage() {
               { label: "Premium", value: countryData.premium, color: "#4ade80"   },
               { label: "Suite",   value: countryData.suite,   color: "#4ade80"   },
               { label: "Gold",    value: countryData.gold,    color: "#d4af37"   },
-              { label: "MRR",     value: `$${countryData.mrr.toFixed(0)}`, color: "#d4af37" },
+              { label: "MRR",     value: "$${countryData.mrr.toFixed(0)}", color: "#d4af37" },
             ].map((s) => (
               <div key={s.label} style={{ textAlign: "center" }}>
                 <p style={{ fontSize: 18, fontWeight: 900, color: s.color, margin: "0 0 2px" }}>{s.value}</p>

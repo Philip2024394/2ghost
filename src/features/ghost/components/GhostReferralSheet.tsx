@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
 const APP_BASE   = "https://2ghost.app";          // Update to production URL
 
@@ -37,6 +38,7 @@ const REWARDS = [
 ];
 
 export default function GhostReferralSheet({ onClose }: Props) {
+  const a = useGenderAccent();
   const [copied, setCopied] = useState(false);
   const code  = getReferralCode();
   const count = getReferralCount();
@@ -93,7 +95,7 @@ export default function GhostReferralSheet({ onClose }: Props) {
         style={{
           width: "100%", maxWidth: 480, background: "#0d0d0f",
           borderRadius: "24px 24px 0 0", padding: "28px 20px 52px",
-          border: "1px solid rgba(74,222,128,0.1)", borderBottom: "none",
+          border: `1px solid ${a.glow(0.1)}`, borderBottom: "none",
         }}
       >
         {/* Drag handle */}
@@ -109,15 +111,15 @@ export default function GhostReferralSheet({ onClose }: Props) {
         </div>
 
         {/* Referral count + progress */}
-        <div style={{ background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 16, padding: 16, marginBottom: 18 }}>
+        <div style={{ background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 16, padding: 16, marginBottom: 18 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <div>
-              <p style={{ fontSize: 28, fontWeight: 900, color: "#4ade80", margin: 0, lineHeight: 1 }}>{count}</p>
+              <p style={{ fontSize: 28, fontWeight: 900, color: a.accent, margin: 0, lineHeight: 1 }}>{count}</p>
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>friends joined</p>
             </div>
             {reward && (
               <div style={{ textAlign: "right" }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#4ade80", margin: 0 }}>🎁 Reward unlocked!</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: a.accent, margin: 0 }}>🎁 Reward unlocked!</p>
                 <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: 0 }}>{reward}</p>
               </div>
             )}
@@ -125,7 +127,7 @@ export default function GhostReferralSheet({ onClose }: Props) {
           {nextReward && (
             <>
               <div style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                <div style={{ height: "100%", borderRadius: 3, background: "linear-gradient(90deg,#4ade80,#22c55e)", width: `${progressPct}%`, transition: "width 0.5s ease" }} />
+                <div style={{ height: "100%", borderRadius: 3, background: `linear-gradient(90deg,${a.accent},${a.accentMid})`, width: `${progressPct}%`, transition: "width 0.5s ease" }} />
               </div>
               <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: "6px 0 0", fontWeight: 600 }}>
                 {nextReward.target - count} more to unlock {nextReward.emoji} {nextReward.reward}
@@ -144,16 +146,16 @@ export default function GhostReferralSheet({ onClose }: Props) {
                 key={r.target}
                 style={{
                   display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 12,
-                  background: unlocked ? "rgba(74,222,128,0.07)" : "rgba(255,255,255,0.03)",
-                  border: `1px solid ${unlocked ? "rgba(74,222,128,0.25)" : "rgba(255,255,255,0.06)"}`,
+                  background: unlocked ? a.glow(0.07) : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${unlocked ? a.glow(0.25) : "rgba(255,255,255,0.06)"}`,
                 }}
               >
                 <span style={{ fontSize: 20 }}>{r.emoji}</span>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: unlocked ? "#4ade80" : "rgba(255,255,255,0.5)", margin: 0 }}>{r.reward}</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: unlocked ? `${a.accent}` : "rgba(255,255,255,0.5)", margin: 0 }}>{r.reward}</p>
                   <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", margin: 0 }}>{r.target} friend{r.target > 1 ? "s" : ""}</p>
                 </div>
-                {unlocked && <span style={{ fontSize: 14, color: "#4ade80" }}>✓</span>}
+                {unlocked && <span style={{ fontSize: 14, color: a.accent }}>✓</span>}
               </div>
             );
           })}
@@ -167,9 +169,9 @@ export default function GhostReferralSheet({ onClose }: Props) {
             onClick={copyLink}
             style={{
               flexShrink: 0, height: 32, borderRadius: 8, padding: "0 14px",
-              background: copied ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.07)",
-              border: `1px solid ${copied ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.1)"}`,
-              color: copied ? "#4ade80" : "rgba(255,255,255,0.6)",
+              background: copied ? a.glow(0.15) : "rgba(255,255,255,0.07)",
+              border: `1px solid ${copied ? a.glow(0.4) : "rgba(255,255,255,0.1)"}`,
+              color: copied ? `${a.accent}` : "rgba(255,255,255,0.6)",
               fontSize: 12, fontWeight: 700, cursor: "pointer",
             }}
           >
@@ -182,7 +184,7 @@ export default function GhostReferralSheet({ onClose }: Props) {
             onClick={shareLink}
             style={{
               flex: 1, height: 50, borderRadius: 50, border: "none",
-              background: "linear-gradient(135deg,#4ade80,#22c55e)",
+              background: `linear-gradient(135deg,${a.accent},${a.accentMid})`,
               color: "#000", fontSize: 14, fontWeight: 800, cursor: "pointer",
             }}
           >

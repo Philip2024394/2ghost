@@ -3,6 +3,7 @@ import { ArrowRight, X } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import type { GhostProfile } from "../types/ghostTypes";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 // ── Match paywall — pay to unlock contact on mutual match ─────────────────────
@@ -13,11 +14,12 @@ export default function MatchPaywallModal({
   onPay: (plan: string) => void;
   onClose: () => void;
 }) {
+  const a = useGenderAccent();
   const { t } = useLanguage();
   const PLANS = [
-    { key: "founding", emoji: "⭐", name: "Founding Ghost", idr: "49,000", usd: "~$3", period: "3 months · locks forever", color: "#f59e0b", gradient: "linear-gradient(to bottom, #fbbf24, #f59e0b, #d97706)", glow: "rgba(251,191,36,0.45)", border: "rgba(251,191,36,0.4)" },
-    { key: "monthly",  emoji: "👻", name: "Ghost Monthly",  idr: "69,000", usd: "~$4.50", period: "per month · cancel anytime", color: "#22c55e", gradient: "linear-gradient(to bottom, #4ade80, #22c55e, #16a34a)", glow: "rgba(34,197,94,0.45)",  border: "rgba(74,222,128,0.4)" },
-    { key: "bundle",   emoji: "⭐", name: "Ghost + VIP",    idr: "99,000", usd: "~$6.50", period: "per month · best value",     color: "#a855f7", gradient: "linear-gradient(to bottom, #c084fc, #a855f7, #9333ea)", glow: "rgba(168,85,247,0.45)", border: "rgba(168,85,247,0.4)" },
+    { key: "founding", emoji: "⭐", name: "Founding Ghost", idr: "300", usd: "3 months · price locked", period: "3 months · locks forever", color: "#f59e0b", gradient: "linear-gradient(to bottom, #fbbf24, #f59e0b, #d97706)", glow: "rgba(251,191,36,0.45)", border: "rgba(251,191,36,0.4)" },
+    { key: "monthly",  emoji: "👻", name: "Ghost Monthly",  idr: "450", usd: "cancel anytime", period: "per month · cancel anytime", color: a.accentMid, gradient: `linear-gradient(to bottom, ${a.accent}, ${a.accentMid}, ${a.accentDark})`, glow: a.glowMid(0.45),  border: a.glow(0.4) },
+    { key: "bundle",   emoji: "⭐", name: "Ghost + VIP",    idr: "650", usd: "best value", period: "per month · best value",     color: "#a855f7", gradient: "linear-gradient(to bottom, #c084fc, #a855f7, #9333ea)", glow: "rgba(168,85,247,0.45)", border: "rgba(168,85,247,0.4)" },
   ];
 
   return (
@@ -48,7 +50,7 @@ export default function MatchPaywallModal({
           borderBottom: "none", overflow: "hidden",
         }}
       >
-        <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)" }} />
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${a.accentDark}, ${a.accent}, ${a.accentMid})` }} />
 
         <div style={{ padding: "20px 18px 32px", position: "relative" }}>
           {/* Close */}
@@ -67,7 +69,7 @@ export default function MatchPaywallModal({
                 src={profile.image} alt={profile.name}
                 style={{
                   width: 60, height: 60, borderRadius: "50%", objectFit: "cover",
-                  border: "2px solid rgba(74,222,128,0.5)",
+                  border: `2px solid ${a.glow(0.5)}`,
                   filter: "blur(6px)",
                 }}
                 onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
@@ -79,7 +81,7 @@ export default function MatchPaywallModal({
               }}>❤️</div>
             </div>
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(74,222,128,0.9)", margin: "0 0 4px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: a.glow(0.9), margin: "0 0 4px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                 <span><img src={GHOST_LOGO} alt="" style={{ width: 48, height: 48, objectFit: "contain", verticalAlign: "middle", marginRight: 6 }} /> Ghost Match!</span>
               </p>
               <h3 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>
@@ -118,7 +120,7 @@ export default function MatchPaywallModal({
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ textAlign: "right" }}>
-                    <p style={{ fontSize: 15, fontWeight: 900, color: p.color, margin: 0 }}><span>{p.idr} IDR</span></p>
+                    <p style={{ fontSize: 15, fontWeight: 900, color: p.color, margin: 0 }}><span>🪙 {p.idr} coins</span></p>
                     <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", margin: 0 }}><span>{p.usd}</span></p>
                   </div>
                   <div style={{

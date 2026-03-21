@@ -6,6 +6,7 @@ import type { GhostProfile } from "../types/ghostTypes";
 import { toGhostId } from "../utils/ghostHelpers";
 import { getDateIdea } from "../data/dateIdeas";
 
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 // ── Match popup ─────────────────────────────────────────────────────────────
@@ -16,6 +17,7 @@ export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConn
   onConnectWhatsApp: () => void;
   onButler?: () => void;
 }) {
+  const a = useGenderAccent();
   const { t } = useLanguage();
   const firstName = profile.name.split(" ")[0];
   const ghostId = toGhostId(profile.id);
@@ -37,7 +39,7 @@ export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConn
         style={{
           width: "100%", maxWidth: 340, textAlign: "center",
           background: "rgba(8,8,12,0.95)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
-          borderRadius: 22, border: "1px solid rgba(74,222,128,0.2)", overflow: "hidden",
+          borderRadius: 22, border: `1px solid ${a.glow(0.2)}`, overflow: "hidden",
         }}
       >
         <div style={{ height: 3, background: "linear-gradient(90deg, #d97706, #fbbf24, #f59e0b, #fbbf24, #d97706)" }} />
@@ -137,7 +139,7 @@ export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConn
               {!hasPhone && !altPlatform && (
                 <button
                   onClick={onConnectWhatsApp}
-                  style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 4px 24px rgba(34,197,94,0.4)" }}
+                  style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: `linear-gradient(135deg, ${a.accentDark}, ${a.accentMid})`, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 4px 24px ${a.glowMid(0.4)}` }}
                 >
                   <MessageCircle size={18} /> {t("match.connectNow")}
                 </button>
@@ -163,7 +165,7 @@ export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConn
               </div>
               <button
                 onClick={onConnectWhatsApp}
-                style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 4px 24px rgba(34,197,94,0.4)" }}
+                style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: `linear-gradient(135deg, ${a.accentDark}, ${a.accentMid})`, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 4px 24px ${a.glowMid(0.4)}` }}
               >
                 <MessageCircle size={18} /> {t("btn.unlock")}
               </button>
