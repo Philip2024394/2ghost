@@ -54,11 +54,11 @@ const ROOMS = [
     name: "Standard Room",
     tagline: "Your first key to the Ghost House",
     price: "🪙 200 / mo",
-    color: "#a3a3a3",
-    border: "rgba(163,163,163,0.35)",
-    bg: "rgba(163,163,163,0.06)",
-    glow: "rgba(163,163,163,0.3)",
-    gradient: "linear-gradient(135deg, #525252, #a3a3a3)",
+    color: "#c0c0c0",
+    border: "rgba(192,192,192,0.4)",
+    bg: "rgba(192,192,192,0.06)",
+    glow: "rgba(192,192,192,0.35)",
+    gradient: "linear-gradient(135deg, #707070, #c0c0c0, #e8e8e8)",
     features: [
       "2 match unlocks / month",
       "Ghost Vault: 5 photos",
@@ -73,11 +73,11 @@ const ROOMS = [
     name: "Suite Room",
     tagline: "More space, more power, more matches",
     price: "🪙 500 / mo",
-    color: "#4ade80",
-    border: "rgba(74,222,128,0.35)",
-    bg: "rgba(74,222,128,0.07)",
-    glow: "rgba(74,222,128,0.4)",
-    gradient: "linear-gradient(135deg, #16a34a, #4ade80)",
+    color: "#cd7f32",
+    border: "rgba(205,127,50,0.4)",
+    bg: "rgba(205,127,50,0.07)",
+    glow: "rgba(205,127,50,0.4)",
+    gradient: "linear-gradient(135deg, #7a3b10, #cd7f32, #e8a050)",
     features: [
       "5 match unlocks / month included",
       "Ghost Vault: 10 photos · 3 videos",
@@ -117,11 +117,11 @@ const ROOMS = [
     name: "Penthouse",
     tagline: "The highest floor. Reserved for the elite.",
     price: "🪙 3,000 / mo",
-    color: "#d4af37",
-    border: "rgba(212,175,55,0.45)",
-    bg: "rgba(212,175,55,0.07)",
-    glow: "rgba(212,175,55,0.5)",
-    gradient: "linear-gradient(135deg, #92660a, #d4af37, #f0d060)",
+    color: "#e8e4d0",
+    border: "rgba(232,228,208,0.45)",
+    bg: "rgba(232,228,208,0.07)",
+    glow: "rgba(232,228,208,0.5)",
+    gradient: "linear-gradient(135deg, #8a8070, #c8c0a8, #e8e4d0)",
     features: [
       "Everything in Kings Room",
       "Penthouse profile badge — globally visible",
@@ -137,7 +137,7 @@ const ROOMS = [
 
 export default function GhostRoomsPage() {
   const navigate  = useNavigate();
-  const a         = useGenderAccent();
+  useGenderAccent();
   const [currentTier, setCurrentTier] = useState<RoomTier | null>(readTier);
   const [buying,      setBuying]       = useState<RoomTier | null>(null);
   const [justBought,  setJustBought]   = useState<RoomTier | null>(null);
@@ -276,7 +276,7 @@ export default function GhostRoomsPage() {
                   }} />
                   <div style={{
                     position: "absolute", inset: 0,
-                    background: "linear-gradient(to right, rgba(2,10,4,0.78), rgba(2,10,4,0.5))",
+                    background: "linear-gradient(to right, rgba(10,5,2,0.78), rgba(10,5,2,0.5))",
                     pointerEvents: "none",
                   }} />
                 </>}
@@ -409,7 +409,7 @@ export default function GhostRoomsPage() {
                         style={{
                           width: "100%", height: 44, borderRadius: 12, border: "none",
                           background: active ? "rgba(255,255,255,0.07)" : room.gradient,
-                          color: active ? "rgba(255,255,255,0.4)" : (room.key === "kings" || room.key === "penthouse" ? "#0a0700" : "#fff"),
+                          color: active ? "rgba(255,255,255,0.4)" : "#0a0700",
                           fontSize: 13, fontWeight: 800, cursor: active ? "default" : "pointer",
                           display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
                           boxShadow: active ? "none" : `0 3px 16px ${room.glow}`,
