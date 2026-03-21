@@ -528,12 +528,12 @@ export default function PenthouseFloorPage() {
                     position: "absolute", inset: 0, borderRadius: 16,
                     backgroundImage: `url(${PENTHOUSE_BG})`,
                     backgroundSize: "cover", backgroundPosition: "center",
-                    opacity: 0.18,
+                    opacity: 0.55,
                     pointerEvents: "none",
                   }} />
                   <div style={{
                     position: "absolute", inset: 0, borderRadius: 16,
-                    background: "linear-gradient(to right, rgba(6,4,2,0.82), rgba(6,4,2,0.65))",
+                    background: "linear-gradient(to right, rgba(6,4,2,0.72), rgba(6,4,2,0.45))",
                     pointerEvents: "none",
                   }} />
                   <div style={{ position: "relative", zIndex: 1 }}>
