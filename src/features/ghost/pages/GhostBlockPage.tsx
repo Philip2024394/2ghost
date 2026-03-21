@@ -126,9 +126,9 @@ const ALL_COUNTRIES = [
 const PACKAGES = [
   {
     key: 1,
-    name: "Shield 1",
+    name: "No Vacancy × 1",
     shieldCount: 1,
-    desc: "Block 1 number",
+    desc: "Turn away 1 specific guest",
     idr: "29,000",
     usd: "~$2",
     period: "per month",
@@ -140,9 +140,9 @@ const PACKAGES = [
   },
   {
     key: 3,
-    name: "Shield 3",
+    name: "No Vacancy × 3",
     shieldCount: 3,
-    desc: "Block up to 3 numbers",
+    desc: "Turn away up to 3 guests",
     idr: "59,000",
     usd: "~$4",
     period: "per month",
@@ -155,9 +155,9 @@ const PACKAGES = [
   },
   {
     key: 6,
-    name: "Shield 6",
+    name: "No Vacancy × 6",
     shieldCount: 6,
-    desc: "Block up to 6 numbers",
+    desc: "Turn away up to 6 guests",
     idr: "89,000",
     usd: "~$6",
     period: "per month",
@@ -310,8 +310,8 @@ export default function GhostBlockPage() {
           <ArrowLeft size={16} />
         </button>
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>Ghost Mode Shield</h1>
-          <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600 }}>Secure 2Ghost House from unwanted traffic entering</p>
+          <h1 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>No Vacancy</h1>
+          <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600 }}>You control the guest list — hotel rooms full for who you choose</p>
         </div>
         <img src={SHIELD_LOGO} alt="shield" style={{ width: 64, height: 64, objectFit: "contain" }} />
       </div>
@@ -327,10 +327,10 @@ export default function GhostBlockPage() {
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
             <img src={SHIELD_LOGO} alt="" style={{ width: 28, height: 28, objectFit: "contain" }} />
-            <p style={{ fontSize: 13, fontWeight: 900, color: "#4ade80", margin: 0 }}>How Shield Protects You</p>
+            <p style={{ fontSize: 13, fontWeight: 900, color: "#4ade80", margin: 0 }}>How No Vacancy Works</p>
           </div>
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7 }}>
-            Ghost Shield is your invisible security layer. Block specific numbers from entering your Ghost House, stop likes from entire countries, and hide your profile from cities you choose — all without anyone knowing. Blocked users see only a server error, never the truth.
+            You're the hotel manager. You decide who gets a room and who walks away. Turn away specific guests, close the hotel to entire countries, or go off the map for certain cities — all invisible. Turned-away guests simply see "No Vacancy" — they never know it's personal.
           </p>
         </div>
 
@@ -510,7 +510,7 @@ export default function GhostBlockPage() {
           display: "flex", alignItems: "center", gap: 10,
         }}>
           <div style={{ flex: 1, height: 1, background: "rgba(74,222,128,0.1)" }} />
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>Number Shield</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>Personal No Vacancy</span>
           <div style={{ flex: 1, height: 1, background: "rgba(74,222,128,0.1)" }} />
         </div>
 
@@ -542,19 +542,19 @@ export default function GhostBlockPage() {
             </motion.div>
 
             <h2 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.01em" }}>
-              Block Specific Numbers
+              Hotel Rooms Full
             </h2>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 20px", lineHeight: 1.7 }}>
-              Choose a Shield plan to block specific WhatsApp numbers from entering your Ghost House. They'll see a server error — they'll never know they're blocked.
+              Choose a No Vacancy plan to turn away specific guests by WhatsApp number. They'll be told the hotel is full — they'll never know it's personal.
             </p>
 
             {/* Feature points */}
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22, textAlign: "left" }}>
               {[
-                { icon: "🚫", text: "Block any WhatsApp number from entering the house" },
-                { icon: "👻", text: "Blocked ghosts see a server error — never know they're blocked" },
+                { icon: "🚪", text: "Turn away any guest by WhatsApp number — no room for them" },
+                { icon: "👻", text: "Turned-away guests see No Vacancy — never know it's aimed at them" },
                 { icon: "🔒", text: "Active while your Ghost membership is active" },
-                { icon: "📅", text: "1 month Shield included with every pay-per-connection" },
+                { icon: "📅", text: "1 month No Vacancy included with every pay-per-connection" },
                 { icon: "🌍", text: "Works globally — any country code" },
               ].map(({ icon, text }) => (
                 <div key={text} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
@@ -587,11 +587,11 @@ export default function GhostBlockPage() {
                 borderRadius: "50px 50px 60% 60%", pointerEvents: "none",
               }} />
               <img src={SHIELD_LOGO} alt="" style={{ width: 32, height: 32, objectFit: "contain", verticalAlign: "middle", marginRight: 8 }} />
-              Activate Shield Now
+              🚪 Hang the No Vacancy Sign
             </motion.button>
 
             <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "10px 0 0", lineHeight: 1.6 }}>
-              Shield stays active with your membership or 1 month per connection
+              No Vacancy stays active with your membership or 1 month per connection
             </p>
           </motion.div>
         )}
@@ -615,7 +615,7 @@ export default function GhostBlockPage() {
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
                         <img src={SHIELD_LOGO} alt="shield" style={{ width: 44, height: 44, objectFit: "contain" }} />
                         <p style={{ fontSize: 14, fontWeight: 900, color: activePkg.color, margin: 0 }}>
-                          {activePkg.name} — Active
+                          {activePkg.name} — Active 🚪
                         </p>
                       </div>
                       <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>
@@ -640,7 +640,7 @@ export default function GhostBlockPage() {
                         color: "rgba(74,222,128,0.6)", fontSize: 11, fontWeight: 700, padding: 0,
                       }}
                     >
-                      Upgrade Shield ↑
+                      More No Vacancy slots →
                     </button>
                   )}
                 </div>
@@ -649,7 +649,7 @@ export default function GhostBlockPage() {
 
             {/* Blocked numbers */}
             <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.1em", margin: 0 }}>
-              Blocked Numbers
+              No Vacancy List
             </p>
 
             {blocked.length === 0 && (
@@ -658,7 +658,7 @@ export default function GhostBlockPage() {
                 borderRadius: 14, padding: "20px 16px", textAlign: "center",
                 backdropFilter: "blur(8px)",
               }}>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", margin: 0 }}>No numbers blocked yet</p>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", margin: 0 }}>No guests turned away yet — hotel open to all</p>
               </div>
             )}
 
@@ -683,7 +683,7 @@ export default function GhostBlockPage() {
                       </div>
                       <div>
                         <p style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: "0 0 1px" }}>{cc.code} {local}</p>
-                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>{cc.name} · Blocked</p>
+                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>{cc.name} · No Vacancy</p>
                       </div>
                     </div>
                     <button
@@ -714,7 +714,7 @@ export default function GhostBlockPage() {
                 }}
               >
                 <Plus size={16} />
-                Add Number to Block
+                🚪 Add Guest to No Vacancy
               </motion.button>
             )}
           </>
@@ -850,9 +850,9 @@ export default function GhostBlockPage() {
             >
               <div style={{ height: 3, background: "linear-gradient(90deg, #16a34a, #4ade80, #22c55e)", borderRadius: 4, marginBottom: 18, marginLeft: -18, marginRight: -18, marginTop: -20 }} />
 
-              <h3 style={{ fontSize: 16, fontWeight: 900, margin: "0 0 4px" }}>Block a Number</h3>
+              <h3 style={{ fontSize: 16, fontWeight: 900, margin: "0 0 4px" }}>🚪 No Vacancy — Set for This Guest</h3>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: "0 0 18px" }}>
-                <span>They will see a server error if they try to sign in.</span>
+                <span>They'll be told the hotel is full. They'll never know it's personal.</span>
               </p>
 
               {/* Country code + phone row */}
@@ -912,7 +912,7 @@ export default function GhostBlockPage() {
                   transition: "all 0.2s",
                 }}
               >
-                <span>Block This Number</span>
+                <span>🚪 Set No Vacancy</span>
               </motion.button>
             </motion.div>
           </motion.div>
@@ -990,9 +990,9 @@ export default function GhostBlockPage() {
               }}
             >
               <div style={{ fontSize: 36, marginBottom: 10 }}>🗑️</div>
-              <h3 style={{ fontSize: 16, fontWeight: 900, margin: "0 0 8px" }}>Remove Block?</h3>
+              <h3 style={{ fontSize: 16, fontWeight: 900, margin: "0 0 8px" }}>Open a Room Again?</h3>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 20px" }}>
-                <span>This number will be able to sign in again.</span>
+                <span>This guest will be able to book a room again.</span>
               </p>
               <div style={{ display: "flex", gap: 10 }}>
                 <button
@@ -1052,7 +1052,7 @@ export default function GhostBlockPage() {
                 <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
               </div>
 
-              <h3 style={{ fontSize: 18, fontWeight: 900, margin: "0 0 4px", color: "#fff" }}>Choose Your Shield</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 900, margin: "0 0 4px", color: "#fff" }}>Set Your No Vacancy</h3>
               <p style={{ fontSize: 12, color: "rgba(74,222,128,0.7)", margin: "0 0 18px", fontWeight: 600 }}>
                 Active with membership · 1 month per connection payment
               </p>
@@ -1157,7 +1157,7 @@ export default function GhostBlockPage() {
                   transition={{ delay: 0.1, duration: 0.35 }}
                   style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.2, letterSpacing: "-0.02em", margin: 0 }}
                 >
-                  Ghost Mode Shield
+                  No Vacancy
                 </motion.h2>
               </div>
 
@@ -1167,7 +1167,7 @@ export default function GhostBlockPage() {
                 transition={{ delay: 0.18, duration: 0.35 }}
                 style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, margin: "0 0 18px" }}
               >
-                Your privacy firewall. You control exactly who can reach you in the Ghost House — down to the country level.
+                You're the hotel manager. You control the guest list — decide who gets a room and who gets turned away, down to the individual.
               </motion.p>
 
               <motion.div
@@ -1177,9 +1177,9 @@ export default function GhostBlockPage() {
                 style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}
               >
                 {[
-                  { icon: "🌍", badge: "FREE", text: "Block likes from entire countries — if a region brings you bad energy, shut it off instantly" },
-                  { icon: "📍", badge: "FREE", text: "Hide from cities — your profile won't appear in feeds from those areas" },
-                  { icon: "📵", badge: "PAID", text: "Block specific WhatsApp numbers after connecting — they vanish from both feeds permanently" },
+                  { icon: "🌍", badge: "FREE", text: "Close the hotel to entire countries — no rooms available for that region" },
+                  { icon: "📍", badge: "FREE", text: "Go off the map for certain cities — your profile won't appear there" },
+                  { icon: "🚪", badge: "PAID", text: "Turn away specific guests by number — hotel full, permanently, just for them" },
                 ].map(({ icon, badge, text }) => (
                   <div key={text} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                     <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1.5 }}>{icon}</span>
@@ -1215,7 +1215,7 @@ export default function GhostBlockPage() {
                 }}
               >
                 <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
-                Set Up My Shield →
+                🚪 Hang the No Vacancy Sign →
               </motion.button>
             </motion.div>
           </motion.div>
