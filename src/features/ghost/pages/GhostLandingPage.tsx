@@ -260,12 +260,8 @@ export default function GhostLandingPage() {
           </p>
 
           {/* Footer links */}
-          <p style={{ textAlign: "center", margin: "14px 0 0", fontSize: 10, color: "rgba(255,255,255,0.15)", lineHeight: 1.8 }}>
-            <a href="/affiliate/how-it-works" style={{ color: "rgba(74,222,128,0.45)", textDecoration: "none" }}>Become an Affiliate</a>
-            <span style={{ margin: "0 8px", opacity: 0.4 }}>·</span>
-            <a href="/affiliate/join" style={{ color: "rgba(255,255,255,0.25)", textDecoration: "none" }}>Affiliate Sign Up</a>
-            <span style={{ margin: "0 8px", opacity: 0.4 }}>·</span>
-            <a href="/affiliate/dashboard" style={{ color: "rgba(255,255,255,0.25)", textDecoration: "none" }}>Affiliate Login</a>
+          <p style={{ textAlign: "center", margin: "14px 0 0", fontSize: 10, lineHeight: 1.8 }}>
+            <a href="/affiliate/join" style={{ color: "rgba(74,222,128,0.4)", textDecoration: "none" }}>Become an Affiliate</a>
           </p>
 
         </motion.div>
