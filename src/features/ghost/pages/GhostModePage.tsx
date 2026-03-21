@@ -537,9 +537,15 @@ export default function GhostModePage() {
     if (tabRevertRef.current) { clearTimeout(tabRevertRef.current); tabRevertRef.current = null; }
   }, []);
   useEffect(() => {
-    if (matchTab === "ilike" || matchTab === "liked" || matchTab === "lobby") startTabRevert();
-    else cancelTabRevert();
-    if (matchTab === "lobby") setShowLobbyWelcome(true);
+    if (matchTab === "ilike" || matchTab === "liked") {
+      startTabRevert();
+    } else if (matchTab === "lobby") {
+      // Don't start revert while welcome popup is visible — start it only after dismiss
+      cancelTabRevert();
+      setShowLobbyWelcome(true);
+    } else {
+      cancelTabRevert();
+    }
     return () => cancelTabRevert();
   }, [matchTab, startTabRevert, cancelTabRevert]);
   const [flashContactsUsed, setFlashContactsUsed] = useState<number>(() => {
@@ -806,9 +812,12 @@ export default function GhostModePage() {
     () => allProfiles.filter(p => likedIds.has(p.id)),
     [allProfiles, likedIds]
   );
-  // Hotel lobby profiles — seeded 20% of all profiles
+  // Hotel lobby profiles — only active guests (online or app open in background within 30 min)
   const lobbyList = useMemo(
-    () => allProfiles.filter(p => isFlashProfile(p.id)).slice(0, 24),
+    () => allProfiles
+      .filter(p => isFlashProfile(p.id))
+      .filter(p => isOnline(p.last_seen_at) || (p.lastActiveHoursAgo ?? 99) <= 0.5)
+      .slice(0, 24),
     [allProfiles]
   );
 
@@ -1300,7 +1309,7 @@ export default function GhostModePage() {
           <span style={{ fontSize: 9, fontWeight: 800, color: a.glow(0.7), letterSpacing: "0.05em", textTransform: "uppercase" }}>Shield</span>
         </button>
         {/* Rooms */}
-        <button onClick={() => setShowHouseModal(true)}
+        <button onClick={() => navigate("/ghost/rooms")}
           style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 16, padding: "10px 4px", cursor: "pointer" }}
         >
           <div style={{ width: 38, height: 38, borderRadius: "50%", background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1651,7 +1660,7 @@ export default function GhostModePage() {
         {showLobbyWelcome && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setShowLobbyWelcome(false)}
+            onClick={() => { setShowLobbyWelcome(false); startTabRevert(); }}
             style={{ position: "fixed", inset: 0, zIndex: 490, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
           >
             <motion.div
@@ -1692,7 +1701,7 @@ export default function GhostModePage() {
 
                 {/* Body copy */}
                 <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", margin: 0, lineHeight: 1.65 }}>
-                  Ghost members are in the Lobby <strong style={{ color: a.accent }}>at this very moment</strong> — anonymous, available, and searching for exactly what you are. No bios, no small talk. Just instinct and the right moment.
+                  Ghost members are in the Lobby <strong style={{ color: a.accent }}>at this very moment</strong> — anonymous, available, and searching for exactly what you are. No bios, no small talk. <strong style={{ color: "#fff" }}>Lobby Guests Are Ready Right Now To Date.</strong>
                 </p>
 
                 {/* 3 action tiles */}
@@ -1719,7 +1728,7 @@ export default function GhostModePage() {
 
                 {/* CTA */}
                 <button
-                  onClick={() => setShowLobbyWelcome(false)}
+                  onClick={() => { setShowLobbyWelcome(false); startTabRevert(); }}
                   style={{
                     width: "100%", height: 52, borderRadius: 16, border: "none",
                     background: a.gradient,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -383,7 +383,37 @@ export default function PenthouseFloorPage() {
   const [newArrival, setNewArrival]   = useState<PenthouseProfile | null>(null);
   const [activeCity, setActiveCity]   = useState("JKT");
   const [justLiked, setJustLiked]     = useState<string | null>(null);
+  const [penthouseTab, setPenthouseTab] = useState<"ilike" | "liked">("ilike");
+  const ptRevertRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shownArrival = useRef(false);
+
+  const startPtRevert = useCallback(() => {
+    if (ptRevertRef.current) clearTimeout(ptRevertRef.current);
+    ptRevertRef.current = setTimeout(() => setPenthouseTab("ilike"), 10000);
+  }, []);
+
+  const cancelPtRevert = useCallback(() => {
+    if (ptRevertRef.current) { clearTimeout(ptRevertRef.current); ptRevertRef.current = null; }
+  }, []);
+
+  // Auto-revert "liked" tab back to "ilike" after 10s
+  useEffect(() => {
+    if (penthouseTab === "liked") startPtRevert();
+    else cancelPtRevert();
+    return () => cancelPtRevert();
+  }, [penthouseTab, startPtRevert, cancelPtRevert]);
+
+  const ptILikeList = useMemo(() =>
+    MOCK_PENTHOUSE_PROFILES.filter(p => likedIds.includes(p.id)),
+    [likedIds]);
+
+  const ptLikedMeList = useMemo(() => {
+    const notLiked = MOCK_PENTHOUSE_PROFILES.filter(p => !likedIds.includes(p.id));
+    return [...notLiked].sort((a, _b) => {
+      const idx = notLiked.indexOf(a);
+      return (Math.abs(Math.sin(idx * 127)) * notLiked.length | 0) - idx;
+    });
+  }, [likedIds]);
 
   const extraCities = getPenthouseExtraCities();
   const profiles    = MOCK_PENTHOUSE_PROFILES.filter((p) => p.cityCode === activeCity && p.status === "active");
@@ -465,6 +495,101 @@ export default function PenthouseFloorPage() {
           <PenthouseTeaser onSubscribe={() => { activatePenthouseSub(); setSubscribed(true); }} />
         ) : (
           <>
+            {/* ── I Like / Liked Me container ── */}
+            {(() => {
+              const GOLD      = "#d4af37";
+              const avatarW   = "calc((100vw - 108px) / 3)";
+              const avatarH   = 78;
+              const list      = penthouseTab === "liked" ? ptLikedMeList : ptILikeList;
+              const header    = penthouseTab === "liked" ? "💛 Liked Me" : "💛 I Like";
+
+              return (
+                <div style={{ padding: "10px 16px 6px" }}>
+                  <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(212,175,55,0.5)", margin: "0 0 8px", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                    {header}
+                  </p>
+                  <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    {/* Scrollable profiles */}
+                    <div
+                      style={{ flex: 1, display: "flex", gap: 6, overflowX: "auto", scrollbarWidth: "none" }}
+                      onScroll={() => { if (penthouseTab === "liked") startPtRevert(); }}
+                    >
+                      {list.length === 0 ? (
+                        <div style={{ flex: 1, height: avatarH, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: 0 }}>
+                            {penthouseTab === "ilike" ? "No likes yet" : "No likes received yet"}
+                          </p>
+                        </div>
+                      ) : list.map(p => (
+                        <div
+                          key={p.id}
+                          style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
+                          onClick={() => { cancelPtRevert(); setGiftTarget(p); }}
+                        >
+                          <div style={{
+                            width: avatarW, height: avatarH, borderRadius: 12, overflow: "hidden",
+                            border: `2px solid ${penthouseTab === "liked" ? "rgba(212,175,55,0.7)" : "rgba(212,175,55,0.3)"}`,
+                            boxShadow: penthouseTab === "liked" ? "0 0 12px rgba(212,175,55,0.4)" : "none",
+                            position: "relative", flexShrink: 0,
+                          }}>
+                            <img src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
+                            {penthouseTab === "liked" && (
+                              <div style={{
+                                position: "absolute", top: 4, right: 4,
+                                width: 14, height: 14, borderRadius: "50%",
+                                background: GOLD, display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: 7, color: "#000", fontWeight: 900,
+                              }}>♥</div>
+                            )}
+                            {penthouseTab === "ilike" && likedIds.includes(p.id) && (
+                              <div style={{
+                                position: "absolute", bottom: 0, left: 0, right: 0, height: 20,
+                                background: "linear-gradient(transparent, rgba(212,175,55,0.35))",
+                                display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 2,
+                              }}>
+                                <span style={{ fontSize: 7, color: GOLD, fontWeight: 900 }}>LIKED</span>
+                              </div>
+                            )}
+                          </div>
+                          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", fontWeight: 700, width: avatarW, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {p.name.split(" ")[0]}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Tab buttons */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                      <button
+                        onClick={() => setPenthouseTab("ilike")}
+                        style={{
+                          width: 52, height: 44, borderRadius: 10, border: "none", cursor: "pointer",
+                          background: penthouseTab === "ilike" ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.05)",
+                          outline: penthouseTab === "ilike" ? `1.5px solid rgba(212,175,55,0.55)` : "1px solid rgba(255,255,255,0.09)",
+                          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+                        }}
+                      >
+                        <span style={{ fontSize: 12 }}>💛</span>
+                        <span style={{ fontSize: 7, fontWeight: 800, color: penthouseTab === "ilike" ? GOLD : "rgba(255,255,255,0.3)", letterSpacing: "0.06em" }}>I LIKE</span>
+                      </button>
+                      <button
+                        onClick={() => setPenthouseTab("liked")}
+                        style={{
+                          width: 52, height: 44, borderRadius: 10, border: "none", cursor: "pointer",
+                          background: penthouseTab === "liked" ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.05)",
+                          outline: penthouseTab === "liked" ? `1.5px solid rgba(212,175,55,0.55)` : "1px solid rgba(255,255,255,0.09)",
+                          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+                        }}
+                      >
+                        <span style={{ fontSize: 12 }}>💗</span>
+                        <span style={{ fontSize: 7, fontWeight: 800, color: penthouseTab === "liked" ? GOLD : "rgba(255,255,255,0.3)", letterSpacing: "0.06em" }}>LIKED ME</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* ── City selector ── */}
             <div style={{ display: "flex", overflowX: "auto", gap: 8, padding: "12px 16px 8px", scrollbarWidth: "none" }}>
               {PENTHOUSE_CITIES.map((city) => {

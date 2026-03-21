@@ -23,6 +23,7 @@ const GhostMapPage      = lazyWithRetry(() => import("./features/ghost/pages/Gho
 const GhostDashboardPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostDashboardPage"));
 const GhostPaymentSuccessPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostPaymentSuccessPage"));
 const GhostOnboardingPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostOnboardingPage"));
+const GhostRoomsPage           = lazyWithRetry(() => import("./features/ghost/pages/GhostRoomsPage"));
 const PenthouseFloorPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseFloorPage"));
 const PenthouseApplyPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseApplyPage"));
 const PenthouseVaultPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseVaultPage"));
@@ -70,6 +71,7 @@ export default function App() {
           <Route path="/ghost/pricing" element={<GhostPricingPage />} />
           <Route path="/ghost/block" element={<GhostBlockPage />} />
           <Route path="/ghost/room"  element={<GhostRoomPage />} />
+          <Route path="/ghost/rooms" element={<GhostRoomsPage />} />
           <Route path="/ghost/map"   element={<GhostMapPage />} />
           <Route path="/ghost/dashboard"       element={<GhostDashboardPage />} />
           <Route path="/ghost/payment-success" element={<GhostPaymentSuccessPage />} />
