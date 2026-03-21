@@ -36,10 +36,16 @@ function saveReview(r: UserReview): void {
 }
 function getMyGhostId(): string {
   try {
-    let id = localStorage.getItem("ghost_review_id");
-    if (!id) { id = "GH-" + (Math.floor(Math.random() * 9000) + 1000); localStorage.setItem("ghost_review_id", id); }
-    return id;
-  } catch { return "GH-0000"; }
+    const phone = localStorage.getItem("ghost_phone") ?? "";
+    if (!phone) return "";
+    // deterministic hash — same phone always yields same Ghost ID
+    let h = 0;
+    for (let i = 0; i < phone.length; i++) { h = Math.imul(31, h) + phone.charCodeAt(i) | 0; }
+    return `Ghost-${1000 + Math.abs(h) % 9000}`;
+  } catch { return ""; }
+}
+function isLoggedIn(): boolean {
+  try { return !!localStorage.getItem("ghost_phone"); } catch { return false; }
 }
 function timeAgo(ts: number): string {
   const m = Math.floor((Date.now() - ts) / 60000);
@@ -58,14 +64,21 @@ function ReviewSheet({ tier, color, gradient, onClose, onSubmit }: {
   const [city,  setCity]  = useState("");
   const [text,  setText]  = useState("");
   const [done,  setDone]  = useState(false);
-  const roomName = tier.charAt(0).toUpperCase() + tier.slice(1);
-  const canSubmit = stars > 0 && city.trim().length >= 2 && text.trim().length >= 20 && !done;
+
+  const loggedIn    = isLoggedIn();
+  const activeTier  = readTier();
+  const ghostId     = getMyGhostId();
+  const canReview   = loggedIn && activeTier === tier;
+  const roomName    = tier.charAt(0).toUpperCase() + tier.slice(1);
+  const canSubmit   = canReview && stars > 0 && city.trim().length >= 2 && text.trim().length >= 20 && !done;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
+    // re-verify at submit time — prevents manipulation
+    if (!isLoggedIn() || readTier() !== tier) return;
     const review: UserReview = {
       id: `usr-${Date.now()}`, tier,
-      ghostId: getMyGhostId(), city: city.trim(),
+      ghostId, city: city.trim(),
       stars, text: text.trim(), submittedAt: Date.now(),
     };
     saveReview(review);
@@ -104,10 +117,36 @@ function ReviewSheet({ tier, color, gradient, onClose, onSubmit }: {
               <p style={{ fontSize: 16, fontWeight: 900, color, margin: "0 0 6px" }}>Review submitted!</p>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0 }}>Thanks for helping the Ghost community</p>
             </div>
+          ) : !loggedIn ? (
+            <div style={{ textAlign: "center", padding: "24px 0 12px" }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>🔒</div>
+              <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: "0 0 8px" }}>Sign in to leave a review</p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "0 0 20px", lineHeight: 1.6 }}>
+                Only verified Ghost members who have stayed in a room can leave a review.
+              </p>
+              <button onClick={onClose} style={{ height: 44, borderRadius: 12, border: `1px solid ${color}33`, background: `${color}15`, color, fontSize: 13, fontWeight: 800, cursor: "pointer", padding: "0 24px" }}>
+                Got it
+              </button>
+            </div>
+          ) : !canReview ? (
+            <div style={{ textAlign: "center", padding: "24px 0 12px" }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>🏨</div>
+              <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: "0 0 8px" }}>You're not in this room</p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "0 0 6px", lineHeight: 1.6 }}>
+                You can only review your active room.
+              </p>
+              <p style={{ fontSize: 11, color: `${color}99`, margin: "0 0 20px" }}>
+                {activeTier ? `Your current room: ${activeTier.charAt(0).toUpperCase() + activeTier.slice(1)}` : "Unlock a room to leave a review."}
+              </p>
+              <button onClick={onClose} style={{ height: 44, borderRadius: 12, border: `1px solid ${color}33`, background: `${color}15`, color, fontSize: 13, fontWeight: 800, cursor: "pointer", padding: "0 24px" }}>
+                Got it
+              </button>
+            </div>
           ) : (
             <>
               <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: "0 0 4px" }}>Rate your {roomName} stay</p>
-              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "0 0 20px" }}>Your review helps other members choose the right room</p>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "0 0 6px" }}>Your review helps other members choose the right room</p>
+              <p style={{ fontSize: 10, color: `${color}77`, margin: "0 0 18px", fontWeight: 700 }}>Reviewing as {ghostId}</p>
 
               {/* Star picker */}
               <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>Your rating</p>
@@ -582,21 +621,26 @@ export default function GhostRoomsPage() {
                     ) : owned ? (
                       <div style={{ display: "flex", gap: 8 }}>
                         <div style={{ flex: 1, height: 44, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: `${room.color}10`, border: `1px solid ${room.color}30` }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: `${room.color}99` }}>Your current room</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: `${room.color}99` }}>
+                            {room.key === currentTier ? "Your current room" : "Previously stayed"}
+                          </span>
                         </div>
-                        <motion.button
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => setReviewTarget(room.key)}
-                          style={{
-                            width: 90, height: 44, borderRadius: 12, border: `1px solid ${room.color}44`,
-                            background: `${room.color}14`, color: room.color,
-                            fontSize: 11, fontWeight: 800, cursor: "pointer",
-                            display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
-                            flexShrink: 0,
-                          }}
-                        >
-                          🌟 Rate
-                        </motion.button>
+                        {/* Rate button only for exact active tier + logged-in members */}
+                        {room.key === currentTier && isLoggedIn() && (
+                          <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setReviewTarget(room.key)}
+                            style={{
+                              width: 90, height: 44, borderRadius: 12, border: `1px solid ${room.color}44`,
+                              background: `${room.color}14`, color: room.color,
+                              fontSize: 11, fontWeight: 800, cursor: "pointer",
+                              display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                              flexShrink: 0,
+                            }}
+                          >
+                            🌟 Rate
+                          </motion.button>
+                        )}
                       </div>
                     ) : (
                       <motion.button
