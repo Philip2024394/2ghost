@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ghostSupabase } from "../ghostSupabase";
+import { recordConversion } from "../../affiliate/affiliateStorage";
 
 export default function GhostPaymentSuccessPage() {
   const navigate       = useNavigate();
@@ -30,6 +31,9 @@ export default function GhostPaymentSuccessPage() {
         }
       }
     } catch {}
+
+    // Record affiliate conversion if user arrived via referral link
+    recordConversion(plan as "suite" | "gold");
 
     const t = setTimeout(() => setDone(true), 2200);
     return () => clearTimeout(t);

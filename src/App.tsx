@@ -21,6 +21,12 @@ const GhostMapPage      = lazyWithRetry(() => import("./features/ghost/pages/Gho
 const GhostDashboardPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostDashboardPage"));
 const GhostPaymentSuccessPage = lazyWithRetry(() => import("./features/ghost/pages/GhostPaymentSuccessPage"));
 
+// Affiliate
+const AffiliateJoinPage      = lazyWithRetry(() => import("./features/affiliate/pages/AffiliateJoinPage"));
+const AffiliateDashboard     = lazyWithRetry(() => import("./features/affiliate/pages/AffiliateDashboard"));
+const AffiliateAdminPage     = lazyWithRetry(() => import("./features/affiliate/pages/AffiliateAdminPage"));
+const AffiliateRefPage       = lazyWithRetry(() => import("./features/affiliate/pages/AffiliateRefPage"));
+
 // Admin
 const AdminLoginPage    = lazyWithRetry(() => import("./features/admin/AdminLoginPage"));
 const AdminLayout       = lazyWithRetry(() => import("./features/admin/AdminLayout"));
@@ -53,6 +59,12 @@ export default function App() {
           <Route path="/ghost/map"   element={<GhostMapPage />} />
           <Route path="/ghost/dashboard"       element={<GhostDashboardPage />} />
           <Route path="/ghost/payment-success" element={<GhostPaymentSuccessPage />} />
+
+          {/* Affiliate */}
+          <Route path="/affiliate/join"          element={<AffiliateJoinPage />} />
+          <Route path="/affiliate/dashboard"     element={<AffiliateDashboard />} />
+          <Route path="/affiliate/admin"         element={<AffiliateAdminPage />} />
+          <Route path="/affiliate/ref/:code"     element={<AffiliateRefPage />} />
 
           {/* Admin — separate login page, then layout-wrapped dashboard */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
