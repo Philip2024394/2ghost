@@ -676,11 +676,11 @@ export default function GhostRoomsPage() {
 
           {/* ── The Loft floor card ── */}
           {(() => {
-            const VIOLET  = "#8b5cf6";
-            const VBORDER = "rgba(139,92,246,0.4)";
-            const VBG     = "rgba(139,92,246,0.07)";
-            const VGLOW   = "rgba(139,92,246,0.45)";
-            const VGRAD   = "linear-gradient(135deg, #4c1d95, #7c3aed, #a78bfa)";
+            const VIOLET  = "#d4af37";
+            const VBORDER = "rgba(212,175,55,0.4)";
+            const VBG     = "rgba(212,175,55,0.06)";
+            const VGLOW   = "rgba(212,175,55,0.45)";
+            const VGRAD   = "linear-gradient(135deg, #92660a, #d4af37, #f5e88a, #e8e0c8)";
             const loftReviews = [
               { id: "GH-3341", city: "Berlin",  stars: 5, ago: "1 week ago",  text: "Finally a space that actually feels safe. Met someone real in week one." },
               { id: "GH-7712", city: "London",  stars: 5, ago: "2 weeks ago", text: "The Men's Lounge is exactly what was missing. Quality people, no noise." },
@@ -702,7 +702,7 @@ export default function GhostRoomsPage() {
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(8,4,18,0.78), rgba(8,4,18,0.5))", pointerEvents: "none" }} />
                 </>}
                 {!LOFT_BG && (
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(76,29,149,0.3), rgba(139,92,246,0.1))", pointerEvents: "none" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(92,66,10,0.3), rgba(212,175,55,0.1))", pointerEvents: "none" }} />
                 )}
 
                 {/* Top stripe */}
@@ -728,7 +728,7 @@ export default function GhostRoomsPage() {
                   {LOFT_BG && (
                     <div
                       onClick={() => setPreviewImg(LOFT_BG)}
-                      style={{ width: "100%", height: 80, borderRadius: 10, overflow: "hidden", marginBottom: 12, cursor: "pointer", position: "relative", border: `1px solid ${VIOLET}22` }}
+                      style={{ width: "100%", height: 80, borderRadius: 10, overflow: "hidden", marginBottom: 12, cursor: "pointer", position: "relative", border: `1px solid rgba(212,175,55,0.22)` }}
                     >
                       <img src={LOFT_BG} alt="The Loft" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />

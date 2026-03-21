@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import type { LoftProfile } from "../types/loftTypes";
 import { loftActivityLabel } from "../utils/loftHelpers";
 
-const VIOLET = "#8b5cf6";
+const VIOLET = "#d4af37";
 
 interface Props {
   profile: LoftProfile;
@@ -22,9 +22,9 @@ export default function LoftLandscapeCard({ profile, liked, onLike, onGift }: Pr
       transition={{ type: "spring", stiffness: 280, damping: 26 }}
       style={{
         width: "100%", borderRadius: 18, overflow: "hidden",
-        border: "1px solid rgba(139,92,246,0.2)",
-        background: "rgba(8,6,14,0.97)",
-        boxShadow: "0 4px 32px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(139,92,246,0.08)",
+        border: "1px solid rgba(212,175,55,0.2)",
+        background: "rgba(8,6,2,0.97)",
+        boxShadow: "0 4px 32px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(212,175,55,0.08)",
         display: "flex", flexDirection: "row", minHeight: 200,
         position: "relative",
       }}
@@ -38,15 +38,15 @@ export default function LoftLandscapeCard({ profile, liked, onLike, onGift }: Pr
         />
         <div style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(to right, transparent 50%, rgba(8,6,14,0.97) 100%)",
+          background: "linear-gradient(to right, transparent 50%, rgba(8,6,2,0.97) 100%)",
           pointerEvents: "none",
         }} />
         {/* New arrival ribbon */}
         {profile.isNewArrival && (
           <div style={{
             position: "absolute", top: 10, left: 0,
-            background: `linear-gradient(90deg, #4c1d95, ${VIOLET})`,
-            color: "#fff", fontSize: 8, fontWeight: 900,
+            background: `linear-gradient(90deg, #7a5500, ${VIOLET})`,
+            color: "#0a0700", fontSize: 8, fontWeight: 900,
             padding: "3px 10px 3px 8px", letterSpacing: "0.1em",
             borderRadius: "0 6px 6px 0",
           }}>
@@ -64,7 +64,7 @@ export default function LoftLandscapeCard({ profile, liked, onLike, onGift }: Pr
             transition={{ duration: 1.4, repeat: Infinity }}
             style={{
               width: 6, height: 6, borderRadius: "50%",
-              background: isLive ? "#4ade80" : `rgba(139,92,246,0.7)`,
+              background: isLive ? "#4ade80" : `rgba(212,175,55,0.7)`,
             }}
           />
           <span style={{ fontSize: 9, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{activityLabel}</span>
@@ -116,8 +116,8 @@ export default function LoftLandscapeCard({ profile, liked, onLike, onGift }: Pr
             onClick={onGift}
             style={{
               flex: 1, height: 36, borderRadius: 10,
-              border: "1px solid rgba(139,92,246,0.35)",
-              background: "rgba(139,92,246,0.08)", color: VIOLET,
+              border: "1px solid rgba(212,175,55,0.35)",
+              background: "rgba(212,175,55,0.08)", color: VIOLET,
               fontSize: 11, fontWeight: 800, cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
             }}
@@ -130,7 +130,7 @@ export default function LoftLandscapeCard({ profile, liked, onLike, onGift }: Pr
             style={{
               width: 36, height: 36, borderRadius: 10, border: "none", flexShrink: 0,
               background: liked
-                ? `linear-gradient(135deg, #4c1d95, ${VIOLET})`
+                ? `linear-gradient(135deg, #7a5500, ${VIOLET})`
                 : "rgba(255,255,255,0.06)",
               color: liked ? "#fff" : "rgba(255,255,255,0.5)",
               fontSize: 16, cursor: "pointer",

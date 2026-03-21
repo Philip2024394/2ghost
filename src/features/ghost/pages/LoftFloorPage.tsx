@@ -16,9 +16,9 @@ import LoftLandscapeCard from "../components/LoftLandscapeCard";
 // ── Image — user to provide ──────────────────────────────────────────────────
 const LOFT_BG = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsdstertefsdfsd.png";
 
-const VIOLET       = "#8b5cf6";
-const VIOLET_GRAD  = "linear-gradient(135deg, #4c1d95, #7c3aed, #a78bfa)";
-const VIOLET_DARK  = "rgba(8,6,14,0.98)";
+const VIOLET       = "#d4af37";
+const VIOLET_GRAD  = "linear-gradient(135deg, #92660a, #d4af37, #f5e88a, #e8e0c8)";
+const VIOLET_DARK  = "rgba(8,6,2,0.98)";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function readCoins(): number  { try { return Number(localStorage.getItem("ghost_coins") || "0"); } catch { return 0; } }
@@ -212,7 +212,7 @@ function LoftNewArrival({ profile, onDismiss }: { profile: LoftProfile; onDismis
     >
       <div style={{
         position: "absolute", inset: 0,
-        background: LOFT_BG ? `url(${LOFT_BG})` : `linear-gradient(135deg, #0d0520, #1e0a40, #0d0520)`,
+        background: LOFT_BG ? `url(${LOFT_BG})` : `linear-gradient(135deg, #0a0700, #1a1000, #0a0700)`,
         backgroundSize: "cover", backgroundPosition: "center",
       }} />
       <div style={{
@@ -434,7 +434,7 @@ export default function LoftFloorPage() {
   return (
     <div style={{
       minHeight: "100dvh",
-      background: LOFT_BG ? `#08060e` : "linear-gradient(180deg, #08060e 0%, #0d0520 100%)",
+      background: LOFT_BG ? `#080600` : "linear-gradient(180deg, #080600 0%, #140e00 100%)",
       color: "#fff", fontFamily: "inherit",
       paddingBottom: "env(safe-area-inset-bottom, 20px)",
     }}>
@@ -506,7 +506,7 @@ export default function LoftFloorPage() {
                     <div style={{ position: "absolute", inset: 0, borderRadius: 16, background: "linear-gradient(to right, rgba(8,4,18,0.72), rgba(8,4,18,0.45))", pointerEvents: "none" }} />
                   </>}
                   {!LOFT_BG && (
-                    <div style={{ position: "absolute", inset: 0, borderRadius: 16, background: `linear-gradient(135deg, rgba(76,29,149,0.25), rgba(139,92,246,0.1))`, border: `1px solid ${VIOLET}22`, pointerEvents: "none" }} />
+                    <div style={{ position: "absolute", inset: 0, borderRadius: 16, background: `linear-gradient(135deg, rgba(92,66,10,0.25), rgba(212,175,55,0.1))`, border: `1px solid ${VIOLET}22`, pointerEvents: "none" }} />
                   )}
                   <div style={{ position: "relative", zIndex: 1 }}>
                     <p style={{ fontSize: 9, fontWeight: 800, color: `${VIOLET}88`, margin: "0 0 8px", letterSpacing: "0.12em", textTransform: "uppercase" }}>
