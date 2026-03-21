@@ -15,6 +15,9 @@ import {
 import PenthouseLandscapeCard from "../components/PenthouseLandscapeCard";
 
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
+
+const PENTHOUSE_BG = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsd.png";
+
 // ── Coin balance helpers (reads same key as GhostModePage) ───────────────────
 function readCoins(): number { try { return Number(localStorage.getItem("ghost_coins") || "0"); } catch { return 0; } }
 function writeCoins(n: number): void { try { localStorage.setItem("ghost_coins", String(n)); } catch {} }
@@ -199,7 +202,7 @@ function GiftTray({ profile, coinBalance, dailyUsed, onClose, onSent }: {
 // ── New arrival overlay ───────────────────────────────────────────────────────
 function NewArrivalOverlay({ profile, onDismiss }: { profile: PenthouseProfile; onDismiss: () => void }) {
   useEffect(() => {
-    const t = setTimeout(onDismiss, 4500);
+    const t = setTimeout(onDismiss, 8000);
     return () => clearTimeout(t);
   }, [onDismiss]);
 
@@ -209,34 +212,45 @@ function NewArrivalOverlay({ profile, onDismiss }: { profile: PenthouseProfile; 
       onClick={onDismiss}
       style={{
         position: "fixed", inset: 0, zIndex: 700,
-        background: "rgba(0,0,0,0.93)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         padding: "0 28px",
       }}
     >
+      {/* Full-screen background image */}
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: `url(${PENTHOUSE_BG})`,
+        backgroundSize: "cover", backgroundPosition: "center",
+      }} />
+      {/* Dark overlay for readability */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "linear-gradient(to bottom, rgba(6,4,2,0.55) 0%, rgba(6,4,2,0.75) 50%, rgba(6,4,2,0.95) 100%)",
+      }} />
+
       <motion.div
         initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 28, delay: 0.15 }}
-        style={{ width: "100%", maxWidth: 360, textAlign: "center" }}
+        style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 360, textAlign: "center" }}
       >
-        <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(212,175,55,0.6)", letterSpacing: "0.2em", textTransform: "uppercase", margin: "0 0 20px" }}>
+        <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(212,175,55,0.7)", letterSpacing: "0.2em", textTransform: "uppercase", margin: "0 0 20px" }}>
           A new guest has arrived on the floor tonight
         </p>
         <div style={{
-          borderRadius: 20, overflow: "hidden", border: "1px solid rgba(212,175,55,0.35)",
-          boxShadow: "0 0 60px rgba(212,175,55,0.12)", marginBottom: 20,
+          borderRadius: 20, overflow: "hidden", border: "1px solid rgba(212,175,55,0.45)",
+          boxShadow: "0 0 80px rgba(212,175,55,0.18)", marginBottom: 20,
         }}>
           <img
             src={profile.photo} alt={profile.name}
             style={{ width: "100%", aspectRatio: "4/3", objectFit: "cover", display: "block" }}
             onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
           />
-          <div style={{ background: "rgba(10,8,4,0.98)", padding: "14px 16px" }}>
+          <div style={{ background: "rgba(10,8,4,0.98)", padding: "14px 16px", borderTop: "1px solid rgba(212,175,55,0.15)" }}>
             <p style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: "0 0 4px" }}>{profile.name}, {profile.age}</p>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0 }}>{profile.countryFlag} {profile.city} · {profile.stayType}</p>
           </div>
         </div>
-        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", margin: 0 }}>Tap anywhere to continue →</p>
+        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: 0 }}>Tap anywhere to continue →</p>
       </motion.div>
     </motion.div>
   );
@@ -504,8 +518,26 @@ export default function PenthouseFloorPage() {
               const header    = penthouseTab === "liked" ? "💛 Liked Me" : "💛 I Like";
 
               return (
-                <div style={{ padding: "10px 16px 6px" }}>
-                  <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(212,175,55,0.5)", margin: "0 0 8px", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                <div style={{
+                  padding: "10px 16px 6px", margin: "0 0 0",
+                  position: "relative", overflow: "hidden",
+                  borderRadius: 16,
+                }}>
+                  {/* Background image */}
+                  <div style={{
+                    position: "absolute", inset: 0, borderRadius: 16,
+                    backgroundImage: `url(${PENTHOUSE_BG})`,
+                    backgroundSize: "cover", backgroundPosition: "center",
+                    opacity: 0.18,
+                    pointerEvents: "none",
+                  }} />
+                  <div style={{
+                    position: "absolute", inset: 0, borderRadius: 16,
+                    background: "linear-gradient(to right, rgba(6,4,2,0.82), rgba(6,4,2,0.65))",
+                    pointerEvents: "none",
+                  }} />
+                  <div style={{ position: "relative", zIndex: 1 }}>
+                  <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(212,175,55,0.6)", margin: "0 0 8px", letterSpacing: "0.12em", textTransform: "uppercase" }}>
                     {header}
                   </p>
                   <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
@@ -586,6 +618,7 @@ export default function PenthouseFloorPage() {
                       </button>
                     </div>
                   </div>
+                  </div>{/* end zIndex wrapper */}
                 </div>
               );
             })()}
