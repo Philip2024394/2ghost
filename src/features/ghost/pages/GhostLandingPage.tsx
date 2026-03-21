@@ -29,16 +29,20 @@ function getNewProfilesToday(): number {
 
 const AVATARS = Array.from({ length: 6 }, (_, i) => `https://i.pravatar.cc/80?img=${i + 1}`);
 
-// ── Floating hearts config ─────────────────────────────────────────────────────
+// ── Floating hearts + gender icons ────────────────────────────────────────────
 const HEARTS = [
-  { delay: 0,    x: "48%",  size: 16, dur: 3.2, drift:  12 },
-  { delay: 0.5,  x: "38%",  size: 12, dur: 3.8, drift: -18 },
-  { delay: 1.0,  x: "58%",  size: 20, dur: 2.9, drift:   8 },
-  { delay: 1.5,  x: "44%",  size: 13, dur: 3.5, drift: -10 },
-  { delay: 2.0,  x: "54%",  size: 18, dur: 4.0, drift:  20 },
-  { delay: 2.5,  x: "35%",  size: 11, dur: 3.1, drift:  -6 },
-  { delay: 3.0,  x: "62%",  size: 15, dur: 3.7, drift:  14 },
-  { delay: 3.5,  x: "50%",  size: 22, dur: 2.7, drift:  -4 },
+  { delay: 0,    x:  "8%",  size: 14, dur: 3.8, drift:  10, icon: "👨" },
+  { delay: 0.4,  x: "18%",  size: 16, dur: 3.2, drift:  14, icon: "❤️" },
+  { delay: 0.8,  x: "28%",  size: 12, dur: 4.1, drift: -12, icon: "👩" },
+  { delay: 1.2,  x: "38%",  size: 18, dur: 3.5, drift:   8, icon: "💗" },
+  { delay: 1.6,  x: "48%",  size: 20, dur: 2.9, drift: -16, icon: "👨" },
+  { delay: 2.0,  x: "58%",  size: 13, dur: 3.9, drift:  18, icon: "❤️" },
+  { delay: 2.4,  x: "68%",  size: 16, dur: 3.3, drift:  -8, icon: "👩" },
+  { delay: 2.8,  x: "78%",  size: 11, dur: 4.2, drift:  12, icon: "💛" },
+  { delay: 3.2,  x: "88%",  size: 15, dur: 3.6, drift: -14, icon: "👨" },
+  { delay: 3.6,  x: "13%",  size: 22, dur: 2.8, drift:   6, icon: "💗" },
+  { delay: 4.0,  x: "73%",  size: 18, dur: 3.4, drift: -10, icon: "👩" },
+  { delay: 4.4,  x: "43%",  size: 14, dur: 4.0, drift:  16, icon: "❤️" },
 ];
 
 function getDeadline(): number {
@@ -220,9 +224,11 @@ export default function GhostLandingPage() {
                   animation: `floatHeart ${h.dur}s ease-out ${h.delay}s infinite`,
                   ["--drift" as any]: `${h.drift}px`,
                   willChange: "transform, opacity",
-                  filter: "drop-shadow(0 0 4px rgba(239,68,68,0.5))",
+                  filter: h.icon === "👨" || h.icon === "👩"
+                    ? "drop-shadow(0 0 3px rgba(255,255,255,0.15))"
+                    : "drop-shadow(0 0 5px rgba(239,68,68,0.45))",
                 }}
-              >❤️</span>
+              >{h.icon}</span>
             ))}
           </div>
 
