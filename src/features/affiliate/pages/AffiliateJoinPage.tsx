@@ -208,6 +208,11 @@ export default function AffiliateJoinPage() {
               >
                 {agreed ? "Join Now — Get My Link →" : "Agree to Terms to Continue"}
               </button>
+
+              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", margin: "12px 0 0", textAlign: "center" }}>
+                Not sure yet?{" "}
+                <a href="/affiliate/how-it-works" style={{ color: "#4ade80", textDecoration: "none", fontWeight: 700 }}>See how it works →</a>
+              </p>
             </motion.div>
           ) : (
             /* ── Success state ── */
