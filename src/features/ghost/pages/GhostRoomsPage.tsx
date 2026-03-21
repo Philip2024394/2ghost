@@ -906,6 +906,116 @@ export default function GhostRoomsPage() {
               </motion.div>
             );
           })()}
+
+          {/* ── The Cellar floor card ── */}
+          {(() => {
+            const CELLAR_BG_CARD = ""; // user to provide image
+            const CRIM   = "#c0392b";
+            const CGRAD  = "linear-gradient(135deg, #6b0f0f, #c0392b, #e8553f)";
+            const CGLOW  = "rgba(192,57,43,0.45)";
+            const CBORDER = "rgba(192,57,43,0.4)";
+            const CBG     = "rgba(192,57,43,0.06)";
+            const cellarReviews = [
+              { id: "GH-5521", city: "Berlin", stars: 5, ago: "3 days ago",  text: "Finally a place for people who are upfront. No games, just real energy. Met someone on night one." },
+              { id: "GH-8803", city: "Miami",  stars: 5, ago: "1 week ago",  text: "The Wild section is exactly what it sounds like. Bold people, no judgement. Love it." },
+            ];
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.32, type: "spring", stiffness: 280, damping: 24 }}
+                style={{
+                  borderRadius: 18, background: CBG,
+                  border: `1px solid ${CBORDER}`,
+                  overflow: "hidden", position: "relative",
+                  boxShadow: `0 0 24px ${CGLOW}`,
+                }}
+              >
+                {/* Background image */}
+                {CELLAR_BG_CARD && <>
+                  <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${CELLAR_BG_CARD})`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.5, pointerEvents: "none" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(14,3,3,0.78), rgba(14,3,3,0.5))", pointerEvents: "none" }} />
+                </>}
+                {!CELLAR_BG_CARD && (
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(107,15,15,0.3), rgba(192,57,43,0.1))", pointerEvents: "none" }} />
+                )}
+
+                {/* Top stripe */}
+                <div style={{ height: 3, background: CGRAD, position: "relative", zIndex: 1 }} />
+
+                <div style={{ padding: "14px 16px 16px", position: "relative", zIndex: 1 }}>
+                  {/* Title row */}
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
+                    <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>🔥</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 16, fontWeight: 900, color: CRIM }}>The Cellar</span>
+                        <span style={{ fontSize: 9, fontWeight: 800, padding: "2px 8px", borderRadius: 20, background: `${CRIM}22`, border: `1px solid ${CRIM}55`, color: CRIM, letterSpacing: "0.08em" }}>
+                          18+ ADULTS ONLY
+                        </span>
+                      </div>
+                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Flirty · Naughty · Wild — bold & no judgement</p>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>$24.99 / mo</span>
+                  </div>
+
+                  {/* Features */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 12 }}>
+                    {[
+                      "Three sections — Flirty · Naughty · Wild",
+                      "Age-verified adults only — max 30 per city floor",
+                      "Send gifts with a personal opener note",
+                      "2 free daily gifts — coins for more",
+                      "Mutual like → private Vault chat opens",
+                      "Browse other city Cellars for +$12.99/city",
+                      "Anonymous · safe · no explicit content",
+                    ].map(f => (
+                      <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                        <Check size={11} color={CRIM} style={{ flexShrink: 0, marginTop: 2 }} />
+                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.45 }}>{f}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Reviews */}
+                  <div style={{ marginBottom: 14 }}>
+                    <p style={{ fontSize: 8, fontWeight: 800, color: `${CRIM}66`, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>What members say</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                      {cellarReviews.map(r => (
+                        <div key={r.id} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 10, border: `1px solid ${CRIM}18`, padding: "8px 10px" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span style={{ fontSize: 9, fontWeight: 800, color: CRIM }}>#{r.id}</span>
+                              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{r.city}</span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                              {"★".repeat(r.stars).split("").map((_, i) => <span key={i} style={{ fontSize: 9, color: CRIM }}>★</span>)}
+                              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", marginLeft: 4 }}>{r.ago}</span>
+                            </div>
+                          </div>
+                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>"{r.text}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => navigate("/ghost/cellar")}
+                    style={{
+                      width: "100%", height: 44, borderRadius: 12, border: "none",
+                      background: CGRAD, color: "#fff",
+                      fontSize: 13, fontWeight: 800, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                      boxShadow: `0 3px 16px ${CGLOW}`,
+                    }}
+                  >
+                    🔥 Enter The Cellar →
+                  </motion.button>
+                </div>
+              </motion.div>
+            );
+          })()}
         </div>
       </div>
 
