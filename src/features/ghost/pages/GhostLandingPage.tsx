@@ -69,6 +69,11 @@ export default function GhostLandingPage() {
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(() => !hasSeenOnboarding());
   const [showManifesto, setShowManifesto] = useState(false);
+  const [showA2HS, setShowA2HS]           = useState(false);
+  const [a2hsDismissed, setA2HSDismissed] = useState(() => {
+    try { return !!localStorage.getItem("ghost_a2hs_dismissed"); } catch { return false; }
+  });
+  const deferredPromptRef = useRef<any>(null);
   const [countdown, setCountdown] = useState(() => Math.max(0, getDeadline() - Date.now()));
   const [newProfiles, setNewProfiles] = useState(getNewProfilesToday);
   const [countryName] = useState(() => getCachedIpCountry()?.countryName ?? "Indonesia");
@@ -104,6 +109,55 @@ export default function GhostLandingPage() {
     }, 3000);
     return () => clearTimeout(t);
   }, []);
+
+  // A2HS — capture install prompt + show banner after 10 minutes
+  useEffect(() => {
+    if (a2hsDismissed) return;
+
+    // Record first visit timestamp
+    try {
+      if (!localStorage.getItem("ghost_first_visit")) {
+        localStorage.setItem("ghost_first_visit", String(Date.now()));
+      }
+    } catch {}
+
+    // Capture deferred prompt on Android/Chrome
+    const onPrompt = (e: Event) => {
+      e.preventDefault();
+      deferredPromptRef.current = e;
+    };
+    window.addEventListener("beforeinstallprompt", onPrompt);
+
+    // Calculate how long until 10 minutes from first visit
+    const firstVisit = (() => { try { return Number(localStorage.getItem("ghost_first_visit")) || Date.now(); } catch { return Date.now(); } })();
+    const delay = Math.max(0, firstVisit + 10 * 60 * 1000 - Date.now());
+
+    const t = setTimeout(() => setShowA2HS(true), delay);
+
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("beforeinstallprompt", onPrompt);
+    };
+  }, [a2hsDismissed]);
+
+  const handleA2HSInstall = async () => {
+    if (deferredPromptRef.current) {
+      deferredPromptRef.current.prompt();
+      await deferredPromptRef.current.userChoice;
+      deferredPromptRef.current = null;
+    }
+    dismissA2HS();
+  };
+
+  const dismissA2HS = () => {
+    setShowA2HS(false);
+    setA2HSDismissed(true);
+    try { localStorage.setItem("ghost_a2hs_dismissed", "1"); } catch {}
+  };
+
+  // Detect iOS Safari (no beforeinstallprompt support)
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as any).MSStream;
+  const isInStandaloneMode = ("standalone" in window.navigator) && (window.navigator as any).standalone;
 
   // Tick both countdown and new-profiles counter (every minute is enough for profiles)
   useEffect(() => {
@@ -474,6 +528,95 @@ export default function GhostLandingPage() {
                 Maybe another time
               </button>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Add to Home Screen banner ── */}
+      <AnimatePresence>
+        {showA2HS && !isInStandaloneMode && (
+          <motion.div
+            initial={{ y: 120, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 120, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 320, damping: 32 }}
+            style={{
+              position: "fixed",
+              bottom: 0, left: 0, right: 0,
+              zIndex: 9999,
+              padding: "0 12px max(20px, env(safe-area-inset-bottom, 20px))",
+            }}
+          >
+            <div style={{
+              background: "rgba(4,6,4,0.97)",
+              border: "1px solid rgba(74,222,128,0.25)",
+              borderRadius: 20,
+              padding: "16px 16px 14px",
+              backdropFilter: "blur(20px)",
+              boxShadow: "0 -4px 40px rgba(74,222,128,0.12)",
+            }}>
+              {/* Green top bar */}
+              <div style={{ height: 3, background: "linear-gradient(90deg,#16a34a,#4ade80)", borderRadius: "3px 3px 0 0", margin: "-16px -16px 14px" }} />
+
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                <div style={{
+                  width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                  background: "linear-gradient(135deg,#16a34a,#4ade80)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 26, boxShadow: "0 0 16px rgba(74,222,128,0.3)",
+                }}>👻</div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>Add 2Ghost to your Home Screen</p>
+                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0 }}>
+                    One tap to open — always ready when you are
+                  </p>
+                </div>
+                <button onClick={dismissA2HS} style={{
+                  background: "none", border: "none", color: "rgba(255,255,255,0.3)",
+                  fontSize: 18, cursor: "pointer", padding: "4px", lineHeight: 1, flexShrink: 0,
+                }}>✕</button>
+              </div>
+
+              {isIOS ? (
+                /* iOS manual instruction */
+                <div>
+                  <div style={{ background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 12, padding: "10px 12px", marginBottom: 10 }}>
+                    {[
+                      ["1", "Tap the", "Share button", "⬆️", "at the bottom of Safari"],
+                      ["2", "Scroll down and tap", "Add to Home Screen", "➕", ""],
+                      ["3", "Tap", "Add", "✓", "— done!"],
+                    ].map(([num, pre, bold, icon, post]) => (
+                      <div key={num} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
+                        <span style={{ fontSize: 10, fontWeight: 900, color: "#4ade80", background: "rgba(74,222,128,0.12)", borderRadius: 4, padding: "1px 5px", flexShrink: 0, marginTop: 1 }}>{num}</span>
+                        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.5 }}>
+                          {pre} <strong style={{ color: "#fff" }}>{bold}</strong> {icon} {post}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={dismissA2HS} style={{
+                    width: "100%", background: "none", border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 10, padding: "9px 0",
+                    fontSize: 12, color: "rgba(255,255,255,0.35)", cursor: "pointer", fontWeight: 600,
+                  }}>Already added — close</button>
+                </div>
+              ) : (
+                /* Android/Chrome — trigger install prompt */
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={dismissA2HS} style={{
+                    flex: "0 0 auto", background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12,
+                    padding: "11px 16px", fontSize: 12, fontWeight: 700,
+                    color: "rgba(255,255,255,0.4)", cursor: "pointer",
+                  }}>Not now</button>
+                  <button onClick={handleA2HSInstall} style={{
+                    flex: 1, background: "linear-gradient(135deg,#16a34a,#4ade80)",
+                    border: "none", borderRadius: 12, padding: "11px 0",
+                    fontSize: 13, fontWeight: 900, color: "#000", cursor: "pointer",
+                  }}>Add to Home Screen →</button>
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
