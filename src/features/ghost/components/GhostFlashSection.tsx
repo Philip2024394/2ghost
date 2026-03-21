@@ -4,7 +4,7 @@ import { MessageCircle } from "lucide-react";
 import type { GhostProfile } from "../types/ghostTypes";
 import { toGhostId, fmtFlashTime } from "../utils/ghostHelpers";
 
-// ── Ghost Flash match popup ──────────────────────────────────────────────────
+// ── Hotel Lobby match popup ───────────────────────────────────────────────────
 export function GhostFlashMatchPopup({ profile, onClose, onConnect }: { profile: GhostProfile; onClose: () => void; onConnect?: (p: GhostProfile) => void }) {
   const firstName = profile.name.split(" ")[0];
   const ghostId = toGhostId(profile.id);
@@ -12,7 +12,7 @@ export function GhostFlashMatchPopup({ profile, onClose, onConnect }: { profile:
   const [screen, setScreen] = useState<"match" | "connected">("match");
 
   useEffect(() => {
-    if (screen === "connected") return; // stop countdown after connect
+    if (screen === "connected") return;
     const t = setInterval(() => setSecs((s) => { if (s <= 1) { onClose(); return 0; } return s - 1; }), 1000);
     return () => clearInterval(t);
   }, [onClose, screen]);
@@ -39,73 +39,78 @@ export function GhostFlashMatchPopup({ profile, onClose, onConnect }: { profile:
         style={{
           width: "100%", maxWidth: 340, textAlign: "center",
           background: "rgba(5,5,8,0.98)", backdropFilter: "blur(40px)",
-          borderRadius: 24, border: "1px solid rgba(74,222,128,0.35)",
+          borderRadius: 24, border: "1px solid rgba(212,175,55,0.35)",
           overflow: "hidden",
-          boxShadow: "0 0 60px rgba(74,222,128,0.2), 0 24px 80px rgba(0,0,0,0.8)",
+          boxShadow: "0 0 60px rgba(212,175,55,0.15), 0 24px 80px rgba(0,0,0,0.8)",
         }}
       >
-        {/* Pulsing top bar */}
+        {/* Pulsing top bar — gold */}
         <motion.div
-          animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 0.8, repeat: Infinity }}
-          style={{ height: 4, background: "linear-gradient(90deg, #16a34a, #4ade80, #16a34a)" }}
+          animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 0.9, repeat: Infinity }}
+          style={{ height: 4, background: "linear-gradient(90deg, #92660a, #d4af37, #f0d060, #d4af37, #92660a)" }}
         />
 
         <div style={{ padding: "28px 24px 26px" }}>
-          {/* Flash badge */}
+
+          {/* Lobby badge */}
           <motion.div
-            animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 1, repeat: Infinity }}
+            animate={{ scale: [1, 1.06, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
             style={{
               display: "inline-flex", alignItems: "center", gap: 6,
-              background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.4)",
+              background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.4)",
               borderRadius: 20, padding: "5px 14px", marginBottom: 16,
             }}
           >
-            <span style={{ fontSize: 14 }}>⚡</span>
-            <span style={{ fontSize: 11, fontWeight: 900, color: "rgba(74,222,128,0.95)", letterSpacing: "0.12em" }}>FLASH MATCH</span>
+            <span style={{ fontSize: 14 }}>🏨</span>
+            <span style={{ fontSize: 11, fontWeight: 900, color: "#d4af37", letterSpacing: "0.12em" }}>LOBBY MATCH</span>
           </motion.div>
 
           {/* Photo */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
             <div style={{ position: "relative" }}>
               <motion.div
-                animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0, 0.5] }}
+                animate={{ scale: [1, 1.12, 1], opacity: [0.5, 0, 0.5] }}
                 transition={{ duration: 1.4, repeat: Infinity }}
-                style={{ position: "absolute", inset: -6, borderRadius: "50%", border: "2px solid rgba(74,222,128,0.6)" }}
+                style={{ position: "absolute", inset: -6, borderRadius: "50%", border: "2px solid rgba(212,175,55,0.6)" }}
               />
               <img
                 src={profile.image} alt={firstName}
-                style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "2.5px solid rgba(74,222,128,0.6)", display: "block" }}
+                style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "2.5px solid rgba(212,175,55,0.7)", display: "block" }}
                 onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
               />
+              {/* Room key badge */}
+              <div style={{ position: "absolute", bottom: -2, right: -2, width: 22, height: 22, borderRadius: "50%", background: "#050508", border: "1.5px solid rgba(212,175,55,0.7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11 }}>🔑</div>
             </div>
           </div>
 
-          {/* Ghost ID reveal */}
+          {/* Guest reveal */}
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "0 0 2px" }}>
-            <span>{ghostId} is revealed as</span>
+            <span>A guest in the lobby</span>
           </p>
-          <h2 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 4px", background: "linear-gradient(135deg, #4ade80, #22c55e)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          <h2 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 4px", background: "linear-gradient(135deg, #d4af37, #f0d060)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             <span>{firstName}!</span>
           </h2>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: "0 0 6px" }}>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: "0 0 4px" }}>
             <span>{profile.age} · {profile.city} {profile.countryFlag}</span>
           </p>
-          <p style={{ fontSize: 12, color: "rgba(74,222,128,0.7)", fontWeight: 700, margin: "0 0 22px" }}>
-            <span>You're both live right now. WhatsApp opens instantly.</span>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "0 0 4px", fontWeight: 600 }}>
+            <span>{ghostId}</span>
+          </p>
+          <p style={{ fontSize: 12, color: "rgba(212,175,55,0.75)", fontWeight: 700, margin: "0 0 22px" }}>
+            <span>Both in the lobby right now. Step out together tonight.</span>
           </p>
 
           {screen === "match" ? (
             <>
-              {/* CTA */}
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={handleConnect}
-                animate={{ boxShadow: ["0 4px 24px rgba(34,197,94,0.35)", "0 4px 32px rgba(34,197,94,0.6)", "0 4px 24px rgba(34,197,94,0.35)"] }}
+                animate={{ boxShadow: ["0 4px 24px rgba(212,175,55,0.25)", "0 4px 32px rgba(212,175,55,0.5)", "0 4px 24px rgba(212,175,55,0.25)"] }}
                 transition={{ duration: 1.2, repeat: Infinity }}
                 style={{
                   width: "100%", height: 52, borderRadius: 16, border: "none",
-                  background: "linear-gradient(135deg, #16a34a, #22c55e)",
-                  color: "#fff", fontWeight: 900, fontSize: 15, cursor: "pointer",
+                  background: "linear-gradient(135deg, #92660a, #d4af37)",
+                  color: "#000", fontWeight: 900, fontSize: 15, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 }}
               >
@@ -120,27 +125,27 @@ export function GhostFlashMatchPopup({ profile, onClose, onConnect }: { profile:
             /* ── Connected confirmation screen ── */
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: "center" }}>
               <motion.div
-                animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
+                animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
                 style={{ fontSize: 40, marginBottom: 10 }}
-              >👻</motion.div>
-              <p style={{ fontSize: 16, fontWeight: 900, color: "rgba(74,222,128,0.95)", margin: "0 0 6px" }}>
-                {ghostId} has connected on Ghost Flash
+              >🔑</motion.div>
+              <p style={{ fontSize: 16, fontWeight: 900, color: "#d4af37", margin: "0 0 6px" }}>
+                {firstName} is waiting in the lobby
               </p>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 14px", lineHeight: 1.6 }}>
-                Expect contact soon. You may join Flash again if for any reason they're not compatible with you.
+                They're expecting your message. The lobby resets in 60 minutes — step out while you can.
               </p>
-              <p style={{ fontSize: 15, fontWeight: 900, color: "#4ade80", margin: "0 0 20px", letterSpacing: "0.02em" }}>
-                Happy Haunting Boo 👻
+              <p style={{ fontSize: 15, fontWeight: 900, color: "#d4af37", margin: "0 0 20px", letterSpacing: "0.02em" }}>
+                Enjoy your evening 🏨
               </p>
               <button
                 onClick={onClose}
                 style={{
-                  width: "100%", height: 46, borderRadius: 14, border: "1px solid rgba(74,222,128,0.3)",
-                  background: "rgba(74,222,128,0.08)", color: "#4ade80",
+                  width: "100%", height: 46, borderRadius: 14, border: "1px solid rgba(212,175,55,0.3)",
+                  background: "rgba(212,175,55,0.08)", color: "#d4af37",
                   fontWeight: 800, fontSize: 13, cursor: "pointer",
                 }}
               >
-                Back to Ghost Mode
+                Back to Ghost Hotel
               </button>
             </motion.div>
           )}
@@ -150,7 +155,7 @@ export function GhostFlashMatchPopup({ profile, onClose, onConnect }: { profile:
   );
 }
 
-// ── Ghost Flash section (entry + active) ─────────────────────────────────────
+// ── Hotel Lobby section (entry + active) ──────────────────────────────────────
 export default function GhostFlashSection({
   isActive, flashUntil, flashTick, flashProfiles, onEnter, onExit, onSelectProfile,
   contactsUsed, contactLimit,
@@ -160,13 +165,13 @@ export default function GhostFlashSection({
   onSelectProfile: (p: GhostProfile) => void;
   contactsUsed: number; contactLimit: number;
 }) {
-  const liveCount = 8 + (Math.floor(Date.now() / 300000) % 17);
-  void flashTick; // triggers re-render for countdown
-  void onExit;    // part of public API — caller may wire an exit button
+  const guestCount = 8 + (Math.floor(Date.now() / 300000) % 17);
+  void flashTick;
+  void onExit;
 
-  // Auto-scroll: slowly left → then back right, pause at each end
+  // Auto-scroll lobby guests slowly left → right
   const scrollRef = useRef<HTMLDivElement>(null);
-  const dirRef = useRef<1 | -1>(1); // 1 = scrolling left, -1 = scrolling right
+  const dirRef = useRef<1 | -1>(1);
   const pauseRef = useRef(false);
   const userScrollRef = useRef(false);
   const userScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -189,7 +194,7 @@ export default function GhostFlashSection({
         el.scrollLeft += dirRef.current * 0.6;
         const atEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 2;
         const atStart = el.scrollLeft <= 2;
-        if (atEnd && dirRef.current === 1) { dirRef.current = -1; pauseRef.current = true; setTimeout(() => { pauseRef.current = false; }, 800); }
+        if (atEnd && dirRef.current === 1)   { dirRef.current = -1; pauseRef.current = true; setTimeout(() => { pauseRef.current = false; }, 800); }
         else if (atStart && dirRef.current === -1) { dirRef.current = 1; pauseRef.current = true; setTimeout(() => { pauseRef.current = false; }, 800); }
       }
       raf = requestAnimationFrame(step);
@@ -198,109 +203,120 @@ export default function GhostFlashSection({
     return () => { cancelAnimationFrame(raf); el.removeEventListener("scroll", onUserScroll); };
   }, [isActive]);
 
+  // ── Entry state — lobby door ──────────────────────────────────────────────
   if (!isActive) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
         style={{
           margin: "10px 14px 0",
-          background: "rgba(5,5,8,0.6)",
-          border: "1px solid rgba(74,222,128,0.25)",
+          background: "rgba(8,6,2,0.7)",
+          border: "1px solid rgba(212,175,55,0.25)",
           borderRadius: 16, overflow: "hidden",
         }}
       >
+        {/* Pulsing gold bar */}
         <motion.div
-          animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 2, repeat: Infinity }}
-          style={{ height: 2, background: "linear-gradient(90deg, #16a34a, #4ade80, #16a34a)" }}
+          animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2.2, repeat: Infinity }}
+          style={{ height: 2, background: "linear-gradient(90deg, #92660a, #d4af37, #f0d060, #d4af37, #92660a)" }}
         />
+
         <div style={{ padding: "14px 16px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3 }}>
                 <motion.span
-                  animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
-                  style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", display: "block", boxShadow: "0 0 8px rgba(74,222,128,0.9)", flexShrink: 0 }}
+                  animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
+                  style={{ width: 8, height: 8, borderRadius: "50%", background: "#d4af37", display: "block", boxShadow: "0 0 8px rgba(212,175,55,0.9)", flexShrink: 0 }}
                 />
-                <span style={{ fontSize: 14, fontWeight: 900, color: "#fff", letterSpacing: "0.05em" }}>⚡ Ghost Flash</span>
+                <span style={{ fontSize: 14, fontWeight: 900, color: "#fff", letterSpacing: "0.05em" }}>🏨 Hotel Lobby</span>
               </div>
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>
-                <span>60-min live pool · instant WhatsApp on like</span>
+                <span>Guests ready to go out · 60-min window</span>
               </p>
             </div>
             <div style={{ textAlign: "right" }}>
-              <p style={{ fontSize: 18, fontWeight: 900, color: "#4ade80", margin: 0 }}>{liveCount}</p>
-              <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", margin: 0 }}>live now</p>
+              <p style={{ fontSize: 18, fontWeight: 900, color: "#d4af37", margin: 0 }}>{guestCount}</p>
+              <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", margin: 0 }}>in lobby</p>
             </div>
           </div>
+
           <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
-            {["Enter Flash → you're visible to live members only", "Like someone in Flash → WhatsApp opens instantly", "Pool resets every 60 minutes — no dead profiles"].map((t) => (
+            {[
+              "Step into the lobby — you're visible to other guests only",
+              "Like a guest → WhatsApp opens instantly for both of you",
+              "Lobby clears every 60 minutes — only live guests shown",
+            ].map((t) => (
               <div key={t} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                <span style={{ color: "rgba(74,222,128,0.7)", fontSize: 11, flexShrink: 0, marginTop: 1 }}>⚡</span>
+                <span style={{ color: "#d4af37", fontSize: 11, flexShrink: 0, marginTop: 1 }}>🔑</span>
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{t}</span>
               </div>
             ))}
           </div>
+
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={onEnter}
-            animate={{ boxShadow: ["0 4px 16px rgba(34,197,94,0.3)", "0 4px 24px rgba(34,197,94,0.55)", "0 4px 16px rgba(34,197,94,0.3)"] }}
-            transition={{ duration: 1.8, repeat: Infinity }}
+            animate={{ boxShadow: ["0 4px 16px rgba(212,175,55,0.2)", "0 4px 28px rgba(212,175,55,0.45)", "0 4px 16px rgba(212,175,55,0.2)"] }}
+            transition={{ duration: 2, repeat: Infinity }}
             style={{
               width: "100%", height: 48, borderRadius: 14, border: "none",
-              background: "linear-gradient(135deg, #16a34a, #22c55e)",
-              color: "#fff", fontWeight: 900, fontSize: 14, cursor: "pointer",
+              background: "linear-gradient(135deg, #92660a, #d4af37, #f0d060)",
+              color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}
           >
-            <span style={{ fontSize: 16 }}>⚡</span>
-            <span>Enter Ghost Flash — Free</span>
+            <span style={{ fontSize: 16 }}>🏨</span>
+            <span>Step Into the Lobby — Free</span>
           </motion.button>
         </div>
       </motion.div>
     );
   }
 
-  // Active Flash state
+  // ── Active lobby state ────────────────────────────────────────────────────
   return (
-    <div style={{ margin: "10px 14px 0", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 16, overflow: "hidden", background: "rgba(5,5,8,0.5)" }}>
+    <div style={{ margin: "10px 14px 0", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 16, overflow: "hidden", background: "rgba(8,6,2,0.6)" }}>
       <motion.div
-        animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 0.8, repeat: Infinity }}
-        style={{ height: 2, background: "linear-gradient(90deg, #16a34a, #4ade80, #16a34a)" }}
+        animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1, repeat: Infinity }}
+        style={{ height: 2, background: "linear-gradient(90deg, #92660a, #d4af37, #f0d060, #d4af37, #92660a)" }}
       />
       <div style={{ padding: "10px 14px 12px" }}>
+
         {/* Header row */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <motion.span
-              animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 0.9, repeat: Infinity }}
-              style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 10px rgba(74,222,128,1)", display: "block", flexShrink: 0 }}
+              animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 1, repeat: Infinity }}
+              style={{ width: 8, height: 8, borderRadius: "50%", background: "#d4af37", boxShadow: "0 0 10px rgba(212,175,55,1)", display: "block", flexShrink: 0 }}
             />
-            <span style={{ fontSize: 13, lineHeight: 1 }}>⚡</span>
-            <span style={{ fontSize: 11, fontWeight: 900, color: "#4ade80", letterSpacing: "0.04em" }}>Ghosting</span>
-            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>· {liveCount} live now</span>
+            <span style={{ fontSize: 12 }}>🏨</span>
+            <span style={{ fontSize: 11, fontWeight: 900, color: "#d4af37", letterSpacing: "0.04em" }}>In the Lobby</span>
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>· {guestCount} guests</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {/* Contact limit pill */}
             <div style={{
               display: "flex", alignItems: "center", gap: 4,
-              background: contactsUsed >= contactLimit ? "rgba(239,68,68,0.15)" : "rgba(74,222,128,0.1)",
-              border: `1px solid ${contactsUsed >= contactLimit ? "rgba(239,68,68,0.3)" : "rgba(74,222,128,0.25)"}`,
+              background: contactsUsed >= contactLimit ? "rgba(239,68,68,0.15)" : "rgba(212,175,55,0.1)",
+              border: `1px solid ${contactsUsed >= contactLimit ? "rgba(239,68,68,0.3)" : "rgba(212,175,55,0.25)"}`,
               borderRadius: 8, padding: "2px 8px",
             }}>
-              <span style={{ fontSize: 9, fontWeight: 800, color: contactsUsed >= contactLimit ? "#f87171" : "rgba(74,222,128,0.9)", letterSpacing: "0.04em" }}>
+              <span style={{ fontSize: 9, fontWeight: 800, color: contactsUsed >= contactLimit ? "#f87171" : "#d4af37", letterSpacing: "0.04em" }}>
                 {contactsUsed >= contactLimit ? "LIMIT REACHED" : `${contactLimit - contactsUsed} left`}
               </span>
             </div>
+            {/* Countdown */}
             <motion.span
               animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1, repeat: Infinity }}
-              style={{ fontSize: 16, fontWeight: 900, color: "#4ade80", fontVariantNumeric: "tabular-nums", letterSpacing: "0.05em" }}
+              style={{ fontSize: 16, fontWeight: 900, color: "#d4af37", fontVariantNumeric: "tabular-nums", letterSpacing: "0.05em" }}
             >
               {fmtFlashTime(flashUntil)}
             </motion.span>
           </div>
         </div>
 
-        {/* Flash profiles horizontal scroll */}
+        {/* Guest profiles horizontal scroll */}
         {flashProfiles.length > 0 ? (
           <div ref={scrollRef} className="ghost-flash-scroll" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 6 } as React.CSSProperties}>
             {flashProfiles.map((p) => (
@@ -311,18 +327,19 @@ export default function GhostFlashSection({
               >
                 <div style={{ position: "relative", width: 60, height: 60 }}>
                   <motion.div
-                    animate={{ scale: [1, 1.2, 1], opacity: [0.7, 0, 0.7] }}
-                    transition={{ duration: 1.2, repeat: Infinity }}
-                    style={{ position: "absolute", inset: -4, borderRadius: "50%", border: "2px solid rgba(74,222,128,0.8)", pointerEvents: "none" }}
+                    animate={{ scale: [1, 1.18, 1], opacity: [0.6, 0, 0.6] }}
+                    transition={{ duration: 1.4, repeat: Infinity }}
+                    style={{ position: "absolute", inset: -4, borderRadius: "50%", border: "2px solid rgba(212,175,55,0.7)", pointerEvents: "none" }}
                   />
                   <img
                     src={p.image} alt=""
-                    style={{ width: 60, height: 60, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(74,222,128,0.6)", display: "block" }}
+                    style={{ width: 60, height: 60, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.55)", display: "block" }}
                     onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
                   />
-                  <div style={{ position: "absolute", bottom: -2, right: -2, width: 18, height: 18, borderRadius: "50%", background: "#050508", border: "1.5px solid rgba(74,222,128,0.7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 }}>⚡</div>
+                  {/* Room key badge */}
+                  <div style={{ position: "absolute", bottom: -2, right: -2, width: 18, height: 18, borderRadius: "50%", background: "#050508", border: "1.5px solid rgba(212,175,55,0.7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 }}>🔑</div>
                 </div>
-                <p style={{ fontSize: 8, color: "rgba(74,222,128,0.85)", fontWeight: 800, margin: 0 }}>
+                <p style={{ fontSize: 8, color: "#d4af37", fontWeight: 800, margin: 0 }}>
                   <span>{p.age}</span>
                 </p>
               </div>
@@ -330,11 +347,10 @@ export default function GhostFlashSection({
           </div>
         ) : (
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: 0, textAlign: "center", padding: "6px 0" }}>
-            <span>Waiting for others to enter Flash...</span>
+            <span>Waiting for guests to enter the lobby...</span>
           </p>
         )}
       </div>
     </div>
   );
 }
-
