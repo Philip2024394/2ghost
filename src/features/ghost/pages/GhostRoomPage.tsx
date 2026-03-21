@@ -431,9 +431,20 @@ type InboxItem = {
   type: "image" | "video" | "note";
   content: string;     // base64 for image, URL for video, text for note
   sentAt: number;
+  acceptedAt?: number; // set when user accepts — 30-day expiry counts from here
   status: "pending" | "accepted" | "declined";
   note?: string;       // optional caption/memory attached to media
 };
+
+const VAULT_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+// Returns days remaining for a free-tier user, null if Gold (no expiry)
+function getItemDaysLeft(item: InboxItem, tier: RoomTier): number | null {
+  if (tier === "gold") return null;
+  const from = item.acceptedAt || item.sentAt;
+  const msLeft = (from + VAULT_EXPIRY_MS) - Date.now();
+  return Math.max(0, Math.ceil(msLeft / (24 * 60 * 60 * 1000)));
+}
 
 function inboxKey(ghostId: string) { return `ghost_room_inbox_${ghostId}`; }
 function loadInbox(ghostId: string): InboxItem[] { return loadJson(inboxKey(ghostId), []); }
@@ -1025,13 +1036,45 @@ export default function GhostRoomPage() {
     }
   }, [roomCode]);
 
-  // Poll inbox every 10s for new incoming items
+  // Auto-purge expired vault items on mount (free users only)
+  useEffect(() => {
+    if (roomTier === "gold") return;
+    const now = Date.now();
+    const cleaned = loadInbox(myGhostId).filter((item) => {
+      if (item.status !== "accepted") return true;
+      const from = item.acceptedAt || item.sentAt;
+      return now - from < VAULT_EXPIRY_MS;
+    });
+    const full = loadInbox(myGhostId);
+    if (cleaned.length < full.length) {
+      setInbox(cleaned);
+      saveInbox(myGhostId, cleaned);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Poll inbox every 10s — also clean expired items each tick
   useEffect(() => {
     const t = setInterval(() => {
-      setInbox(loadInbox(myGhostId));
+      const fresh = loadInbox(myGhostId);
+      if (roomTier !== "gold") {
+        const now = Date.now();
+        const cleaned = fresh.filter((item) => {
+          if (item.status !== "accepted") return true;
+          const from = item.acceptedAt || item.sentAt;
+          return now - from < VAULT_EXPIRY_MS;
+        });
+        if (cleaned.length < fresh.length) {
+          saveInbox(myGhostId, cleaned);
+          setInbox(cleaned);
+          return;
+        }
+        setInbox(cleaned);
+      } else {
+        setInbox(fresh);
+      }
     }, 10000);
     return () => clearInterval(t);
-  }, [myGhostId]);
+  }, [myGhostId, roomTier]);
 
   // Pull in requests written for my Ghost ID
   useEffect(() => {
@@ -1090,7 +1133,7 @@ export default function GhostRoomPage() {
       setMyVideoUrls(next);
       saveJson(KEYS.videoUrls, next);
     }
-    const updated = inbox.map((i) => i.id === id ? { ...i, status: "accepted" as const } : i);
+    const updated = inbox.map((i) => i.id === id ? { ...i, status: "accepted" as const, acceptedAt: Date.now() } : i);
     setInbox(updated);
     saveInbox(myGhostId, updated);
   };
@@ -1999,6 +2042,40 @@ export default function GhostRoomPage() {
         {/* ── MY ROOM TAB ── */}
         {tab === "my" && (
           <div>
+            {/* Vault expiry nudge — free users with accepted items expiring soon */}
+            {roomTier !== "gold" && (() => {
+              const accepted = inbox.filter((i) => i.status === "accepted");
+              if (accepted.length === 0) return null;
+              const soonest = accepted.reduce((min, i) => {
+                const d = getItemDaysLeft(i, roomTier) ?? 999;
+                return d < min ? d : min;
+              }, 999);
+              if (soonest > 8) return null;
+              const urgent = soonest <= 3;
+              return (
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setTab("inbox")}
+                  style={{
+                    width: "100%", marginBottom: 12, borderRadius: 14,
+                    border: `1px solid ${urgent ? "rgba(239,68,68,0.35)" : "rgba(251,191,36,0.3)"}`,
+                    background: urgent ? "rgba(239,68,68,0.06)" : "rgba(251,191,36,0.05)",
+                    padding: "10px 14px", cursor: "pointer", textAlign: "left",
+                    display: "flex", alignItems: "center", gap: 10,
+                  }}
+                >
+                  <span style={{ fontSize: 20 }}>{urgent ? "🔴" : "⏳"}</span>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 12, fontWeight: 800, color: urgent ? "#f87171" : "#fbbf24", margin: 0 }}>
+                      {accepted.length} vault memor{accepted.length > 1 ? "ies" : "y"} expire{accepted.length === 1 ? "s" : ""} in {soonest} day{soonest === 1 ? "" : "s"}
+                    </p>
+                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>Tap to view · Upgrade to Gold to save forever</p>
+                  </div>
+                  <ChevronRight size={14} color="rgba(255,255,255,0.3)" />
+                </motion.button>
+              );
+            })()}
+
             {/* Room code block */}
             <div style={{ ...S.greenCard, backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/ghostert.png)", backgroundSize: "cover", backgroundPosition: "center", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", inset: 0, background: "rgba(4,8,4,0.72)" }} />
@@ -2519,6 +2596,57 @@ export default function GhostRoomPage() {
               </p>
             </div>
 
+            {/* 30-day expiry countdown banner — free users only */}
+            {roomTier !== "gold" && (() => {
+              const accepted = inbox.filter((i) => i.status === "accepted");
+              if (accepted.length === 0) return null;
+              const soonest = accepted.reduce((min, i) => {
+                const d = getItemDaysLeft(i, roomTier) ?? 999;
+                return d < min ? d : min;
+              }, 999);
+              const urgent = soonest <= 3;
+              const warning = soonest <= 8;
+              if (!warning) return null;
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    marginBottom: 14, borderRadius: 14, overflow: "hidden",
+                    border: `1px solid ${urgent ? "rgba(239,68,68,0.4)" : "rgba(251,191,36,0.35)"}`,
+                    background: urgent ? "rgba(239,68,68,0.07)" : "rgba(251,191,36,0.06)",
+                  }}
+                >
+                  <div style={{ padding: "14px 16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                      <span style={{ fontSize: 18 }}>{urgent ? "🔴" : "⏳"}</span>
+                      <p style={{ fontSize: 13, fontWeight: 900, color: urgent ? "#f87171" : "#fbbf24", margin: 0 }}>
+                        {urgent
+                          ? `Your vault memories expire in ${soonest} day${soonest === 1 ? "" : "s"}!`
+                          : `${accepted.length} memory${accepted.length > 1 ? "s" : ""} expire in ${soonest} days`}
+                      </p>
+                    </div>
+                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: "0 0 12px", lineHeight: 1.5 }}>
+                      Photos, videos and memory notes disappear permanently after 30 days on the free plan. Upgrade to Gold to keep everything forever.
+                    </p>
+                    <motion.button
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => navigate("/ghost/pricing")}
+                      style={{
+                        width: "100%", height: 40, borderRadius: 10, border: "none", cursor: "pointer",
+                        background: urgent
+                          ? "linear-gradient(135deg, #dc2626, #ef4444)"
+                          : "linear-gradient(135deg, #d97706, #fbbf24)",
+                        color: "#fff", fontSize: 13, fontWeight: 900,
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                      }}
+                    >
+                      🔑 Save Everything — Upgrade to Gold
+                    </motion.button>
+                  </div>
+                </motion.div>
+              );
+            })()}
+
             {inbox.length === 0 && (
               <div style={{ textAlign: "center", padding: "40px 20px" }}>
                 <span style={{ fontSize: 40 }}>📭</span>
@@ -2556,11 +2684,29 @@ export default function GhostRoomPage() {
                         </p>
                       </div>
                     </div>
-                    {item.status === "accepted" && (
-                      <span style={{ fontSize: 9, background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 5, padding: "2px 7px", color: "rgba(74,222,128,0.9)", fontWeight: 800 }}>
-                        ✅ Saved
-                      </span>
-                    )}
+                    {item.status === "accepted" && (() => {
+                      const daysLeft = getItemDaysLeft(item, roomTier);
+                      if (daysLeft === null) {
+                        // Gold — permanent
+                        return (
+                          <span style={{ fontSize: 9, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 5, padding: "2px 7px", color: "#d4af37", fontWeight: 800 }}>
+                            🔑 Permanent
+                          </span>
+                        );
+                      }
+                      const urgent = daysLeft <= 3;
+                      const warning = daysLeft <= 8;
+                      return (
+                        <span style={{
+                          fontSize: 9, borderRadius: 5, padding: "2px 7px", fontWeight: 800,
+                          background: urgent ? "rgba(239,68,68,0.15)" : warning ? "rgba(251,191,36,0.12)" : "rgba(74,222,128,0.12)",
+                          border: `1px solid ${urgent ? "rgba(239,68,68,0.4)" : warning ? "rgba(251,191,36,0.3)" : "rgba(74,222,128,0.25)"}`,
+                          color: urgent ? "#f87171" : warning ? "#fbbf24" : "rgba(74,222,128,0.85)",
+                        }}>
+                          {urgent ? `🔴 ${daysLeft}d left` : warning ? `⏳ ${daysLeft}d left` : `✅ ${daysLeft}d left`}
+                        </span>
+                      );
+                    })()}
                   </div>
 
                   {/* Preview */}
