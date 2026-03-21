@@ -13,6 +13,33 @@ const STANDARD_BG  = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrew
 
 type RoomTier = "standard" | "suite" | "kings" | "penthouse";
 
+const ROOM_BG_IMAGES: Record<RoomTier, string> = {
+  standard:  STANDARD_BG,
+  suite:     SUITE_BG,
+  kings:     KINGS_BG,
+  penthouse: PENTHOUSE_BG,
+};
+
+type RoomReview = { id: string; city: string; text: string; stars: number; ago: string };
+const ROOM_REVIEWS: Record<RoomTier, RoomReview[]> = {
+  standard: [
+    { id: "GH-4821", city: "Dubai",    stars: 4, ago: "3 weeks ago",  text: "Honest — got my first match in week one. Worth it just to test the waters." },
+    { id: "GH-2093", city: "London",   stars: 4, ago: "1 month ago",  text: "I knew after 2 weeks I'd be upgrading. Standard does what it says though." },
+  ],
+  suite: [
+    { id: "GH-7734", city: "Jakarta",  stars: 5, ago: "2 weeks ago",  text: "The weekly boost is real. I was top of the stack for a full hour. Matches came in." },
+    { id: "GH-3312", city: "Singapore",stars: 5, ago: "3 weeks ago",  text: "Big jump from Standard. Ghost Butler numbers alone make it worth it." },
+  ],
+  kings: [
+    { id: "GH-9901", city: "Riyadh",   stars: 5, ago: "1 week ago",   text: "4 open conversations right now. Unlimited unlocks is not a gimmick." },
+    { id: "GH-5588", city: "Paris",    stars: 5, ago: "2 weeks ago",  text: "Seeing who liked me changed how I use the app completely. Serious room." },
+  ],
+  penthouse: [
+    { id: "GH-0011", city: "Monaco",   stars: 5, ago: "5 days ago",   text: "You stop thinking about tiers when you're here. It's just a different level." },
+    { id: "GH-1199", city: "Tokyo",    stars: 5, ago: "1 week ago",   text: "4 meaningful conversations in one week on the floor. No noise, all signal." },
+  ],
+};
+
 function readTier(): RoomTier | null {
   try { return (localStorage.getItem("ghost_house_tier") as RoomTier | null) ?? null; } catch { return null; }
 }
@@ -114,6 +141,7 @@ export default function GhostRoomsPage() {
   const [currentTier, setCurrentTier] = useState<RoomTier | null>(readTier);
   const [buying,      setBuying]       = useState<RoomTier | null>(null);
   const [justBought,  setJustBought]   = useState<RoomTier | null>(null);
+  const [previewImg,  setPreviewImg]   = useState<string | null>(null);
 
   const handlePurchase = (tier: RoomTier) => {
     if (buying) return;
@@ -292,14 +320,69 @@ export default function GhostRoomsPage() {
                     <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>{room.price}</span>
                   </div>
 
+                  {/* Room image thumbnail */}
+                  <div
+                    onClick={() => setPreviewImg(ROOM_BG_IMAGES[room.key])}
+                    style={{
+                      width: "100%", height: 80, borderRadius: 10, overflow: "hidden",
+                      marginBottom: 12, cursor: "pointer", position: "relative",
+                      border: `1px solid ${room.color}22`,
+                    }}
+                  >
+                    <img
+                      src={ROOM_BG_IMAGES[room.key]} alt={room.name}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    />
+                    <div style={{
+                      position: "absolute", inset: 0,
+                      background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)",
+                    }} />
+                    <span style={{
+                      position: "absolute", bottom: 6, right: 8,
+                      fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.6)",
+                      letterSpacing: "0.08em",
+                    }}>TAP TO VIEW ↗</span>
+                  </div>
+
                   {/* Features */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 14 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 12 }}>
                     {room.features.map(f => (
                       <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
                         <Check size={11} color={owned ? room.color : "rgba(255,255,255,0.25)"} style={{ flexShrink: 0, marginTop: 2 }} />
                         <span style={{ fontSize: 11, color: owned ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.4)", lineHeight: 1.45 }}>{f}</span>
                       </div>
                     ))}
+                  </div>
+
+                  {/* Member reviews */}
+                  <div style={{ marginBottom: 14 }}>
+                    <p style={{ fontSize: 8, fontWeight: 800, color: `${room.color}66`, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>
+                      What members say
+                    </p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                      {ROOM_REVIEWS[room.key].map(r => (
+                        <div key={r.id} style={{
+                          background: "rgba(255,255,255,0.04)", borderRadius: 10,
+                          border: `1px solid ${room.color}18`, padding: "8px 10px",
+                        }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span style={{ fontSize: 9, fontWeight: 800, color: room.color }}>#{r.id}</span>
+                              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{r.city}</span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                              {"★".repeat(r.stars).split("").map((s, i) => (
+                                <span key={i} style={{ fontSize: 9, color: room.color }}>{s}</span>
+                              ))}
+                              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", marginLeft: 4 }}>{r.ago}</span>
+                            </div>
+                          </div>
+                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>
+                            "{r.text}"
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   {/* CTA */}
@@ -353,9 +436,9 @@ export default function GhostRoomsPage() {
             onClick={() => navigate("/ghost/penthouse")}
             style={{
               width: "100%", padding: "12px 16px", borderRadius: 14,
-              background: "rgba(232,121,249,0.05)", border: "1px dashed rgba(232,121,249,0.2)",
+              background: "rgba(212,175,55,0.05)", border: "1px dashed rgba(212,175,55,0.25)",
               cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between",
-              color: "rgba(232,121,249,0.7)", fontSize: 12, fontWeight: 700,
+              color: "rgba(212,175,55,0.7)", fontSize: 12, fontWeight: 700,
             }}
           >
             <span>🏙️ Explore the Penthouse Floor</span>
@@ -363,6 +446,45 @@ export default function GhostRoomsPage() {
           </button>
         </div>
       </div>
+
+      {/* Fullscreen image lightbox */}
+      <AnimatePresence>
+        {previewImg && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setPreviewImg(null)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 999,
+              background: "rgba(0,0,0,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: "24px",
+            }}
+          >
+            <motion.img
+              src={previewImg}
+              initial={{ scale: 0.88, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.88, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 280, damping: 26 }}
+              style={{
+                width: "100%", maxWidth: 480, maxHeight: "80dvh",
+                borderRadius: 20, objectFit: "cover",
+                border: "1px solid rgba(255,255,255,0.12)",
+                boxShadow: "0 0 80px rgba(0,0,0,0.8)",
+              }}
+              onClick={e => e.stopPropagation()}
+            />
+            <button
+              onClick={() => setPreviewImg(null)}
+              style={{
+                position: "absolute", top: 20, right: 20,
+                width: 36, height: 36, borderRadius: "50%",
+                background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)",
+                color: "#fff", fontSize: 18, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >×</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
