@@ -623,14 +623,16 @@ function fmtAgo(ts: number): string {
 
 // ── Send media to another Room Vault ─────────────────────────────────────────
 function SendMediaPanel({
-  myGhostId, myImages, myVideoUrls, cardStyle, inputStyle,
+  myGhostId, myImages, myVideoUrls, cardStyle, inputStyle, roomTier,
 }: {
   myGhostId: string;
   myImages: string[];
   myVideoUrls: string[];
   cardStyle: React.CSSProperties;
   inputStyle: React.CSSProperties;
+  roomTier: RoomTier;
 }) {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [targetId, setTargetId] = useState("");
   const [sendType, setSendType] = useState<"image" | "video" | "note">("image");
@@ -700,6 +702,34 @@ function SendMediaPanel({
       setTimeout(() => { setSent(false); setOpen(false); }, 2000);
     }, 800);
   };
+
+  // Free users cannot send — show locked state with upgrade CTA
+  if (roomTier === "free") {
+    return (
+      <div style={{ ...cardStyle, borderColor: "rgba(74,222,128,0.12)", position: "relative", overflow: "hidden" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <span style={{ fontSize: 20 }}>🔒</span>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: 0 }}>Send to Room Vault</p>
+            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>Ghost Suite & Gold Penthouse</p>
+          </div>
+        </div>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 14px", lineHeight: 1.6 }}>
+          Send photos, videos and memory notes directly into someone's private vault. Upgrade to unlock.
+        </p>
+        <button
+          onClick={() => navigate("/ghost/pricing")}
+          style={{
+            width: "100%", background: "linear-gradient(135deg, #16a34a, #4ade80)",
+            border: "none", borderRadius: 12, padding: "11px 0",
+            fontSize: 13, fontWeight: 900, color: "#000", cursor: "pointer",
+          }}
+        >
+          Upgrade to Send →
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={cardStyle}>
@@ -2614,7 +2644,7 @@ export default function GhostRoomPage() {
             </div>
 
             {/* Send media to another Room Vault */}
-            <SendMediaPanel myGhostId={myGhostId} myImages={myImages} myVideoUrls={myVideoUrls} cardStyle={S.card} inputStyle={S.input} />
+            <SendMediaPanel myGhostId={myGhostId} myImages={myImages} myVideoUrls={myVideoUrls} cardStyle={S.card} inputStyle={S.input} roomTier={roomTier} />
 
             {/* Deactivate */}
             <div style={{ ...S.card, borderColor: "rgba(239,68,68,0.15)" }}>
