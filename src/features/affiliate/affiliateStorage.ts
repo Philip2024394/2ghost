@@ -2,6 +2,16 @@
 
 export type AffiliateStatus = "active" | "paused";
 
+export type PayoutDetails = {
+  legalName:     string;
+  idType:        "KTP" | "Passport";
+  idNumber:      string;
+  bankName:      string;
+  accountNumber: string;
+  accountHolder: string;
+  submittedAt:   number;
+};
+
 export type Affiliate = {
   id: string;               // unique ref code, e.g. "BUDI123"
   name: string;
@@ -11,6 +21,9 @@ export type Affiliate = {
   status: AffiliateStatus;
   createdAt: number;
   commissionRate: number;   // percentage, default 25
+  agreedToTerms: boolean;
+  termsAgreedAt: number;
+  payoutDetails?: PayoutDetails;
 };
 
 export type ConversionType = "signup" | "suite" | "gold";

@@ -376,7 +376,38 @@ export default function AffiliateAdminPage() {
                     </div>
                     <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", margin: 0 }}>
                       Joined {new Date(selAffiliate.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                      {selAffiliate.termsAgreedAt ? ` · Terms agreed ${new Date(selAffiliate.termsAgreedAt).toLocaleDateString("id-ID")}` : ""}
                     </p>
+                  </div>
+
+                  {/* Payout details */}
+                  <div style={{
+                    ...S.card,
+                    borderColor: selAffiliate.payoutDetails ? "rgba(74,222,128,0.2)" : "rgba(251,191,36,0.2)",
+                    background: selAffiliate.payoutDetails ? "rgba(74,222,128,0.04)" : "rgba(251,191,36,0.04)",
+                  }}>
+                    <p style={{ fontSize: 12, fontWeight: 800, color: selAffiliate.payoutDetails ? "#4ade80" : "#fbbf24", margin: "0 0 8px" }}>
+                      {selAffiliate.payoutDetails ? "✅ Payout Details on File" : "⚠️ Payout Details Not Submitted"}
+                    </p>
+                    {selAffiliate.payoutDetails ? (
+                      [
+                        ["Legal Name",     selAffiliate.payoutDetails.legalName],
+                        ["ID Type",        selAffiliate.payoutDetails.idType],
+                        ["ID Number",      selAffiliate.payoutDetails.idNumber],
+                        ["Bank",           selAffiliate.payoutDetails.bankName],
+                        ["Account No.",    selAffiliate.payoutDetails.accountNumber],
+                        ["Account Holder", selAffiliate.payoutDetails.accountHolder],
+                      ].map(([label, val]) => (
+                        <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{label}</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: "#fff" }}>{val}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>
+                        Affiliate has not submitted KTP/Passport and bank account yet. Payment cannot be released.
+                      </p>
+                    )}
                   </div>
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
