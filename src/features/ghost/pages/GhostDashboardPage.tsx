@@ -715,6 +715,102 @@ export default function GhostDashboardPage() {
             </motion.button>
           </motion.div>
 
+          {/* ── Room Reviews section ── */}
+          {(() => {
+            type RoomTier = "standard" | "suite" | "kings" | "penthouse";
+            type UserReview = { id: string; tier: RoomTier; ghostId: string; city: string; stars: number; text: string; submittedAt: number };
+            let reviews: UserReview[] = [];
+            try { reviews = JSON.parse(localStorage.getItem("ghost_room_reviews") || "[]"); } catch {}
+            const currentTier = localStorage.getItem("ghost_house_tier") as RoomTier | null;
+            if (!currentTier && reviews.length === 0) return null;
+            const tierColor: Record<RoomTier, string> = { standard: "#c0c0c0", suite: "#cd7f32", kings: "#d4af37", penthouse: "#e8e4d0" };
+            const tierName:  Record<RoomTier, string> = { standard: "Standard Room", suite: "Suite Room", kings: "Kings Room", penthouse: "Penthouse" };
+            return (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }} style={{ marginBottom: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                  <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>
+                    My Room Reviews
+                  </p>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate("/ghost/rooms")}
+                    style={{ background: "none", border: "none", fontSize: 10, color: a.accent, cursor: "pointer", fontWeight: 700, padding: 0 }}
+                  >
+                    {currentTier && reviews.every(r => r.tier !== currentTier) ? "Rate your stay →" : "View rooms →"}
+                  </motion.button>
+                </div>
+
+                {reviews.length === 0 ? (
+                  <div style={{
+                    borderRadius: 14, padding: "14px 16px",
+                    background: currentTier ? `${tierColor[currentTier]}0a` : "rgba(255,255,255,0.03)",
+                    border: currentTier ? `1px solid ${tierColor[currentTier]}25` : "1px solid rgba(255,255,255,0.06)",
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                  }}>
+                    <div>
+                      <p style={{ fontSize: 12, fontWeight: 800, color: currentTier ? tierColor[currentTier] : "rgba(255,255,255,0.4)", margin: "0 0 3px" }}>
+                        {currentTier ? `You're in ${tierName[currentTier]}` : "No active room"}
+                      </p>
+                      <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>
+                        {currentTier ? "Share your experience — help other members choose" : "Visit Ghost Rooms to pick your tier"}
+                      </p>
+                    </div>
+                    {currentTier && (
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate("/ghost/rooms")}
+                        style={{
+                          flexShrink: 0, height: 34, borderRadius: 9,
+                          border: `1px solid ${tierColor[currentTier]}44`,
+                          background: `${tierColor[currentTier]}14`,
+                          color: tierColor[currentTier],
+                          fontSize: 11, fontWeight: 800, cursor: "pointer", padding: "0 14px",
+                        }}
+                      >
+                        🌟 Rate
+                      </motion.button>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {reviews.map(r => (
+                      <div key={r.id} style={{
+                        borderRadius: 14, padding: "12px 14px",
+                        background: `${tierColor[r.tier]}0a`,
+                        border: `1px solid ${tierColor[r.tier]}2a`,
+                      }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: 10, fontWeight: 900, color: tierColor[r.tier] }}>{tierName[r.tier]}</span>
+                            <span style={{ fontSize: 8, color: tierColor[r.tier], background: `${tierColor[r.tier]}18`, borderRadius: 4, padding: "1px 5px", fontWeight: 800 }}>✓ VERIFIED</span>
+                          </div>
+                          <div style={{ display: "flex", gap: 1 }}>
+                            {"★".repeat(r.stars).split("").map((_, i) => (
+                              <span key={i} style={{ fontSize: 9, color: tierColor[r.tier] }}>★</span>
+                            ))}
+                          </div>
+                        </div>
+                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", margin: "0 0 4px", lineHeight: 1.5, fontStyle: "italic" }}>"{r.text}"</p>
+                        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", margin: 0 }}>{r.city} · {r.ghostId}</p>
+                      </div>
+                    ))}
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => navigate("/ghost/rooms")}
+                      style={{
+                        width: "100%", height: 36, borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)",
+                        background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)",
+                        fontSize: 11, fontWeight: 700, cursor: "pointer",
+                      }}
+                    >
+                      Edit or add a review in Ghost Rooms →
+                    </motion.button>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })()}
+
           {/* ── Section 7: Quick Actions ── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
             <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>

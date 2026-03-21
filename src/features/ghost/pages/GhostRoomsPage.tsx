@@ -20,7 +20,169 @@ const ROOM_BG_IMAGES: Record<RoomTier, string> = {
   penthouse: PENTHOUSE_BG,
 };
 
-type RoomReview = { id: string; city: string; text: string; stars: number; ago: string };
+// ── Stored review helpers ────────────────────────────────────────────────────
+type UserReview = {
+  id: string; tier: RoomTier; ghostId: string;
+  city: string; stars: number; text: string; submittedAt: number;
+};
+function getStoredReviews(): UserReview[] {
+  try { return JSON.parse(localStorage.getItem("ghost_room_reviews") || "[]"); } catch { return []; }
+}
+function saveReview(r: UserReview): void {
+  try {
+    const all = getStoredReviews().filter(x => x.tier !== r.tier); // one per tier
+    localStorage.setItem("ghost_room_reviews", JSON.stringify([r, ...all]));
+  } catch {}
+}
+function getMyGhostId(): string {
+  try {
+    let id = localStorage.getItem("ghost_review_id");
+    if (!id) { id = "GH-" + (Math.floor(Math.random() * 9000) + 1000); localStorage.setItem("ghost_review_id", id); }
+    return id;
+  } catch { return "GH-0000"; }
+}
+function timeAgo(ts: number): string {
+  const m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 60)   return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m / 60)}h ago`;
+  const d = Math.floor(m / 1440);
+  return d === 1 ? "1 day ago" : d < 7 ? `${d} days ago` : d < 30 ? `${Math.floor(d / 7)} weeks ago` : `${Math.floor(d / 30)} months ago`;
+}
+
+// ── Review sheet component ───────────────────────────────────────────────────
+function ReviewSheet({ tier, color, gradient, onClose, onSubmit }: {
+  tier: RoomTier; color: string; gradient: string;
+  onClose: () => void; onSubmit: (r: UserReview) => void;
+}) {
+  const [stars, setStars] = useState(0);
+  const [city,  setCity]  = useState("");
+  const [text,  setText]  = useState("");
+  const [done,  setDone]  = useState(false);
+  const roomName = tier.charAt(0).toUpperCase() + tier.slice(1);
+  const canSubmit = stars > 0 && city.trim().length >= 2 && text.trim().length >= 20 && !done;
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    const review: UserReview = {
+      id: `usr-${Date.now()}`, tier,
+      ghostId: getMyGhostId(), city: city.trim(),
+      stars, text: text.trim(), submittedAt: Date.now(),
+    };
+    saveReview(review);
+    onSubmit(review);
+    setDone(true);
+    setTimeout(onClose, 2200);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 800,
+        background: "rgba(0,0,0,0.88)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+      }}
+    >
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: "100%", maxWidth: 480,
+          background: "rgba(8,8,12,0.99)", borderRadius: "24px 24px 0 0",
+          border: `1px solid ${color}25`, borderBottom: "none", overflow: "hidden",
+        }}
+      >
+        <div style={{ height: 3, background: gradient }} />
+        <div style={{ padding: "20px 20px max(32px,env(safe-area-inset-bottom,32px))" }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.08)", margin: "0 auto 18px" }} />
+
+          {done ? (
+            <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
+              <div style={{ fontSize: 40, marginBottom: 10 }}>🌟</div>
+              <p style={{ fontSize: 16, fontWeight: 900, color, margin: "0 0 6px" }}>Review submitted!</p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0 }}>Thanks for helping the Ghost community</p>
+            </div>
+          ) : (
+            <>
+              <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: "0 0 4px" }}>Rate your {roomName} stay</p>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "0 0 20px" }}>Your review helps other members choose the right room</p>
+
+              {/* Star picker */}
+              <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>Your rating</p>
+              <div style={{ display: "flex", gap: 10, marginBottom: 20, justifyContent: "center" }}>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <motion.button
+                    key={n} whileTap={{ scale: 0.85 }}
+                    onClick={() => setStars(n)}
+                    style={{
+                      width: 48, height: 48, borderRadius: 12, border: "none",
+                      background: n <= stars ? `${color}22` : "rgba(255,255,255,0.04)",
+                      outline: n <= stars ? `1.5px solid ${color}66` : "1px solid rgba(255,255,255,0.08)",
+                      cursor: "pointer", fontSize: 22,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    <span style={{ filter: n <= stars ? "none" : "grayscale(1)", opacity: n <= stars ? 1 : 0.35 }}>★</span>
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* City */}
+              <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 8px" }}>Your city</p>
+              <input
+                value={city} onChange={e => setCity(e.target.value.slice(0, 30))}
+                placeholder="e.g. Dubai, London, Tokyo..."
+                style={{
+                  width: "100%", borderRadius: 12, border: `1px solid ${color}25`,
+                  background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 13,
+                  padding: "11px 14px", outline: "none", fontFamily: "inherit",
+                  marginBottom: 14, boxSizing: "border-box",
+                }}
+              />
+
+              {/* Review text */}
+              <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 8px" }}>Your review</p>
+              <textarea
+                value={text} onChange={e => setText(e.target.value.slice(0, 220))}
+                placeholder="What was your experience? Did you get matches, use the boost, try the Ghost Butler?..."
+                rows={3}
+                style={{
+                  width: "100%", borderRadius: 12, border: `1px solid ${color}25`,
+                  background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 12,
+                  padding: "10px 12px", resize: "none", outline: "none",
+                  fontFamily: "inherit", lineHeight: 1.55, boxSizing: "border-box",
+                  marginBottom: 6,
+                }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 18 }}>
+                <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)" }}>Min. 20 characters</span>
+                <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>{text.length}/220</span>
+              </div>
+
+              <motion.button
+                whileTap={{ scale: 0.97 }} onClick={handleSubmit} disabled={!canSubmit}
+                style={{
+                  width: "100%", height: 50, borderRadius: 14, border: "none",
+                  background: canSubmit ? gradient : "rgba(255,255,255,0.06)",
+                  color: canSubmit ? "#0a0700" : "rgba(255,255,255,0.2)",
+                  fontSize: 14, fontWeight: 900, cursor: canSubmit ? "pointer" : "default",
+                  boxShadow: canSubmit ? `0 4px 20px ${color}44` : "none",
+                }}
+              >
+                Submit Review ✦
+              </motion.button>
+            </>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+type RoomReview = { id: string; city: string; text: string; stars: number; ago: string; verified?: boolean };
 const ROOM_REVIEWS: Record<RoomTier, RoomReview[]> = {
   standard: [
     { id: "GH-4821", city: "Dubai",    stars: 4, ago: "3 weeks ago",  text: "Honest — got my first match in week one. Worth it just to test the waters." },
@@ -138,10 +300,12 @@ const ROOMS = [
 export default function GhostRoomsPage() {
   const navigate  = useNavigate();
   useGenderAccent();
-  const [currentTier, setCurrentTier] = useState<RoomTier | null>(readTier);
-  const [buying,      setBuying]       = useState<RoomTier | null>(null);
-  const [justBought,  setJustBought]   = useState<RoomTier | null>(null);
-  const [previewImg,  setPreviewImg]   = useState<string | null>(null);
+  const [currentTier,   setCurrentTier]   = useState<RoomTier | null>(readTier);
+  const [buying,        setBuying]         = useState<RoomTier | null>(null);
+  const [justBought,    setJustBought]     = useState<RoomTier | null>(null);
+  const [previewImg,    setPreviewImg]     = useState<string | null>(null);
+  const [reviewTarget,  setReviewTarget]   = useState<RoomTier | null>(null);
+  const [storedReviews, setStoredReviews]  = useState<UserReview[]>(getStoredReviews);
 
   const handlePurchase = (tier: RoomTier) => {
     if (buying) return;
@@ -355,35 +519,54 @@ export default function GhostRoomsPage() {
                   </div>
 
                   {/* Member reviews */}
-                  <div style={{ marginBottom: 14 }}>
-                    <p style={{ fontSize: 8, fontWeight: 800, color: `${room.color}66`, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>
-                      What members say
-                    </p>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                      {ROOM_REVIEWS[room.key].map(r => (
-                        <div key={r.id} style={{
-                          background: "rgba(255,255,255,0.04)", borderRadius: 10,
-                          border: `1px solid ${room.color}18`, padding: "8px 10px",
-                        }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                              <span style={{ fontSize: 9, fontWeight: 800, color: room.color }}>#{r.id}</span>
-                              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{r.city}</span>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                              {"★".repeat(r.stars).split("").map((s, i) => (
-                                <span key={i} style={{ fontSize: 9, color: room.color }}>{s}</span>
-                              ))}
-                              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", marginLeft: 4 }}>{r.ago}</span>
-                            </div>
-                          </div>
-                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>
-                            "{r.text}"
+                  {(() => {
+                    const myReview = storedReviews.find(r => r.tier === room.key);
+                    const allReviews: RoomReview[] = [
+                      ...(myReview ? [{ id: myReview.ghostId, city: myReview.city, stars: myReview.stars, text: myReview.text, ago: timeAgo(myReview.submittedAt), verified: true }] : []),
+                      ...ROOM_REVIEWS[room.key],
+                    ];
+                    return (
+                      <div style={{ marginBottom: 14 }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                          <p style={{ fontSize: 8, fontWeight: 800, color: `${room.color}66`, letterSpacing: "0.12em", textTransform: "uppercase", margin: 0 }}>
+                            What members say
                           </p>
+                          {myReview && (
+                            <span style={{ fontSize: 8, color: `${room.color}88`, fontWeight: 700 }}>Your review ✓</span>
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                          {allReviews.map((r, i) => (
+                            <div key={`${r.id}-${i}`} style={{
+                              background: r.verified ? `${room.color}0a` : "rgba(255,255,255,0.04)",
+                              borderRadius: 10,
+                              border: `1px solid ${r.verified ? room.color + "33" : room.color + "18"}`,
+                              padding: "8px 10px",
+                            }}>
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                  <span style={{ fontSize: 9, fontWeight: 800, color: room.color }}>#{r.id}</span>
+                                  <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{r.city}</span>
+                                  {r.verified && (
+                                    <span style={{ fontSize: 7, fontWeight: 800, color: room.color, background: `${room.color}18`, borderRadius: 4, padding: "1px 5px" }}>✓ VERIFIED STAY</span>
+                                  )}
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                  {"★".repeat(r.stars).split("").map((s, si) => (
+                                    <span key={si} style={{ fontSize: 9, color: room.color }}>{s}</span>
+                                  ))}
+                                  <span style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", marginLeft: 4 }}>{r.ago}</span>
+                                </div>
+                              </div>
+                              <p style={{ fontSize: 10, color: r.verified ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>
+                                "{r.text}"
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* CTA */}
                   <AnimatePresence mode="wait">
@@ -397,8 +580,23 @@ export default function GhostRoomsPage() {
                         <span style={{ fontSize: 13, fontWeight: 800, color: room.color }}>Room Unlocked!</span>
                       </motion.div>
                     ) : owned ? (
-                      <div style={{ height: 44, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: `${room.color}10`, border: `1px solid ${room.color}30` }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: `${room.color}99` }}>Your current room</span>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <div style={{ flex: 1, height: 44, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: `${room.color}10`, border: `1px solid ${room.color}30` }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: `${room.color}99` }}>Your current room</span>
+                        </div>
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setReviewTarget(room.key)}
+                          style={{
+                            width: 90, height: 44, borderRadius: 12, border: `1px solid ${room.color}44`,
+                            background: `${room.color}14`, color: room.color,
+                            fontSize: 11, fontWeight: 800, cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                            flexShrink: 0,
+                          }}
+                        >
+                          🌟 Rate
+                        </motion.button>
                       </div>
                     ) : (
                       <motion.button
@@ -460,6 +658,23 @@ export default function GhostRoomsPage() {
           </button>
         </div>
       </div>
+
+      {/* Review sheet */}
+      <AnimatePresence>
+        {reviewTarget && (() => {
+          const room = ROOMS.find(r => r.key === reviewTarget)!;
+          return (
+            <ReviewSheet
+              key="review"
+              tier={reviewTarget}
+              color={room.color}
+              gradient={room.gradient}
+              onClose={() => setReviewTarget(null)}
+              onSubmit={r => setStoredReviews(prev => [r, ...prev.filter(x => x.tier !== r.tier)])}
+            />
+          );
+        })()}
+      </AnimatePresence>
 
       {/* Fullscreen image lightbox */}
       <AnimatePresence>
