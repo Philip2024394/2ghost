@@ -431,6 +431,20 @@ export default function GhostRoomsPage() {
             );
           })}
 
+          {/* Loft teaser link */}
+          <button
+            onClick={() => navigate("/ghost/loft")}
+            style={{
+              width: "100%", padding: "12px 16px", borderRadius: 14,
+              background: "rgba(139,92,246,0.06)", border: "1px dashed rgba(139,92,246,0.25)",
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between",
+              color: "rgba(139,92,246,0.75)", fontSize: 12, fontWeight: 700,
+            }}
+          >
+            <span>🪟 The Loft — Gay · Lesbian · The Mix</span>
+            <span style={{ fontSize: 16 }}>→</span>
+          </button>
+
           {/* Penthouse teaser link */}
           <button
             onClick={() => navigate("/ghost/penthouse")}
