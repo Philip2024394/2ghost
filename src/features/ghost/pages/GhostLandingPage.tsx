@@ -38,7 +38,7 @@ const HEARTS = [
   { delay: 1.6,  x: "48%",  size: 20, dur: 2.9, drift: -16, icon: "👨" },
   { delay: 2.0,  x: "58%",  size: 13, dur: 3.9, drift:  18, icon: "❤️" },
   { delay: 2.4,  x: "68%",  size: 16, dur: 3.3, drift:  -8, icon: "👩" },
-  { delay: 2.8,  x: "78%",  size: 11, dur: 4.2, drift:  12, icon: "💛" },
+  { delay: 2.8,  x: "78%",  size: 11, dur: 4.2, drift:  12, icon: "❤️" },
   { delay: 3.2,  x: "88%",  size: 15, dur: 3.6, drift: -14, icon: "👨" },
   { delay: 3.6,  x: "13%",  size: 22, dur: 2.8, drift:   6, icon: "💗" },
   { delay: 4.0,  x: "73%",  size: 18, dur: 3.4, drift: -10, icon: "👩" },
