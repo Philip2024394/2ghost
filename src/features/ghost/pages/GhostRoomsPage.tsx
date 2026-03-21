@@ -4,8 +4,9 @@ import { ArrowLeft, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 
-const ROOM_BG   = "https://ik.imagekit.io/7grri5v7d/ghost%20rooms.png";
-const GOLD_KEY  = "https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png";
+const ROOM_BG      = "https://ik.imagekit.io/7grri5v7d/ghost%20rooms.png";
+const GOLD_KEY     = "https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png";
+const KINGS_BG     = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrt.png";
 
 type RoomTier = "standard" | "suite" | "kings" | "penthouse";
 
@@ -198,12 +199,29 @@ export default function GhostRoomsPage() {
                   border: `1px solid ${owned ? room.border : "rgba(255,255,255,0.08)"}`,
                   overflow: "hidden",
                   boxShadow: owned ? `0 0 24px ${room.glow}` : "none",
+                  position: "relative",
                 }}
               >
-                {/* Top stripe */}
-                <div style={{ height: 3, background: owned ? room.gradient : "rgba(255,255,255,0.06)" }} />
+                {/* Kings Room background image */}
+                {room.key === "kings" && <>
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    backgroundImage: `url(${KINGS_BG})`,
+                    backgroundSize: "cover", backgroundPosition: "center",
+                    opacity: 0.5,
+                    pointerEvents: "none",
+                  }} />
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: "linear-gradient(to right, rgba(10,7,0,0.78), rgba(10,7,0,0.5))",
+                    pointerEvents: "none",
+                  }} />
+                </>}
 
-                <div style={{ padding: "14px 16px 16px" }}>
+                {/* Top stripe */}
+                <div style={{ height: 3, background: owned ? room.gradient : "rgba(255,255,255,0.06)", position: "relative", zIndex: 1 }} />
+
+                <div style={{ padding: "14px 16px 16px", position: "relative", zIndex: 1 }}>
                   {/* Title row */}
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
                     <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{room.icon}</span>
