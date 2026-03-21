@@ -63,6 +63,19 @@
     @apply border-border;
     /* Prevent text selection flash on tap */
     -webkit-tap-highlight-color: transparent;
+    /* Disable blue text-selection highlight throughout the app */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Re-enable selection only where text input is expected */
+  input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
   }
 
   html {
