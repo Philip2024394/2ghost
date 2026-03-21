@@ -38,7 +38,7 @@ function mockSendOtp(phone: string): string {
   return String(100000 + Math.abs(h) % 900000);
 }
 
-// ── Ghost Vault subscription paywall ──────────────────────────────────────────
+// ── Room Vault subscription paywall ──────────────────────────────────────────
 function RoomPaywall({ onPaid }: { onPaid: () => void }) {
   const navigate = useNavigate();
   return (
@@ -70,13 +70,13 @@ function RoomPaywall({ onPaid }: { onPaid: () => void }) {
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <img src={GHOST_LOGO} alt="ghost" style={{ width: 52, height: 52, objectFit: "contain" }} />
           <div>
-            <h2 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0 }}>Ghost Vault</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0 }}>Room Vault</h2>
             <p style={{ fontSize: 11, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600 }}>Private shared space · media storage</p>
           </div>
         </div>
 
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 0 18px" }}>
-          Ghost Vault stores your shared photos and videos on secure private servers. Storage has a real cost — so Ghost Vault requires a small subscription for everyone, including women.
+          Room Vault stores your shared photos and videos on secure private servers. Storage has a real cost — so Room Vault requires a small subscription for everyone, including women.
         </p>
 
         <div style={{ background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)", borderRadius: 12, padding: "12px 14px", marginBottom: 20 }}>
@@ -111,7 +111,7 @@ function RoomPaywall({ onPaid }: { onPaid: () => void }) {
           }}
         >
           <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
-          Unlock Ghost Vault — 19,000 IDR
+          Unlock Room Vault — 19,000 IDR
         </motion.button>
 
         <button
@@ -223,7 +223,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
             <img src={GHOST_LOGO} alt="ghost" style={{ width: 168, height: 168, objectFit: "contain" }} />
           </motion.div>
           <h1 style={{ fontSize: 26, fontWeight: 900, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
-            Ghost Vault
+            Room Vault
           </h1>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0 }}>
             {step === "phone"
@@ -453,39 +453,87 @@ function saveInbox(ghostId: string, items: InboxItem[]) { saveJson(inboxKey(ghos
 // ── Storage tiers (tied to Ghost Rooms subscription) ──────────────────────────
 type RoomTier = "free" | "suite" | "gold";
 
+type RoomAmenity = { icon: string; label: string; detail: string; available: boolean };
+
 const ROOM_TIERS: Record<RoomTier, {
-  label: string; price: string;
+  label: string; hotelName: string; hotelDesc: string; hotelType: string;
+  price: string; priceNote: string;
   images: number; videos: number;
   imageMaxMB: number; videoMaxMB: number; videoMaxSec: number;
   imageFormats: string; videoFormats: string;
   badge: string; color: string; bgRgba: string; borderRgba: string;
+  roomGradient: string; occupancy: number;
+  amenities: RoomAmenity[];
 }> = {
   free: {
-    label: "Seller Room", price: "Free",
+    label: "Standard Room", hotelName: "Standard Room", hotelType: "Single · Ground Floor",
+    hotelDesc: "Clean, private, and all yours to start",
+    price: "Free", priceNote: "included with your account",
     images: 3,  videos: 1,
     imageMaxMB: 5,   videoMaxMB: 30,  videoMaxSec: 30,
     imageFormats: "JPG · PNG · WEBP (max 5 MB each)",
     videoFormats: "MP4 · MOV · WEBM (max 30 MB · 30 sec)",
-    badge: "👻", color: "rgba(255,255,255,0.4)",
+    badge: "👻", color: "rgba(255,255,255,0.55)",
     bgRgba: "rgba(255,255,255,0.03)", borderRgba: "rgba(255,255,255,0.1)",
+    roomGradient: "linear-gradient(160deg, #0d1117 0%, #161b22 50%, #1c2128 100%)",
+    occupancy: 1247,
+    amenities: [
+      { icon: "🛏️", label: "Single Bed",       detail: "3 photo slots",          available: true  },
+      { icon: "📺", label: "Basic TV",          detail: "1 video slot",           available: true  },
+      { icon: "🔒", label: "Room Safe",         detail: "Private vault code",     available: true  },
+      { icon: "📅", label: "30-day Stay",       detail: "Files expire after 30d", available: true  },
+      { icon: "📤", label: "Room Service",      detail: "Send vault media",       available: false },
+      { icon: "💬", label: "Pillow Notes",      detail: "Memory messages",        available: false },
+      { icon: "🍾", label: "Minibar",           detail: "Butler gifting",         available: false },
+      { icon: "🔑", label: "Late Checkout",     detail: "Files never expire",     available: false },
+    ],
   },
   suite: {
-    label: "Ghost Suite", price: "$4.99/mo",
+    label: "Ghost Suite", hotelName: "Ghost Suite", hotelType: "Double · City View",
+    hotelDesc: "The full experience — send, share, connect",
+    price: "$4.99/mo", priceNote: "billed monthly · cancel anytime",
     images: 10, videos: 3,
     imageMaxMB: 10,  videoMaxMB: 100, videoMaxSec: 120,
     imageFormats: "JPG · PNG · WEBP (max 10 MB each)",
     videoFormats: "MP4 · MOV · WEBM (max 100 MB · 2 min)",
     badge: "🏨", color: "rgba(74,222,128,0.9)",
     bgRgba: "rgba(74,222,128,0.06)", borderRgba: "rgba(74,222,128,0.2)",
+    roomGradient: "linear-gradient(160deg, #052010 0%, #0a3320 50%, #0d4a2d 100%)",
+    occupancy: 384,
+    amenities: [
+      { icon: "🛏️", label: "Double Bed",       detail: "10 photo slots",         available: true  },
+      { icon: "🎬", label: "Entertainment",     detail: "3 video slots",          available: true  },
+      { icon: "🔒", label: "Room Safe",         detail: "Private vault code",     available: true  },
+      { icon: "📤", label: "Room Service",      detail: "Send vault media",       available: true  },
+      { icon: "💬", label: "Pillow Notes",      detail: "Memory messages",        available: true  },
+      { icon: "💜", label: "Soul Pack",         detail: "Shared vault link",      available: true  },
+      { icon: "🍾", label: "Minibar",           detail: "Butler gifting",         available: false },
+      { icon: "🔑", label: "Late Checkout",     detail: "Files never expire",     available: false },
+    ],
   },
   gold: {
-    label: "Gold Room",   price: "$9.99/mo",
+    label: "Gold Penthouse", hotelName: "Gold Penthouse", hotelType: "King · Penthouse Floor",
+    hotelDesc: "The pinnacle — everything, permanent, yours forever",
+    price: "$9.99/mo", priceNote: "billed monthly · cancel anytime",
     images: 50, videos: 10,
     imageMaxMB: 20,  videoMaxMB: 300, videoMaxSec: 300,
     imageFormats: "JPG · PNG · WEBP (max 20 MB each)",
     videoFormats: "MP4 · MOV · WEBM (max 300 MB · 5 min)",
     badge: "🔑", color: "#d4af37",
     bgRgba: "rgba(212,175,55,0.07)", borderRgba: "rgba(212,175,55,0.35)",
+    roomGradient: "linear-gradient(160deg, #1a1000 0%, #2d1f00 50%, #3d2b00 100%)",
+    occupancy: 89,
+    amenities: [
+      { icon: "👑", label: "King Bed",          detail: "50 photo slots",         available: true  },
+      { icon: "🎬", label: "Cinema Room",       detail: "10 video slots",         available: true  },
+      { icon: "🔒", label: "Room Safe",         detail: "Private vault code",     available: true  },
+      { icon: "📤", label: "Room Service",      detail: "Send vault media",       available: true  },
+      { icon: "💬", label: "Pillow Notes",      detail: "Memory messages",        available: true  },
+      { icon: "🛁", label: "Private Hot Tub",   detail: "300MB video uploads",    available: true  },
+      { icon: "🍾", label: "Minibar",           detail: "Butler gifting",         available: true  },
+      { icon: "🔑", label: "Late Checkout",     detail: "Files never expire",     available: true  },
+      { icon: "💜", label: "Soul Pack",         detail: "Permanent shared vault", available: true  },
+    ],
   },
 };
 
@@ -573,7 +621,7 @@ function fmtAgo(ts: number): string {
   return `${Math.floor(d / 86400)}d ago`;
 }
 
-// ── Send media to another Ghost Vault ─────────────────────────────────────────
+// ── Send media to another Room Vault ─────────────────────────────────────────
 function SendMediaPanel({
   myGhostId, myImages, myVideoUrls, cardStyle, inputStyle,
 }: {
@@ -661,7 +709,7 @@ function SendMediaPanel({
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 16 }}>📤</span>
-          <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>Send Media to a Ghost Vault</p>
+          <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>Send Media to a Room Vault</p>
         </div>
         <motion.span animate={{ rotate: open ? 180 : 0 }} style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>▾</motion.span>
       </button>
@@ -879,7 +927,7 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
           <div style={{ textAlign: "center", marginBottom: 18 }}>
             <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #4ade80, #22c55e, #4ade80, transparent)", marginBottom: 20, borderRadius: 2 }} />
             <h2 style={{ fontSize: 28, fontWeight: 900, color: "#fff", margin: "0 0 10px", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-              Ghost Vault
+              Room Vault
             </h2>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
               <span style={{
@@ -1020,7 +1068,7 @@ export default function GhostRoomPage() {
     if (searchParams.get("code")) setTab("enter");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Inbox — items sent TO me by other Ghost Vault holders
+  // Inbox — items sent TO me by other Room Vault holders
   const [inbox, setInbox] = useState<InboxItem[]>(() => loadInbox(myGhostId));
 
   const imgRef = useRef<HTMLInputElement>(null);
@@ -1610,7 +1658,7 @@ export default function GhostRoomPage() {
                           display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                         }}
                       >
-                        <ShieldOff size={14} /> Delete Everything & Exit Ghost Vault
+                        <ShieldOff size={14} /> Delete Everything & Exit Room Vault
                       </motion.button>
                     ) : (
                       <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 14, padding: "14px 16px" }}>
@@ -1972,7 +2020,7 @@ export default function GhostRoomPage() {
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 15 }}>🚪</span>
-            <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Ghost Vault</h1>
+            <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Room Vault</h1>
             <span style={{ fontSize: 10, background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 6, padding: "1px 6px", color: "rgba(74,222,128,0.9)", fontWeight: 800 }}>PRIVATE</span>
           </div>
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>{myGhostId} · code-gated vault</p>
@@ -2076,11 +2124,47 @@ export default function GhostRoomPage() {
               );
             })()}
 
+            {/* Your Current Room — hotel style */}
+            <div style={{ borderRadius: 18, overflow: "hidden", marginBottom: 14, border: `1.5px solid ${tierInfo.borderRgba}`, boxShadow: `0 0 32px ${tierInfo.bgRgba}` }}>
+              {/* Room visual header */}
+              <div style={{ background: tierInfo.roomGradient, padding: "20px 18px 16px", position: "relative" }}>
+                <div style={{ position: "absolute", top: 12, right: 12, background: tierInfo.color, borderRadius: 6, padding: "3px 9px", fontSize: 9, fontWeight: 900, color: roomTier === "gold" ? "#000" : "#000" }}>
+                  CHECKED IN
+                </div>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>{tierInfo.badge}</div>
+                <p style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>{tierInfo.hotelName}</p>
+                <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "0 0 10px" }}>{tierInfo.hotelType} · Ghost Hotel</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {tierInfo.amenities.filter(a => a.available).slice(0, 4).map(a => (
+                    <div key={a.label} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.08)", borderRadius: 20, padding: "3px 9px" }}>
+                      <span style={{ fontSize: 10 }}>{a.icon}</span>
+                      <span style={{ fontSize: 9, color: "rgba(255,255,255,0.7)", fontWeight: 700 }}>{a.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Upgrade nudge for non-gold */}
+              {roomTier !== "gold" && (
+                <div style={{ background: "rgba(0,0,0,0.4)", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>
+                    Want a better room?
+                  </p>
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => setShowUpgrade(true)}
+                    style={{ height: 30, borderRadius: 8, padding: "0 12px", border: "none", cursor: "pointer", background: "linear-gradient(135deg, #92660a, #d4af37)", color: "#000", fontSize: 10, fontWeight: 900 }}
+                  >
+                    Upgrade Room →
+                  </motion.button>
+                </div>
+              )}
+            </div>
+
             {/* Room code block */}
             <div style={{ ...S.greenCard, backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/ghostert.png)", backgroundSize: "cover", backgroundPosition: "center", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", inset: 0, background: "rgba(4,8,4,0.72)" }} />
               <div style={{ position: "relative", zIndex: 1 }}>
-              <p style={S.label}>Your Ghost Vault Code</p>
+              <p style={S.label}>Your Room Vault Code</p>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                 <div style={{
                   flex: 1, height: 52, borderRadius: 12,
@@ -2179,7 +2263,7 @@ export default function GhostRoomPage() {
             <div style={S.card}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>Ghost Vault Rental</p>
+                  <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>Room Vault Rental</p>
                   <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", fontWeight: 600, margin: 0 }}>100% secure private rooms</p>
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 800, color: tierInfo.color }}>{tierInfo.badge} {tierInfo.label}</span>
@@ -2349,36 +2433,103 @@ export default function GhostRoomPage() {
               {showUpgrade && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   onClick={() => setShowUpgrade(false)}
-                  style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+                  style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(16px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
                   <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    transition={{ type: "spring", stiffness: 280, damping: 30 }}
                     onClick={(e) => e.stopPropagation()}
-                    style={{ width: "100%", maxWidth: 480, background: "rgba(8,8,14,0.99)", borderRadius: "20px 20px 0 0", border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none", padding: "20px 16px max(32px,env(safe-area-inset-bottom,32px))" }}>
-                    <div style={{ height: 3, background: "linear-gradient(90deg,#16a34a,#4ade80,#d4af37)", borderRadius: 3, marginBottom: 18 }} />
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                      <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>🔑 Upgrade Your Room</p>
-                      <button onClick={() => setShowUpgrade(false)} style={{ background: "rgba(255,255,255,0.06)", border: "none", borderRadius: 8, width: 30, height: 30, cursor: "pointer", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    style={{ width: "100%", maxWidth: 480, background: "rgba(6,6,10,0.99)", borderRadius: "24px 24px 0 0", borderTop: "1px solid rgba(255,255,255,0.1)", borderLeft: "1px solid rgba(255,255,255,0.06)", borderRight: "1px solid rgba(255,255,255,0.06)", paddingBottom: "max(28px,env(safe-area-inset-bottom,28px))" }}>
+
+                    {/* Handle bar */}
+                    <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
+                      <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)" }} />
+                    </div>
+
+                    {/* Header */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 20px 16px" }}>
+                      <div>
+                        <p style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0 }}>Choose Your Room</p>
+                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "2px 0 0" }}>Ghost Hotel · Room Vault</p>
+                      </div>
+                      <button onClick={() => setShowUpgrade(false)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, width: 32, height: 32, cursor: "pointer", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <X size={14} />
                       </button>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-                      {(Object.entries(ROOM_TIERS) as [RoomTier, typeof ROOM_TIERS[RoomTier]][]).map(([key, t]) => (
-                        <div key={key} style={{ borderRadius: 14, padding: "13px 16px", border: `1px solid ${roomTier === key ? t.color : "rgba(255,255,255,0.08)"}`, background: roomTier === key ? t.bgRgba : "rgba(255,255,255,0.02)", opacity: roomTier === key ? 1 : 0.75 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                            <p style={{ fontSize: 14, fontWeight: 900, color: t.color, margin: 0 }}>{t.badge} {t.label} {roomTier === key && <span style={{ fontSize: 9, background: t.bgRgba, border: `1px solid ${t.borderRgba}`, borderRadius: 5, padding: "1px 6px", color: t.color, marginLeft: 4 }}>YOUR PLAN</span>}</p>
-                            <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", margin: 0 }}>{t.price}</p>
-                          </div>
-                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "0 0 2px" }}>📷 {t.images} photos · {t.imageFormats}</p>
-                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: 0 }}>🎬 {t.videos} video{t.videos !== 1 ? "s" : ""} · {t.videoFormats}</p>
-                        </div>
-                      ))}
+
+                    {/* Room cards — horizontal scroll */}
+                    <div style={{ overflowX: "auto", paddingBottom: 4 }}>
+                      <div style={{ display: "flex", gap: 12, padding: "0 20px 4px", width: "max-content" }}>
+                        {(Object.entries(ROOM_TIERS) as [RoomTier, typeof ROOM_TIERS[RoomTier]][]).map(([key, t]) => {
+                          const isCurrent = roomTier === key;
+                          const isUpgrade = key !== "free" && !isCurrent;
+                          return (
+                            <div key={key} style={{
+                              width: 220, borderRadius: 18, overflow: "hidden", flexShrink: 0,
+                              border: `1.5px solid ${isCurrent ? t.color : "rgba(255,255,255,0.08)"}`,
+                              boxShadow: isCurrent ? `0 0 24px ${t.bgRgba}` : "none",
+                            }}>
+                              {/* Room visual header */}
+                              <div style={{ background: t.roomGradient, padding: "18px 16px 14px", position: "relative", minHeight: 100 }}>
+                                {isCurrent && (
+                                  <div style={{ position: "absolute", top: 10, right: 10, background: t.color, borderRadius: 6, padding: "2px 8px", fontSize: 9, fontWeight: 900, color: "#000" }}>
+                                    YOUR ROOM
+                                  </div>
+                                )}
+                                <div style={{ fontSize: 32, marginBottom: 6 }}>{t.badge}</div>
+                                <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>{t.hotelName}</p>
+                                <p style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", margin: "0 0 8px" }}>{t.hotelType}</p>
+                                <p style={{ fontSize: 10, color: t.color, margin: 0, lineHeight: 1.4, fontWeight: 600 }}>{t.hotelDesc}</p>
+                              </div>
+
+                              {/* Amenities */}
+                              <div style={{ background: "rgba(255,255,255,0.02)", padding: "12px 14px" }}>
+                                {t.amenities.map((a) => (
+                                  <div key={a.label} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7, opacity: a.available ? 1 : 0.3 }}>
+                                    <span style={{ fontSize: 13, width: 18, textAlign: "center", flexShrink: 0 }}>{a.icon}</span>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <p style={{ fontSize: 11, fontWeight: 700, color: a.available ? "#fff" : "rgba(255,255,255,0.4)", margin: 0 }}>{a.label}</p>
+                                      <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", margin: 0 }}>{a.detail}</p>
+                                    </div>
+                                    <span style={{ fontSize: 10, color: a.available ? t.color : "rgba(255,255,255,0.15)", flexShrink: 0 }}>
+                                      {a.available ? "✓" : "✕"}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Occupancy + CTA */}
+                              <div style={{ background: "rgba(0,0,0,0.3)", padding: "10px 14px 14px" }}>
+                                <p style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", margin: "0 0 8px" }}>
+                                  🟢 {t.occupancy.toLocaleString()} guests checked in
+                                </p>
+                                {isCurrent ? (
+                                  <div style={{ height: 36, borderRadius: 10, background: t.bgRgba, border: `1px solid ${t.borderRgba}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                    <span style={{ fontSize: 11, fontWeight: 800, color: t.color }}>Currently Checked In</span>
+                                  </div>
+                                ) : (
+                                  <motion.button
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={() => { setShowUpgrade(false); navigate("/ghost/pricing"); }}
+                                    style={{
+                                      width: "100%", height: 36, borderRadius: 10, border: "none", cursor: "pointer",
+                                      background: key === "gold"
+                                        ? "linear-gradient(135deg, #92660a, #d4af37)"
+                                        : "linear-gradient(135deg, #16a34a, #22c55e)",
+                                      color: key === "gold" ? "#000" : "#fff",
+                                      fontSize: 11, fontWeight: 900,
+                                    }}
+                                  >
+                                    {isUpgrade ? `Check In — ${t.price}` : "View Plans →"}
+                                  </motion.button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowUpgrade(false); navigate("/ghost/mode"); }}
-                      style={{ width: "100%", height: 46, borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4ade80,#16a34a)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" }}>
-                      Upgrade in Ghost Rooms →
-                    </motion.button>
-                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "10px 0 0", textAlign: "center" }}>
-                      Vault storage is included with your Ghost Rooms subscription
+
+                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "12px 20px 0", textAlign: "center" }}>
+                      🔒 Secure checkout · Cancel anytime · 190+ countries
                     </p>
                   </motion.div>
                 </motion.div>
@@ -2462,7 +2613,7 @@ export default function GhostRoomPage() {
               )}
             </div>
 
-            {/* Send media to another Ghost Vault */}
+            {/* Send media to another Room Vault */}
             <SendMediaPanel myGhostId={myGhostId} myImages={myImages} myVideoUrls={myVideoUrls} cardStyle={S.card} inputStyle={S.input} />
 
             {/* Deactivate */}
@@ -2485,7 +2636,7 @@ export default function GhostRoomPage() {
         {tab === "enter" && (
           <div>
             <div style={S.greenCard}>
-              <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 4px" }}>Enter a Ghost Vault</p>
+              <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 4px" }}>Enter a Room Vault</p>
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "0 0 14px" }}>
                 Paste a 6-character room code to view their private room — or enter someone's Ghost ID (Ghost-XXXX) to request access.
               </p>
@@ -2592,7 +2743,7 @@ export default function GhostRoomPage() {
           <div>
             <div style={{ ...S.card, marginBottom: 14 }}>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0, lineHeight: 1.6 }}>
-                When another Ghost Vault holder sends you an image or video, it appears here. Accept to save it to your room — decline to remove it permanently.
+                When another Room Vault holder sends you an image or video, it appears here. Accept to save it to your room — decline to remove it permanently.
               </p>
             </div>
 
@@ -2765,7 +2916,7 @@ export default function GhostRoomPage() {
           <div>
             <div style={{ ...S.card, marginBottom: 16 }}>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0 }}>
-                All your active matches — connections expire after 48h if WhatsApp isn't opened. Tap to open WhatsApp or grant Ghost Vault access.
+                All your active matches — connections expire after 48h if WhatsApp isn't opened. Tap to open WhatsApp or grant Room Vault access.
               </p>
             </div>
 
