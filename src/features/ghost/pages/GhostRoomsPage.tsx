@@ -8,6 +8,7 @@ const ROOM_BG      = "https://ik.imagekit.io/7grri5v7d/ghost%20rooms.png";
 const GOLD_KEY     = "https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png";
 const KINGS_BG     = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrt.png";
 const PENTHOUSE_BG = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsd.png";
+const SUITE_BG     = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsds.png";
 
 type RoomTier = "standard" | "suite" | "kings" | "penthouse";
 
@@ -215,6 +216,22 @@ export default function GhostRoomsPage() {
                   <div style={{
                     position: "absolute", inset: 0,
                     background: "linear-gradient(to right, rgba(10,7,0,0.78), rgba(10,7,0,0.5))",
+                    pointerEvents: "none",
+                  }} />
+                </>}
+
+                {/* Suite background image */}
+                {room.key === "suite" && <>
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    backgroundImage: `url(${SUITE_BG})`,
+                    backgroundSize: "cover", backgroundPosition: "center",
+                    opacity: 0.5,
+                    pointerEvents: "none",
+                  }} />
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: "linear-gradient(to right, rgba(2,10,4,0.78), rgba(2,10,4,0.5))",
                     pointerEvents: "none",
                   }} />
                 </>}
