@@ -19,7 +19,8 @@ const GhostBlockPage    = lazyWithRetry(() => import("./features/ghost/pages/Gho
 const GhostRoomPage     = lazyWithRetry(() => import("./features/ghost/pages/GhostRoomPage"));
 const GhostMapPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostMapPage"));
 const GhostDashboardPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostDashboardPage"));
-const GhostPaymentSuccessPage = lazyWithRetry(() => import("./features/ghost/pages/GhostPaymentSuccessPage"));
+const GhostPaymentSuccessPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostPaymentSuccessPage"));
+const GhostOnboardingPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostOnboardingPage"));
 
 // Affiliate
 const AffiliateJoinPage      = lazyWithRetry(() => import("./features/affiliate/pages/AffiliateJoinPage"));
@@ -60,6 +61,7 @@ export default function App() {
           <Route path="/ghost/map"   element={<GhostMapPage />} />
           <Route path="/ghost/dashboard"       element={<GhostDashboardPage />} />
           <Route path="/ghost/payment-success" element={<GhostPaymentSuccessPage />} />
+          <Route path="/ghost/onboarding"      element={<GhostOnboardingPage />} />
 
           {/* Affiliate */}
           <Route path="/affiliate/join"          element={<AffiliateJoinPage />} />
