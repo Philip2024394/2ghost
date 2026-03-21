@@ -8,6 +8,7 @@ const ROOM_BG      = "https://ik.imagekit.io/7grri5v7d/ghost%20rooms.png";
 const GOLD_KEY     = "https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png";
 const KINGS_BG     = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrt.png";
 const PENTHOUSE_BG = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsd.png";
+const LOFT_BG      = ""; // user to provide image
 const SUITE_BG     = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsds.png";
 const STANDARD_BG  = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsdsterte.png";
 
@@ -673,33 +674,238 @@ export default function GhostRoomsPage() {
             );
           })}
 
-          {/* Loft teaser link */}
-          <button
-            onClick={() => navigate("/ghost/loft")}
-            style={{
-              width: "100%", padding: "12px 16px", borderRadius: 14,
-              background: "rgba(139,92,246,0.06)", border: "1px dashed rgba(139,92,246,0.25)",
-              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between",
-              color: "rgba(139,92,246,0.75)", fontSize: 12, fontWeight: 700,
-            }}
-          >
-            <span>🪟 The Loft — Gay · Lesbian · The Mix</span>
-            <span style={{ fontSize: 16 }}>→</span>
-          </button>
+          {/* ── The Loft floor card ── */}
+          {(() => {
+            const VIOLET  = "#8b5cf6";
+            const VBORDER = "rgba(139,92,246,0.4)";
+            const VBG     = "rgba(139,92,246,0.07)";
+            const VGLOW   = "rgba(139,92,246,0.45)";
+            const VGRAD   = "linear-gradient(135deg, #4c1d95, #7c3aed, #a78bfa)";
+            const loftReviews = [
+              { id: "GH-3341", city: "Berlin",  stars: 5, ago: "1 week ago",  text: "Finally a space that actually feels safe. Met someone real in week one." },
+              { id: "GH-7712", city: "London",  stars: 5, ago: "2 weeks ago", text: "The Men's Lounge is exactly what was missing. Quality people, no noise." },
+            ];
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.28, type: "spring", stiffness: 280, damping: 24 }}
+                style={{
+                  borderRadius: 18, background: VBG,
+                  border: `1px solid ${VBORDER}`,
+                  overflow: "hidden", position: "relative",
+                  boxShadow: `0 0 24px ${VGLOW}`,
+                }}
+              >
+                {/* Background image */}
+                {LOFT_BG && <>
+                  <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${LOFT_BG})`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.5, pointerEvents: "none" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(8,4,18,0.78), rgba(8,4,18,0.5))", pointerEvents: "none" }} />
+                </>}
+                {!LOFT_BG && (
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(76,29,149,0.3), rgba(139,92,246,0.1))", pointerEvents: "none" }} />
+                )}
 
-          {/* Penthouse teaser link */}
-          <button
-            onClick={() => navigate("/ghost/penthouse")}
-            style={{
-              width: "100%", padding: "12px 16px", borderRadius: 14,
-              background: "rgba(212,175,55,0.05)", border: "1px dashed rgba(212,175,55,0.25)",
-              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between",
-              color: "rgba(212,175,55,0.7)", fontSize: 12, fontWeight: 700,
-            }}
-          >
-            <span>🏙️ Explore the Penthouse Floor</span>
-            <span style={{ fontSize: 16 }}>→</span>
-          </button>
+                {/* Top stripe */}
+                <div style={{ height: 3, background: VGRAD, position: "relative", zIndex: 1 }} />
+
+                <div style={{ padding: "14px 16px 16px", position: "relative", zIndex: 1 }}>
+                  {/* Title row */}
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
+                    <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>🪟</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 16, fontWeight: 900, color: VIOLET }}>The Loft</span>
+                        <span style={{ fontSize: 9, fontWeight: 800, padding: "2px 8px", borderRadius: 20, background: `${VIOLET}22`, border: `1px solid ${VIOLET}55`, color: VIOLET, letterSpacing: "0.08em" }}>
+                          EXCLUSIVE FLOOR
+                        </span>
+                      </div>
+                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Gay · Lesbian · The Mix — curated & safe</p>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>$29.99 / mo</span>
+                  </div>
+
+                  {/* Room image thumbnail */}
+                  {LOFT_BG && (
+                    <div
+                      onClick={() => setPreviewImg(LOFT_BG)}
+                      style={{ width: "100%", height: 80, borderRadius: 10, overflow: "hidden", marginBottom: 12, cursor: "pointer", position: "relative", border: `1px solid ${VIOLET}22` }}
+                    >
+                      <img src={LOFT_BG} alt="The Loft" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />
+                      <span style={{ position: "absolute", bottom: 6, right: 8, fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em" }}>TAP TO VIEW ↗</span>
+                    </div>
+                  )}
+
+                  {/* Features */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 12 }}>
+                    {[
+                      "Three curated sections — Men's Lounge · Women's Suite · The Mix",
+                      "Admin-verified guests only — max 30 per city floor",
+                      "Send gifts with a personal opener note",
+                      "2 free gifts daily — coins for more",
+                      "Mutual like → private Vault chat opens",
+                      "Browse other city Lofts for +$14.99/city",
+                      "Safe, respectful, anonymous — always",
+                    ].map(f => (
+                      <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                        <Check size={11} color={VIOLET} style={{ flexShrink: 0, marginTop: 2 }} />
+                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.45 }}>{f}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Reviews */}
+                  <div style={{ marginBottom: 14 }}>
+                    <p style={{ fontSize: 8, fontWeight: 800, color: `${VIOLET}66`, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>What members say</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                      {loftReviews.map(r => (
+                        <div key={r.id} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 10, border: `1px solid ${VIOLET}18`, padding: "8px 10px" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span style={{ fontSize: 9, fontWeight: 800, color: VIOLET }}>#{r.id}</span>
+                              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{r.city}</span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                              {"★".repeat(r.stars).split("").map((_, i) => <span key={i} style={{ fontSize: 9, color: VIOLET }}>★</span>)}
+                              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", marginLeft: 4 }}>{r.ago}</span>
+                            </div>
+                          </div>
+                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>"{r.text}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => navigate("/ghost/loft")}
+                    style={{
+                      width: "100%", height: 44, borderRadius: 12, border: "none",
+                      background: VGRAD, color: "#fff",
+                      fontSize: 13, fontWeight: 800, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                      boxShadow: `0 3px 16px ${VGLOW}`,
+                    }}
+                  >
+                    🪟 Enter The Loft →
+                  </motion.button>
+                </div>
+              </motion.div>
+            );
+          })()}
+
+          {/* ── Penthouse floor card ── */}
+          {(() => {
+            const GOLD   = "#d4af37";
+            const GGRAD  = "linear-gradient(135deg, #92660a, #d4af37, #f0d060)";
+            const GGLOW  = "rgba(212,175,55,0.45)";
+            const penthouseReviews = [
+              { id: "GH-0011", city: "Monaco", stars: 5, ago: "5 days ago",  text: "You stop thinking about tiers when you're here. It's just a different level." },
+              { id: "GH-1199", city: "Tokyo",  stars: 5, ago: "1 week ago",  text: "4 meaningful conversations in one week on the floor. No noise, all signal." },
+            ];
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.32, type: "spring", stiffness: 280, damping: 24 }}
+                style={{
+                  borderRadius: 18, background: "rgba(212,175,55,0.07)",
+                  border: `1px solid rgba(212,175,55,0.4)`,
+                  overflow: "hidden", position: "relative",
+                  boxShadow: `0 0 24px ${GGLOW}`,
+                }}
+              >
+                {/* Background image */}
+                <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${PENTHOUSE_BG})`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.5, pointerEvents: "none" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(6,4,2,0.78), rgba(6,4,2,0.5))", pointerEvents: "none" }} />
+
+                {/* Top stripe */}
+                <div style={{ height: 3, background: GGRAD, position: "relative", zIndex: 1 }} />
+
+                <div style={{ padding: "14px 16px 16px", position: "relative", zIndex: 1 }}>
+                  {/* Title row */}
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
+                    <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>🏙️</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 16, fontWeight: 900, color: GOLD }}>Penthouse Floor</span>
+                        <span style={{ fontSize: 9, fontWeight: 800, padding: "2px 8px", borderRadius: 20, background: `${GOLD}22`, border: `1px solid ${GOLD}55`, color: GOLD, letterSpacing: "0.08em" }}>
+                          ELITE FLOOR
+                        </span>
+                      </div>
+                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>The highest floor. Reserved for the elite.</p>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>$49.99 / mo</span>
+                  </div>
+
+                  {/* Room image thumbnail */}
+                  <div
+                    onClick={() => setPreviewImg(PENTHOUSE_BG)}
+                    style={{ width: "100%", height: 80, borderRadius: 10, overflow: "hidden", marginBottom: 12, cursor: "pointer", position: "relative", border: `1px solid ${GOLD}22` }}
+                  >
+                    <img src={PENTHOUSE_BG} alt="Penthouse" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />
+                    <span style={{ position: "absolute", bottom: 6, right: 8, fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em" }}>TAP TO VIEW ↗</span>
+                  </div>
+
+                  {/* Features */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 12 }}>
+                    {[
+                      "Admin-curated women only — max 30 per city floor",
+                      "Landscape cards with bio, religion & stay type",
+                      "Send gifts with a personal opener note",
+                      "2 free gifts daily — coins for more",
+                      "Mutual like → private Vault chat opens",
+                      "Browse other city floors for +$19.99/city",
+                      "Vault chat never expires for members",
+                    ].map(f => (
+                      <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                        <Check size={11} color={GOLD} style={{ flexShrink: 0, marginTop: 2 }} />
+                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.45 }}>{f}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Reviews */}
+                  <div style={{ marginBottom: 14 }}>
+                    <p style={{ fontSize: 8, fontWeight: 800, color: `${GOLD}66`, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>What members say</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                      {penthouseReviews.map(r => (
+                        <div key={r.id} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 10, border: `1px solid ${GOLD}18`, padding: "8px 10px" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span style={{ fontSize: 9, fontWeight: 800, color: GOLD }}>#{r.id}</span>
+                              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{r.city}</span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                              {"★".repeat(r.stars).split("").map((_, i) => <span key={i} style={{ fontSize: 9, color: GOLD }}>★</span>)}
+                              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", marginLeft: 4 }}>{r.ago}</span>
+                            </div>
+                          </div>
+                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>"{r.text}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => navigate("/ghost/penthouse")}
+                    style={{
+                      width: "100%", height: 44, borderRadius: 12, border: "none",
+                      background: GGRAD, color: "#0a0700",
+                      fontSize: 13, fontWeight: 800, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                      boxShadow: `0 3px 16px ${GGLOW}`,
+                    }}
+                  >
+                    🏙️ Enter the Penthouse Floor →
+                  </motion.button>
+                </div>
+              </motion.div>
+            );
+          })()}
         </div>
       </div>
 
