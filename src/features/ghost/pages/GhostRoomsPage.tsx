@@ -909,7 +909,7 @@ export default function GhostRoomsPage() {
 
           {/* ── The Cellar floor card ── */}
           {(() => {
-            const CELLAR_BG_CARD = ""; // user to provide image
+            const CELLAR_BG_CARD = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsdstertefsdfsddsd.png";
             const CRIM   = "#c0392b";
             const CGRAD  = "linear-gradient(135deg, #6b0f0f, #c0392b, #e8553f)";
             const CGLOW  = "rgba(192,57,43,0.45)";
@@ -956,6 +956,16 @@ export default function GhostRoomsPage() {
                       <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Flirty · Naughty · Wild — bold & no judgement</p>
                     </div>
                     <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>$24.99 / mo</span>
+                  </div>
+
+                  {/* Room image thumbnail */}
+                  <div
+                    onClick={() => setPreviewImg(CELLAR_BG_CARD)}
+                    style={{ width: "100%", height: 80, borderRadius: 10, overflow: "hidden", marginBottom: 12, cursor: "pointer", position: "relative", border: `1px solid rgba(192,57,43,0.22)` }}
+                  >
+                    <img src={CELLAR_BG_CARD} alt="The Cellar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />
+                    <span style={{ position: "absolute", bottom: 6, right: 8, fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em" }}>TAP TO VIEW ↗</span>
                   </div>
 
                   {/* Features */}

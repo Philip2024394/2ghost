@@ -15,7 +15,7 @@ import {
 import CellarLandscapeCard from "../components/CellarLandscapeCard";
 
 // ── Image — user to provide ──────────────────────────────────────────────────
-const CELLAR_BG = ""; // fill in when image is ready
+const CELLAR_BG = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsdstertefsdfsddsd.png";
 
 const CRIMSON      = "#c0392b";
 const CRIMSON_GRAD = "linear-gradient(135deg, #6b0f0f, #c0392b, #e8553f)";
