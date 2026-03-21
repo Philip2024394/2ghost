@@ -14,7 +14,7 @@ import {
 import LoftLandscapeCard from "../components/LoftLandscapeCard";
 
 // ── Image — user to provide ──────────────────────────────────────────────────
-const LOFT_BG = ""; // fill in when image is ready
+const LOFT_BG = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsdstertefsdfsd.png";
 
 const VIOLET       = "#8b5cf6";
 const VIOLET_GRAD  = "linear-gradient(135deg, #4c1d95, #7c3aed, #a78bfa)";
