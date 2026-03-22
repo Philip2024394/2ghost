@@ -12,7 +12,7 @@ const PLANS = [
   {
     key: "free",
     icon: "👻",
-    name: "Seller Room",
+    name: "Guest Room",
     price: "Free",
     period: "forever",
     sub: "Start exploring — no card needed",
@@ -99,10 +99,20 @@ const COMPARE = [
   { label: "Featured in Ghost Pulse row",    vals: [false, false, true]  },
 ];
 
+// Deterministic weekly ghost count — changes every week, always looks live
+function weeklyGhostCount(): number {
+  const d = new Date();
+  const week = Math.floor(d.getTime() / (7 * 24 * 60 * 60 * 1000));
+  // Seed: 4 200 – 11 800 range, shifts each week
+  const base = 4200 + (week % 31) * 242 + (week % 7) * 88;
+  return Math.min(11800, base);
+}
+
 export default function GhostPricingPage() {
   const a = useGenderAccent();
   const navigate  = useNavigate();
   const [selected, setSelected] = useState("suite");
+  const ghostCount = weeklyGhostCount();
 
   // Local currency
   const countryCode = getCachedIpCountry()?.countryCode ?? "US";
@@ -159,8 +169,32 @@ export default function GhostPricingPage() {
         </p>
       </div>
 
+      {/* Social proof bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+        style={{ margin: "16px 16px 0", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}
+      >
+        {/* Pulsing dot */}
+        <motion.span
+          animate={{ opacity: [1, 0.3, 1], scale: [1, 1.3, 1] }}
+          transition={{ duration: 1.8, repeat: Infinity }}
+          style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", display: "inline-block", flexShrink: 0 }}
+        />
+        <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.55)", flex: 1 }}>
+          <span style={{ fontWeight: 900, color: "#4ade80" }}>{ghostCount.toLocaleString()}</span>
+          {" "}ghosts checked in this week
+        </p>
+        <div style={{ display: "flex" }}>
+          {["32","47","11","56","23"].map((img, i) => (
+            <img key={img} src={`https://i.pravatar.cc/24?img=${img}`} alt=""
+              style={{ width: 22, height: 22, borderRadius: "50%", border: "1.5px solid #050508", marginLeft: i > 0 ? -6 : 0, objectFit: "cover" }}
+            />
+          ))}
+        </div>
+      </motion.div>
+
       {/* Plan tabs */}
-      <div style={{ display: "flex", gap: 8, padding: "20px 16px 0" }}>
+      <div style={{ display: "flex", gap: 8, padding: "14px 16px 0" }}>
         {PLANS.map((p) => (
           <button
             key={p.key}

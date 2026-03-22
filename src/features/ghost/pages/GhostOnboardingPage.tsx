@@ -8,16 +8,16 @@ const LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%20202
 const SLIDES = [
   {
     icon: "🔒",
-    gradient: null, // gender-driven, set at render time
-    border: null,   // gender-driven
-    accent: null,   // gender-driven
-    title: "Privacy From the first Second",
-    subtitle: "Your real name is never exposed.",
-    body: "2Ghost will never display your real name to anyone searching unless your connection is real. You control your privacy until you decide when to share. Total privacy from the first second.",
+    gradient: null,
+    border: null,
+    accent: null,
+    title: "Ghost From the Start",
+    subtitle: "Your identity is yours to reveal",
+    body: "You are Ghost-XXXX until you choose otherwise. No full name, no social login, no algorithm that knows you better than you know yourself. You control when — and who — gets to see the real you.",
     detail: [
-      "🔒 Hidden until you match",
-      "📵 No social login required",
-      "👻 Ghost ID protects your identity",
+      "🔒 Ghost ID hides your identity completely",
+      "📵 No social login — zero data leaks",
+      "👻 Reveal yourself only when you're ready",
     ],
   },
   {
@@ -25,55 +25,69 @@ const SLIDES = [
     gradient: "linear-gradient(135deg, rgba(212,175,55,0.15), rgba(180,140,20,0.05))",
     border: "rgba(212,175,55,0.2)",
     accent: "#d4af37",
-    title: "Your Hotel Room",
-    subtitle: "A private space just for you two.",
-    body: "Every match gets a shared Room Vault — a secure private space to exchange photos, videos, and memory notes. Your moments, stored safely away from the world.",
+    title: "Six Floors. One Hotel.",
+    subtitle: "Choose the floor that fits you",
+    body: "Standard, Suite, Kings Room, Penthouse, Garden Lodge, The Cellar. Each floor is a different world — different energy, different people, different pace. Your floor badge tells your story before you say a word.",
     detail: [
-      "🖼️ Share photos & videos privately",
-      "💬 Leave memory notes",
-      "🗑️ Auto-deletes — nothing permanent",
+      "🏆 Exclusive floor access per tier",
+      "💬 Live floor chat with real guests",
+      "🔑 Room badge on your profile card",
     ],
   },
   {
-    icon: "⚡",
-    gradient: "linear-gradient(135deg, rgba(251,191,36,0.15), rgba(217,119,6,0.05))",
-    border: "rgba(251,191,36,0.2)",
-    accent: "#fbbf24",
-    title: "Hotel Lobby",
-    subtitle: "Meet people free right now.",
-    body: "Step into the Hotel Lobby when you're available to meet tonight. See who else is in the lobby at the same time. When two guests match — step out together.",
+    icon: "📻",
+    gradient: "linear-gradient(135deg, rgba(139,92,246,0.15), rgba(109,40,217,0.05))",
+    border: "rgba(139,92,246,0.22)",
+    accent: "#a78bfa",
+    title: "The Floor is Alive",
+    subtitle: "Real conversations happening right now",
+    body: "Every floor has a live chat where real guests talk, send gifts, and connect anonymously. Send a Ghost Radio voice note — up to 30 seconds, completely anonymous. Gift a rose, champagne, or diamond to someone who catches your eye.",
     detail: [
-      "🏨 Real-time availability",
-      "🔑 Room key for matched guests",
-      "🌙 Tonight only — no lingering",
+      "🎤 Ghost Radio — anonymous voice notes",
+      "🎁 Send gifts to guests on your floor",
+      "💬 Direct message anyone anonymously",
     ],
   },
   {
-    icon: "🚪",
-    gradient: "linear-gradient(135deg, rgba(239,68,68,0.12), rgba(185,28,28,0.04))",
-    border: "rgba(239,68,68,0.18)",
-    accent: "#f87171",
-    title: "No Vacancy",
-    subtitle: "You control who gets in.",
-    body: "Not feeling it? Hang the No Vacancy sign. Block anyone from ever entering your space — they'll never know it's personal. You're the hotel manager.",
+    icon: "🌫️",
+    gradient: "linear-gradient(135deg, rgba(99,102,241,0.14), rgba(67,56,202,0.05))",
+    border: "rgba(99,102,241,0.22)",
+    accent: "#818cf8",
+    title: "The Séance & The Whisper",
+    subtitle: "Connect without revealing yourself",
+    body: "Send a Whisper — one anonymous message per week that could quietly turn into a match. Or enter a Séance — a private 15-minute chat where both of you decide to reveal or stay hidden. No awkward rejection. No pressure.",
     detail: [
-      "🚫 Silent block — no drama",
-      "🏨 You decide every guest",
-      "🔇 Blocked guests see a full hotel",
+      "💨 Whisper — one anonymous message per week",
+      "🌫️ Séance — mutual reveal or stay hidden",
+      "⏱️ 15 minutes to feel if it's real",
     ],
   },
   {
-    icon: "💛",
+    icon: "🔐",
+    gradient: "linear-gradient(135deg, rgba(20,184,166,0.13), rgba(15,118,110,0.05))",
+    border: "rgba(20,184,166,0.2)",
+    accent: "#2dd4bf",
+    title: "You Control Everything",
+    subtitle: "Privacy tools no other app gives you",
+    body: "Ghost Clock opens a 2-hour window when you're actively looking — outside that window, you're invisible. Your Video Introduction stays locked in the Vault until you personally approve each request. Ghost Score lets matches rate each other — anonymously.",
+    detail: [
+      "⏰ Ghost Clock — 2-hour active window mode",
+      "🎬 Video Vault — your approval required",
+      "⭐ Ghost Score — anonymous ratings system",
+    ],
+  },
+  {
+    icon: "👻",
     gradient: `linear-gradient(135deg, rgba(74,222,128,0.15), rgba(212,175,55,0.08))`,
     border: "rgba(74,222,128,0.2)",
     accent: "#4ade80",
-    title: "Ghost Match",
-    subtitle: "Real connections, zero pressure.",
-    body: "When you're both ready, share your WhatsApp and step out of the hotel together. No algorithm, no swiping gallery — just two people choosing each other at the right moment.",
+    title: "When You're Both Ready",
+    subtitle: "Real connection. Zero pressure.",
+    body: "No swiping gallery. No algorithm deciding your worth. When two ghosts are ready — they step out together. Connect on WhatsApp, then let the Date Concierge suggest where to meet. The rest is entirely yours.",
     detail: [
-      "✅ Mutual grant before contact",
-      "📱 WhatsApp connect when ready",
-      "💜 2Ghost Soul Pack for close matches",
+      "✅ Mutual reveal — both must choose it",
+      "📱 WhatsApp connect completely on your terms",
+      "🍽️ Date Concierge plans your first meeting",
     ],
   },
 ];
@@ -156,7 +170,9 @@ export default function GhostOnboardingPage() {
 
   const finish = () => {
     try { localStorage.setItem("ghost_onboarded", "1"); } catch {}
-    navigate("/ghost/mode", { replace: true });
+    // Better flow: setup profile first, then browse, paywall hits naturally
+    const hasProfile = !!localStorage.getItem("ghost_profile");
+    navigate(hasProfile ? "/ghost/mode" : "/ghost/setup", { replace: true });
   };
 
   const _s = SLIDES[slide];
