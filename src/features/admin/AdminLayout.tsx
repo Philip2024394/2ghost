@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import {
   LayoutDashboard, Users, CreditCard, Wrench,
   Ghost, LogOut, UserCheck, ChevronRight, ClipboardList, Activity, BarChart2,
-  Monitor, X, RefreshCw, ExternalLink, Smartphone,
+  Monitor, X, RefreshCw, ExternalLink, Smartphone, ShieldCheck,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { isAdminAuthenticated, adminLogout } from "./adminAuth";
@@ -17,6 +17,7 @@ const NAV = [
   { path: "/admin/traffic",   label: "Traffic",        icon: BarChart2       },
   { path: "/admin/profiles",  label: "Mock Profiles",  icon: Ghost           },
   { path: "/admin/users",     label: "Real Users",     icon: UserCheck       },
+  { path: "/admin/control",  label: "User Control",   icon: ShieldCheck     },
   { path: "/admin/payments",  label: "Payments",       icon: CreditCard      },
   { path: "/admin/services",  label: "Butler Services",icon: Wrench          },
 ];

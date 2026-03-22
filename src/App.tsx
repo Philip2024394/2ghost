@@ -49,7 +49,8 @@ const AdminPaymentsPage = lazyWithRetry(() => import("./features/admin/pages/Adm
 const AdminServicesPage = lazyWithRetry(() => import("./features/admin/pages/AdminServicesPage"));
 const AdminTasksPage    = lazyWithRetry(() => import("./features/admin/pages/AdminTasksPage"));
 const AdminHealthPage   = lazyWithRetry(() => import("./features/admin/pages/AdminHealthPage"));
-const AdminTrafficPage  = lazyWithRetry(() => import("./features/admin/pages/AdminTrafficPage"));
+const AdminTrafficPage      = lazyWithRetry(() => import("./features/admin/pages/AdminTrafficPage"));
+const AdminUserControlPage  = lazyWithRetry(() => import("./features/admin/pages/AdminUserControlPage"));
 
 // Request push notification permission and subscribe to push
 async function requestPushPermission() {
@@ -127,6 +128,7 @@ export default function App() {
             <Route path="users"     element={<AdminUsersPage />} />
             <Route path="payments"  element={<AdminPaymentsPage />} />
             <Route path="services"  element={<AdminServicesPage />} />
+            <Route path="control"   element={<AdminUserControlPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/ghost" replace />} />

@@ -884,20 +884,27 @@ export default function FloorChatPopup({
             </div>
           </div>
         ) : (
-          <div style={{ flexShrink: 0, padding: "14px 16px max(18px,env(safe-area-inset-bottom,18px))", borderTop: `1px solid ${a.glow(0.2)}`, background: "rgba(6,6,10,0.99)" }}>
-            <div style={{ background: a.glow(0.07), border: `1px solid ${a.glow(0.24)}`, borderRadius: 16, padding: "16px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                <span style={{ fontSize: 22 }}>{tierIcon}</span>
+          <div style={{ flexShrink: 0, padding: "14px 16px max(18px,env(safe-area-inset-bottom,18px))", borderTop: `1px solid ${a.glow(0.3)}`, background: "rgba(6,6,10,0.99)" }}>
+            <div style={{ background: a.glow(0.07), border: `1px solid ${a.glow(0.28)}`, borderRadius: 16, padding: "18px 16px" }}>
+              {/* Lock icon + heading */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: a.glow(0.14), border: `1px solid ${a.glow(0.35)}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <span style={{ fontSize: 20 }}>🔒</span>
+                </div>
                 <div>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: a.accent }}>{tierLabel} Floor Chat</p>
-                  <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Members only · Unlimited messages · Media sharing</p>
+                  <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#fff" }}>Floor Chat Requires a Membership</p>
+                  <p style={{ margin: 0, fontSize: 10, color: a.glow(0.7), fontWeight: 700, marginTop: 2 }}>Monthly subscription · Starts at {CHAT_PRICES[tier] ?? "$2.99"}/mo</p>
                 </div>
               </div>
+              {/* Description */}
+              <p style={{ margin: "0 0 14px", fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
+                The {tierLabel} chat is a live floor for members only. Subscribe to send messages, share media, interact with other members, and access the full floor experience.
+              </p>
               <motion.button whileTap={{ scale: 0.97 }} onClick={handleSubscribe}
-                style={{ width: "100%", height: 46, borderRadius: 12, border: "none", background: a.gradient, color: "#0a0700", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 20px ${a.glow(0.35)}`, marginBottom: 8 }}>
-                Join for {CHAT_PRICES[tier] ?? "$2.99/mo"}
+                style={{ width: "100%", height: 48, borderRadius: 12, border: "none", background: a.gradient, color: "#0a0700", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 20px ${a.glow(0.35)}`, marginBottom: 8 }}>
+                Activate Membership — {CHAT_PRICES[tier] ?? "$2.99"}/mo
               </motion.button>
-              <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.2)", textAlign: "center" }}>Cancel anytime · Full floor access included</p>
+              <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.2)", textAlign: "center" }}>Cancel anytime · Instant access · No hidden fees</p>
             </div>
           </div>
         )}

@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Check } from "lucide-react";
+import { X, Check } from "lucide-react";
+const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwq.png?updatedAt=1774116887135";
 import { useNavigate } from "react-router-dom";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 import { hasSeenHowItWorks } from "./GhostHowItWorksPage";
 import WelcomeGiftPopup, { shouldShowWelcomeGift } from "../components/WelcomeGiftPopup";
 
 const ROOM_BG      = "https://ik.imagekit.io/7grri5v7d/ghost%20rooms.png";
-const GOLD_KEY     = "https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png";
 const KINGS_BG     = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrt.png";
 const PENTHOUSE_BG = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsd.png";
 const LOFT_BG      = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsdstertefsdfsd.png";
@@ -280,6 +280,7 @@ const ROOMS = [
   {
     key: "standard" as RoomTier,
     icon: "🛏️",
+    iconImg: "https://ik.imagekit.io/7grri5v7d/sdfsdfsdf-removebg-preview.png",
     name: "Standard Room",
     tagline: "Your first key to the Ghost House",
     price: "$4.99/mo",
@@ -301,6 +302,7 @@ const ROOMS = [
   {
     key: "suite" as RoomTier,
     icon: "🛎️",
+    iconImg: "https://ik.imagekit.io/7grri5v7d/Untitledsdfasdfasdf-removebg-preview.png",
     name: "Suite",
     tagline: "More space, more power, more matches",
     price: "$9.99/mo",
@@ -324,6 +326,7 @@ const ROOMS = [
   {
     key: "kings" as RoomTier,
     icon: "👑",
+    iconImg: "https://ik.imagekit.io/7grri5v7d/SADFASDFASDFASDFS-removebg-preview.png",
     name: "Kings Room",
     tagline: "The room where serious matches happen",
     price: "$14.99/mo",
@@ -348,6 +351,7 @@ const ROOMS = [
   {
     key: "penthouse" as RoomTier,
     icon: "🏙️",
+    iconImg: "https://ik.imagekit.io/7grri5v7d/UntitledaSFASDFASDF-removebg-preview.png",
     name: "Penthouse",
     tagline: "The highest floor. Reserved for the elite.",
     price: "$24.99/mo",
@@ -371,6 +375,7 @@ const ROOMS = [
   {
     key: "garden" as RoomTier,
     icon: "🌿",
+    iconImg: "https://ik.imagekit.io/7grri5v7d/DSFASDFASDWE-removebg-preview.png",
     name: "Garden Lodge",
     tagline: "For those who've lived enough to know exactly what they're looking for",
     price: "$14.99/mo",
@@ -594,7 +599,10 @@ function PenthouseCheckOut({ onClose }: { onClose: () => void }) {
 
 export default function GhostRoomsPage() {
   const navigate  = useNavigate();
-  useGenderAccent();
+  const a = useGenderAccent();
+  const accentColor  = a.accent;          // pink (#f472b6) for female, green (#4ade80) for male
+  const accentBorder = a.glow(0.35);
+  const accentBg     = a.glow(0.1);
   const [currentTier,   setCurrentTier]   = useState<RoomTier | null>(readTier);
   const [buying,        setBuying]         = useState<RoomTier | null>(null);
   const [justBought,    setJustBought]     = useState<RoomTier | null>(null);
@@ -659,31 +667,24 @@ export default function GhostRoomsPage() {
           paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)",
           flexShrink: 0,
         }}>
-          <button
-            onClick={() => navigate(-1)}
-            style={{
-              width: 36, height: 36, borderRadius: "50%",
-              background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)",
-              display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-            }}
-          >
-            <ArrowLeft size={18} color="rgba(255,255,255,0.8)" />
-          </button>
+          {/* Logo — left */}
+          <img src={GHOST_LOGO} alt="2Ghost" style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: 0, lineHeight: 1.1 }}>Ghost Rooms</h1>
+            <h1 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: 0, lineHeight: 1.1 }}>Hotel Rooms</h1>
             <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>Choose your floor</p>
           </div>
+          {/* Close — right */}
           <button
-            onClick={() => navigate("/ghost/how-it-works")}
+            onClick={() => navigate("/ghost/mode")}
+            title="Close"
             style={{
-              background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)",
-              borderRadius: 20, padding: "5px 12px", cursor: "pointer",
-              fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: "0.04em",
+              width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+              background: accentBg, border: `1px solid ${accentBorder}`,
+              display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: accentColor,
             }}
           >
-            How it works
+            <X size={18} />
           </button>
-          <img src={GOLD_KEY} alt="" style={{ width: 40, height: 40, objectFit: "contain", opacity: 0.9 }} />
         </div>
 
         {/* Tagline */}
@@ -692,6 +693,18 @@ export default function GhostRoomsPage() {
             A Room badge signals everything without saying a word.<br />
             Members notice. The right people filter for it.
           </p>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>
+            <button
+              onClick={() => navigate("/ghost/how-it-works")}
+              style={{
+                background: accentBg, border: `1px solid ${accentBorder}`,
+                borderRadius: 20, padding: "6px 18px", cursor: "pointer",
+                fontSize: 11, fontWeight: 800, color: accentColor, letterSpacing: "0.04em",
+              }}
+            >
+              How it works
+            </button>
+          </div>
         </div>
 
         {/* Room cards */}
@@ -802,7 +815,10 @@ export default function GhostRoomsPage() {
                 <div style={{ padding: "14px 16px 16px", position: "relative", zIndex: 1 }}>
                   {/* Title row */}
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
-                    <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{room.icon}</span>
+                    {(room as any).iconImg
+                      ? <img src={(room as any).iconImg} alt={room.name} style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
+                      : <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{room.icon}</span>
+                    }
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                         <span style={{ fontSize: 16, fontWeight: 900, color: owned ? room.color : "#fff" }}>{room.name}</span>
@@ -1038,7 +1054,10 @@ export default function GhostRoomsPage() {
                               boxShadow: `0 3px 16px ${room.glow}`,
                             }}
                           >
-                            <span style={{ fontSize: 16 }}>{room.icon}</span>
+                            {(room as any).iconImg
+                              ? <img src={(room as any).iconImg} alt="" style={{ width: 20, height: 20, objectFit: "contain" }} />
+                              : <span style={{ fontSize: 16 }}>{room.icon}</span>
+                            }
                             View {room.name}
                             <span style={{ fontSize: 12, opacity: 0.7 }}>›</span>
                           </motion.button>
@@ -1128,7 +1147,7 @@ export default function GhostRoomsPage() {
                 <div style={{ padding: "14px 16px 16px", position: "relative", zIndex: 1 }}>
                   {/* Title row */}
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
-                    <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>🪟</span>
+                    <img src="https://ik.imagekit.io/7grri5v7d/UntitledSSSSSSSSS-removebg-preview.png" alt="Loft" style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                         <span style={{ fontSize: 16, fontWeight: 900, color: VIOLET }}>The Loft</span>
@@ -1250,7 +1269,7 @@ export default function GhostRoomsPage() {
                 <div style={{ padding: "14px 16px 16px", position: "relative", zIndex: 1 }}>
                   {/* Title row */}
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
-                    <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>🔥</span>
+                    <img src="https://ik.imagekit.io/7grri5v7d/UntitledSDFSDFASDFDSF-removebg-preview.png" alt="Cellar" style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                         <span style={{ fontSize: 16, fontWeight: 900, color: CRIM }}>The Cellar</span>

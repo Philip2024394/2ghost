@@ -533,6 +533,69 @@ export default function GhostDashboardPage() {
             );
           })()}
 
+          {/* ── Section 2c: Trust Stars ── */}
+          {(() => {
+            function idHash(id: string): number {
+              let h = 0;
+              for (let i = 0; i < id.length; i++) h = Math.imul(37, h) + id.charCodeAt(i) | 0;
+              return Math.abs(h);
+            }
+            const rawId = (() => { try { return JSON.parse(localStorage.getItem("ghost_profile") || "{}").id || "anon"; } catch { return "anon"; } })();
+            const months = idHash(rawId + "months") % 24;
+            const stars  = Math.min(5, Math.floor(months / 2));
+            const nextIn = 2 - (months % 2);
+            return (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                style={{ ...CARD, marginBottom: 0 }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
+                  <div>
+                    <p style={{ margin: "0 0 4px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Ghost Stars</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      {stars > 0
+                        ? <span style={{ fontSize: 20, letterSpacing: "0.08em", color: "#d4af37" }}>{"★".repeat(stars)}</span>
+                        : <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.25)" }}>No stars yet</span>}
+                    </div>
+                  </div>
+                  <div style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 10, padding: "6px 12px", textAlign: "right" }}>
+                    <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#d4af37" }}>{stars} / 5</p>
+                    <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 1 }}>earned</p>
+                  </div>
+                </div>
+
+                <p style={{ margin: "0 0 10px", fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.65 }}>
+                  Stay active and flag-free for <strong style={{ color: "#fff" }}>every 2 months</strong> and you earn a ★ on your profile.
+                  Stars are visible to others — a quiet signal that you're genuine, consistent, and here for real.
+                </p>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {[
+                    { months: 2,  label: "2 months clean" },
+                    { months: 4,  label: "4 months clean" },
+                    { months: 6,  label: "6 months clean" },
+                    { months: 8,  label: "8 months clean" },
+                    { months: 10, label: "10 months clean" },
+                  ].map((row, i) => {
+                    const earned = months >= row.months;
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", borderRadius: 10, background: earned ? "rgba(212,175,55,0.06)" : "rgba(255,255,255,0.02)", border: `1px solid ${earned ? "rgba(212,175,55,0.22)" : "rgba(255,255,255,0.05)"}` }}>
+                        <span style={{ fontSize: 14, color: earned ? "#d4af37" : "rgba(255,255,255,0.15)" }}>★</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: earned ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.25)", flex: 1 }}>{row.label}</span>
+                        {earned
+                          ? <span style={{ fontSize: 9, fontWeight: 800, color: "#d4af37" }}>Earned</span>
+                          : i === stars ? <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>≈ {nextIn} month{nextIn > 1 ? "s" : ""} away</span>
+                          : null}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <p style={{ margin: "12px 0 0", fontSize: 10, color: "rgba(255,255,255,0.25)", lineHeight: 1.55 }}>
+                  ⚠️ A verified complaint or flag resets your current star progress. Keep it respectful — it shows.
+                </p>
+              </motion.div>
+            );
+          })()}
+
           {/* ── Section 3: How I Connect ── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
@@ -1027,6 +1090,131 @@ export default function GhostDashboardPage() {
 
           {/* ── Section 7b: Blocked Profiles ── */}
           <BlockedProfilesSection />
+
+          {/* ── Section FAQ ── */}
+          {(() => {
+            const FAQ: { category: string; emoji: string; items: { q: string; a: string }[] }[] = [
+              {
+                category: "Getting Started",
+                emoji: "👻",
+                items: [
+                  { q: "What is 2Ghost?", a: "2Ghost is an anonymous connection platform. You appear as a Ghost — no real name, no photo shown to the public. You connect through rooms, whispers, and vault chats once there's mutual interest." },
+                  { q: "Is my real identity ever shown?", a: "Never automatically. Your real name, phone, and social links stay hidden until both people agree to exchange contact details inside a private Vault chat." },
+                  { q: "How do I get started?", a: "Complete your Ghost profile in Setup, choose a room that matches your vibe, browse members, and send a Whisper to someone you're interested in." },
+                ],
+              },
+              {
+                category: "Rooms & Access",
+                emoji: "🚪",
+                items: [
+                  { q: "What are Ghost Rooms?", a: "Rooms are themed spaces — Standard, Suite, Kings, Penthouse, and The Cellar. Each has a different crowd and entry level. You can visit any room but some require a membership tier to interact." },
+                  { q: "What is The Vault?", a: "The Vault is your private space. Every mutual match opens a 48-hour Vault chat. You can share images, send gifts, and request video intros — all vault-protected and not visible to anyone else." },
+                  { q: "What happens after 48 hours in the Vault?", a: "The connection fades unless you act — send a gift, exchange contact details, or both agree to extend. It's designed to keep things intentional." },
+                  { q: "What is The Cellar?", a: "The Cellar is an age-verified room for mature members. Entry requires a one-time age check. Content and conversation in the Cellar is more adult in nature." },
+                ],
+              },
+              {
+                category: "Whispers & Connections",
+                emoji: "💬",
+                items: [
+                  { q: "What is a Whisper?", a: "A Whisper is your opening message — one genuine question to break the ice. You pick from 3 curated questions matched to that profile, or write your own. Keep it real, not copy-paste." },
+                  { q: "Can I send my phone number in a Whisper?", a: "No. Phone numbers, social handles, and links are blocked in Whispers. Contact details are only shared after both people unlock inside the Vault." },
+                  { q: "What happens if I break the content rules?", a: "First violation: a warning strike. Second: your account is deactivated. The system is automatic — keep your messages respectful." },
+                  { q: "What is an Introduction Video?", a: "Some members choose to upload a short personal intro video. It's vault-private — only released to someone who sends a coin request and gets approved. It's optional and never public." },
+                ],
+              },
+              {
+                category: "Privacy & Safety",
+                emoji: "🔒",
+                items: [
+                  { q: "Can someone screenshot my profile or Vault?", a: "Technically possible on any device, but the platform never stores your real identity. Ghost IDs are the only visible identifier. We encourage reporting anyone who misuses shared content." },
+                  { q: "How do I report a profile?", a: "Open any profile card and tap the ⚠️ button in the bottom-right of the popup. Reports are reviewed by the team. A verified complaint affects that member's Ghost Star progress." },
+                  { q: "Can I block someone?", a: "Yes. Blocked profiles are hidden from your feed and cannot contact you. Manage your blocked list from the dashboard." },
+                  { q: "Is my location shared?", a: "Only your city and country flag are shown — never GPS coordinates. Distance shown (e.g. 4 km) is approximate and based on your general area." },
+                ],
+              },
+              {
+                category: "Coins & Membership",
+                emoji: "🪙",
+                items: [
+                  { q: "What are coins used for?", a: "Coins unlock extras — requesting a video intro (5 coins), sending premium gifts in the Vault, and unlocking certain room features. You earn coins through activity and can buy more in the coin shop." },
+                  { q: "What does membership unlock?", a: "Membership tiers (Standard → Suite → Kings → Penthouse) give you access to higher rooms, more visibility, and exclusive features. Some tiers are one-time entry; others are ongoing." },
+                  { q: "Is there a free option?", a: "Yes. Standard Room and some features are free. The Loft and Rooms Guide are also free to browse. Paid tiers unlock deeper access and priority matching." },
+                ],
+              },
+              {
+                category: "Ghost Stars",
+                emoji: "★",
+                items: [
+                  { q: "What are Ghost Stars?", a: "Stars are a trust signal earned automatically. Every 2 months you're active on the platform without any complaints or flags, you earn one star — up to 5 total. They appear on your profile." },
+                  { q: "Do stars affect my visibility?", a: "Members with stars appear more trustworthy to others. Higher-star profiles tend to receive more whispers and likes — it's a quiet signal that you're consistent and genuine." },
+                  { q: "What resets my star progress?", a: "A verified complaint or flag against your account resets your progress toward the next star. Existing earned stars are kept, but the 2-month clock restarts." },
+                ],
+              },
+            ];
+
+            const [openCat, setOpenCat] = useState<string | null>(null);
+            const [openQ, setOpenQ]     = useState<string | null>(null);
+
+            return (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.19 }}>
+                <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>
+                  FAQ &amp; How It Works
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {FAQ.map(cat => {
+                    const isOpen = openCat === cat.category;
+                    return (
+                      <div key={cat.category} style={{ ...CARD, padding: 0, overflow: "hidden" }}>
+                        {/* Category header */}
+                        <motion.button whileTap={{ scale: 0.99 }}
+                          onClick={() => { setOpenCat(isOpen ? null : cat.category); setOpenQ(null); }}
+                          style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
+                          <span style={{ fontSize: 18, flexShrink: 0 }}>{cat.emoji}</span>
+                          <span style={{ flex: 1, fontSize: 13, fontWeight: 800, color: "#fff" }}>{cat.category}</span>
+                          <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}
+                            style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", display: "block" }}>▼</motion.span>
+                        </motion.button>
+
+                        {/* Questions */}
+                        <AnimatePresence>
+                          {isOpen && (
+                            <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }}
+                              transition={{ duration: 0.22 }} style={{ overflow: "hidden" }}>
+                              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column" }}>
+                                {cat.items.map((item, i) => {
+                                  const qKey = `${cat.category}-${i}`;
+                                  const qOpen = openQ === qKey;
+                                  return (
+                                    <div key={qKey} style={{ borderBottom: i < cat.items.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+                                      <motion.button whileTap={{ scale: 0.99 }}
+                                        onClick={() => setOpenQ(qOpen ? null : qKey)}
+                                        style={{ width: "100%", display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
+                                        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 3, flexShrink: 0 }}>{qOpen ? "▾" : "▸"}</span>
+                                        <span style={{ fontSize: 12, fontWeight: 700, color: qOpen ? "#fff" : "rgba(255,255,255,0.65)", lineHeight: 1.45, flex: 1 }}>{item.q}</span>
+                                      </motion.button>
+                                      <AnimatePresence>
+                                        {qOpen && (
+                                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.18 }} style={{ overflow: "hidden" }}>
+                                            <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, padding: "0 16px 14px 26px" }}>{item.a}</p>
+                                          </motion.div>
+                                        )}
+                                      </AnimatePresence>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            );
+          })()}
 
           {/* ── Section 7: Quick Actions ── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>

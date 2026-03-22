@@ -200,7 +200,7 @@ export default function GhostIcebreakerPopup({ profile, onClose }: Props) {
             border: `1px solid ${a.glow(0.15)}`, borderBottom: "none",
           }}
         >
-          <img src={GHOST_LOGO} alt="ghost" style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 16 }} />
+          <img src={profile.image} alt={profile.name} style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${a.glow(0.5)}`, marginBottom: 14, boxShadow: `0 0 18px ${a.glow(0.3)}` }} />
           <p style={{ fontSize: 20, fontWeight: 800, color: a.accent, margin: "0 0 8px" }}>Question Sent 👻</p>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 28px", lineHeight: 1.5 }}>
             {profile.name} will see it when they open the match.

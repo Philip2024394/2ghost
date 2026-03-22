@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Moon, Settings, Gift, SlidersHorizontal } from "lucide-react";
+import { Moon, Settings, Gift, SlidersHorizontal, Lock, KeyRound, Swords } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
@@ -1657,30 +1657,33 @@ export default function GhostModePage() {
           <button
             onClick={() => setShowLobbyPopup(true)}
             style={{
-              width: "100%", height: 52, borderRadius: 16, border: "none", cursor: "pointer",
+              width: "100%", borderRadius: 16, border: `1px solid ${a.glow(0.22)}`, cursor: "pointer",
               background: `linear-gradient(135deg, ${a.glow(0.08)}, ${a.glow(0.04)})`,
-              borderWidth: 1, borderStyle: "solid",
-              borderColor: a.glow(0.2),
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "0 16px",
+              display: "flex", flexDirection: "column", alignItems: "center",
+              padding: "0 16px 12px",
+              overflow: "hidden", position: "relative",
               transition: "all 0.2s",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{
-                width: 34, height: 34, borderRadius: "50%",
-                background: a.glow(0.12), border: `1.5px solid ${a.glow(0.35)}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <img src="https://ik.imagekit.io/7grri5v7d/sdfasdfasdfacxv-removebg-preview.png?updatedAt=1774185654860" alt="" style={{ width: 22, height: 22, objectFit: "contain" }} />
-              </div>
-              <div style={{ textAlign: "left" }}>
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: a.accent, letterSpacing: "0.03em" }}>Hotel Lobby</p>
-                <p style={{ margin: 0, fontSize: 9, color: a.glow(0.6), fontWeight: 600 }}>
-                  Guests available to meet tonight
-                </p>
-              </div>
+            {/* Gender top rim */}
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: a.accent }} />
+
+            {/* Centred enlarged icon */}
+            <div style={{ marginTop: 18, marginBottom: 6 }}>
+              <img
+                src="https://ik.imagekit.io/7grri5v7d/sdfasdfasdfacxv-removebg-preview.png?updatedAt=1774185654860"
+                alt=""
+                style={{ width: 44, height: 44, objectFit: "contain" }}
+              />
             </div>
+
+            {/* Title + subtitle */}
+            <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 800, color: a.accent, letterSpacing: "0.03em" }}>Hotel Lobby</p>
+            <p style={{ margin: "0 0 10px", fontSize: 9, color: a.glow(0.6), fontWeight: 600 }}>
+              Guests available to meet tonight
+            </p>
+
+            {/* Avatars row */}
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
               {roomMemberList.slice(0, 3).map(p => (
                 <img key={p.id} src={p.image} alt=""
@@ -1702,7 +1705,7 @@ export default function GhostModePage() {
         <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => navigate("/ghost/room"))}
           style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer" }}
         >
-          <img src="https://ik.imagekit.io/7grri5v7d/weqweqw.png" alt="vault" style={{ width: 20, height: 20, objectFit: "contain", flexShrink: 0 }} />
+          <Lock size={20} style={{ color: "#fff", flexShrink: 0 }} />
           <div style={{ textAlign: "left" }}>
             <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Vault</p>
             <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Your matches</p>
@@ -1711,15 +1714,15 @@ export default function GhostModePage() {
 
         {/* Tonight */}
         <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => setShowTonightSheet(true))}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: lobbyList.length > 0 ? "rgba(74,222,128,0.08)" : a.glow(0.06), border: `1px solid ${lobbyList.length > 0 ? "rgba(74,222,128,0.35)" : a.glow(0.2)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: lobbyList.length > 0 ? "rgba(244,114,182,0.12)" : "rgba(244,114,182,0.08)", border: `1px solid ${lobbyList.length > 0 ? "rgba(244,114,182,0.5)" : "rgba(244,114,182,0.25)"}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
         >
           {lobbyList.length > 0 && (
             <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.6, repeat: Infinity }}
-              style={{ position: "absolute", top: 7, right: 8, width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)" }} />
+              style={{ position: "absolute", top: 7, right: 8, width: 6, height: 6, borderRadius: "50%", background: "#f472b6", boxShadow: "0 0 6px rgba(244,114,182,0.9)" }} />
           )}
-          <span style={{ fontSize: 18, flexShrink: 0 }}>🌙</span>
+          <Moon size={20} style={{ color: "#fff", flexShrink: 0 }} />
           <div style={{ textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: lobbyList.length > 0 ? "#4ade80" : a.accent }}>Tonight</p>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#f472b6" }}>Tonight</p>
             <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>
               {lobbyList.length > 0 ? `${lobbyList.length} available` : "Meet tonight"}
             </p>
@@ -1730,7 +1733,7 @@ export default function GhostModePage() {
         <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => navigate("/ghost/rooms"))}
           style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer" }}
         >
-          <span style={{ fontSize: 18, flexShrink: 0 }}>🏠</span>
+          <KeyRound size={20} style={{ color: "#fff", flexShrink: 0 }} />
           <div style={{ textAlign: "left" }}>
             <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Rooms</p>
             <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Ghost Hotel</p>
@@ -1764,13 +1767,13 @@ export default function GhostModePage() {
           )}
         </motion.button>
 
-        {/* Events */}
+        {/* Floor Wars */}
         <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => setShowEvents(true))}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.28)", borderRadius: 14, cursor: "pointer" }}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "rgba(244,114,182,0.1)", border: "1px solid rgba(244,114,182,0.35)", borderRadius: 14, cursor: "pointer" }}
         >
-          <span style={{ fontSize: 18, flexShrink: 0 }}>🎪</span>
+          <Swords size={20} style={{ color: "#fff", flexShrink: 0 }} />
           <div style={{ textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#a78bfa" }}>Events</p>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#f472b6" }}>Floor Wars</p>
             <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Today</p>
           </div>
         </motion.button>
@@ -2110,16 +2113,33 @@ export default function GhostModePage() {
         <button onClick={() => setShowFilters(true)} title="Filter"
           style={{
             width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-            background: FILTER_GLOWS[filterGlowIdx].replace("0.8", "0.12"),
-            border: `1.5px solid ${FILTER_GLOWS[filterGlowIdx].replace("0.8", "0.6")}`,
+            background: a.glow(0.12),
+            border: `1.5px solid ${a.glow(0.6)}`,
             display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", transition: "background 0.6s, border-color 0.6s",
+            cursor: "pointer",
           }}
         >
-          <SlidersHorizontal size={15} color={FILTER_GLOWS[filterGlowIdx].replace("0.8", "1")} />
+          <SlidersHorizontal size={15} color={a.accent} />
         </button>
       </div>
 
+
+      {/* ── Section header ── */}
+      {(() => {
+        const displayCountry = browsingCountryCode
+          ? (SEA_COUNTRY_LIST.find((c) => c.code === browsingCountryCode)?.name ?? homeCountryName)
+          : homeCountryName;
+        return (
+          <div style={{ margin: "14px 14px 4px" }}>
+            <p style={{ margin: "0 0 2px", fontSize: 20, fontWeight: 900, color: "#fff", lineHeight: 1.15 }}>
+              {displayCountry}'s
+            </p>
+            <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.38)", fontWeight: 500, letterSpacing: "0.01em" }}>
+              Real Connections waiting for you
+            </p>
+          </div>
+        );
+      })()}
 
       {/* Profile grid */}
       {profiles.length === 0 ? (
@@ -2168,26 +2188,29 @@ export default function GhostModePage() {
         </div>
       )}
 
-      {/* ── 🌙 Ready to Meet Tonight ── */}
+      {/* ── Ready to Meet Tonight ── */}
       {lobbyList.length > 0 && (
         <div style={{ padding: "20px 14px 0" }}>
+          <div style={{ background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 16, padding: "12px 14px 0", marginBottom: 0 }}>
           {/* Header */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <motion.span
+              <motion.img
+                src="https://ik.imagekit.io/7grri5v7d/SADFASDFASDFASDFSdsfasdf.png"
+                alt="tonight"
                 animate={{ opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 1.6, repeat: Infinity }}
-                style={{ fontSize: 16 }}
-              >🌙</motion.span>
+                style={{ width: 28, height: 28, objectFit: "contain", flexShrink: 0 }}
+              />
               <div>
                 <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em" }}>Ready to Meet Tonight</p>
-                <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>{lobbyList.length} ghost{lobbyList.length !== 1 ? "s" : ""} available now</p>
+                <p style={{ margin: 0, fontSize: 10, color: a.glow(0.6), fontWeight: 600 }}>{lobbyList.length} ghost{lobbyList.length !== 1 ? "s" : ""} available now</p>
               </div>
             </div>
             <motion.div
               animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
               transition={{ duration: 1.8, repeat: Infinity }}
-              style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 8px rgba(74,222,128,0.9)" }}
+              style={{ width: 8, height: 8, borderRadius: "50%", background: a.accent, boxShadow: `0 0 8px ${a.glow(0.9)}` }}
             />
           </div>
 
@@ -2243,7 +2266,8 @@ export default function GhostModePage() {
           </div>
 
           {/* Divider */}
-          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent)", margin: "14px 0 0" }} />
+          <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.2)}, transparent)`, margin: "14px 0 0" }} />
+          </div>{/* close gender-accent container */}
         </div>
       )}
 

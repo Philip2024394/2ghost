@@ -5,7 +5,8 @@ import { ArrowLeft, RefreshCw, Upload, X, Link, Users, Lock, Unlock, Image, Vide
 import { uploadGhostImage, deleteGhostImage, uploadGhostVideo, deleteGhostVideo, isSupabaseStorageUrl } from "../ghostStorage";
 
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
-const ROOM_BG = "https://ik.imagekit.io/7grri5v7d/ghost%20roomssadasdasdfasdfasdf.png";
+const ROOM_BG        = "https://ik.imagekit.io/7grri5v7d/ghost%20roomssadasdasdfasdfasdf.png";
+const ROOM_BG_FEMALE = "https://ik.imagekit.io/7grri5v7d/SADFASDFASDFASDFSdsfasdfssss.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 const SESSION_KEY   = "ghost_room_session_until";
 const SESSION_TTL   = 24 * 60 * 60 * 1000; // 24 hours
@@ -46,7 +47,7 @@ function RoomPaywall({ onPaid }: { onPaid: () => void }) {
   return (
     <div style={{
       minHeight: "100dvh", width: "100%",
-      backgroundImage: `url(${ROOM_BG})`,
+      backgroundImage: `url(${a.isFemale ? ROOM_BG_FEMALE : ROOM_BG})`,
       backgroundSize: "cover", backgroundPosition: "center",
       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end",
       padding: "0 16px max(36px, env(safe-area-inset-bottom, 36px))",
@@ -67,7 +68,7 @@ function RoomPaywall({ onPaid }: { onPaid: () => void }) {
           marginBottom: 8,
         }}
       >
-        <div style={{ height: 3, background: `linear-gradient(90deg, #16a34a, ${"#4ade80"}, #22c55e)`, borderRadius: "4px 4px 0 0", marginLeft: -22, marginRight: -22, marginTop: -28, marginBottom: 24 }} />
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${a.accentDark}, ${a.accent}, ${a.accentMid})`, borderRadius: "4px 4px 0 0", marginLeft: -22, marginRight: -22, marginTop: -28, marginBottom: 24 }} />
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <img src={GHOST_LOGO} alt="ghost" style={{ width: 52, height: 52, objectFit: "contain" }} />
@@ -194,20 +195,20 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
   return (
     <div translate="no" style={{
       minHeight: "100dvh", width: "100%",
-      backgroundImage: `url(${ROOM_BG})`,
+      backgroundImage: `url(${a.isFemale ? ROOM_BG_FEMALE : ROOM_BG})`,
       backgroundSize: "cover", backgroundPosition: "center",
       display: "flex", flexDirection: "column",
     }}>
       {/* Dark overlay */}
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.72)", backdropFilter: "blur(2px)" }} />
 
-      {/* Back button */}
-      <div style={{ position: "relative", zIndex: 2, padding: "max(16px, env(safe-area-inset-top,16px)) 16px 0" }}>
+      {/* Close button */}
+      <div style={{ position: "relative", zIndex: 2, padding: "max(16px, env(safe-area-inset-top,16px)) 16px 0", display: "flex", justifyContent: "flex-end" }}>
         <button
           onClick={() => navigate("/ghost/mode")}
           style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.7)" }}
         >
-          <ArrowLeft size={16} />
+          <X size={16} />
         </button>
       </div>
 
@@ -219,12 +220,9 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
           initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
           style={{ textAlign: "center", marginBottom: 32 }}
         >
-          <motion.div
-            animate={{ y: [0, -8, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            style={{ marginBottom: 12, filter: `drop-shadow(0 0 20px ${a.glow(0.4)})` }}
-          >
+          <div style={{ marginBottom: 12, filter: `drop-shadow(0 0 20px ${a.glow(0.4)})` }}>
             <img src={GHOST_LOGO} alt="ghost" style={{ width: 168, height: 168, objectFit: "contain" }} />
-          </motion.div>
+          </div>
           <h1 style={{ fontSize: 26, fontWeight: 900, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
             Room Vault
           </h1>
@@ -287,7 +285,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
                   disabled={sending}
                   style={{
                     width: "100%", height: 50, borderRadius: 13, border: "none",
-                    background: sending ? a.glow(0.3) : `linear-gradient(135deg, #16a34a, ${"#22c55e"})`,
+                    background: sending ? a.glow(0.3) : `linear-gradient(135deg, ${a.accentDark}, ${a.accentMid})`,
                     color: "#fff", fontSize: 15, fontWeight: 900, cursor: sending ? "default" : "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     boxShadow: sending ? "none" : `0 4px 20px ${a.glowMid(0.4)}`,
@@ -724,7 +722,7 @@ function SendMediaPanel({
         <button
           onClick={() => navigate("/ghost/pricing")}
           style={{
-            width: "100%", background: `linear-gradient(135deg, #16a34a, ${"#4ade80"})`,
+            width: "100%", background: `linear-gradient(135deg, ${a.accentDark}, ${a.accent})`,
             border: "none", borderRadius: 12, padding: "11px 0",
             fontSize: 13, fontWeight: 900, color: "#000", cursor: "pointer",
           }}
@@ -883,7 +881,7 @@ function SendMediaPanel({
                 onClick={handleSend}
                 disabled={sending || sent}
                 style={{ width: "100%", height: 44, borderRadius: 12, border: "none", marginTop: 10, cursor: sending || sent ? "default" : "pointer",
-                  background: sent ? a.glow(0.2) : sending ? a.glow(0.3) : `linear-gradient(135deg,#16a34a,${"#22c55e"})`,
+                  background: sent ? a.glow(0.2) : sending ? a.glow(0.3) : `linear-gradient(135deg,${a.accentDark},${a.accentMid})`,
                   color: "#fff", fontSize: 13, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 {sent ? (
                   <><Check size={14} /> Sent — they'll see it in their Inbox</>
@@ -921,7 +919,7 @@ function VideoUrlInput({ onAdd, inputStyle }: { onAdd: (url: string) => void; in
       <motion.button
         whileTap={{ scale: 0.95 }}
         onClick={() => { if (val.trim()) { onAdd(val); setVal(""); } }}
-        style={{ height: 46, borderRadius: 12, padding: "0 14px", border: "none", background: `linear-gradient(135deg,#16a34a,${"#22c55e"})`, color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", flexShrink: 0 }}
+        style={{ height: 46, borderRadius: 12, padding: "0 14px", border: "none", background: `linear-gradient(135deg,${a.accentDark},${a.accentMid})`, color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", flexShrink: 0 }}
       >
         Add
       </motion.button>
@@ -961,7 +959,7 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
 
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 18 }}>
-            <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${"#4ade80"}, #22c55e, #4ade80, transparent)`, marginBottom: 20, borderRadius: 2 }} />
+            <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, ${a.accentMid}, ${a.accent}, transparent)`, marginBottom: 20, borderRadius: 2 }} />
             <h2 style={{ fontSize: 28, fontWeight: 900, color: "#fff", margin: "0 0 10px", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
               Room Vault
             </h2>
@@ -969,7 +967,7 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
               <span style={{
                 width: 9, height: 9, borderRadius: "50%", background: a.accent,
                 display: "inline-block",
-                boxShadow: `0 0 8px ${"#4ade80"}`,
+                boxShadow: `0 0 8px ${a.accent}`,
                 animation: "pulse-dot 1.4s ease-in-out infinite",
               }} />
               <span style={{ fontSize: 13, fontWeight: 800, color: a.glow(0.9), letterSpacing: "0.06em", textTransform: "uppercase" }}>Active</span>
@@ -1024,7 +1022,7 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
             onClick={onClose}
             style={{
               width: "100%", marginTop: 22, height: 52, borderRadius: 50, border: "none",
-              background: `linear-gradient(to bottom, ${"#4ade80"}, #22c55e, #16a34a)`,
+              background: a.gradient,
               color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
               letterSpacing: "0.03em", boxShadow: `0 6px 24px ${a.glowMid(0.45)}`,
               position: "relative", overflow: "hidden",
@@ -2048,20 +2046,16 @@ export default function GhostRoomPage() {
       )}
       {/* Header */}
       <div style={S.header}>
-        <button
-          onClick={() => navigate("/ghost/mode")}
-          style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.7)", flexShrink: 0 }}
-        >
-          <ArrowLeft size={16} />
-        </button>
+        {/* Logo — left */}
+        <img src={GHOST_LOGO} alt="2Ghost" style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 15 }}>🚪</span>
             <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Room Vault</h1>
             <span style={{ fontSize: 10, background: a.glow(0.15), border: `1px solid ${a.glow(0.3)}`, borderRadius: 6, padding: "1px 6px", color: a.glow(0.9), fontWeight: 800 }}>PRIVATE</span>
           </div>
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>{myGhostId} · code-gated vault</p>
         </div>
+        {/* Right actions */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {pending.length > 0 && (
             <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900 }}>
@@ -2075,12 +2069,13 @@ export default function GhostRoomPage() {
           >
             <Settings size={15} />
           </button>
+          {/* Close — returns to home */}
           <button
             onClick={() => navigate("/ghost/mode")}
-            title="Exit Vault"
+            title="Close"
             style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#f87171" }}
           >
-            <X size={15} />
+            <X size={16} />
           </button>
         </div>
       </div>
@@ -2550,7 +2545,7 @@ export default function GhostRoomPage() {
                                       width: "100%", height: 36, borderRadius: 10, border: "none", cursor: "pointer",
                                       background: key === "gold"
                                         ? "linear-gradient(135deg, #92660a, #d4af37)"
-                                        : `linear-gradient(135deg, #16a34a, ${a.accentMid})`,
+                                        : `linear-gradient(135deg, ${a.accentDark}, ${a.accentMid})`,
                                       color: key === "gold" ? "#000" : "#fff",
                                       fontSize: 11, fontWeight: 900,
                                     }}
@@ -2688,7 +2683,7 @@ export default function GhostRoomPage() {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleEnterRoom}
-                  style={{ height: 46, borderRadius: 12, padding: "0 18px", border: "none", background: `linear-gradient(135deg, #16a34a, ${a.accentMid})`, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer", flexShrink: 0 }}
+                  style={{ height: 46, borderRadius: 12, padding: "0 18px", border: "none", background: `linear-gradient(135deg, ${a.accentDark}, ${a.accentMid})`, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer", flexShrink: 0 }}
                 >
                   Enter
                 </motion.button>
@@ -2929,7 +2924,7 @@ export default function GhostRoomPage() {
                       <motion.button
                         whileTap={{ scale: 0.96 }}
                         onClick={() => acceptItem(item.id)}
-                        style={{ flex: 1, height: 40, borderRadius: 10, border: "none", background: `linear-gradient(135deg, #16a34a, ${a.accentMid})`, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                        style={{ flex: 1, height: 40, borderRadius: 10, border: "none", background: `linear-gradient(135deg, ${a.accentDark}, ${a.accentMid})`, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
                       >
                         <Check size={14} /> Accept & Save to Room
                       </motion.button>
@@ -3009,7 +3004,7 @@ export default function GhostRoomPage() {
                       <motion.button
                         whileTap={{ scale: 0.96 }}
                         onClick={() => window.open(`https://wa.me/?text=Hey%20from%202Ghost!`, "_blank")}
-                        style={{ flex: 1, height: 36, borderRadius: 10, border: "none", background: `linear-gradient(135deg, #16a34a, ${a.accentMid})`, color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
+                        style={{ flex: 1, height: 36, borderRadius: 10, border: "none", background: `linear-gradient(135deg, ${a.accentDark}, ${a.accentMid})`, color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
                       >
                         <span>💬</span> WhatsApp
                       </motion.button>

@@ -1,40 +1,65 @@
 import { useState, useRef } from "react";
+import { MapPin, Fingerprint } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLanguage } from "@/i18n/LanguageContext";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
 import type { GhostProfile } from "../types/ghostTypes";
+import { filterContent, addStrike, getStrikes, isAccountDeactivated } from "../utils/contentFilter";
+import { sendVideoRequest, getVideoRequestStatus, profileHasVideo, readCoins } from "../utils/featureGating";
 import {
   toGhostId,
   fmtKm,
-  profileActivity,
-  profileLikesCount,
   mockBio,
 } from "../utils/ghostHelpers";
 import { getDateIdea } from "../data/dateIdeas";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 
-const ICEBREAKERS = [
-  "Would you rather know someone's deepest fear or their biggest dream?",
-  "What's the most spontaneous thing you've done in the last year?",
-  "If tonight was your last night in this city, where would you go?",
-  "What's something you believe that most people would disagree with?",
-  "What does your ideal Sunday look like?",
-  "What's the question you're afraid to ask?",
-  "If you could be anonymous for one day, what would you do?",
-  "What's the thing that always makes you laugh, no matter what?",
-  "What are you secretly really good at?",
-  "What does adventure mean to you?",
-  "What's the best meal you've ever had?",
-  "If you could live anywhere for a year, where?",
-  "What's one thing on your bucket list?",
-  "What's your love language?",
-  "What are you most proud of that you never talk about?",
-  "Morning person or night ghost?",
-  "What's the first thing you notice about someone?",
-  "What's a small thing that makes your day better?",
-  "What would you do with 48 hours of total freedom?",
-  "What's the story behind your best scar or memory?",
+
+const ALL_WHISPER_QUESTIONS = [
+  // Thought-Provoking / Emotional
+  "If my heart was warm, would it win over looks?",
+  "Are you serious for the right person, or just seeing what happens?",
+  "What matters more to you long-term: chemistry or consistency?",
+  "Do you believe people meet for a reason or just by chance?",
+  "What does a \"healthy relationship\" look like to you?",
+  "What's one thing you wish people understood about you sooner?",
+  // Flirty but Meaningful
+  "Be honest… personality or looks first? 😄",
+  "What would make you choose someone and not keep scrolling?",
+  "Are you the type to fall slowly or all at once?",
+  "Would you rather have butterflies or something calm and real?",
+  "If we matched in real life, what would you notice first about me?",
+  // Fun & Light
+  "What's your idea of a perfect first date?",
+  "Are you more \"stay in and chill\" or \"go out and explore\"?",
+  "What's something small that instantly makes you like someone?",
+  "Coffee date, dinner, or spontaneous adventure?",
+  "What kind of vibe are you hoping to find here?",
+  // Slightly Deep / Real Talk
+  "What's something you won't compromise on in a relationship?",
+  "Have you learned more from love or heartbreak?",
+  "What makes you feel truly appreciated?",
+  "Are you ready for something real, or just seeing where things go?",
+  "What's your green flag that people usually miss?",
+  // Bold / Standout
+  "If we got along perfectly, would distance or timing stop you?",
+  "Would you take a risk on someone different from your \"type\"?",
+  "Are you here for attention… or something that could actually grow?",
+  "What would make you delete this app for someone?",
 ];
+
+// Pick 3 questions deterministically per profile (consistent across renders)
+function getWhisperPresets(profileId: string): string[] {
+  const h = idHash(profileId + "whisper");
+  const result: string[] = [];
+  const used = new Set<number>();
+  let seed = h;
+  while (result.length < 3) {
+    seed = Math.abs(Math.imul(seed, 1664525) + 1013904223 | 0);
+    const idx = Math.abs(seed) % ALL_WHISPER_QUESTIONS.length;
+    if (!used.has(idx)) { used.add(idx); result.push(ALL_WHISPER_QUESTIONS[idx]); }
+  }
+  return result;
+}
 
 function idHash(id: string): number {
   let h = 0;
@@ -42,27 +67,33 @@ function idHash(id: string): number {
   return Math.abs(h);
 }
 
-function getRepBadge(profileId: string): { label: string; color: string } | null {
-  const weeks = 1 + (idHash(profileId + "weeks") % 20);
-  if (weeks >= 12) return { label: "💎 Elder", color: "#a78bfa" };
-  if (weeks >= 4)  return { label: "🏅 Veteran", color: "#d4af37" };
-  return null;
+function getMemberStars(profileId: string): number {
+  // Seed 0–23 months, 1 star per 2 months, max 5 stars
+  const months = idHash(profileId + "months") % 24;
+  return Math.min(5, Math.floor(months / 2));
 }
 
 function isFaceVerifiedSeeded(profileId: string): boolean {
   return (idHash(profileId + "fv") % 10) < 4;
 }
 
-function getMatchScore(profile: GhostProfile): number | null {
+function hasVoiceNote(profileId: string): boolean {
+  return (idHash(profileId + "voice") % 10) < 7; // ~70% of profiles have a voice note
+}
+
+function getMatchScore(profile: GhostProfile): number {
+  // Try real interests first; fall back to a seeded score so it always shows
   try {
     const myInterests: string[] = JSON.parse(localStorage.getItem("ghost_interests") || "[]");
-    if (!myInterests.length) return null;
-    const profileInterests = [...(profile.interests || []), ...(profile.bio || "").split(/\s+/)];
-    const setA = new Set(myInterests.map(w => w.toLowerCase()));
-    const overlap = profileInterests.filter(w => setA.has(w.toLowerCase())).length;
-    if (!overlap) return null;
-    return Math.min(99, Math.round((overlap / myInterests.length) * 100) + 30);
-  } catch { return null; }
+    if (myInterests.length) {
+      const profileInterests = [...(profile.interests || []), ...(profile.bio || "").split(/\s+/)];
+      const setA = new Set(myInterests.map(w => w.toLowerCase()));
+      const overlap = profileInterests.filter(w => setA.has(w.toLowerCase())).length;
+      if (overlap) return Math.min(99, Math.round((overlap / myInterests.length) * 100) + 30);
+    }
+  } catch {}
+  // Seeded fallback: score between 42 and 97
+  return 42 + (idHash(profile.id + "match") % 56);
 }
 
 const OUTCOME_TAGS  = ["Serious", "Casual", "Discreet", "Open", "Friendship", "Adventurous", "Exploring", "Free Spirit"];
@@ -124,49 +155,179 @@ function Divider() {
   return <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "0 14px" }} />;
 }
 
-// ── Expanded Profile Overlay ──────────────────────────────────────────────────
-function ProfileOverlay({
+// ── Combined Profile + Whisper Modal ─────────────────────────────────────────
+type WhisperScreen = "main" | "sent" | "strike1" | "deactivated";
+
+function ProfileWhisperModal({
   profile, liked, onLike, onClose,
 }: {
-  profile: GhostProfile;
-  liked: boolean;
-  onLike: () => void;
-  onClose: () => void;
+  profile: GhostProfile; liked: boolean; onLike: () => void; onClose: () => void;
 }) {
   const a = useGenderAccent();
-  const online    = isOnline(profile.last_seen_at);
-  const ghostId   = toGhostId(profile.id);
+  const online     = isOnline(profile.last_seen_at);
+  const ghostId    = toGhostId(profile.id);
+  const memberStars = getMemberStars(profile.id);
+  const isVerified = profile.isVerified || profile.faceVerified || isFaceVerifiedSeeded(profile.id);
+  const dateIdea   = getDateIdea(profile.id, profile.firstDateIdea);
+  const bioText    = profile.bio || mockBio(profile.id);
 
   let oh = 0;
   for (let i = 0; i < profile.id.length; i++) { oh = Math.imul(43, oh) + profile.id.charCodeAt(i) | 0; }
   const outcomeIdx  = Math.abs(oh) % OUTCOME_TAGS.length;
   const outcomeTag  = OUTCOME_TAGS[outcomeIdx];
   const outcomeIcon = OUTCOME_ICONS[outcomeIdx];
-  const repBadge    = getRepBadge(profile.id);
-  const isVerified  = profile.isVerified || profile.faceVerified || isFaceVerifiedSeeded(profile.id);
-  const matchScore  = getMatchScore(profile);
-  const activity    = profileActivity(profile.id);
-  const likesCount  = profileLikesCount(profile.id);
-  const icebreaker  = ICEBREAKERS[idHash(profile.id) % ICEBREAKERS.length];
-  const dateIdea    = getDateIdea(profile.id, profile.firstDateIdea);
-  const bioText     = profile.bio || mockBio(profile.id);
-  const heartColor  = profile.gender === "Female" ? "#f472b6" : "#ef4444";
 
-  const myDateIdea = (() => { try { return localStorage.getItem("ghost_first_date_idea") || ""; } catch { return ""; } })();
+  const myDateIdea   = (() => { try { return localStorage.getItem("ghost_first_date_idea") || ""; } catch { return ""; } })();
   const hasDateMatch = myDateIdea.length > 0 && dateIdea && dateIdea.label.toLowerCase().split(/\s+/).some(w => w.length > 3 && myDateIdea.toLowerCase().includes(w));
 
+  // ── Partner preference seeds ──────────────────────────────────────────────
+  const ph = idHash(profile.id + "partner");
+  const PREF_RELIGIONS = ["Muslim", "Christian", "Catholic", "Any faith", "No preference"];
+  const PREF_LOCATIONS = ["Local only", "Local preferred", "Open to distance", "Anywhere"];
+  const PREF_LIFESTYLE = ["Non-smoker", "Active lifestyle", "Social drinker OK", "Family-oriented"];
+  const partnerReligion = PREF_RELIGIONS[ph % PREF_RELIGIONS.length];
+  const partnerLocation = PREF_LOCATIONS[(ph >> 3) % PREF_LOCATIONS.length];
+  const partnerLifestyle = PREF_LIFESTYLE[(ph >> 6) % PREF_LIFESTYLE.length];
+  const ageMin = Math.max(18, profile.age - 4 - (ph % 5));
+  const ageMax = Math.min(65, profile.age + 6 + (ph % 8));
+
+  // ── Photo thumbnail state ─────────────────────────────────────────────────
+  const [activeThumb, setActiveThumb] = useState(0);
+  const PHOTO_CROPS = ["center 8%", "center 32%", "center 58%", "center 85%"] as const;
+
+  // ── Whisper state ────────────────────────────────────────────────────────
+  const [screen, setScreen]         = useState<WhisperScreen>("main");
+  const [selected, setSelected]     = useState<string | null>(null);
+  const [custom, setCustom]         = useState("");
+  const [useCustom, setUseCustom]   = useState(false);
+  const [filterReason, setFilterReason] = useState("");
+  const currentStrikes = getStrikes();
+
+  // ── Video intro state ─────────────────────────────────────────────────────
+  profileHasVideo(profile.id); // side-effect: warms cache
+  const _existingVR = getVideoRequestStatus(profile.id);
+  const [videoStatus, setVideoStatus] = useState<"idle" | "requesting" | "pending" | "approved" | "denied">(
+    _existingVR ? (_existingVR.status as "pending" | "approved" | "denied") : "idle"
+  );
+  const [videoRequesting, setVideoRequesting] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleSend = () => {
+    const text = useCustom ? custom.trim() : selected ?? "";
+    if (!text) return;
+    const result = filterContent(text);
+    if (result.blocked) {
+      const newStrikes = addStrike();
+      setFilterReason(result.reason ?? "policy violation");
+      setScreen(newStrikes >= 2 || isAccountDeactivated() ? "deactivated" : "strike1");
+      return;
+    }
+    try { localStorage.setItem(`ghost_icebreaker_${profile.id}`, JSON.stringify({ question: text, sentAt: Date.now() })); } catch {}
+    setScreen("sent");
+  };
+
+  const isCustomBlocked = useCustom && filterContent(custom.trim()).blocked;
+  const canSend = !isCustomBlocked && (useCustom ? custom.trim().length >= 5 : !!selected);
+
+  const handleVideoRequest = () => {
+    if (videoRequesting) return;
+    setVideoRequesting(true);
+    const ok = sendVideoRequest(profile.id, "me");
+    if (!ok) { setVideoRequesting(false); return; }
+    setTimeout(() => {
+      const autoApprove = Math.abs(profile.id.charCodeAt(0)) % 3 === 0;
+      setVideoStatus(autoApprove ? "approved" : "pending");
+      setVideoRequesting(false);
+    }, 1800);
+  };
+
+  // ── Sent screen ───────────────────────────────────────────────────────────
+  if (screen === "sent") {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+        <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          style={{ width: "100%", maxWidth: 480, background: "#0d0d0f", borderRadius: "24px 24px 0 0", padding: "36px 24px 52px", textAlign: "center", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none" }}>
+          <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)`, borderRadius: 2, marginBottom: 28 }} />
+          <img src={profile.image} alt={profile.name} style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${a.glow(0.5)}`, marginBottom: 14, boxShadow: `0 0 20px ${a.glow(0.35)}` }} />
+          <p style={{ fontSize: 20, fontWeight: 800, color: a.accent, margin: "0 0 8px" }}>Question Sent 👻</p>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 28px", lineHeight: 1.5 }}>
+            {profile.name} will see it when they open the match. If they reply, you'll both unlock the conversation naturally.
+          </p>
+          <motion.button whileTap={{ scale: 0.97 }} onClick={onClose}
+            style={{ width: "100%", height: 50, borderRadius: 50, border: "none", background: `linear-gradient(135deg,${a.accent},${a.accentMid})`, color: "#000", fontSize: 14, fontWeight: 800, cursor: "pointer" }}>
+            Back to Feed
+          </motion.button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // ── Deactivated screen ────────────────────────────────────────────────────
+  if (screen === "deactivated") {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.92)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+        <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          style={{ width: "100%", maxWidth: 480, background: "#0d0d0f", borderRadius: "24px 24px 0 0", padding: "32px 24px 48px", border: "1px solid rgba(239,68,68,0.3)", borderBottom: "none" }}>
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🚫</div>
+            <p style={{ fontSize: 18, fontWeight: 800, color: "#ef4444", margin: "0 0 8px" }}>Account Deactivated</p>
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.5 }}>You attempted to share <strong style={{ color: "rgba(255,255,255,0.8)" }}>{filterReason}</strong> twice against Ghost House policy.</p>
+          </div>
+          <div style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 14, padding: 16, marginBottom: 20 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)", margin: "0 0 6px" }}>Why we do this</p>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.6 }}>Contact info is shared only after both parties agree — that's the deal.</p>
+          </div>
+          <button style={{ width: "100%", height: 50, borderRadius: 50, border: "1px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.1)", color: "#ef4444", fontSize: 14, fontWeight: 800, cursor: "pointer", marginBottom: 12 }}>Reinstate Account — Pay Fee</button>
+          <button onClick={onClose} style={{ width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 13, cursor: "pointer", padding: "8px 0" }}>Close</button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // ── Strike 1 screen ───────────────────────────────────────────────────────
+  if (screen === "strike1") {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.92)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+        <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          style={{ width: "100%", maxWidth: 480, background: "#0d0d0f", borderRadius: "24px 24px 0 0", padding: "32px 24px 48px", border: "1px solid rgba(251,146,60,0.3)", borderBottom: "none" }}>
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <p style={{ fontSize: 17, fontWeight: 800, color: "#fb923c", margin: "0 0 6px" }}>Policy Violation — Strike 1 of 2</p>
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.5 }}>We detected a <strong style={{ color: "#fb923c" }}>{filterReason}</strong> in your question.</p>
+          </div>
+          <div style={{ background: "rgba(251,146,60,0.06)", border: "1px solid rgba(251,146,60,0.2)", borderRadius: 14, padding: 16, marginBottom: 20 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)", margin: "0 0 8px" }}>Ghost House Rule</p>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.65 }}>No phone numbers, links, or social handles. One more violation = <strong style={{ color: "#ef4444" }}>permanent deactivation</strong>.</p>
+          </div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+            {[1, 2].map(n => <div key={n} style={{ flex: 1, height: 6, borderRadius: 3, background: n <= currentStrikes ? "#ef4444" : "rgba(255,255,255,0.08)" }} />)}
+          </div>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", textAlign: "right", margin: "4px 0 20px", fontWeight: 700 }}>{currentStrikes}/2 strikes</p>
+          <button onClick={() => { setCustom(""); setSelected(null); setUseCustom(false); setScreen("main"); }}
+            style={{ width: "100%", height: 50, borderRadius: 50, border: "none", background: "linear-gradient(135deg,#fb923c,#ef4444)", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", marginBottom: 10 }}>
+            I Understand — Edit My Question
+          </button>
+          <button onClick={onClose} style={{ width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 13, cursor: "pointer", padding: "8px 0" }}>Skip for now</button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // ── Main: profile details + whisper ──────────────────────────────────────
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       onClick={onClose}
-      style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.88)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+      style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.88)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
     >
       <motion.div
-        initial={{ y: "100%", scale: 0.96 }}
-        animate={{ y: 0, scale: 1 }}
-        exit={{ y: "100%", scale: 0.96 }}
+        initial={{ y: "100%", scale: 0.96 }} animate={{ y: 0, scale: 1 }} exit={{ y: "100%", scale: 0.96 }}
         transition={{ type: "spring", stiffness: 340, damping: 34 }}
         onClick={e => e.stopPropagation()}
         style={{ width: "100%", maxWidth: 480, background: "rgba(5,5,10,0.99)", borderRadius: "22px 22px 0 0", border: `1px solid ${a.glow(0.22)}`, borderBottom: "none", maxHeight: "94dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}
@@ -174,193 +335,238 @@ function ProfileOverlay({
         {/* Accent stripe */}
         <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)`, flexShrink: 0 }} />
 
-        {/* Scrollable content */}
+        {/* Scrollable */}
         <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none" } as React.CSSProperties}>
 
-          {/* ── Square image ── */}
-          <div style={{ position: "relative", width: "100%", aspectRatio: "1/1", flexShrink: 0 }}>
+          {/* ── Main Photo (4:5) ── */}
+          <div style={{ position: "relative", width: "100%", aspectRatio: "4/5", flexShrink: 0 }}>
             {/* Blurred bg */}
-            <img src={profile.image} alt=""
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "blur(24px) brightness(0.3)", transform: "scale(1.1)" }} />
-            {/* Square photo */}
-            <img src={profile.image} alt={ghostId}
-              style={{ position: "relative", width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
-            />
-            {/* Bottom fade */}
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(5,5,10,1) 0%, transparent 55%)" }} />
+            <img src={profile.image} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "blur(28px) brightness(0.25)", transform: "scale(1.1)" }} />
+            {/* Active photo crop */}
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={activeThumb}
+                initial={{ opacity: 0.7, scale: 1.03 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0.7 }}
+                transition={{ duration: 0.22 }}
+                src={profile.image}
+                alt={ghostId}
+                style={{ position: "relative", width: "100%", height: "100%", objectFit: "cover", display: "block", objectPosition: PHOTO_CROPS[activeThumb] }}
+                onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+              />
+            </AnimatePresence>
+            {/* Bottom gradient */}
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(5,5,10,1) 0%, rgba(5,5,10,0.4) 35%, transparent 60%)" }} />
 
-            {/* Close button */}
-            <motion.button whileTap={{ scale: 0.88 }} onClick={onClose}
-              style={{ position: "absolute", top: 12, right: 12, width: 34, height: 34, borderRadius: 10, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 2 }}>
-              <span style={{ fontSize: 15, color: "rgba(255,255,255,0.7)" }}>✕</span>
-            </motion.button>
+            {/* Match score + ✕ Close — top right */}
+            <div style={{ position: "absolute", top: 12, right: 12, zIndex: 3, display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "4px 10px", border: `1px solid ${a.glow(0.45)}`, display: "flex", alignItems: "center", gap: 4 }}>
+                <span style={{ fontSize: 9, fontWeight: 900, color: a.accent, letterSpacing: "0.04em" }}>{getMatchScore(profile)}%</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.45)" }}>match</span>
+              </div>
+              <motion.button whileTap={{ scale: 0.88 }} onClick={onClose}
+                style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                <span style={{ fontSize: 15, color: "rgba(255,255,255,0.7)" }}>✕</span>
+              </motion.button>
+            </div>
 
-            {/* Verified */}
+            {/* Verified — top left */}
             {isVerified && (
-              <div style={{ position: "absolute", top: 12, left: 12, display: "flex", alignItems: "center", gap: 5, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "4px 10px", border: "1px solid rgba(74,222,128,0.45)", zIndex: 2 }}>
-                <div style={{ width: 14, height: 14, borderRadius: "50%", background: "rgba(74,222,128,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ position: "absolute", top: 12, left: 12, display: "flex", alignItems: "center", gap: 5, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "4px 10px", border: `1px solid ${a.glow(0.45)}`, zIndex: 3 }}>
+                <div style={{ width: 14, height: 14, borderRadius: "50%", background: a.glow(0.9), display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 8, fontWeight: 900, color: "#fff" }}>✓</span>
                 </div>
-                <span style={{ fontSize: 9, fontWeight: 800, color: "#4ade80" }}>Verified</span>
+                <span style={{ fontSize: 9, fontWeight: 800, color: a.accent }}>Verified</span>
               </div>
             )}
 
-            {/* km away */}
-            {profile.distanceKm !== undefined && (
-              <div style={{ position: "absolute", bottom: 16, right: 14, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "3px 10px", border: "1px solid rgba(255,255,255,0.14)", zIndex: 2 }}>
-                <span style={{ fontSize: 9, fontWeight: 800, color: "#fff" }}>{fmtKm(profile.distanceKm)}</span>
+            {/* ♥ Like — bottom right on image */}
+            <motion.button whileTap={{ scale: 0.85 }} onClick={onLike}
+              style={{ position: "absolute", bottom: 14, right: 14, zIndex: 3, width: 44, height: 44, borderRadius: "50%", background: liked ? a.glow(0.4) : "rgba(0,0,0,0.6)", border: liked ? `2px solid ${a.accent}` : "2px solid rgba(255,255,255,0.25)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: liked ? "default" : "pointer", boxShadow: liked ? `0 0 16px ${a.glow(0.55)}` : "0 2px 10px rgba(0,0,0,0.5)" }}>
+              <span style={{ fontSize: 20, color: "#fff", lineHeight: 1 }}>{liked ? "♥" : "♡"}</span>
+            </motion.button>
+
+            {/* 🎙 Voice player overlay — above ghost ID */}
+            {hasVoiceNote(profile.id) && (
+              <div style={{ position: "absolute", bottom: 80, left: 14, right: 62, zIndex: 3 }}>
+                <VoiceNotePlayer profileId={profile.id} accent={a.accent} />
               </div>
             )}
-          </div>
 
-          {/* ── Identity block ── */}
-          <div style={{ padding: "16px 16px 12px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-              <span style={{ fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>{profile.age}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.35)", letterSpacing: "0.04em" }}>{ghostId}</span>
-              {repBadge && <span style={{ fontSize: 9, fontWeight: 800, color: repBadge.color, marginLeft: "auto" }}>{repBadge.label}</span>}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 15 }}>{profile.countryFlag}</span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>{profile.city}</span>
-              {online && (
-                <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.4, repeat: Infinity }}
-                  style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 5px rgba(74,222,128,0.8)", marginLeft: 2 }} />
-              )}
+            {/* ID · Age · Flag · City — bottom left */}
+            <div style={{ position: "absolute", bottom: 14, left: 14, zIndex: 3 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.45)", letterSpacing: "0.04em" }}>{ghostId}</span>
+                {memberStars > 0 && <span style={{ fontSize: 9, letterSpacing: "0.05em", color: "#d4af37" }}>{"★".repeat(memberStars)}</span>}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                {online && <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ width: 7, height: 7, borderRadius: "50%", background: a.accent, boxShadow: `0 0 5px ${a.glow(0.8)}` }} />}
+                <span style={{ fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>{profile.age}</span>
+                <span style={{ fontSize: 14 }}>{profile.countryFlag}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>{profile.city}</span>
+              </div>
             </div>
           </div>
 
-          <Divider />
-
-          {/* ── Looking For ── */}
-          <div style={{ padding: "12px 16px" }}>
-            <p style={{ fontSize: 8, fontWeight: 800, color: "rgba(255,255,255,0.3)", margin: "0 0 8px", letterSpacing: "0.1em", textTransform: "uppercase" }}>Looking For</p>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: a.glow(0.08), border: `1px solid ${a.glow(0.22)}`, borderRadius: 50, padding: "7px 16px" }}>
-              <span style={{ fontSize: 16 }}>{outcomeIcon}</span>
-              <span style={{ fontSize: 14, fontWeight: 900, color: a.glow(0.95) }}>{outcomeTag}</span>
-            </div>
+          {/* ── 4 Thumbnails ── */}
+          <div style={{ display: "flex", gap: 6, padding: "10px 14px 4px" }}>
+            {PHOTO_CROPS.map((crop, i) => (
+              <motion.div key={i} whileTap={{ scale: 0.92 }} onClick={() => setActiveThumb(i)}
+                style={{ flex: 1, aspectRatio: "3/4", borderRadius: 10, overflow: "hidden", cursor: "pointer", border: activeThumb === i ? `2px solid ${a.accent}` : "2px solid rgba(255,255,255,0.1)", boxShadow: activeThumb === i ? `0 0 10px ${a.glow(0.5)}` : "none", transition: "border-color 0.15s, box-shadow 0.15s" }}>
+                <img src={profile.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: crop }} />
+              </motion.div>
+            ))}
           </div>
-
-          <Divider />
 
           {/* ── Bio ── */}
-          <div style={{ padding: "12px 16px" }}>
-            <p style={{ fontSize: 8, fontWeight: 800, color: "rgba(255,255,255,0.3)", margin: "0 0 7px", letterSpacing: "0.1em", textTransform: "uppercase" }}>About</p>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: 1.65, fontStyle: "italic" }}>
-              "{bioText}"
-            </p>
+          <div style={{ padding: "14px 16px 4px" }}>
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", margin: 0, lineHeight: 1.65, fontStyle: "italic" }}>"{bioText}"</p>
           </div>
 
-          <Divider />
-
-          {/* ── Religion ── */}
-          {profile.religion && (
-            <>
-              <div style={{ padding: "12px 16px" }}>
-                <p style={{ fontSize: 8, fontWeight: 800, color: "rgba(255,255,255,0.3)", margin: "0 0 8px", letterSpacing: "0.1em", textTransform: "uppercase" }}>Faith</p>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.25)", borderRadius: 20, padding: "5px 14px" }}>
-                  <span style={{ fontSize: 13 }}>🙏</span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(168,85,247,0.9)" }}>{profile.religion}</span>
-                </div>
-              </div>
-              <Divider />
-            </>
-          )}
-
-          {/* ── Dream Date ── */}
+          {/* ══════════ MY IDEAL DATE ══════════════════════════════════════ */}
           {dateIdea && (
             <>
-              <div style={{ padding: "12px 16px" }}>
-                <p style={{ fontSize: 8, fontWeight: 800, color: "rgba(251,191,36,0.6)", margin: "0 0 10px", letterSpacing: "0.1em", textTransform: "uppercase" }}>☀ Dream Date</p>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  {dateIdea.image
-                    ? <img src={dateIdea.image} alt={dateIdea.label} style={{ width: 46, height: 46, borderRadius: 12, objectFit: "cover", flexShrink: 0 }} />
-                    : <span style={{ fontSize: 28, flexShrink: 0 }}>{dateIdea.emoji}</span>}
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: 0 }}>{dateIdea.label}</p>
-                    {hasDateMatch && (
-                      <span style={{ fontSize: 9, fontWeight: 800, color: "#4ade80", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 5, padding: "2px 8px" }}>🎯 Date match!</span>
-                    )}
-                  </div>
-                </div>
-              </div>
               <Divider />
+              <div style={{ padding: "16px 16px 18px" }}>
+                <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(251,191,36,0.7)", margin: "0 0 10px", letterSpacing: "0.12em", textTransform: "uppercase" }}>☀ My Ideal Date</p>
+                <p style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 5px", letterSpacing: "-0.01em" }}>{dateIdea.label}</p>
+                {dateIdea.desc && <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: "0 0 14px", lineHeight: 1.55 }}>{dateIdea.desc}</p>}
+                {hasDateMatch && (
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: a.glow(0.1), border: `1px solid ${a.glow(0.3)}`, borderRadius: 20, padding: "4px 12px", marginBottom: 12 }}>
+                    <span style={{ fontSize: 11 }}>🎯</span>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: a.accent }}>You both want this date!</span>
+                  </div>
+                )}
+                {dateIdea.image
+                  ? <img src={dateIdea.image} alt={dateIdea.label} style={{ width: "100%", borderRadius: 16, objectFit: "cover", height: 160, display: "block" }} />
+                  : <div style={{ width: "100%", height: 120, borderRadius: 16, background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>{dateIdea.emoji}</div>
+                }
+              </div>
             </>
           )}
 
-          {/* ── Icebreaker ── */}
-          <div style={{ padding: "12px 16px" }}>
-            <p style={{ fontSize: 8, fontWeight: 800, color: a.glow(0.55), margin: "0 0 7px", letterSpacing: "0.1em", textTransform: "uppercase" }}>💬 Icebreaker</p>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", margin: 0, lineHeight: 1.65, fontStyle: "italic" }}>
-              "{icebreaker}"
-            </p>
-          </div>
-
+          {/* ══════════ I'M HERE FOR ═══════════════════════════════════════ */}
           <Divider />
-
-          {/* ── Voice Intro ── */}
-          <div style={{ padding: "12px 16px" }}>
-            <p style={{ fontSize: 8, fontWeight: 800, color: "rgba(255,255,255,0.3)", margin: "0 0 10px", letterSpacing: "0.1em", textTransform: "uppercase" }}>🎙 Voice Intro</p>
-            <VoiceNotePlayer profileId={profile.id} accent={a.accent} />
-          </div>
-
-          <Divider />
-
-          {/* ── Stats ── */}
-          <div style={{ padding: "12px 16px 10px", display: "flex", gap: 8 }}>
-            <div style={{ flex: 1, background: "rgba(236,72,153,0.08)", border: "1px solid rgba(236,72,153,0.2)", borderRadius: 10, padding: "8px", textAlign: "center" }}>
-              <p style={{ fontSize: 8, color: "rgba(236,72,153,0.55)", margin: "0 0 3px", fontWeight: 700 }}>Likes</p>
-              <p style={{ fontSize: 13, color: "rgba(236,72,153,0.9)", margin: 0, fontWeight: 900 }}>❤ {likesCount}</p>
+          <div style={{ padding: "16px 16px 18px" }}>
+            <p style={{ fontSize: 9, fontWeight: 800, color: a.glow(0.6), margin: "0 0 10px", letterSpacing: "0.12em", textTransform: "uppercase", textAlign: "center" }}>I'm Here For</p>
+            <p style={{ fontSize: 22, fontWeight: 900, color: a.glow(0.95), margin: "0 0 16px", textAlign: "center" }}>{outcomeIcon} {outcomeTag}</p>
+            {/* Partner preferences */}
+            <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)", margin: "0 0 10px", letterSpacing: "0.1em", textTransform: "uppercase" }}>My partner should be</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {[
+                { icon: "🙏", label: "Religion", value: partnerReligion },
+                { icon: "📍", label: "Location", value: partnerLocation },
+                { icon: "🎂", label: "Age range", value: `${ageMin} – ${ageMax} years` },
+                { icon: "✨", label: "Lifestyle", value: partnerLifestyle },
+                ...(profile.religion ? [{ icon: "🕌", label: "My faith", value: profile.religion }] : []),
+              ].map(row => (
+                <div key={row.label} style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "9px 12px" }}>
+                  <span style={{ fontSize: 15, flexShrink: 0 }}>{row.icon}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.35)", minWidth: 66 }}>{row.label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>{row.value}</span>
+                </div>
+              ))}
             </div>
-            {matchScore && (
-              <div style={{ flex: 1, background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", borderRadius: 10, padding: "8px", textAlign: "center" }}>
-                <p style={{ fontSize: 8, color: "rgba(74,222,128,0.55)", margin: "0 0 3px", fontWeight: 700 }}>Match</p>
-                <p style={{ fontSize: 13, color: "rgba(74,222,128,0.9)", margin: 0, fontWeight: 900 }}>⚡ {matchScore}%</p>
+          </div>
+
+          {/* ══════════ INTRODUCTION VIDEO ══════════════════════════════════ */}
+          <Divider />
+          <div style={{ padding: "16px 16px 18px" }}>
+            <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)", margin: "0 0 6px", letterSpacing: "0.12em", textTransform: "uppercase" }}>🎬 Introduction Video</p>
+            <p style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 10px", letterSpacing: "-0.01em" }}>Private Vault Video</p>
+
+            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "10px 13px", marginBottom: 14 }}>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.6 }}>
+                Some members choose to share a short personal intro video — only released to your Vault if they approve.{" "}
+                <span style={{ color: "rgba(255,255,255,0.3)" }}>Note: choosing not to send one doesn't mean she's not open to connecting — some are just a little nervous.</span>
+              </p>
+            </div>
+
+            {videoStatus === "idle" && (
+              <motion.button whileTap={{ scale: 0.97 }} onClick={handleVideoRequest} disabled={videoRequesting || readCoins() < 5}
+                style={{ width: "100%", height: 46, borderRadius: 14, border: `1px solid ${a.glow(readCoins() >= 5 ? 0.35 : 0.1)}`, background: readCoins() >= 5 ? a.glow(0.1) : "rgba(255,255,255,0.03)", color: readCoins() >= 5 ? a.accent : "rgba(255,255,255,0.2)", fontSize: 13, fontWeight: 800, cursor: readCoins() >= 5 ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "all 0.2s" }}>
+                {videoRequesting
+                  ? <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 0.8, repeat: Infinity }}>Sending request…</motion.span>
+                  : <><span>🎬</span><span>Request Video Introduction</span><span style={{ fontSize: 11, opacity: 0.6 }}>· 5 coins</span></>}
+              </motion.button>
+            )}
+            {videoStatus === "pending" && (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }}>
+                <span style={{ fontSize: 20 }}>📬</span>
+                <div>
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#fff" }}>Request sent</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>You'll receive a Vault notification if they approve.</p>
+                </div>
               </div>
             )}
-            {profile.weeksSinceJoin !== undefined && (
-              <div style={{ flex: 1, background: a.glow(0.07), border: `1px solid ${a.glow(0.18)}`, borderRadius: 10, padding: "8px", textAlign: "center" }}>
-                <p style={{ fontSize: 8, color: a.glow(0.5), margin: "0 0 3px", fontWeight: 700 }}>Weeks</p>
-                <p style={{ fontSize: 13, color: a.glow(0.9), margin: 0, fontWeight: 900 }}>{profile.weeksSinceJoin}w</p>
+            {videoStatus === "approved" && (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: a.glow(0.07), borderRadius: 12, border: `1px solid ${a.glow(0.25)}` }}>
+                <span style={{ fontSize: 20 }}>✅</span>
+                <div>
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: a.accent }}>Approved — check your Vault</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>The video is waiting for you in your private Vault room.</p>
+                </div>
+              </div>
+            )}
+            {videoStatus === "denied" && (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)" }}>
+                <span style={{ fontSize: 20 }}>🔒</span>
+                <div>
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.5)" }}>Kept private for now</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.25)", lineHeight: 1.5 }}>They chose not to share their video intro at this time.</p>
+                </div>
               </div>
             )}
           </div>
 
-          {/* ── Activity ── */}
-          <div style={{ padding: "6px 16px 28px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-              <span style={{ fontSize: 8, fontWeight: 800, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Activity</span>
-              <span style={{ fontSize: 8, fontWeight: 800, color: activity.color }}>{activity.label}</span>
+          {/* ══════════ SEND A WHISPER ══════════════════════════════════════ */}
+          <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.35)}, transparent)` }} />
+          <div style={{ padding: "20px 16px 32px" }}>
+            <p style={{ fontSize: 9, fontWeight: 800, color: a.glow(0.5), margin: "0 0 6px", letterSpacing: "0.12em", textTransform: "uppercase" }}>👻 Send a Whisper</p>
+            <p style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.01em" }}>One opening question</p>
+
+            <div style={{ background: a.glow(0.04), border: `1px solid ${a.glow(0.12)}`, borderRadius: 10, padding: "10px 14px", marginBottom: 14, display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>🔒</span>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.55 }}>No phone numbers, links, or social handles. Contact details shared only after mutual unlock. 2 violations = deactivated.</p>
             </div>
-            <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${activity.pct}%` }}
-                transition={{ duration: 0.7, delay: 0.3 }}
-                style={{ height: "100%", borderRadius: 2, background: `linear-gradient(90deg, ${activity.color}88, ${activity.color})`, boxShadow: `0 0 6px ${activity.color}` }}
-              />
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 10 }}>
+              {getWhisperPresets(profile.id).map(q => (
+                <button key={q} onClick={() => { setSelected(q); setUseCustom(false); }}
+                  style={{ textAlign: "left", padding: "12px 14px", borderRadius: 12, background: selected === q && !useCustom ? a.glow(0.12) : "rgba(255,255,255,0.04)", border: selected === q && !useCustom ? `1px solid ${a.glow(0.4)}` : "1px solid rgba(255,255,255,0.07)", color: selected === q && !useCustom ? a.accent : "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: selected === q && !useCustom ? 700 : 500, cursor: "pointer", lineHeight: 1.4 }}>
+                  {q}
+                </button>
+              ))}
             </div>
+
+            <button onClick={() => { setUseCustom(true); setSelected(null); setTimeout(() => inputRef.current?.focus(), 50); }}
+              style={{ width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, background: useCustom ? "rgba(168,85,247,0.08)" : "rgba(255,255,255,0.03)", border: useCustom ? "1px solid rgba(168,85,247,0.35)" : "1px solid rgba(255,255,255,0.06)", color: useCustom ? "rgba(168,85,247,0.9)" : "rgba(255,255,255,0.3)", fontSize: 12, fontWeight: 700, cursor: "pointer", marginBottom: useCustom ? 8 : 0 }}>
+              ✏️ Write my own question
+            </button>
+            <AnimatePresence>
+              {useCustom && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: "hidden" }}>
+                  <textarea ref={inputRef} value={custom} onChange={e => setCustom(e.target.value)} maxLength={160} placeholder="Type a genuine question…" rows={3}
+                    style={{ width: "100%", borderRadius: 12, padding: "12px 14px", boxSizing: "border-box", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 13, border: isCustomBlocked ? "1px solid rgba(239,68,68,0.5)" : "1px solid rgba(255,255,255,0.1)", outline: "none", resize: "none", lineHeight: 1.5, marginTop: 8 }} />
+                  {isCustomBlocked && <p style={{ fontSize: 11, color: "#ef4444", margin: "4px 0 0 4px", fontWeight: 700 }}>⚠️ {filterContent(custom.trim()).reason} detected</p>}
+                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "4px 0 0", textAlign: "right" }}>{custom.length}/160</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
-        {/* ── Sticky Like button at bottom ── */}
-        <div style={{ flexShrink: 0, padding: "12px 16px max(20px, env(safe-area-inset-bottom, 20px))", borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(5,5,10,0.98)" }}>
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={onLike}
-            style={{
-              width: "100%", height: 50, borderRadius: 16, border: liked ? `1.5px solid ${heartColor}` : "1.5px solid rgba(255,255,255,0.18)",
-              background: liked ? `${heartColor}20` : "rgba(255,255,255,0.06)",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              cursor: liked ? "default" : "pointer",
-              boxShadow: liked ? `0 0 20px ${heartColor}35` : "none",
-            }}
-          >
-            <span style={{ fontSize: 20, color: liked ? heartColor : "rgba(255,255,255,0.6)" }}>{liked ? "♥" : "♡"}</span>
-            <span style={{ fontSize: 15, fontWeight: 900, color: liked ? heartColor : "rgba(255,255,255,0.7)" }}>
-              {liked ? "Liked" : "Like"}
-            </span>
+        {/* ── Sticky footer ── */}
+        <div style={{ flexShrink: 0, padding: "12px 16px max(20px, env(safe-area-inset-bottom, 20px))", borderTop: `1px solid ${a.glow(0.12)}`, background: "rgba(5,5,10,0.98)", display: "flex", gap: 10, alignItems: "center" }}>
+          <motion.button whileTap={{ scale: 0.97 }} onClick={handleSend} disabled={!canSend}
+            style={{ flex: 1, height: 52, borderRadius: 14, border: "none", background: canSend ? `linear-gradient(135deg,${a.accent},${a.accentMid})` : "rgba(255,255,255,0.06)", color: canSend ? "#000" : "rgba(255,255,255,0.2)", fontSize: 15, fontWeight: 800, cursor: canSend ? "pointer" : "default", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <span>👻</span><span>Send Whisper</span>
+          </motion.button>
+          <motion.button whileTap={{ scale: 0.92 }}
+            onClick={() => { try { const r = JSON.parse(localStorage.getItem("ghost_reports") || "[]"); r.push({ profileId: profile.id, reportedAt: Date.now() }); localStorage.setItem("ghost_reports", JSON.stringify(r)); } catch {} alert("Profile reported. Our team will review it."); }}
+            style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid rgba(239,68,68,0.25)", background: "rgba(239,68,68,0.07)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+            <span style={{ fontSize: 18 }}>⚠️</span>
           </motion.button>
         </div>
       </motion.div>
@@ -370,7 +576,7 @@ function ProfileOverlay({
 
 // ── Main Card ─────────────────────────────────────────────────────────────────
 export default function GhostCard({
-  profile, liked, onClick, onLike, isRevealed, onReveal, canReveal, isTonight, houseTier: _houseTier,
+  profile, liked, onClick, onLike, isRevealed: _isRevealed, onReveal: _onReveal, canReveal: _canReveal, isTonight, houseTier: _houseTier,
   flaggedReason, onFlagOpen: _onFlagOpen, isFoundBoo,
 }: {
   profile: GhostProfile; liked: boolean; onClick: () => void; onLike?: () => void;
@@ -380,11 +586,10 @@ export default function GhostCard({
   isFoundBoo?: boolean;
 }) {
   const a = useGenderAccent();
-  const { t } = useLanguage();
   const online    = isOnline(profile.last_seen_at);
   const ghostId   = toGhostId(profile.id);
-  const [expanded, setExpanded]           = useState(false);
-  const [reportedConfirm, setReportedConfirm] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const isVerified  = profile.isVerified || profile.faceVerified || isFaceVerifiedSeeded(profile.id);
   const heartColor  = profile.gender === "Female" ? "#f472b6" : "#ef4444";
@@ -405,26 +610,15 @@ export default function GhostCard({
     setTimeout(() => setFloatingHearts(prev => prev.filter(h => !newHearts.find(n => n.id === h.id))), 1800);
   };
 
-  const handleReport = (e: React.MouseEvent) => {
+  const handleFingerprintClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      const stored: string[] = JSON.parse(localStorage.getItem("ghost_reported_ids") || "[]");
-      if (!stored.includes(profile.id)) { stored.push(profile.id); localStorage.setItem("ghost_reported_ids", JSON.stringify(stored)); }
-    } catch {}
-    setReportedConfirm(true);
-    setTimeout(() => setReportedConfirm(false), 1500);
-  };
-
-  const handleProfile = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isRevealed && !canReveal) { onReveal(); return; }
     setExpanded(true);
   };
 
   return (
     <>
       {/* ── Card ── */}
-      <div style={{ borderRadius: 18, position: "relative", aspectRatio: "3/4" }}>
+      <div ref={cardRef} style={{ borderRadius: 18, position: "relative", aspectRatio: "3/4" }}>
 
         {/* Online ring */}
         {online && (
@@ -445,7 +639,7 @@ export default function GhostCard({
         {/* Card face */}
         <motion.div
           whileTap={{ scale: 0.98 }}
-          onClick={onClick}
+          onClick={e => { e.stopPropagation(); onClick(); }}
           style={{
             position: "absolute", inset: 0, borderRadius: 18, overflow: "hidden", cursor: "pointer",
             border: liked ? `1.5px solid ${heartColor}55` : "1px solid rgba(255,255,255,0.09)",
@@ -461,25 +655,29 @@ export default function GhostCard({
           {/* Bottom gradient */}
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.35) 38%, transparent 60%)" }} />
 
-          {/* TOP RIGHT: km + report */}
-          <div style={{ position: "absolute", top: 10, right: 10, display: "flex", alignItems: "center", gap: 5 }}>
-            {profile.distanceKm !== undefined && (
-              <div style={{ background: "rgba(0,0,0,0.62)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "3px 9px", border: "1px solid rgba(255,255,255,0.14)" }}>
-                <span style={{ fontSize: 9, fontWeight: 800, color: "#fff" }}>{fmtKm(profile.distanceKm)}</span>
-              </div>
-            )}
-            <button onClick={handleReport}
-              style={{ width: 26, height: 26, borderRadius: 8, background: reportedConfirm ? "rgba(239,68,68,0.25)" : "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: reportedConfirm ? "1px solid rgba(239,68,68,0.55)" : "1px solid rgba(255,255,255,0.14)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-              {reportedConfirm ? <span style={{ fontSize: 9, fontWeight: 900, color: "#ef4444" }}>✓</span> : <span style={{ fontSize: 11 }}>🚩</span>}
-            </button>
-          </div>
+          {/* TOP LEFT: km + map pin */}
+          {profile.distanceKm !== undefined && (
+            <div style={{ position: "absolute", top: 10, left: 10, display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.62)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "3px 9px", border: "1px solid rgba(255,255,255,0.14)" }}>
+              <MapPin size={9} style={{ color: "#f87171", flexShrink: 0 }} />
+              <span style={{ fontSize: 9, fontWeight: 800, color: "#fff" }}>{fmtKm(profile.distanceKm)}</span>
+            </div>
+          )}
+
 
           {/* BOTTOM strip */}
-          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 11px 10px" }}>
-            {/* Flag + city */}
-            <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
-              <span style={{ fontSize: 13 }}>{profile.countryFlag}</span>
-              <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>{profile.city}</span>
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 11px 12px" }}>
+            {/* Ghost ID + voice indicator */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+              {hasVoiceNote(profile.id) && (
+                <motion.div
+                  animate={{ scale: [1, 1.12, 1], opacity: [0.75, 1, 0.75] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  style={{ width: 18, height: 18, borderRadius: "50%", background: a.glow(0.35), border: `1.5px solid ${a.accent}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 0 6px ${a.glow(0.5)}` }}
+                >
+                  <span style={{ fontSize: 7, color: "#fff", lineHeight: 1, marginLeft: 1 }}>▶</span>
+                </motion.div>
+              )}
+              <span style={{ fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.5)", letterSpacing: "0.02em" }}>{ghostId}</span>
             </div>
             {/* Age + verified */}
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
@@ -489,32 +687,49 @@ export default function GhostCard({
                   <span style={{ fontSize: 9, fontWeight: 900, color: "#fff" }}>✓</span>
                 </div>
               )}
-              {isTonight && (
-                <div style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "1px 7px", border: `1px solid ${a.glow(0.4)}` }}>
-                  <span style={{ fontSize: 8, fontWeight: 800, color: a.glow(0.95) }}>🌙 {t("card.tonight")}</span>
-                </div>
-              )}
             </div>
-            {/* Ghost ID */}
-            <div style={{ marginBottom: 9 }}>
-              <span style={{ fontSize: 12, fontWeight: 900, color: "rgba(255,255,255,0.55)", letterSpacing: "0.02em" }}>{ghostId}</span>
-            </div>
-
-            {/* Buttons */}
-            <div style={{ display: "flex", gap: 7 }}>
-              <motion.button whileTap={{ scale: 0.88 }} onClick={triggerHearts}
-                style={{ flex: 1, height: 38, borderRadius: 12, background: liked ? `${heartColor}22` : "rgba(255,255,255,0.08)", border: liked ? `1.5px solid ${heartColor}` : "1.5px solid rgba(255,255,255,0.18)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, cursor: liked ? "default" : "pointer", boxShadow: liked ? `0 0 14px ${heartColor}40` : "none" }}>
-                <span style={{ fontSize: 14, color: liked ? heartColor : "rgba(255,255,255,0.7)" }}>{liked ? "♥" : "♡"}</span>
-                <span style={{ fontSize: 11, fontWeight: 800, color: liked ? heartColor : "rgba(255,255,255,0.7)" }}>{liked ? "Liked" : "Like"}</span>
-              </motion.button>
-
-              <motion.button whileTap={{ scale: 0.88 }} onClick={handleProfile}
-                style={{ flex: 1, height: 38, borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1.5px solid rgba(255,255,255,0.18)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer" }}>
-                <span style={{ fontSize: 13 }}>👁</span>
-                <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.75)" }}>Profile</span>
-              </motion.button>
+            {/* Flag + city */}
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <span style={{ fontSize: 13 }}>{profile.countryFlag}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>{profile.city}</span>
             </div>
           </div>
+
+          {/* Like button — floating round circle TOP-RIGHT */}
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={triggerHearts}
+            style={{
+              position: "absolute", top: 10, right: 10, zIndex: 5,
+              width: 38, height: 38, borderRadius: "50%",
+              background: liked ? a.glow(0.35) : "rgba(0,0,0,0.55)",
+              border: liked ? `2px solid ${a.accent}` : "2px solid rgba(255,255,255,0.22)",
+              backdropFilter: "blur(12px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: liked ? "default" : "pointer",
+              boxShadow: liked ? `0 0 14px ${a.glow(0.5)}` : "0 2px 8px rgba(0,0,0,0.5)",
+            }}
+          >
+            <span style={{ fontSize: 16, color: "#fff", lineHeight: 1 }}>{liked ? "♥" : "♡"}</span>
+          </motion.button>
+
+          {/* Fingerprint button — lower-right, opens landscape detail panel */}
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={handleFingerprintClick}
+            style={{
+              position: "absolute", bottom: 12, right: 10, zIndex: 5,
+              width: 38, height: 38, borderRadius: "50%",
+              background: "rgba(0,0,0,0.55)",
+              border: "2px solid rgba(255,255,255,0.22)",
+              backdropFilter: "blur(12px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+            }}
+          >
+            <Fingerprint size={17} color="#fff" />
+          </motion.button>
 
           {/* Special overlays */}
           {flaggedReason === "spam" && (
@@ -559,10 +774,11 @@ export default function GhostCard({
         </AnimatePresence>
       </div>
 
-      {/* ── Expanded profile overlay ── */}
+      {/* ── Profile + Whisper Modal ── */}
       <AnimatePresence>
         {expanded && (
-          <ProfileOverlay
+          <ProfileWhisperModal
+            key="pwm"
             profile={profile}
             liked={liked}
             onLike={() => { onLike?.(); }}

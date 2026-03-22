@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Camera, MapPin, Globe, Smartphone } from "lucide-react";
+import { X, Settings, Camera, MapPin, Globe, Smartphone, LayoutDashboard, KeyRound, Map, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { WORLD_COUNTRIES } from "../data/worldCountries";
 import { getCitiesForCountry } from "../data/countryCities";
@@ -70,6 +70,7 @@ export default function GhostSetupPage() {
   const [saving, setSaving] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [gpsCoords, setGpsCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const [voiceBlob, setVoiceBlob] = useState<string | null>(() => {
     try { return localStorage.getItem("ghost_voice_note") || null; } catch { return null; }
@@ -227,23 +228,121 @@ export default function GhostSetupPage() {
         paddingTop: "max(12px, env(safe-area-inset-top, 12px))",
         display: "flex", alignItems: "center", gap: 12,
       }}>
+        {/* Logo — left */}
+        <img src={GHOST_LOGO} alt="2Ghost" style={{ width: 36, height: 36, objectFit: "contain", opacity: 0.9, flexShrink: 0 }} />
+
+        {/* Title — center */}
+        <div style={{ flex: 1 }}>
+          <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Create Your Profile</h1>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: 0 }}>Anonymous until you match</p>
+        </div>
+
+        {/* Settings icon */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => setDrawerOpen(true)}
           style={{
             width: 36, height: 36, borderRadius: 10,
             background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", color: "rgba(255,255,255,0.7)", flexShrink: 0,
+            cursor: "pointer", color: "rgba(255,255,255,0.6)", flexShrink: 0,
           }}
         >
-          <ArrowLeft size={16} />
+          <Settings size={16} />
         </button>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Create Your Ghost Profile</h1>
-          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: 0 }}>Anonymous until you match</p>
-        </div>
-        <img src={GHOST_LOGO} alt="" style={{ width: 38, height: 38, objectFit: "contain", opacity: 0.85 }} />
+
+        {/* X close — navigates to home */}
+        <button
+          onClick={() => { setDrawerOpen(false); navigate("/ghost/mode", { replace: true }); }}
+          style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.18)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", color: "#f87171", flexShrink: 0,
+          }}
+        >
+          <X size={16} />
+        </button>
       </div>
+
+      {/* Side dashboard drawer */}
+      <AnimatePresence>
+        {drawerOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setDrawerOpen(false)}
+              style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+            />
+            {/* Drawer panel */}
+            <motion.div
+              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 340, damping: 34 }}
+              style={{
+                position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 201,
+                width: 280, background: "#09091a",
+                borderLeft: `1px solid ${a.glow(0.15)}`,
+                display: "flex", flexDirection: "column",
+                paddingTop: "max(24px, env(safe-area-inset-top, 24px))",
+              }}
+            >
+              {/* Drawer header */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 18px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <img src={GHOST_LOGO} alt="" style={{ width: 32, height: 32, objectFit: "contain" }} />
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: 0 }}>Dashboard</p>
+                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>2Ghost</p>
+                </div>
+                <button onClick={() => setDrawerOpen(false)}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)", padding: 4 }}>
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Drawer nav */}
+              <nav style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
+                {[
+                  { icon: LayoutDashboard, label: "My Dashboard",  path: "/ghost/dashboard" },
+                  { icon: User,            label: "My Profile",     path: "/ghost/setup"     },
+                  { icon: KeyRound,        label: "Hotel Rooms",    path: "/ghost/rooms"     },
+                  { icon: Map,             label: "Ghost Map",      path: "/ghost/map"       },
+                ].map(({ icon: Icon, label: lbl, path }) => (
+                  <button
+                    key={path}
+                    onClick={() => navigate(path)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 12,
+                      padding: "12px 14px", borderRadius: 12, width: "100%",
+                      background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
+                      color: "rgba(255,255,255,0.7)", fontSize: 13, fontWeight: 600,
+                      cursor: "pointer", textAlign: "left",
+                    }}
+                  >
+                    <Icon size={16} style={{ color: a.accent, flexShrink: 0 }} />
+                    {lbl}
+                  </button>
+                ))}
+              </nav>
+
+              {/* Close drawer + go home */}
+              <div style={{ padding: "12px 12px max(20px, env(safe-area-inset-bottom, 20px))", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <button
+                  onClick={() => { setDrawerOpen(false); navigate("/ghost/mode", { replace: true }); }}
+                  style={{
+                    width: "100%", height: 46, borderRadius: 12,
+                    background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
+                    color: "#f87171", fontSize: 13, fontWeight: 700,
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    cursor: "pointer",
+                  }}
+                >
+                  <X size={14} /> Close & Go Home
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Form */}
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px 48px" }}>
