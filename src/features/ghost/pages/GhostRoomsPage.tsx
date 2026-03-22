@@ -295,7 +295,7 @@ const ROOMS = [
     icon: "👑",
     name: "Kings Room",
     tagline: "The room where serious matches happen",
-    price: "$14.99 one-time",
+    price: "$11.99 one-time",
     color: "#d4af37",
     border: "rgba(212,175,55,0.45)",
     bg: "rgba(212,175,55,0.07)",
