@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useGenderAccent } from "../../../shared/hooks/useGenderAccent";
 import VaultPrivateChatPopup from "./VaultPrivateChatPopup";
 import GiftReplyModal, { type PendingGift } from "./GiftReplyModal";
+import GhostRadioRecorder from "./GhostRadioRecorder";
+import { isKingsPlus, incrementFloorGift } from "../utils/featureGating";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 export type ChatMessage = {
@@ -13,7 +15,7 @@ export type ChatMessage = {
   timestamp: number;
   isOwn: boolean;
   mediaUrl?: string;
-  mediaType?: "image" | "video";
+  mediaType?: "image" | "video" | "audio";
   isGift?: boolean;
   giftEmoji?: string;
   giftName?: string;
@@ -192,6 +194,9 @@ export default function FloorChatPopup({
 
   // Incoming gift — must reply before modal closes
   const [pendingGiftReply, setPendingGiftReply] = useState<PendingGift | null>(null);
+
+  // Ghost Radio
+  const [showRadio, setShowRadio] = useState(false);
   function showToast(msg: string) {
     setNotifToast(msg);
     setTimeout(() => setNotifToast(null), 3500);
@@ -273,6 +278,7 @@ export default function FloorChatPopup({
     setDrawerOpen(false);
     setDrawerMember(null);
     setDrawerAction("idle");
+    incrementFloorGift(tier);
     showToast(`${gift.emoji} ${gift.name} sent to ${member.name}!`);
     setTimeout(() => {
       const rList = (SEED[tier] ?? SEED.standard);
@@ -299,7 +305,7 @@ export default function FloorChatPopup({
     const isImage = file.type.startsWith("image/");
     if (!isImage && !isVideo) return;
     const url = URL.createObjectURL(file);
-    const mediaType: "image" | "video" = isVideo ? "video" : "image";
+    const mediaType: "image" | "video" | "audio" = isVideo ? "video" : "image";
     addMessage({ id: `media-${Date.now()}`, senderId: "me", senderName: "You", text: isVideo ? "🎬 Video" : "📸 Photo", mediaUrl: url, mediaType, timestamp: Date.now(), isOwn: true });
     e.target.value = "";
     scheduleReply(file.name, true);
@@ -606,6 +612,11 @@ export default function FloorChatPopup({
               style={{ flexShrink: 0, width: 36, height: 36, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               <span style={{ fontSize: 17 }}>📎</span>
             </motion.button>
+            <motion.button whileTap={{ scale: 0.88 }}
+              onClick={() => { if (isKingsPlus()) setShowRadio(true); else showToast("Ghost Radio is Kings Room and above 👑"); }}
+              style={{ flexShrink: 0, width: 36, height: 36, borderRadius: 10, border: `1px solid ${isKingsPlus() ? a.glow(0.3) : "rgba(255,255,255,0.08)"}`, background: isKingsPlus() ? a.glow(0.08) : "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <span style={{ fontSize: 17 }}>🎤</span>
+            </motion.button>
             <input
               ref={inputRef}
               value={input}
@@ -687,6 +698,25 @@ export default function FloorChatPopup({
       <AnimatePresence>
         {pendingGiftReply && (
           <GiftReplyModal gift={pendingGiftReply} onReply={handleGiftReply} />
+        )}
+      </AnimatePresence>
+
+      {/* ── Ghost Radio recorder ── */}
+      <AnimatePresence>
+        {showRadio && (
+          <GhostRadioRecorder
+            onClose={() => setShowRadio(false)}
+            onSend={(blob, duration) => {
+              setShowRadio(false);
+              const url = URL.createObjectURL(blob);
+              addMessage({
+                id: `radio-${Date.now()}`, senderId: "me", senderName: "You",
+                text: `🎤 Voice note (${duration}s)`, timestamp: Date.now(), isOwn: true,
+                mediaUrl: url, mediaType: "audio" as const,
+              });
+              showToast("📻 Voice note sent");
+            }}
+          />
         )}
       </AnimatePresence>
 

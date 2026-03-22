@@ -49,6 +49,15 @@ import HotelEventsBoard from "../components/HotelEventsBoard";
 import GhostStatsDashboard from "../components/GhostStatsDashboard";
 import GhostReferralSheet from "../components/GhostReferralSheet";
 import FloorInviteSheet, { FloorNudgeSheet, getAcceptedFloorMembers, isProfileInvited, getProfileFloor, floorRank, FLOOR_LABELS, type AcceptedMember } from "../components/FloorInviteSheet";
+import GhostScoreSheet from "../components/GhostScoreSheet";
+import GhostClockSheet from "../components/GhostClockSheet";
+import WhisperSheet from "../components/WhisperSheet";
+import FloorWarsBoard from "../components/FloorWarsBoard";
+import GhostConciergeSheet from "../components/GhostConciergeSheet";
+import SeancePopup from "../components/SeancePopup";
+import VideoIntroPlayer from "../components/VideoIntroPlayer";
+import VideoIntroUploader from "../components/VideoIntroUploader";
+import { hasActiveWindowMode, getDaysConnected, getConciergeShown, whisperWillConvert, profileHasVideo, isProfileInWindow } from "../utils/featureGating";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
@@ -554,6 +563,24 @@ export default function GhostModePage() {
   const [floorInviteTarget,  setFloorInviteTarget]  = useState("standard");
   const [invitedMembers,     setInvitedMembers]     = useState<AcceptedMember[]>(() => getAcceptedFloorMembers());
   const [nudgeProfile,       setNudgeProfile]       = useState<AcceptedMember | null>(null);
+
+  // ── New features ────────────────────────────────────────────────────────────
+  const [showGhostScore,   setShowGhostScore]   = useState(false);
+  const [scoreProfile,     setScoreProfile]     = useState<GhostProfile | null>(null);
+  const [showGhostClock,   setShowGhostClock]   = useState(false);
+  const [showFloorWars,    setShowFloorWars]     = useState(false);
+  const [showWhisper,      setShowWhisper]       = useState(false);
+  const [whisperProfile,   setWhisperProfile]   = useState<GhostProfile | null>(null);
+  const [showConcierge,    setShowConcierge]     = useState(false);
+  const [conciergeProfile, setConciergeProfile] = useState<GhostProfile | null>(null);
+  const [conciergeMatchId, setConciergeMatchId] = useState("");
+  const [conciergeDays,    setConciergeDays]     = useState(0);
+  const [showSeance,       setShowSeance]        = useState(false);
+  const [seanceProfile,    setSeanceProfile]     = useState<GhostProfile | null>(null);
+  const [showVideoPlayer,  setShowVideoPlayer]   = useState(false);
+  const [videoProfile,     setVideoProfile]      = useState<GhostProfile | null>(null);
+  const [showVideoUpload,  setShowVideoUpload]   = useState(false);
+  const [windowActive,     setWindowActive]      = useState(hasActiveWindowMode);
   // Read room tier as state so navigation back from Rooms page triggers re-render
   const [userRoomTier, setUserRoomTier] = useState<"standard"|"suite"|"kings"|"penthouse"|"cellar"|"garden"|null>(() => {
     try {
@@ -1373,7 +1400,18 @@ export default function GhostModePage() {
           return (
             <>
               {activeMatches.map((m, i) => (
-                <div key={m.id} onClick={() => openMatchAction(m.profile, "match")}
+                <div key={m.id} onClick={() => {
+                    const days = getDaysConnected(m.matchedAt);
+                    const shown = getConciergeShown();
+                    if (days >= 5 && !shown.includes(m.id)) {
+                      setConciergeProfile(m.profile);
+                      setConciergeMatchId(m.id);
+                      setConciergeDays(days);
+                      setShowConcierge(true);
+                    } else {
+                      openMatchAction(m.profile, "match");
+                    }
+                  }}
                   style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
                 >
                   <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
@@ -1927,7 +1965,16 @@ export default function GhostModePage() {
 
       <AnimatePresence>
         {selectedProfile && (
-          <GhostProfilePopup profile={selectedProfile} liked={likedIds.has(selectedProfile.id)} onLike={() => handleLike(selectedProfile)} onClose={() => setSelectedProfile(null)} onPass={() => handlePass(selectedProfile.id)} />
+          <GhostProfilePopup
+            profile={selectedProfile}
+            liked={likedIds.has(selectedProfile.id)}
+            onLike={() => handleLike(selectedProfile)}
+            onClose={() => setSelectedProfile(null)}
+            onPass={() => handlePass(selectedProfile.id)}
+            onWhisper={() => { setWhisperProfile(selectedProfile); setSelectedProfile(null); setShowWhisper(true); }}
+            onVideoIntro={profileHasVideo(selectedProfile.id) ? () => { setVideoProfile(selectedProfile); setSelectedProfile(null); setShowVideoPlayer(true); } : undefined}
+            onSeance={likedIds.has(selectedProfile.id) ? () => { setSeanceProfile(selectedProfile); setSelectedProfile(null); setShowSeance(true); } : undefined}
+          />
         )}
       </AnimatePresence>
 
@@ -2463,6 +2510,9 @@ export default function GhostModePage() {
                   { icon: null, label: "Shield", desc: "Block & privacy controls", isShield: true, action: () => { setShowSettingsSheet(false); navigate("/ghost/block"); } },
                   { icon: "🏨", label: "Rooms", desc: "Ghost Hotel floor", action: () => { setShowSettingsSheet(false); setShowHouseModal(true); } },
                   { icon: null, label: "Room Vault", desc: "Your private ghost room", isRoom: true, action: () => { setShowSettingsSheet(false); navigate("/ghost/room"); } },
+                  { icon: "🕐", label: "Ghost Clock", desc: "Open your 2-hour availability window", action: () => { setShowSettingsSheet(false); setWindowActive(hasActiveWindowMode()); setShowGhostClock(true); } },
+                  { icon: "⚔️", label: "Floor Wars", desc: "Weekly floor gift leaderboard", action: () => { setShowSettingsSheet(false); setShowFloorWars(true); } },
+                  { icon: "🎬", label: "Video Introduction", desc: "Upload & manage your video intro", action: () => { setShowSettingsSheet(false); setShowVideoUpload(true); } },
                   { icon: "📄", label: "Terms & Conditions", desc: "Privacy & usage policy", action: () => { setShowSettingsSheet(false); window.open("https://2ghost.com/terms", "_blank"); } },
                 ].map(({ icon, label, desc, isShield, isRoom, action }) => (
                   <button key={label} onClick={action}
@@ -2829,6 +2879,85 @@ export default function GhostModePage() {
       <AnimatePresence>
         {nudgeProfile && (
           <FloorNudgeSheet member={nudgeProfile} onClose={() => setNudgeProfile(null)} />
+        )}
+      </AnimatePresence>
+
+      {/* ── Ghost Score Sheet ── */}
+      <AnimatePresence>
+        {showGhostScore && scoreProfile && (
+          <GhostScoreSheet profile={scoreProfile} onClose={() => { setShowGhostScore(false); setScoreProfile(null); }} />
+        )}
+      </AnimatePresence>
+
+      {/* ── Ghost Clock Sheet ── */}
+      <AnimatePresence>
+        {showGhostClock && (
+          <GhostClockSheet onClose={() => { setShowGhostClock(false); setWindowActive(hasActiveWindowMode()); }} />
+        )}
+      </AnimatePresence>
+
+      {/* ── Floor Wars Board ── */}
+      <AnimatePresence>
+        {showFloorWars && (
+          <FloorWarsBoard onClose={() => setShowFloorWars(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* ── Whisper Sheet ── */}
+      <AnimatePresence>
+        {showWhisper && whisperProfile && (
+          <WhisperSheet
+            profile={whisperProfile}
+            onClose={() => { setShowWhisper(false); setWhisperProfile(null); }}
+            onWhisperSent={(profile, willConvert) => {
+              if (willConvert) {
+                const delay = (90 + Math.floor(Math.random() * 120)) * 1000;
+                setTimeout(() => {
+                  const savedMatches = loadMatches();
+                  const newMatch = { id: profile.id, profile, matchedAt: Date.now() };
+                  persistMatches([...savedMatches.filter(m => m.id !== profile.id), newMatch]);
+                  setSavedMatches(prev => [...prev.filter(m => m.id !== profile.id), newMatch]);
+                }, delay);
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Concierge Date Sheet ── */}
+      <AnimatePresence>
+        {showConcierge && conciergeProfile && (
+          <GhostConciergeSheet
+            profile={conciergeProfile}
+            matchId={conciergeMatchId}
+            daysConnected={conciergeDays}
+            onClose={() => { setShowConcierge(false); setConciergeProfile(null); }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Séance Popup ── */}
+      <AnimatePresence>
+        {showSeance && seanceProfile && (
+          <SeancePopup profile={seanceProfile} onClose={() => { setShowSeance(false); setSeanceProfile(null); }} />
+        )}
+      </AnimatePresence>
+
+      {/* ── Video Intro Player ── */}
+      <AnimatePresence>
+        {showVideoPlayer && videoProfile && (
+          <VideoIntroPlayer
+            profile={videoProfile}
+            myGhostId={(() => { try { return `Ghost-${Math.abs(Array.from(localStorage.getItem("ghost_phone") ?? "").reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0)) % 9000 + 1000}`; } catch { return "Ghost-0000"; } })()}
+            onClose={() => { setShowVideoPlayer(false); setVideoProfile(null); }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Video Intro Uploader ── */}
+      <AnimatePresence>
+        {showVideoUpload && (
+          <VideoIntroUploader onClose={() => setShowVideoUpload(false)} />
         )}
       </AnimatePresence>
 

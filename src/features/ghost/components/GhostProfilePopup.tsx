@@ -11,9 +11,11 @@ const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,
 // ── Profile popup overlay ───────────────────────────────────────────────────
 export default function GhostProfilePopup({
   profile, liked, onLike, onClose, onPass, isLobby = false, cooldownSecs = 0, onCallButler,
+  onWhisper, onVideoIntro, onSeance,
 }: {
   profile: GhostProfile; liked: boolean; onLike: () => void; onClose: () => void; onPass: () => void;
   isLobby?: boolean; cooldownSecs?: number; onCallButler?: () => void;
+  onWhisper?: () => void; onVideoIntro?: () => void; onSeance?: () => void;
 }) {
   const a = useGenderAccent();
   const accent = isLobby ? "#d4af37" : a.accent;
@@ -162,15 +164,38 @@ export default function GhostProfilePopup({
             )}
           </button>
           </div>
-          {onCallButler && (
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <button
-                onClick={onCallButler}
-                style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", padding: 0 }}
-              >
-                <img src="https://ik.imagekit.io/7grri5v7d/butlers%20tray.png" alt="butler" style={{ width: 16, height: 16, objectFit: "contain" }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(212,175,55,0.6)" }}>Send a gift via Butler</span>
-              </button>
+          {/* Secondary action row */}
+          {(onWhisper || onVideoIntro || onSeance || onCallButler) && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {onWhisper && !liked && (
+                <button onClick={onWhisper}
+                  style={{ flex: 1, minWidth: 90, height: 36, borderRadius: 10, border: "1px solid rgba(139,92,246,0.35)", background: "rgba(139,92,246,0.08)", color: "#a78bfa", fontSize: 11, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
+                >
+                  💨 Whisper
+                </button>
+              )}
+              {onSeance && (
+                <button onClick={onSeance}
+                  style={{ flex: 1, minWidth: 90, height: 36, borderRadius: 10, border: `1px solid rgba(${accentRgb},0.3)`, background: `rgba(${accentRgb},0.07)`, color: accent, fontSize: 11, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
+                >
+                  🌫️ Séance
+                </button>
+              )}
+              {onVideoIntro && (
+                <button onClick={onVideoIntro}
+                  style={{ flex: 1, minWidth: 90, height: 36, borderRadius: 10, border: `1px solid rgba(${accentRgb},0.3)`, background: `rgba(${accentRgb},0.07)`, color: accent, fontSize: 11, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
+                >
+                  🎬 Video Intro
+                </button>
+              )}
+              {onCallButler && (
+                <button onClick={onCallButler}
+                  style={{ flex: 1, minWidth: 90, height: 36, borderRadius: 10, background: "none", border: "1px solid rgba(212,175,55,0.25)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: 0 }}
+                >
+                  <img src="https://ik.imagekit.io/7grri5v7d/butlers%20tray.png" alt="butler" style={{ width: 14, height: 14, objectFit: "contain" }} />
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(212,175,55,0.6)" }}>Butler Gift</span>
+                </button>
+              )}
             </div>
           )}
         </div>
