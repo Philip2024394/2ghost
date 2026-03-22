@@ -233,9 +233,10 @@ function CellarAgeGate({ onConfirm, onBack }: { onConfirm: () => void; onBack: (
             color: checked ? "#fff" : "rgba(255,255,255,0.25)",
             fontSize: 15, fontWeight: 800, cursor: checked ? "pointer" : "not-allowed",
             marginBottom: 12,
+            boxShadow: checked ? "0 4px 24px rgba(192,57,43,0.5)" : "none",
           }}
         >
-          Enter The Cellar 🔥
+          {checked ? "Enter The Cellar 🔥" : "Confirm you are 18+ to enter"}
         </motion.button>
         <button
           onClick={onBack}
@@ -474,7 +475,7 @@ export default function CellarFloorPage() {
   if (!ageVerified) {
     return (
       <CellarAgeGate
-        onConfirm={() => { setCellarAgeVerified(); setAgeVerified(true); }}
+        onConfirm={() => { setCellarAgeVerified(); activateCellarSub(); setAgeVerified(true); setSubscribed(true); }}
         onBack={() => navigate(-1)}
       />
     );
