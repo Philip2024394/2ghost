@@ -37,11 +37,11 @@ export const CELLAR_NOTE_COST        = 5;
 export const CELLAR_OPENER_MAX_CHARS = 180;
 
 export const CELLAR_GIFTS = [
-  { key: "wine",    name: "Wine",      emoji: "🍷", coins: 10  },
-  { key: "rose",    name: "Red Rose",  emoji: "🌹", coins: 20  },
-  { key: "fire",    name: "Fire",      emoji: "🔥", coins: 35  },
-  { key: "kiss",    name: "Kiss",      emoji: "💋", coins: 60  },
-  { key: "crown",   name: "Crown",     emoji: "👑", coins: 100 },
+  { key: "red_wine",    name: "Ghost Red Wine",    label: "Red Wine",    emoji: "🍷", image: "", coins: 0,   description: "A deep red wine glass with a ghost reflected in the dark liquid." },
+  { key: "red_rose",    name: "Ghost Red Rose",    label: "Red Rose",    emoji: "🌹", image: "", coins: 20,  description: "A single blood-red rose with black thorns and crimson ghost mist." },
+  { key: "flame",       name: "Ghost Flame",       label: "Flame",       emoji: "🔥", image: "", coins: 40,  description: "A deep crimson flame with a ghost silhouette dancing inside." },
+  { key: "red_kiss",    name: "Ghost Red Kiss",    label: "Red Kiss",    emoji: "💋", image: "", coins: 70,  description: "A bold red lipstick kiss mark on black paper with ghost watermark." },
+  { key: "cellar_crown",name: "Ghost Cellar Crown",label: "Cellar Crown",emoji: "👑", image: "", coins: 120, description: "A blood-red crown with dark jewels and ghost skull at the peak." },
 ] as const;
 
 export const CELLAR_CITIES = [

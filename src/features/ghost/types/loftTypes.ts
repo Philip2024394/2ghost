@@ -37,11 +37,11 @@ export const LOFT_NOTE_COST         = 5;
 export const LOFT_OPENER_MAX_CHARS  = 180;
 
 export const LOFT_GIFTS = [
-  { key: "cocktail", name: "Cocktail", emoji: "🍸", coins: 10  },
-  { key: "rose",     name: "Rose",     emoji: "🌹", coins: 20  },
-  { key: "gift",     name: "Gift Box", emoji: "🎁", coins: 35  },
-  { key: "diamond",  name: "Diamond",  emoji: "💎", coins: 60  },
-  { key: "crown",    name: "Crown",    emoji: "👑", coins: 100 },
+  { key: "cocktail",     name: "Ghost Cocktail",      label: "Cocktail",     emoji: "🍸", image: "", coins: 0,   description: "A golden cocktail glass with rainbow liquid and a ghost straw." },
+  { key: "rainbow_rose", name: "Ghost Rainbow Rose",   label: "Rainbow Rose", emoji: "🌹", image: "", coins: 20,  description: "A rose with petals blending through rainbow colours on gold stem." },
+  { key: "violet_heart", name: "Ghost Violet",         label: "Violet Heart", emoji: "💜", image: "", coins: 40,  description: "A glowing violet heart with a small ghost face inside." },
+  { key: "loft_glitter", name: "Ghost Loft Glitter",   label: "Loft Glitter", emoji: "✨", image: "", coins: 65,  description: "An explosion of gold and rainbow glitter forming a ghost shape." },
+  { key: "pride_crown",  name: "Ghost Pride Crown",    label: "Pride Crown",  emoji: "👑", image: "", coins: 110, description: "A crown with rainbow gems and a gold ghost at the center front." },
 ] as const;
 
 export const LOFT_CITIES = [

@@ -5,15 +5,13 @@ import type { GhostProfile } from "../types/ghostTypes";
 import { toGhostId } from "../utils/ghostHelpers";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
+import { getGiftsByTier } from "../types/ghostGiftSets";
 
 export type MatchActionContext = "match" | "ilike" | "liked" | "lobby";
 
-const GIFTS = [
-  { emoji: "🥂", label: "Drink",   coins: 5  },
-  { emoji: "🌹", label: "Rose",    coins: 15 },
-  { emoji: "🎁", label: "Gift",    coins: 25 },
-  { emoji: "💎", label: "Diamond", coins: 50 },
-] as const;
+function readTier() {
+  try { return localStorage.getItem("ghost_house_tier") as "standard"|"suite"|"kings"|"penthouse"|null; } catch { return null; }
+}
 
 export default function MatchActionPopup({
   profile, context, coinBalance,
@@ -35,6 +33,7 @@ export default function MatchActionPopup({
   const [sentGift, setSentGift] = useState<string | null>(null);
   const [showNeedCoins, setShowNeedCoins] = useState(false);
 
+  const GIFTS = getGiftsByTier(readTier());
   const isLobby = context === "lobby";
 
   const accentColor = context === "liked" ? "#f472b6" : a.accent;
@@ -48,14 +47,14 @@ export default function MatchActionPopup({
     : context === "liked" ? "💗 Liked you!"
     : "👍 You liked";
 
-  const handleGift = (emoji: string, coins: number) => {
+  const handleGift = (emoji: string, coins: number, key?: string) => {
     if (coinBalance < coins) {
       setShowNeedCoins(true);
       setTimeout(() => setShowNeedCoins(false), 2200);
       onNeedCoins();
       return;
     }
-    setSentGift(emoji);
+    setSentGift(key ?? emoji);
     onGift(emoji, coins);
     setTimeout(() => setSentGift(null), 2500);
   };
@@ -186,20 +185,26 @@ export default function MatchActionPopup({
                 <div style={{ display: "flex", gap: 8 }}>
                   {GIFTS.map(g => (
                     <button
-                      key={g.emoji}
-                      onClick={() => handleGift(g.emoji, g.coins)}
+                      key={g.key}
+                      onClick={() => handleGift(g.emoji, g.coins, g.key)}
                       style={{
-                        flex: 1, height: 52, borderRadius: 12,
-                        background: sentGift === g.emoji ? `${accentColor}22` : "rgba(255,255,255,0.05)",
-                        border: `1.5px solid ${sentGift === g.emoji ? accentColor : "rgba(255,255,255,0.08)"}`,
+                        flex: 1, height: 60, borderRadius: 12,
+                        background: sentGift === g.key ? `${accentColor}22` : "rgba(255,255,255,0.05)",
+                        border: `1.5px solid ${sentGift === g.key ? accentColor : "rgba(255,255,255,0.08)"}`,
                         cursor: "pointer", display: "flex", flexDirection: "column",
                         alignItems: "center", justifyContent: "center", gap: 3,
                         transition: "all 0.15s",
                       }}
                     >
-                      <span style={{ fontSize: 18 }}>{g.emoji}</span>
-                      <span style={{ fontSize: 8, fontWeight: 700, color: sentGift === g.emoji ? accentColor : "rgba(255,255,255,0.35)" }}>
-                        {sentGift === g.emoji ? "✓ Sent!" : `${g.coins} 🪙`}
+                      {g.image
+                        ? <img src={g.image} alt={g.label} style={{ width: 26, height: 26, objectFit: "contain" }} onError={(e)=>{(e.target as HTMLImageElement).style.display="none";}} />
+                        : <span style={{ fontSize: 18 }}>{g.emoji}</span>
+                      }
+                      <span style={{ fontSize: 7, fontWeight: 700, color: sentGift === g.key ? accentColor : "rgba(255,255,255,0.4)", textAlign: "center", lineHeight: 1.2 }}>
+                        {sentGift === g.key ? "✓ Sent!" : g.label}
+                      </span>
+                      <span style={{ fontSize: 7, color: "rgba(255,255,255,0.25)", fontWeight: 600 }}>
+                        {g.coins === 0 ? "FREE" : `${g.coins}🪙`}
                       </span>
                     </button>
                   ))}
@@ -227,7 +232,7 @@ export default function MatchActionPopup({
                   {GIFTS.map(g => (
                     <button
                       key={g.emoji}
-                      onClick={() => handleGift(g.emoji, g.coins)}
+                      onClick={() => handleGift(g.emoji, g.coins, g.key)}
                       style={{
                         flex: 1, height: 56, borderRadius: 13,
                         background: sentGift === g.emoji ? `${accentColor}22` : "rgba(255,255,255,0.05)",
