@@ -80,7 +80,7 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
               <img src={GHOST_LOGO} alt="ghost" style={{ width: 216, height: 216, objectFit: "contain" }} />
             </motion.div>
             <h1 style={{
-              fontSize: 24, fontWeight: 900, color: "#fff", margin: "0 0 10px",
+              fontSize: 24, fontWeight: 900, color: "#fff", margin: "0 0 6px",
               letterSpacing: "-0.02em", lineHeight: 1.2,
             }}>
               Welcome to{" "}
@@ -88,16 +88,22 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
                 background: `linear-gradient(135deg, ${a.accent}, ${a.accentMid})`,
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               }}>
-                Ghost Rooms
+                2Ghost Hotel
               </span>
             </h1>
+            <p style={{
+              fontSize: 15, fontWeight: 800, color: "#d4af37", margin: "0 0 12px",
+              letterSpacing: "0.04em",
+            }}>
+              Where Souls Find Each Other ✨
+            </p>
             <p style={{
               fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7,
               maxWidth: 320, marginInline: "auto",
             }}>
-              Before you settle in, we have some{" "}
-              <span style={{ color: a.glow(0.85), fontWeight: 700 }}>house rules</span>{" "}
-              that we must all abide by — to keep our house free from bad energies entering.
+              Before you check in, every guest agrees to our{" "}
+              <span style={{ color: a.glow(0.85), fontWeight: 700 }}>house rules</span>.
+              {" "}They exist to protect the energy inside — so every connection here stays genuine.
             </p>
           </div>
 
