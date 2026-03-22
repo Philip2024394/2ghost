@@ -6,6 +6,30 @@ import GiftReplyModal, { type PendingGift } from "./GiftReplyModal";
 import GhostRadioRecorder from "./GhostRadioRecorder";
 import { isKingsPlus, incrementFloorGift } from "../utils/featureGating";
 
+// ── Deterministic avatar seed from ghost ID ───────────────────────────────────
+function senderSeed(name: string): number {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = Math.imul(31, h) + name.charCodeAt(i) | 0;
+  return (Math.abs(h) % 70) + 1;
+}
+
+// Which other floors this sender is deterministically "active in"
+const ALL_FLOORS = ["Standard", "Suite", "Kings Room", "Penthouse", "Garden Lodge", "The Cellar"];
+function senderOtherFloors(name: string, currentTierLabel: string): string[] {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = Math.imul(53, h) + name.charCodeAt(i) | 0;
+  const count = 1 + (Math.abs(h) % 2); // 1 or 2 other floors
+  const others = ALL_FLOORS.filter(f => f !== currentTierLabel);
+  return Array.from({ length: count }, (_, i) => others[(Math.abs(h) + i * 7) % others.length]);
+}
+
+// Deterministic active hours (2–18h range)
+function senderActiveHours(name: string): number {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = Math.imul(41, h) + name.charCodeAt(i) | 0;
+  return 2 + (Math.abs(h) % 17);
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 export type ChatMessage = {
   id: string;
@@ -197,6 +221,13 @@ export default function FloorChatPopup({
 
   // Ghost Radio
   const [showRadio, setShowRadio] = useState(false);
+
+  // Chat likes — msgId → count
+  const [msgLikes,    setMsgLikes]    = useState<Record<string, number>>({});
+  const [likedMsgIds, setLikedMsgIds] = useState<Set<string>>(new Set());
+
+  // Chat member profile popup
+  const [chatProfile, setChatProfile] = useState<{ name: string; seed: number } | null>(null);
   function showToast(msg: string) {
     setNotifToast(msg);
     setTimeout(() => setNotifToast(null), 3500);
@@ -438,20 +469,37 @@ export default function FloorChatPopup({
                       transition={{ type: "spring", stiffness: 380, damping: 28 }}
                       style={{ display: "flex", flexDirection: msg.isOwn ? "row-reverse" : "row", alignItems: "flex-end", gap: 8 }}
                     >
-                      {/* Avatar */}
-                      {!msg.isOwn && (
-                        <div
-                          onClick={() => { if (subscribed) setTappedMsg(msg); }}
-                          style={{ width: 28, height: 28, borderRadius: "50%", background: `${idColor(msg.senderName)}22`, border: `1.5px solid ${idColor(msg.senderName)}55`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: subscribed ? "pointer" : "default" }}
+                      {/* ── Profile image avatar ── */}
+                      {!msg.isOwn ? (
+                        <motion.div
+                          whileTap={{ scale: 0.92 }}
+                          onClick={() => subscribed && setChatProfile({ name: msg.senderName, seed: senderSeed(msg.senderName) })}
+                          style={{ width: 32, height: 32, borderRadius: "50%", overflow: "hidden", border: `1.5px solid ${idColor(msg.senderName)}66`, flexShrink: 0, cursor: subscribed ? "pointer" : "default", alignSelf: "flex-end" }}
                         >
-                          <span style={{ fontSize: 11, fontWeight: 800, color: idColor(msg.senderName) }}>{msg.senderName.replace("Ghost-","").charAt(0)}</span>
-                        </div>
+                          <img
+                            src={`https://i.pravatar.cc/32?img=${senderSeed(msg.senderName)}`}
+                            alt=""
+                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                            onError={e => {
+                              const el = e.target as HTMLImageElement;
+                              el.style.display = "none";
+                              if (el.parentElement) {
+                                el.parentElement.style.background = `${idColor(msg.senderName)}22`;
+                                el.parentElement.style.display = "flex";
+                                el.parentElement.style.alignItems = "center";
+                                el.parentElement.style.justifyContent = "center";
+                              }
+                            }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <div style={{ width: 32, flexShrink: 0 }} />
                       )}
 
-                      <div style={{ maxWidth: "75%", display: "flex", flexDirection: "column", gap: 2, alignItems: msg.isOwn ? "flex-end" : "flex-start" }}>
-                        {showSender && (
+                      <div style={{ maxWidth: "72%", display: "flex", flexDirection: "column", gap: 2, alignItems: msg.isOwn ? "flex-end" : "flex-start" }}>
+                        {showSender && !msg.isOwn && (
                           <p
-                            onClick={() => { if (subscribed) setTappedMsg(msg); }}
+                            onClick={() => subscribed && setChatProfile({ name: msg.senderName, seed: senderSeed(msg.senderName) })}
                             style={{ margin: 0, fontSize: 9, fontWeight: 700, color: idColor(msg.senderName), letterSpacing: "0.02em", cursor: subscribed ? "pointer" : "default" }}
                           >
                             {msg.senderName}
@@ -473,47 +521,89 @@ export default function FloorChatPopup({
                           </div>
                         ) : (
                           /* ── Regular / directed bubble ── */
-                          <div
-                            onClick={() => { if (!msg.isOwn && subscribed) setTappedMsg(msg); }}
-                            style={{
-                              padding: msg.mediaUrl ? "4px" : "9px 12px",
-                              borderRadius: msg.isOwn ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                              background: msg.isOwn
-                                ? `linear-gradient(135deg, ${a.accent}cc, ${a.accentMid}88)`
-                                : msg.isDirected ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.07)",
-                              border: msg.isOwn ? "none" : msg.isDirected ? `1px solid ${a.glow(0.35)}` : "1px solid rgba(255,255,255,0.08)",
-                              boxShadow: msg.isOwn ? `0 2px 12px ${a.glow(0.28)}` : "none",
-                              cursor: (!msg.isOwn && subscribed) ? "pointer" : "default",
-                              overflow: "hidden",
-                            }}
-                          >
-                            {!msg.isOwn && msg.isDirected && (
-                              <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 800, color: a.accent }}>@you</p>
-                            )}
-                            {msg.mediaUrl && msg.mediaType === "image" && (
-                              <img
-                                src={msg.mediaUrl} alt=""
-                                onClick={() => setMediaPreview({ url: msg.mediaUrl!, type: "image" })}
-                                style={{ maxWidth: 200, maxHeight: 200, borderRadius: 12, display: "block", objectFit: "cover", cursor: "pointer" }}
-                              />
-                            )}
-                            {msg.mediaUrl && msg.mediaType === "video" && (
-                              <video src={msg.mediaUrl} controls style={{ maxWidth: 200, maxHeight: 200, borderRadius: 12, display: "block" }} />
-                            )}
-                            {!msg.mediaUrl && (
-                              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.45, color: msg.isOwn ? "#0a0700" : "rgba(255,255,255,0.88)", fontWeight: msg.isOwn ? 700 : 400 }}>
-                                {msg.isOwn && msg.isDirected && msg.directedTo ? (
-                                  <>
-                                    <span style={{ color: a.accentDark, fontWeight: 900 }}>@{msg.directedTo}</span>
-                                    {" " + msg.text.substring(msg.directedTo.length + 2)}
-                                  </>
-                                ) : msg.text}
-                              </p>
+                          <div style={{ position: "relative" }}>
+                            <div
+                              onClick={() => { if (!msg.isOwn && subscribed) setTappedMsg(msg); }}
+                              style={{
+                                padding: msg.mediaUrl ? "4px" : "9px 12px",
+                                borderRadius: msg.isOwn ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                                background: msg.isOwn
+                                  ? `linear-gradient(135deg, ${a.accent}cc, ${a.accentMid}88)`
+                                  : msg.isDirected ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.07)",
+                                border: msg.isOwn ? "none" : msg.isDirected ? `1px solid ${a.glow(0.35)}` : "1px solid rgba(255,255,255,0.08)",
+                                boxShadow: msg.isOwn ? `0 2px 12px ${a.glow(0.28)}` : "none",
+                                cursor: (!msg.isOwn && subscribed) ? "pointer" : "default",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {!msg.isOwn && msg.isDirected && (
+                                <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 800, color: a.accent }}>@you</p>
+                              )}
+                              {msg.mediaUrl && msg.mediaType === "image" && (
+                                <img src={msg.mediaUrl} alt=""
+                                  onClick={() => setMediaPreview({ url: msg.mediaUrl!, type: "image" })}
+                                  style={{ maxWidth: 200, maxHeight: 200, borderRadius: 12, display: "block", objectFit: "cover", cursor: "pointer" }}
+                                />
+                              )}
+                              {msg.mediaUrl && msg.mediaType === "video" && (
+                                <video src={msg.mediaUrl} controls style={{ maxWidth: 200, maxHeight: 200, borderRadius: 12, display: "block" }} />
+                              )}
+                              {msg.mediaUrl && msg.mediaType === "audio" && (
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 8px" }}>
+                                  <span style={{ fontSize: 16 }}>🎤</span>
+                                  <p style={{ margin: 0, fontSize: 12, color: msg.isOwn ? "#0a0700" : "rgba(255,255,255,0.8)" }}>{msg.text}</p>
+                                </div>
+                              )}
+                              {!msg.mediaUrl && (
+                                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.45, color: msg.isOwn ? "#0a0700" : "rgba(255,255,255,0.88)", fontWeight: msg.isOwn ? 700 : 400 }}>
+                                  {msg.isOwn && msg.isDirected && msg.directedTo ? (
+                                    <>
+                                      <span style={{ color: a.accentDark, fontWeight: 900 }}>@{msg.directedTo}</span>
+                                      {" " + msg.text.substring(msg.directedTo.length + 2)}
+                                    </>
+                                  ) : msg.text}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* ── Like button (non-own messages only) ── */}
+                            {!msg.isOwn && subscribed && (
+                              <motion.button
+                                whileTap={{ scale: 0.8 }}
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  if (likedMsgIds.has(msg.id)) return;
+                                  setLikedMsgIds(prev => new Set([...prev, msg.id]));
+                                  setMsgLikes(prev => ({ ...prev, [msg.id]: (prev[msg.id] ?? 0) + 1 }));
+                                }}
+                                style={{
+                                  position: "absolute", bottom: -10, right: -6,
+                                  display: "flex", alignItems: "center", gap: 3,
+                                  background: likedMsgIds.has(msg.id) ? a.glow(0.18) : "rgba(255,255,255,0.06)",
+                                  border: `1px solid ${likedMsgIds.has(msg.id) ? a.glow(0.4) : "rgba(255,255,255,0.12)"}`,
+                                  borderRadius: 12, padding: "2px 7px", cursor: likedMsgIds.has(msg.id) ? "default" : "pointer",
+                                  transition: "all 0.15s",
+                                }}
+                              >
+                                <motion.span
+                                  key={likedMsgIds.has(msg.id) ? "liked" : "idle"}
+                                  initial={likedMsgIds.has(msg.id) ? { scale: 1.6 } : {}}
+                                  animate={{ scale: 1 }}
+                                  style={{ fontSize: 11 }}
+                                >
+                                  {likedMsgIds.has(msg.id) ? "❤️" : "🤍"}
+                                </motion.span>
+                                {(msgLikes[msg.id] ?? 0) > 0 && (
+                                  <span style={{ fontSize: 9, fontWeight: 800, color: likedMsgIds.has(msg.id) ? a.accent : "rgba(255,255,255,0.4)" }}>
+                                    {msgLikes[msg.id]}
+                                  </span>
+                                )}
+                              </motion.button>
                             )}
                           </div>
                         )}
 
-                        <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.2)", fontWeight: 600 }}>{timeLabel(msg.timestamp)}</p>
+                        <p style={{ margin: "6px 0 0", fontSize: 8, color: "rgba(255,255,255,0.2)", fontWeight: 600 }}>{timeLabel(msg.timestamp)}</p>
                       </div>
                     </motion.div>
                   );
@@ -741,6 +831,125 @@ export default function FloorChatPopup({
             }
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* ── Chat member profile popup ── */}
+      <AnimatePresence>
+        {chatProfile && (() => {
+          const name = chatProfile.name;
+          const seed = chatProfile.seed;
+          const memberMsgs = messages.filter(m => m.senderName === name && !m.isOwn);
+          const totalLikes = memberMsgs.reduce((sum, m) => sum + (msgLikes[m.id] ?? 0), 0);
+          const activeHours = senderActiveHours(name);
+          const otherFloors = senderOtherFloors(name, tierLabel);
+          const synthetic: FloorMember = { id: name, name, seed: seed % 70, online: true, city: "" };
+          return (
+            <motion.div
+              key="chat-profile-overlay"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setChatProfile(null)}
+              style={{ position: "fixed", inset: 0, zIndex: 750, background: "rgba(0,0,0,0.72)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+            >
+              <motion.div
+                initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+                transition={{ type: "spring", stiffness: 320, damping: 32 }}
+                onClick={e => e.stopPropagation()}
+                style={{ width: "100%", maxWidth: 480, background: "rgba(6,6,10,0.99)", borderRadius: "24px 24px 0 0", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none", overflow: "hidden" }}
+              >
+                <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)` }} />
+
+                {/* Profile header */}
+                <div style={{ padding: "20px 20px 16px", display: "flex", gap: 16, alignItems: "center" }}>
+                  <div style={{ width: 64, height: 64, borderRadius: "50%", overflow: "hidden", border: `2px solid ${idColor(name)}55`, flexShrink: 0 }}>
+                    <img src={`https://i.pravatar.cc/64?img=${seed}`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: idColor(name) }}>{name}</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{tierLabel} member</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 6 }}>
+                      <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.6, repeat: Infinity }}
+                        style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
+                      <span style={{ fontSize: 10, color: "#4ade80", fontWeight: 700 }}>Active now</span>
+                    </div>
+                  </div>
+                  <button onClick={() => setChatProfile(null)} style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✕</button>
+                </div>
+
+                {/* Stats row */}
+                <div style={{ display: "flex", gap: 1, margin: "0 20px 16px", background: "rgba(255,255,255,0.04)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                  {[
+                    { icon: "💬", label: "Posts", value: String(memberMsgs.length) },
+                    { icon: "⏱", label: "Active", value: `${activeHours}h` },
+                    { icon: "❤️", label: "Likes", value: String(totalLikes) },
+                  ].map((stat, i) => (
+                    <div key={stat.label} style={{ flex: 1, padding: "12px 8px", textAlign: "center", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.07)" : "none" }}>
+                      <p style={{ margin: 0, fontSize: 18 }}>{stat.icon}</p>
+                      <p style={{ margin: "4px 0 2px", fontSize: 15, fontWeight: 900, color: "#fff" }}>{stat.value}</p>
+                      <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.35)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Other floors */}
+                <div style={{ margin: "0 20px 16px" }}>
+                  <p style={{ margin: "0 0 8px", fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Also active in</p>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <div style={{ padding: "4px 10px", borderRadius: 8, background: a.glow(0.12), border: `1px solid ${a.glow(0.3)}`, fontSize: 10, fontWeight: 800, color: a.accent }}>
+                      {tierLabel}
+                    </div>
+                    {otherFloors.map(floor => (
+                      <div key={floor} style={{ padding: "4px 10px", borderRadius: 8, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)" }}>
+                        {floor}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Popularity bar */}
+                {totalLikes > 0 && (
+                  <div style={{ margin: "0 20px 16px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Conversation popularity</p>
+                      <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: a.accent }}>{totalLikes} ❤️</p>
+                    </div>
+                    <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, totalLikes * 20)}%` }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        style={{ height: "100%", background: a.gradient, borderRadius: 2 }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div style={{ padding: "0 20px max(28px,env(safe-area-inset-bottom,28px))", display: "flex", gap: 10 }}>
+                  <motion.button whileTap={{ scale: 0.96 }}
+                    onClick={() => {
+                      setChatProfile(null);
+                      handleDirectMessage(synthetic);
+                    }}
+                    style={{ flex: 1, height: 46, borderRadius: 14, border: `1px solid ${a.glow(0.3)}`, background: a.glow(0.1), color: a.accent, fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                  >
+                    💬 Message
+                  </motion.button>
+                  <motion.button whileTap={{ scale: 0.96 }}
+                    onClick={() => {
+                      setChatProfile(null);
+                      setDrawerMember(synthetic);
+                      setDrawerAction("gift");
+                      setDrawerOpen(true);
+                    }}
+                    style={{ flex: 1, height: 46, borderRadius: 14, border: "none", background: a.gradient, color: "#0a0700", fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, boxShadow: `0 4px 16px ${a.glow(0.3)}` }}
+                  >
+                    🎁 Send Gift
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
     </>
   );
