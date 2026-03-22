@@ -1,4 +1,7 @@
 // ── Feature gating & shared helpers ──────────────────────────────────────────
+// NOTE: Async Supabase versions of floor gift recording and coin sync are in
+// ghostDataService.ts (recordFloorGift, syncCoinsToSupabase). Call those in
+// addition to the local helpers here for full backend persistence.
 
 export function readCoins(): number {
   try { return Number(localStorage.getItem("ghost_coins") || "100"); } catch { return 100; }

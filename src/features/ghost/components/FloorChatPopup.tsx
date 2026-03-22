@@ -5,6 +5,7 @@ import VaultPrivateChatPopup from "./VaultPrivateChatPopup";
 import GiftReplyModal, { type PendingGift } from "./GiftReplyModal";
 import GhostRadioRecorder from "./GhostRadioRecorder";
 import { isKingsPlus, incrementFloorGift } from "../utils/featureGating";
+import { sendFloorMessage, subscribeFloorMessages, loadFloorMessages, loadMsgLikes, recordMsgLike, getMyGhostId, type FloorMsgRow } from "../ghostDataService";
 
 // ── Deterministic avatar seed from ghost ID ───────────────────────────────────
 function senderSeed(name: string): number {
@@ -233,6 +234,73 @@ export default function FloorChatPopup({
     setTimeout(() => setNotifToast(null), 3500);
   }
 
+  // ── Supabase: load history + subscribe realtime ──────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+
+    // Load existing messages from DB
+    loadFloorMessages(tier).then(rows => {
+      if (cancelled || rows.length === 0) return;
+      const dbMsgs = rows.map(r => ({
+        id: r.id,
+        senderId: r.sender_id,
+        senderName: r.sender_name,
+        text: r.text,
+        timestamp: new Date(r.created_at).getTime(),
+        isOwn: r.sender_id === getMyGhostId(),
+        mediaUrl: r.media_url ?? undefined,
+        mediaType: r.media_type ?? undefined,
+        isGift: r.is_gift,
+        giftEmoji: r.gift_emoji ?? undefined,
+        giftName: r.gift_name ?? undefined,
+        giftCoins: r.gift_coins ?? undefined,
+        isDirected: r.is_directed,
+        directedTo: r.directed_to ?? undefined,
+      } as ChatMessage));
+      setMessages(prev => {
+        // Keep seeded messages, append DB messages (dedup by id)
+        const existingIds = new Set(prev.map(m => m.id));
+        const newOnes = dbMsgs.filter(m => !existingIds.has(m.id));
+        if (newOnes.length === 0) return prev;
+        return [...prev, ...newOnes].sort((a, b) => a.timestamp - b.timestamp);
+      });
+    });
+
+    // Load message likes
+    loadMsgLikes(tier).then(likes => {
+      if (cancelled) return;
+      setMsgLikes(prev => ({ ...likes, ...prev })); // local wins (optimistic)
+    });
+
+    // Subscribe to realtime new messages
+    const unsub = subscribeFloorMessages(tier, (row: FloorMsgRow) => {
+      if (cancelled) return;
+      const myId = getMyGhostId();
+      if (row.sender_id === myId) return; // already added optimistically
+      setMessages(prev => {
+        if (prev.some(m => m.id === row.id)) return prev;
+        return [...prev, {
+          id: row.id,
+          senderId: row.sender_id,
+          senderName: row.sender_name,
+          text: row.text,
+          timestamp: new Date(row.created_at).getTime(),
+          isOwn: false,
+          mediaUrl: row.media_url ?? undefined,
+          mediaType: row.media_type ?? undefined,
+          isGift: row.is_gift,
+          giftEmoji: row.gift_emoji ?? undefined,
+          giftName: row.gift_name ?? undefined,
+          giftCoins: row.gift_coins ?? undefined,
+          isDirected: row.is_directed,
+          directedTo: row.directed_to ?? undefined,
+        } as ChatMessage];
+      });
+    });
+
+    return () => { cancelled = true; unsub(); };
+  }, [tier]);
+
   const floorMembers = buildFloorMembers(tier);
   const onlineCount  = floorMembers.filter(m => m.online).length;
 
@@ -293,6 +361,14 @@ export default function FloorChatPopup({
     setSending(false);
     scheduleReply(text, false, directedTo);
     if (isDirected && directedTo) setTimeout(() => showToast(`Message sent to @${directedTo}`), 500);
+    // Persist to Supabase
+    const myId = getMyGhostId();
+    if (myId) {
+      sendFloorMessage({
+        floor: tier, senderId: myId, senderName: `Ghost-${myId.slice(-4)}`,
+        text, isDirected, directedTo,
+      });
+    }
   }
 
   function handleSendGift(member: FloorMember, gift: typeof FLOOR_GIFTS[0]) {
@@ -575,6 +651,7 @@ export default function FloorChatPopup({
                                   if (likedMsgIds.has(msg.id)) return;
                                   setLikedMsgIds(prev => new Set([...prev, msg.id]));
                                   setMsgLikes(prev => ({ ...prev, [msg.id]: (prev[msg.id] ?? 0) + 1 }));
+                                  recordMsgLike(msg.id, getMyGhostId(), tier);
                                 }}
                                 style={{
                                   position: "absolute", bottom: -10, right: -6,

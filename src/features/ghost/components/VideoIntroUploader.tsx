@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 import {
   hasVideoIntro, getVideoIntroUrl, setVideoIntroUrl,
   isVideoPrivate, setVideoPrivate, getVideoRequestsReceived,
 } from "../utils/featureGating";
+import { saveVideoIntroToSupabase, loadVideoRequestsReceived as loadVideoRequestsFromSupabase, updateVideoRequestStatus, getMyGhostId } from "../ghostDataService";
 
 type Props = { onClose: () => void };
 
@@ -18,8 +19,26 @@ export default function VideoIntroUploader({ onClose }: Props) {
   const [progress, setProgress]       = useState(0);
   const [phase, setPhase]             = useState<"main" | "requests">("main");
 
-  const received = getVideoRequestsReceived();
+  const [received, setReceived] = useState(getVideoRequestsReceived);
   const pendingCount = received.filter(r => r.status === "pending").length;
+
+  // Load video requests from Supabase on mount
+  useEffect(() => {
+    const myId = getMyGhostId();
+    if (!myId) return;
+    loadVideoRequestsFromSupabase(myId).then(rows => {
+      if (rows.length === 0) return;
+      // Map Supabase shape → VideoRequest shape
+      setReceived(rows.map(r => ({
+        id: `vr-${r.fromGhostId}`,
+        fromGhostId: r.fromGhostId,
+        toProfileId: myId,
+        status: r.status as "pending" | "approved" | "denied",
+        requestedAt: new Date(r.requestedAt).getTime(),
+        coinsSpent: r.coinsSpent,
+      })));
+    });
+  }, []);
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -40,6 +59,7 @@ export default function VideoIntroUploader({ onClose }: Props) {
           setVideoUrl(url);
           setHasVideo(true);
           setUploading(false);
+          saveVideoIntroToSupabase(getMyGhostId(), url, isPrivate);
         }, 400);
       } else {
         setProgress(Math.round(p));
@@ -57,6 +77,7 @@ export default function VideoIntroUploader({ onClose }: Props) {
     const next = !isPrivate;
     setVideoPrivate(next);
     setIsPrivate(next);
+    saveVideoIntroToSupabase(getMyGhostId(), videoUrl || "", next);
   }
 
   return (
@@ -196,8 +217,14 @@ export default function VideoIntroUploader({ onClose }: Props) {
                       </div>
                       {req.status === "pending" ? (
                         <div style={{ display: "flex", gap: 6 }}>
-                          <button onClick={() => {}} style={{ height: 32, padding: "0 12px", borderRadius: 8, border: "none", background: "#4ade80", color: "#000", fontSize: 11, fontWeight: 900, cursor: "pointer" }}>Approve</button>
-                          <button onClick={() => {}} style={{ height: 32, padding: "0 10px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.08)", color: "#f87171", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Deny</button>
+                          <button onClick={() => {
+                            updateVideoRequestStatus(req.fromGhostId, getMyGhostId(), "approved");
+                            setReceived(prev => prev.map(r => r.id === req.id ? { ...r, status: "approved" as const } : r));
+                          }} style={{ height: 32, padding: "0 12px", borderRadius: 8, border: "none", background: "#4ade80", color: "#000", fontSize: 11, fontWeight: 900, cursor: "pointer" }}>Approve</button>
+                          <button onClick={() => {
+                            updateVideoRequestStatus(req.fromGhostId, getMyGhostId(), "denied");
+                            setReceived(prev => prev.map(r => r.id === req.id ? { ...r, status: "denied" as const } : r));
+                          }} style={{ height: 32, padding: "0 10px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.08)", color: "#f87171", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Deny</button>
                         </div>
                       ) : (
                         <span style={{ fontSize: 10, fontWeight: 800, color: req.status === "approved" ? "#4ade80" : "#f87171", background: req.status === "approved" ? "rgba(74,222,128,0.1)" : "rgba(239,68,68,0.1)", border: `1px solid ${req.status === "approved" ? "rgba(74,222,128,0.3)" : "rgba(239,68,68,0.3)"}`, borderRadius: 6, padding: "3px 8px" }}>

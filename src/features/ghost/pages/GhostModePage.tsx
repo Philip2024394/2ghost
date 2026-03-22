@@ -58,6 +58,7 @@ import SeancePopup from "../components/SeancePopup";
 import VideoIntroPlayer from "../components/VideoIntroPlayer";
 import VideoIntroUploader from "../components/VideoIntroUploader";
 import { hasActiveWindowMode, getDaysConnected, getConciergeShown, whisperWillConvert, profileHasVideo, isProfileInWindow } from "../utils/featureGating";
+import { recordLike, loadMyMatches, getMyGhostId, syncTierToSupabase, loadTierFromSupabase, syncCoinsToSupabase, loadCoinsFromSupabase } from "../ghostDataService";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
@@ -472,6 +473,29 @@ export default function GhostModePage() {
     return () => window.removeEventListener("focus", refresh);
   }, []);
 
+  // Supabase: sync tier + coins on mount
+  useEffect(() => {
+    const myId = getMyGhostId();
+    if (!myId) return;
+    loadTierFromSupabase(myId).then(tier => {
+      if (!tier) return;
+      const local = localStorage.getItem("ghost_house_tier");
+      if (tier !== local) {
+        try { localStorage.setItem("ghost_house_tier", tier); } catch {}
+        setHouseTier(tier as "gold" | "suite");
+      }
+    });
+    loadCoinsFromSupabase(myId).then(balance => {
+      if (balance === null) return;
+      const local = Number(localStorage.getItem("ghost_coins") || "0");
+      if (balance !== local) {
+        try { localStorage.setItem("ghost_coins", String(balance)); } catch {}
+        setCoinBalance(balance);
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Quick Exit — renders a blank screen instantly
   const [quickExit, setQuickExit] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -496,8 +520,10 @@ export default function GhostModePage() {
     try {
       if (!localStorage.getItem("ghost_starter_coins_given")) {
         const current = Number(localStorage.getItem("ghost_coins") || "0");
-        localStorage.setItem("ghost_coins", String(current + 15));
+        const newBalance = current + 15;
+        localStorage.setItem("ghost_coins", String(newBalance));
         localStorage.setItem("ghost_starter_coins_given", "1");
+        syncCoinsToSupabase(getMyGhostId(), newBalance);
       }
     } catch {}
     setHouseRulesAgreed(true);
@@ -793,6 +819,7 @@ export default function GhostModePage() {
     try { localStorage.setItem("ghost_house_tier", next); } catch {}
     setHouseTier(next);
     setShowHouseModal(false);
+    syncTierToSupabase(getMyGhostId(), next);
   };
   const handleReveal = (id: string) => {
     setRevealedIds((prev) => new Set([...prev, id]));
@@ -1060,6 +1087,8 @@ export default function GhostModePage() {
     const newLiked = new Set(likedIds);
     newLiked.add(profile.id);
     setLikedIds(newLiked);
+    // Persist like to Supabase (fire and forget)
+    recordLike(getMyGhostId(), profile.id);
     try {
       const key = `ghost_likes_today_${new Date().toISOString().slice(0, 10)}`;
       localStorage.setItem(key, String((parseInt(localStorage.getItem(key) ?? "0") || 0) + 1));
