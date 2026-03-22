@@ -397,7 +397,8 @@ function CellarTeaser({ onSubscribe }: { onSubscribe: () => void }) {
 export default function CellarFloorPage() {
   const navigate = useNavigate();
   const [ageVerified,   setAgeVerified]   = useState(isCellarAgeVerified);
-  const [subscribed,    setSubscribed]    = useState(isCellarSubscribed);
+  // If age already verified, treat as subscribed so they don't hit a second paywall
+  const [subscribed,    setSubscribed]    = useState(() => isCellarSubscribed() || isCellarAgeVerified());
   const [section,       setSection]       = useState<CellarSection>("flirty");
   const [activeCity,    setActiveCity]    = useState("LON");
   const [likedIds,      setLikedIds]      = useState<string[]>(getCellarLikedIds);
