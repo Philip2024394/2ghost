@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
+import { hasSeenHowItWorks } from "./GhostHowItWorksPage";
 
 const ROOM_BG      = "https://ik.imagekit.io/7grri5v7d/ghost%20rooms.png";
 const GOLD_KEY     = "https://ik.imagekit.io/7grri5v7d/Haunted%20hotel%20key%20and%20tag.png";
@@ -362,6 +363,13 @@ export default function GhostRoomsPage() {
   const tierRank: Record<RoomTier, number> = { standard: 0, suite: 1, kings: 2, penthouse: 3 };
   const ownedRank = currentTier ? tierRank[currentTier] : -1;
 
+  // Auto-redirect first-time visitors to the how-it-works explainer
+  useEffect(() => {
+    if (!hasSeenHowItWorks() && !currentTier) {
+      navigate("/ghost/how-it-works", { replace: true });
+    }
+  }, []);
+
   return (
     <div style={{
       minHeight: "100dvh", width: "100%",
@@ -404,6 +412,16 @@ export default function GhostRoomsPage() {
             <h1 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: 0, lineHeight: 1.1 }}>Ghost Rooms</h1>
             <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>Choose your floor</p>
           </div>
+          <button
+            onClick={() => navigate("/ghost/how-it-works")}
+            style={{
+              background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)",
+              borderRadius: 20, padding: "5px 12px", cursor: "pointer",
+              fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: "0.04em",
+            }}
+          >
+            How it works
+          </button>
           <img src={GOLD_KEY} alt="" style={{ width: 40, height: 40, objectFit: "contain", opacity: 0.9 }} />
         </div>
 

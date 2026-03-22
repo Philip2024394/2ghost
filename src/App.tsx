@@ -27,6 +27,7 @@ const GhostRoomsPage           = lazyWithRetry(() => import("./features/ghost/pa
 const PenthouseFloorPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseFloorPage"));
 const LoftFloorPage            = lazyWithRetry(() => import("./features/ghost/pages/LoftFloorPage"));
 const CellarFloorPage          = lazyWithRetry(() => import("./features/ghost/pages/CellarFloorPage"));
+const GhostHowItWorksPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostHowItWorksPage"));
 const PenthouseApplyPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseApplyPage"));
 const PenthouseVaultPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseVaultPage"));
 
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="/ghost/penthouse/vault/:matchId" element={<PenthouseVaultPage />} />
           <Route path="/ghost/loft"                   element={<LoftFloorPage />} />
           <Route path="/ghost/cellar"                 element={<CellarFloorPage />} />
+          <Route path="/ghost/how-it-works"           element={<GhostHowItWorksPage />} />
 
           {/* Affiliate */}
           <Route path="/affiliate/join"          element={<AffiliateJoinPage />} />
