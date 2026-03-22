@@ -14,38 +14,51 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Split heavy libraries into separate chunks
+          // Admin charts — only loaded on /admin routes
+          if (id.includes('recharts') || id.includes('d3-') || id.includes('victory')) {
+            return 'charts';
+          }
+          // Framer Motion
           if (id.includes('framer-motion')) {
             return 'motion';
           }
+          // Lucide icons
           if (id.includes('lucide-react')) {
             return 'icons';
           }
+          // Radix UI
           if (id.includes('@radix-ui')) {
             return 'ui';
           }
-          if (id.includes('react') || id.includes('react-dom')) {
+          // Supabase — large, rarely changes
+          if (id.includes('@supabase')) {
+            return 'supabase';
+          }
+          // React core
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
             return 'vendor';
           }
-          if (id.includes('react-router-dom')) {
+          // React Router
+          if (id.includes('react-router-dom') || id.includes('react-router/')) {
             return 'router';
           }
         }
       }
     },
-    chunkSizeWarningLimit: 300,
+    chunkSizeWarningLimit: 400,
     minify: 'esbuild',
     sourcemap: false,
-    assetsInlineLimit: 4096
+    assetsInlineLimit: 4096,
   },
   optimizeDeps: {
     force: false,
-    include: ['react', 'react-dom', 'react-router-dom']
+    include: ['react', 'react-dom', 'react-router-dom'],
   },
   define: {
-    'process.env.NODE_ENV': JSON.stringify('production')
+    'process.env.NODE_ENV': JSON.stringify('production'),
   },
   esbuild: {
-    target: 'es2015'
-  }
+    target: 'es2015',
+    drop: ['console', 'debugger'],  // strip all console.* and debugger in production
+  },
 })

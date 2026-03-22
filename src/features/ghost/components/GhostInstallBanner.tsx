@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
 const MAX_DISMISSALS = 5;
-const REPEAT_MS = 5 * 60 * 1000; // 5 minutes
-const FIRST_SHOW_MS = 4000;       // 4s after page load
+const REPEAT_MS = 3 * 60 * 1000; // 3 min repeat within same session
+const FIRST_SHOW_MS = 3000;       // 3s after page load — always, every visit
 
 function isIOS(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as any).MSStream;
@@ -51,17 +51,12 @@ export default function GhostInstallBanner() {
     if (isStandalone()) return;
     if (getDismissCount() >= MAX_DISMISSALS) return;
 
-    // How long since last dismissed?
-    const sinceLastDismiss = Date.now() - getLastDismissed();
-    const initialDelay = sinceLastDismiss < REPEAT_MS
-      ? REPEAT_MS - sinceLastDismiss   // wait out the remaining cooldown
-      : FIRST_SHOW_MS;                 // first time — show after 4s
-
+    // Always show after FIRST_SHOW_MS on every page load (new session = fresh chance)
     const firstTimer = setTimeout(() => {
       if (!isStandalone() && getDismissCount() < MAX_DISMISSALS) {
         setShow(true);
       }
-    }, initialDelay);
+    }, FIRST_SHOW_MS);
 
     if (isIOS()) {
       return () => clearTimeout(firstTimer);

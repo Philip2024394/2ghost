@@ -349,6 +349,10 @@ export default function GhostModePage() {
     try { return !!localStorage.getItem("ghost_profile"); } catch { return false; }
   })();
 
+  const isAuthed = hasGhostProfile || !!localStorage.getItem("ghost_phone");
+  const [showAuthGate, setShowAuthGate] = useState(false);
+  const requireAuth = (fn: () => void) => { if (isAuthed) { fn(); } else { setShowAuthGate(true); } };
+
   const userCity = (() => {
     try { const p = JSON.parse(localStorage.getItem("ghost_profile") || "{}"); return p.city ?? "Jakarta"; } catch { return "Jakarta"; }
   })();
@@ -475,6 +479,30 @@ export default function GhostModePage() {
     return () => window.removeEventListener("focus", refresh);
   }, []);
 
+  // Central coin updater — always writes localStorage + Supabase
+  const updateCoins = (next: number) => {
+    const clamped = Math.max(0, next);
+    setCoinBalance(clamped);
+    try { localStorage.setItem("ghost_coins", String(clamped)); } catch {}
+    syncCoinsToSupabase(getMyGhostId(), clamped);
+  };
+
+  // Monthly subscription delivery — Ghost Black Monthly (200 coins/mo)
+  useEffect(() => {
+    try {
+      const until = Number(localStorage.getItem("ghost_black_sub_until") || "0");
+      if (until < Date.now()) return; // subscription not active
+      const today = new Date().toISOString().slice(0, 7); // YYYY-MM
+      const lastDelivery = localStorage.getItem("ghost_black_delivery_month");
+      if (lastDelivery !== today) {
+        localStorage.setItem("ghost_black_delivery_month", today);
+        const current = Number(localStorage.getItem("ghost_coins") || "0");
+        updateCoins(current + 200);
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Load real ghost profiles from Supabase (mixed into browse feed)
   useEffect(() => {
     loadGhostProfiles().then(rows => { if (rows.length) setRealProfiles(rows); });
@@ -526,11 +554,8 @@ export default function GhostModePage() {
     // Grant 15 complimentary starter coins on first acceptance
     try {
       if (!localStorage.getItem("ghost_starter_coins_given")) {
-        const current = Number(localStorage.getItem("ghost_coins") || "0");
-        const newBalance = current + 15;
-        localStorage.setItem("ghost_coins", String(newBalance));
         localStorage.setItem("ghost_starter_coins_given", "1");
-        syncCoinsToSupabase(getMyGhostId(), newBalance);
+        updateCoins(coinBalance + 15);
       }
     } catch {}
     setHouseRulesAgreed(true);
@@ -1143,6 +1168,7 @@ export default function GhostModePage() {
   };
 
   const handleLike = (profile: GhostProfile) => {
+    if (!isAuthed) { setShowAuthGate(true); return; }
     const newLiked = new Set(likedIds);
     newLiked.add(profile.id);
     setLikedIds(newLiked);
@@ -1207,9 +1233,7 @@ export default function GhostModePage() {
     setMatchTab("matches");
   };
   const handleSendGift = (_emoji: string, coins: number) => {
-    const next = Math.max(0, coinBalance - coins);
-    setCoinBalance(next);
-    try { localStorage.setItem("ghost_coins", String(next)); } catch {}
+    updateCoins(coinBalance - coins);
   };
   const handleMatchConnect = (profile: GhostProfile) => {
     setMatchActionProfile(null);
@@ -1375,10 +1399,9 @@ export default function GhostModePage() {
                     <div key={p.id}
                       onClick={() => {
                         if (revealed) { openMatchAction(p, "liked"); return; }
-                        const current = (() => { try { return Number(localStorage.getItem("ghost_coins") || "0"); } catch { return 0; } })();
+                        const current = coinBalance;
                         if (current < 20) { setShowCoinShop(true); return; }
-                        try { localStorage.setItem("ghost_coins", String(current - 20)); } catch {}
-                        setCoinBalance(current - 20);
+                        updateCoins(current - 20);
                         setRevealedInbound(prev => new Set([...prev, p.id]));
                       }}
                       style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
@@ -1673,62 +1696,63 @@ export default function GhostModePage() {
 
 
 
-      {/* ── Quick-action buttons ── */}
-      <div style={{ margin: "12px 14px 0", display: "flex", justifyContent: "space-between", gap: 8 }}>
+      {/* ── Quick-action buttons — row 1 ── */}
+      <div style={{ margin: "12px 14px 0", display: "flex", gap: 8 }}>
         {/* Vault */}
-        <button onClick={() => navigate("/ghost/room")}
-          style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 16, padding: "10px 4px", cursor: "pointer" }}
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => navigate("/ghost/room"))}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer" }}
         >
-          <div style={{ width: 38, height: 38, borderRadius: "50%", background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img src="https://ik.imagekit.io/7grri5v7d/weqweqw.png" alt="vault" style={{ width: 22, height: 22, objectFit: "contain" }} />
+          <img src="https://ik.imagekit.io/7grri5v7d/weqweqw.png" alt="vault" style={{ width: 20, height: 20, objectFit: "contain", flexShrink: 0 }} />
+          <div style={{ textAlign: "left" }}>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Vault</p>
+            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Your matches</p>
           </div>
-          <span style={{ fontSize: 9, fontWeight: 800, color: a.glow(0.7), letterSpacing: "0.05em", textTransform: "uppercase" }}>Vault</span>
-        </button>
-        {/* Tonight Lobby */}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setShowTonightSheet(true)}
-          style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: lobbyList.length > 0 ? "rgba(74,222,128,0.08)" : a.glow(0.06), border: `1px solid ${lobbyList.length > 0 ? "rgba(74,222,128,0.35)" : a.glow(0.15)}`, borderRadius: 16, padding: "10px 4px", cursor: "pointer", position: "relative" }}
+        </motion.button>
+
+        {/* Tonight */}
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => setShowTonightSheet(true))}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: lobbyList.length > 0 ? "rgba(74,222,128,0.08)" : a.glow(0.06), border: `1px solid ${lobbyList.length > 0 ? "rgba(74,222,128,0.35)" : a.glow(0.2)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
         >
           {lobbyList.length > 0 && (
-            <motion.div
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 1.6, repeat: Infinity }}
-              style={{ position: "absolute", top: 8, right: 10, width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)" }}
-            />
+            <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.6, repeat: Infinity }}
+              style={{ position: "absolute", top: 7, right: 8, width: 6, height: 6, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)" }} />
           )}
-          <div style={{ width: 38, height: 38, borderRadius: "50%", background: lobbyList.length > 0 ? "rgba(74,222,128,0.12)" : a.glow(0.1), border: `1px solid ${lobbyList.length > 0 ? "rgba(74,222,128,0.4)" : a.glow(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: 20 }}>🌙</span>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>🌙</span>
+          <div style={{ textAlign: "left" }}>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: lobbyList.length > 0 ? "#4ade80" : a.accent }}>Tonight</p>
+            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>
+              {lobbyList.length > 0 ? `${lobbyList.length} available` : "Meet tonight"}
+            </p>
           </div>
-          <span style={{ fontSize: 9, fontWeight: 800, color: lobbyList.length > 0 ? "#4ade80" : a.glow(0.7), letterSpacing: "0.05em", textTransform: "uppercase" }}>Tonight</span>
         </motion.button>
+
         {/* Rooms */}
-        <button onClick={() => navigate("/ghost/rooms")}
-          style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 16, padding: "10px 4px", cursor: "pointer" }}
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => navigate("/ghost/rooms"))}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer" }}
         >
-          <div style={{ width: 38, height: 38, borderRadius: "50%", background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: 20 }}>🏠</span>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>🏠</span>
+          <div style={{ textAlign: "left" }}>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Rooms</p>
+            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Ghost Hotel</p>
           </div>
-          <span style={{ fontSize: 9, fontWeight: 800, color: a.glow(0.7), letterSpacing: "0.05em", textTransform: "uppercase" }}>Rooms</span>
-        </button>
+        </motion.button>
       </div>
 
-      {/* ── Second row: Coins · Events · Stats ── */}
+      {/* ── Quick-action buttons — row 2 ── */}
       <div style={{ margin: "8px 14px 0", display: "flex", gap: 8 }}>
         {/* Floor Chat */}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => {
+        <motion.button whileTap={{ scale: 0.95 }}
+          onClick={() => requireAuth(() => {
             if (userRoomTier) {
               setFloorChatTier(userRoomTier);
               setShowFloorChat(true);
               setChatUnreadState(0);
               setChatUnread(0);
             }
-          }}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: `${a.glow(0.08)}`, border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
+          })}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
         >
-          <span style={{ fontSize: 18 }}>💬</span>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>💬</span>
           <div style={{ textAlign: "left" }}>
             <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Floor Chat</p>
             <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Members live</p>
@@ -1740,13 +1764,11 @@ export default function GhostModePage() {
           )}
         </motion.button>
 
-        {/* Events board */}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setShowEvents(true)}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "rgba(124,58,237,0.07)", border: "1px solid rgba(124,58,237,0.22)", borderRadius: 14, cursor: "pointer" }}
+        {/* Events */}
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => setShowEvents(true))}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.28)", borderRadius: 14, cursor: "pointer" }}
         >
-          <span style={{ fontSize: 18 }}>🎪</span>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>🎪</span>
           <div style={{ textAlign: "left" }}>
             <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#a78bfa" }}>Events</p>
             <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Today</p>
@@ -1754,12 +1776,10 @@ export default function GhostModePage() {
         </motion.button>
 
         {/* Viewed Me */}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setShowViewedMe(true)}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.06), border: `1px solid ${a.glow(0.2)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => setShowViewedMe(true))}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
         >
-          <span style={{ fontSize: 18 }}>👁️</span>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>👁️</span>
           <div style={{ textAlign: "left" }}>
             <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Viewed Me</p>
             <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>{viewedMeList.length} profiles</p>
@@ -2133,7 +2153,7 @@ export default function GhostModePage() {
               key={profile.id}
               profile={profile}
               liked={likedIds.has(profile.id)}
-              onClick={() => setSelectedProfile(profile)}
+              onClick={() => requireAuth(() => setSelectedProfile(profile))}
               onLike={() => handleLike(profile)}
               isRevealed={revealedIds.has(profile.id)}
               onReveal={() => handleReveal(profile.id)}
@@ -2555,9 +2575,7 @@ export default function GhostModePage() {
             coinBalance={coinBalance}
             onClose={() => setShowCoinShop(false)}
             onAddCoins={(amount) => {
-              const next = coinBalance + amount;
-              setCoinBalance(next);
-              try { localStorage.setItem("ghost_coins", String(next)); } catch {}
+              updateCoins(coinBalance + amount);
               setShowCoinShop(false);
             }}
           />
@@ -3852,6 +3870,69 @@ export default function GhostModePage() {
                 ❤️
               </motion.div>
             ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Auth Gate Popup ── */}
+      <AnimatePresence>
+        {showAuthGate && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowAuthGate(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 9100, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+          >
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 32 }}
+              onClick={e => e.stopPropagation()}
+              style={{ width: "100%", maxWidth: 480, background: "rgba(5,5,10,0.99)", borderRadius: "24px 24px 0 0", border: `1px solid ${a.glow(0.25)}`, borderBottom: "none", overflow: "hidden", paddingBottom: "max(28px, env(safe-area-inset-bottom, 28px))" }}
+            >
+              {/* Accent stripe */}
+              <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)` }} />
+
+              {/* Ghost logo + heading */}
+              <div style={{ textAlign: "center", padding: "28px 24px 20px" }}>
+                <img src={GHOST_LOGO} alt="2Ghost" style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 14 }} />
+                <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>Join the Ghost House</p>
+                <p style={{ margin: "8px 0 0", fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.55 }}>
+                  Create a free account to like profiles,<br />connect with matches & unlock all features
+                </p>
+              </div>
+
+              {/* Feature pills */}
+              <div style={{ display: "flex", justifyContent: "center", gap: 8, padding: "0 24px 22px", flexWrap: "wrap" }}>
+                {["❤️ Like for free", "✨ Ghost Match", "👻 Stay anonymous", "🌍 Global"].map(f => (
+                  <div key={f} style={{ background: a.glow(0.08), border: `1px solid ${a.glow(0.2)}`, borderRadius: 20, padding: "4px 12px" }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)" }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA buttons */}
+              <div style={{ padding: "0 20px", display: "flex", flexDirection: "column", gap: 10 }}>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => { setShowAuthGate(false); navigate("/ghost/auth"); }}
+                  style={{ width: "100%", height: 52, borderRadius: 16, border: "none", cursor: "pointer", background: `linear-gradient(135deg, ${a.accentDark}, ${a.accent})`, fontSize: 15, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em", boxShadow: `0 0 24px ${a.glow(0.35)}` }}
+                >
+                  Create Free Account 👻
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => { setShowAuthGate(false); navigate("/ghost/auth"); }}
+                  style={{ width: "100%", height: 46, borderRadius: 16, border: `1px solid rgba(255,255,255,0.15)`, cursor: "pointer", background: "rgba(255,255,255,0.05)", fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}
+                >
+                  Sign In
+                </motion.button>
+                <button
+                  onClick={() => setShowAuthGate(false)}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.25)", fontWeight: 600, paddingTop: 4 }}
+                >
+                  Maybe later
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

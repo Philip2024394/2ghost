@@ -85,7 +85,7 @@ export default function App() {
       <AnalyticsTracker />
       <Suspense fallback={null}>
         <Routes>
-          <Route path="/"               element={<Navigate to="/ghost" replace />} />
+          <Route path="/"               element={<Navigate to="/ghost/mode" replace />} />
           <Route path="/ghost"         element={<GhostLandingPage />} />
           <Route path="/ghost/auth"    element={<GhostAuthPage />} />
           <Route path="/ghost/gateway" element={<GhostGatewayPage />} />

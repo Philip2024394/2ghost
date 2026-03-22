@@ -258,7 +258,7 @@ export default function GhostCoinShop({
 
             {/* What coins unlock */}
             <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.25)", margin: "0 0 12px", letterSpacing: "0.1em", textTransform: "uppercase" }}>What coins unlock</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 8 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
               {WHAT_COINS_UNLOCK.map((item) => (
                 <div key={item.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
@@ -269,6 +269,149 @@ export default function GhostCoinShop({
                 </div>
               ))}
             </div>
+
+            {/* ── Ghost Black Monthly Subscription ── */}
+            <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.25)", margin: "0 0 10px", letterSpacing: "0.1em", textTransform: "uppercase" }}>Monthly Subscription</p>
+            {(() => {
+              const subUntil = (() => { try { return Number(localStorage.getItem("ghost_black_sub_until") || "0"); } catch { return 0; } })();
+              const isActive = subUntil > Date.now();
+              const [subBuying, setSubBuying] = useState(false);
+              const [subDone, setSubDone] = useState(false);
+              const handleSubscribe = () => {
+                if (subBuying || isActive) return;
+                setSubBuying(true);
+                setTimeout(() => {
+                  try {
+                    // Grant 200 coins + mark subscription for 30 days
+                    const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
+                    localStorage.setItem("ghost_black_sub_until", String(expiry));
+                    const today = new Date().toISOString().slice(0, 7);
+                    localStorage.setItem("ghost_black_delivery_month", today);
+                  } catch {}
+                  onAddCoins(200);
+                  setSubBuying(false);
+                  setSubDone(true);
+                }, 1600);
+              };
+              return (
+                <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 16, padding: "16px", marginBottom: 28, position: "relative", overflow: "hidden" }}>
+                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, transparent, #d4af37, transparent)" }} />
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 13, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>🖤</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                        <p style={{ fontSize: 15, fontWeight: 900, color: "#d4af37", margin: 0 }}>Ghost Black Monthly</p>
+                        {isActive && <span style={{ fontSize: 8, fontWeight: 900, background: "rgba(74,222,128,0.2)", border: "1px solid rgba(74,222,128,0.4)", borderRadius: 5, padding: "2px 6px", color: "#4ade80" }}>ACTIVE</span>}
+                      </div>
+                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: "0 0 8px", lineHeight: 1.5 }}>
+                        200🪙 coins delivered every month · Priority profile placement · Ghost Black badge
+                      </p>
+                      {isActive ? (
+                        <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 700 }}>
+                          ✓ Active until {new Date(subUntil).toLocaleDateString()}
+                        </p>
+                      ) : (
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", margin: 0 }}>$9.99 <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>/month</span></p>
+                          <motion.button
+                            whileTap={{ scale: 0.96 }}
+                            onClick={handleSubscribe}
+                            disabled={subBuying}
+                            style={{ background: subDone ? "rgba(74,222,128,0.15)" : "linear-gradient(135deg,#92660a,#d4af37)", borderRadius: 10, padding: "8px 16px", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 900, color: subDone ? "#4ade80" : "#000" }}
+                          >
+                            {subBuying ? "…" : subDone ? "Subscribed ✓" : "Subscribe"}
+                          </motion.button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ── Refund / Dispute ── */}
+            <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.25)", margin: "0 0 10px", letterSpacing: "0.1em", textTransform: "uppercase" }}>Support & Refunds</p>
+            {(() => {
+              const [showRefund, setShowRefund] = useState(false);
+              const [refundReason, setRefundReason] = useState("");
+              const [refundEmail, setRefundEmail] = useState("");
+              const [refundSent, setRefundSent] = useState(false);
+
+              const handleRefundSubmit = () => {
+                if (!refundReason.trim()) return;
+                try {
+                  const requests: object[] = JSON.parse(localStorage.getItem("ghost_refund_requests") || "[]");
+                  requests.push({
+                    id: `REF-${Date.now()}`,
+                    ghostId: (() => { try { const p = JSON.parse(localStorage.getItem("ghost_profile") || "{}"); return p.id || "anon"; } catch { return "anon"; } })(),
+                    email: refundEmail.trim(),
+                    reason: refundReason.trim(),
+                    submittedAt: new Date().toISOString(),
+                    status: "pending",
+                  });
+                  localStorage.setItem("ghost_refund_requests", JSON.stringify(requests));
+                } catch {}
+                setRefundSent(true);
+              };
+
+              return (
+                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, overflow: "hidden", marginBottom: 8 }}>
+                  <button
+                    onClick={() => setShowRefund(v => !v)}
+                    style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "none", border: "none", cursor: "pointer" }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 18 }}>🔄</span>
+                      <div style={{ textAlign: "left" }}>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>Request Refund / Dispute</p>
+                        <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Coin purchase or billing issue</p>
+                      </div>
+                    </div>
+                    <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 14 }}>{showRefund ? "▾" : "›"}</span>
+                  </button>
+
+                  {showRefund && (
+                    <div style={{ padding: "0 16px 16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                      {refundSent ? (
+                        <div style={{ textAlign: "center", padding: "16px 0" }}>
+                          <p style={{ fontSize: 28, margin: "0 0 8px" }}>✅</p>
+                          <p style={{ fontSize: 14, fontWeight: 800, color: "#4ade80", margin: "0 0 4px" }}>Request Submitted</p>
+                          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>We'll review within 48 hours and email you.</p>
+                        </div>
+                      ) : (
+                        <>
+                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: "12px 0 12px", lineHeight: 1.6 }}>
+                            If you were charged incorrectly or coins were not delivered, submit a request below. Our team reviews all disputes within 48 hours.
+                          </p>
+                          <input
+                            type="email"
+                            placeholder="Your email (for reply)"
+                            value={refundEmail}
+                            onChange={e => setRefundEmail(e.target.value)}
+                            style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px", color: "#fff", fontSize: 12, marginBottom: 10, boxSizing: "border-box", outline: "none" }}
+                          />
+                          <textarea
+                            placeholder="Describe the issue — e.g. 'bought 150 coins but balance didn't update'"
+                            value={refundReason}
+                            onChange={e => setRefundReason(e.target.value)}
+                            rows={3}
+                            style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px", color: "#fff", fontSize: 12, resize: "none", boxSizing: "border-box", outline: "none", marginBottom: 10 }}
+                          />
+                          <motion.button
+                            whileTap={{ scale: 0.97 }}
+                            onClick={handleRefundSubmit}
+                            disabled={!refundReason.trim()}
+                            style={{ width: "100%", height: 42, borderRadius: 10, border: "none", cursor: refundReason.trim() ? "pointer" : "not-allowed", background: refundReason.trim() ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.04)", fontSize: 13, fontWeight: 800, color: refundReason.trim() ? "#fff" : "rgba(255,255,255,0.25)" }}
+                          >
+                            Submit Request
+                          </motion.button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
           </div>
         </div>
