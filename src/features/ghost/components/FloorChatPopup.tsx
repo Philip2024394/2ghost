@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGenderAccent } from "../../../shared/hooks/useGenderAccent";
 import VaultPrivateChatPopup from "./VaultPrivateChatPopup";
+import GiftReplyModal, { type PendingGift } from "./GiftReplyModal";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 export type ChatMessage = {
@@ -37,7 +38,7 @@ export function activateChatPlan(): void {
   try { localStorage.setItem(CHAT_PLAN_KEY, String(Date.now() + 30 * 24 * 60 * 60 * 1000)); } catch {}
 }
 const CHAT_PRICES: Record<string, string> = {
-  standard: "$2.99/mo", suite: "$3.99/mo", kings: "$5.99/mo", penthouse: "$7.99/mo",
+  standard: "$2.99/mo", suite: "$3.99/mo", kings: "$5.99/mo", penthouse: "$7.99/mo", garden: "$2.99/mo",
 };
 
 // ── localStorage helpers ───────────────────────────────────────────────────────
@@ -86,6 +87,7 @@ const _SEEDS: Record<string, number[]> = {
   suite:     [28,31,45,49,52,5,9,13,18,23,27,32,37,41,46],
   kings:     [2,8,14,19,25,33,38,44,50,56,60,66,72,78,84],
   penthouse: [1,6,11,16,21,26,31,36,41,46,51,56,61,66,71],
+  garden:    [4,9,16,23,31,43,57,62,68,74,80,85,90,95,99],
 };
 function buildFloorMembers(tier: string): FloorMember[] {
   return (_SEEDS[tier] ?? _SEEDS.standard).map((seed, i) => ({
@@ -135,6 +137,15 @@ const SEED: Record<string, Array<{ name: string; text: string; minsAgo: number }
     { name: "Ghost-5501", text: "Ghost ID stays anonymous until I decide otherwise 😉", minsAgo: 44 },
     { name: "Ghost-0044", text: "Floor chat is the best feature they've added. Feels like a private club", minsAgo: 14 },
   ],
+  garden: [
+    { name: "Ghost-5201", text: "Good morning from Cape Town ☕ — what a peaceful way to start the day here", minsAgo: 110 },
+    { name: "Ghost-8847", text: "Edinburgh checking in 🌧️ — Garden Lodge is the first floor that actually feels grown up", minsAgo: 100 },
+    { name: "Ghost-3307", text: "Anyone else appreciate how slow the pace is here? No rush, no noise", minsAgo: 80 },
+    { name: "Ghost-5201", text: "That's exactly why I'm here. I'm not interested in volume, I'm interested in the right one", minsAgo: 74 },
+    { name: "Ghost-6612", text: "Had the most genuine conversation I've had in years through this terrace last week 🌿", minsAgo: 45 },
+    { name: "Ghost-8847", text: "No games, no performance — just two people being honest. It's rare.", minsAgo: 38 },
+    { name: "Ghost-3307", text: "The morning coffee prompt earlier got me. Some questions deserve more than a swipe", minsAgo: 12 },
+  ],
 };
 
 function timeLabel(ts: number): string {
@@ -178,6 +189,9 @@ export default function FloorChatPopup({
 
   // Notification toast
   const [notifToast, setNotifToast] = useState<string | null>(null);
+
+  // Incoming gift — must reply before modal closes
+  const [pendingGiftReply, setPendingGiftReply] = useState<PendingGift | null>(null);
   function showToast(msg: string) {
     setNotifToast(msg);
     setTimeout(() => setNotifToast(null), 3500);
@@ -292,6 +306,37 @@ export default function FloorChatPopup({
   }
 
   function handleSubscribe() { activateChatPlan(); setSubscribed(true); }
+
+  // After ~40 s in chat, a floor member sends you a gift — you must reply
+  useEffect(() => {
+    if (!subscribed) return;
+    const already = sessionStorage.getItem(`ghost_gift_triggered_${tier}`);
+    if (already) return;
+    const delay = 40000 + Math.random() * 20000;
+    const t = setTimeout(() => {
+      sessionStorage.setItem(`ghost_gift_triggered_${tier}`, "1");
+      const rList = (SEED[tier] ?? SEED.standard);
+      const sender = rList[Math.floor(Math.random() * rList.length)];
+      const gift   = FLOOR_GIFTS[Math.floor(Math.random() * 3)]; // rose, champagne, or diamond
+      // Add gift bubble to chat first
+      setMessages(prev => [...prev, {
+        id: `rx-gift-${Date.now()}`, senderId: sender.name, senderName: sender.name,
+        text: `sent you a ${gift.emoji} ${gift.name}`,
+        timestamp: Date.now(), isOwn: false,
+        isGift: true, giftEmoji: gift.emoji, giftName: gift.name, giftCoins: gift.coins,
+      }]);
+      // Then show reply modal
+      setTimeout(() => setPendingGiftReply({ giftEmoji: gift.emoji, giftName: gift.name, fromName: sender.name, fromId: sender.name }), 800);
+    }, delay);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subscribed, tier]);
+
+  function handleGiftReply(replyText: string) {
+    addMessage({ id: `gift-reply-${Date.now()}`, senderId: "me", senderName: "You", text: replyText, timestamp: Date.now(), isOwn: true });
+    setPendingGiftReply(null);
+    if (pendingGiftReply) showToast(`Reply sent to ${pendingGiftReply.fromName}`);
+  }
 
   // Open gift picker from message tap
   function openGiftFromTap(ghostName: string) {
@@ -635,6 +680,13 @@ export default function FloorChatPopup({
               <button onClick={() => setTappedMsg(null)} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 12, cursor: "pointer" }}>Cancel</button>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Gift reply (required before modal closes) ── */}
+      <AnimatePresence>
+        {pendingGiftReply && (
+          <GiftReplyModal gift={pendingGiftReply} onReply={handleGiftReply} />
         )}
       </AnimatePresence>
 

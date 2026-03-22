@@ -11,7 +11,8 @@ export default function GhostPaymentSuccessPage() {
   const [params]       = useSearchParams();
   const [done, setDone] = useState(false);
 
-  const plan = params.get("plan") || "suite"; // ?plan=suite or ?plan=gold
+  const VALID_PLANS = ["standard", "suite", "kings", "penthouse", "cellar", "garden", "gold"];
+  const plan = VALID_PLANS.includes(params.get("plan") || "") ? params.get("plan")! : "suite";
 
   useEffect(() => {
     // Mark the plan in localStorage immediately so the app reacts

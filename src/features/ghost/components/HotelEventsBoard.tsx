@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 
 // ── Opt-in storage ────────────────────────────────────────────────────────────
 function getOptIns(): Set<string> {
@@ -43,7 +44,7 @@ function dailyDateIdea() {
 }
 
 // ── Events definition ─────────────────────────────────────────────────────────
-function buildEvents() {
+function buildEvents(accent: string) {
   const now  = new Date();
   const day  = now.getDay(); // 0=Sun … 6=Sat
   const hour = now.getHours();
@@ -60,7 +61,7 @@ function buildEvents() {
       title: "Daily Tarot Reading",
       schedule: "Every day at midnight",
       status: "Today",
-      statusColor: "#a78bfa",
+      statusColor: accent,
       desc:  dailyFortune(),
       detail: "Your reading is based on the current phase of the house — member activity, time, and your floor.",
       live:  true,
@@ -114,9 +115,10 @@ function buildEvents() {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function HotelEventsBoard({ onClose }: { onClose: () => void }) {
+  const a = useGenderAccent();
   const [optIns,   setOptIns]   = useState<Set<string>>(getOptIns);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const events = buildEvents();
+  const events = buildEvents(a.accent);
 
   function handleToggle(id: string) {
     const now = toggleOptIn(id);
@@ -137,9 +139,9 @@ export default function HotelEventsBoard({ onClose }: { onClose: () => void }) {
         initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         onClick={e => e.stopPropagation()}
-        style={{ width: "100%", maxWidth: 480, background: "rgba(5,4,2,0.99)", borderRadius: "24px 24px 0 0", border: "1px solid rgba(167,139,250,0.2)", borderBottom: "none", maxHeight: "88dvh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: "0 -8px 60px rgba(124,58,237,0.12)" }}
+        style={{ width: "100%", maxWidth: 480, background: "rgba(5,4,2,0.99)", borderRadius: "24px 24px 0 0", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none", maxHeight: "88dvh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: `0 -8px 60px ${a.glow(0.12)}` }}
       >
-        <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #7c3aed, #a78bfa, #7c3aed, transparent)", flexShrink: 0 }} />
+        <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)`, flexShrink: 0 }} />
 
         {/* Header */}
         <div style={{ flexShrink: 0, padding: "18px 18px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -162,14 +164,14 @@ export default function HotelEventsBoard({ onClose }: { onClose: () => void }) {
                 <motion.div
                   key={ev.id}
                   layout
-                  style={{ background: ev.live ? "rgba(124,58,237,0.08)" : "rgba(255,255,255,0.03)", border: `1px solid ${ev.live ? "rgba(167,139,250,0.25)" : "rgba(255,255,255,0.07)"}`, borderRadius: 16, overflow: "hidden" }}
+                  style={{ background: ev.live ? a.glow(0.08) : "rgba(255,255,255,0.03)", border: `1px solid ${ev.live ? a.glow(0.25) : "rgba(255,255,255,0.07)"}`, borderRadius: 16, overflow: "hidden" }}
                 >
                   {/* Main row */}
                   <div
                     onClick={() => setExpanded(isExp ? null : ev.id)}
                     style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", cursor: "pointer" }}
                   >
-                    <div style={{ width: 42, height: 42, borderRadius: 12, background: ev.live ? "rgba(167,139,250,0.15)" : "rgba(255,255,255,0.05)", border: `1px solid ${ev.live ? "rgba(167,139,250,0.3)" : "rgba(255,255,255,0.08)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 12, background: ev.live ? a.glow(0.15) : "rgba(255,255,255,0.05)", border: `1px solid ${ev.live ? a.glow(0.3) : "rgba(255,255,255,0.08)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       {ev.live
                         ? <motion.span animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ fontSize: 20 }}>{ev.emoji}</motion.span>
                         : <span style={{ fontSize: 20 }}>{ev.emoji}</span>
@@ -186,7 +188,7 @@ export default function HotelEventsBoard({ onClose }: { onClose: () => void }) {
                     <motion.button
                       whileTap={{ scale: 0.88 }}
                       onClick={e => { e.stopPropagation(); handleToggle(ev.id); }}
-                      style={{ flexShrink: 0, width: 46, height: 26, borderRadius: 13, border: "none", background: isOn ? "#7c3aed" : "rgba(255,255,255,0.1)", cursor: "pointer", position: "relative", transition: "background 0.2s" }}
+                      style={{ flexShrink: 0, width: 46, height: 26, borderRadius: 13, border: "none", background: isOn ? a.accent : "rgba(255,255,255,0.1)", cursor: "pointer", position: "relative", transition: "background 0.2s" }}
                     >
                       <motion.div
                         animate={{ x: isOn ? 22 : 2 }}

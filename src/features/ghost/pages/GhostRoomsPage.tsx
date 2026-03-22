@@ -14,7 +14,9 @@ const LOFT_BG      = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrew
 const SUITE_BG     = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsds.png";
 const STANDARD_BG  = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsdsterte.png";
 
-type RoomTier = "standard" | "suite" | "kings" | "penthouse" | "cellar";
+type RoomTier = "standard" | "suite" | "kings" | "penthouse" | "cellar" | "garden";
+
+const GARDEN_BG = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdfvcxcvzxcvasfdfasd.png";
 
 const ROOM_BG_IMAGES: Record<RoomTier, string> = {
   standard:  STANDARD_BG,
@@ -22,6 +24,7 @@ const ROOM_BG_IMAGES: Record<RoomTier, string> = {
   kings:     KINGS_BG,
   penthouse: PENTHOUSE_BG,
   cellar:    LOFT_BG,
+  garden:    GARDEN_BG,
 };
 
 // ── Stored review helpers ────────────────────────────────────────────────────
@@ -247,6 +250,10 @@ const ROOM_REVIEWS: Record<RoomTier, RoomReview[]> = {
     { id: "GH-3355", city: "Amsterdam", stars: 5, ago: "4 days ago",  text: "Different energy entirely. The anonymity goes deeper here. Real conversations." },
     { id: "GH-7744", city: "Berlin",    stars: 5, ago: "1 week ago",  text: "Came for the curiosity. Stayed for the actual connections. Not for everyone — that's the point." },
   ],
+  garden: [
+    { id: "GH-5201", city: "Cape Town", stars: 5, ago: "3 days ago",  text: "Finally — an app that respects where I am in life. The pace here is different. Real conversations." },
+    { id: "GH-8847", city: "Edinburgh", stars: 5, ago: "1 week ago",  text: "At 52 I've done the noise. Garden Lodge is the only floor I'd recommend to someone who actually knows what they want." },
+  ],
 };
 
 function readTier(): RoomTier | null {
@@ -266,6 +273,7 @@ const ROOM_ACTIVITY: Record<RoomTier, { members: number; tonight: number; avatar
   kings:     { members: 156,  tonight: 21,  avatarSeeds: [8,19,33,44,61]  },
   penthouse: { members: 47,   tonight: 12,  avatarSeeds: [2,6,11,17,24]   },
   cellar:    { members: 83,   tonight: 18,  avatarSeeds: [35,38,42,56,63] },
+  garden:    { members: 214,  tonight: 38,  avatarSeeds: [4,9,16,23,31]  },
 };
 
 const ROOMS = [
@@ -358,6 +366,29 @@ const ROOMS = [
       "Early access to all new features",
       "Penthouse Floor — exclusive member lounge",
       "Custom Ghost ID display name",
+    ],
+  },
+  {
+    key: "garden" as RoomTier,
+    icon: "🌿",
+    name: "Garden Lodge",
+    tagline: "For those who've lived enough to know exactly what they're looking for",
+    price: "$14.99/mo",
+    color: "#7a9e7e",
+    border: "rgba(122,158,126,0.45)",
+    bg: "rgba(122,158,126,0.07)",
+    glow: "rgba(122,158,126,0.45)",
+    gradient: "linear-gradient(135deg, #3a5c3e, #7a9e7e, #a0c8a4)",
+    giftCoins: 40,
+    features: [
+      "Unlimited connections — no monthly cap",
+      "Ghost Vault: 30 photos · 5 videos",
+      "Private Terrace chat — intimate floor lounge",
+      "Garden Lodge 🌿 badge on your profile",
+      "Ghost Butler — all services included",
+      "Morning coffee prompt — daily conversation starter",
+      "Profiles presented one at a time — no swipe grid",
+      "Privacy upgrade available — remove from main browse",
     ],
   },
 ] as const;
@@ -572,6 +603,9 @@ export default function GhostRoomsPage() {
   const [storedReviews, setStoredReviews]  = useState<UserReview[]>(getStoredReviews);
   const [welcomeGiftTier, setWelcomeGiftTier] = useState<RoomTier | null>(null);
   const [showCheckOut,    setShowCheckOut]    = useState(false);
+  const [gardenPrivate,   setGardenPrivate]   = useState(() => {
+    try { return localStorage.getItem("ghost_garden_private") === "1"; } catch { return false; }
+  });
 
   const handlePurchase = (tier: RoomTier) => {
     if (buying) return;
@@ -587,7 +621,7 @@ export default function GhostRoomsPage() {
     }, 1400);
   };
 
-  const tierRank: Record<RoomTier, number> = { standard: 0, suite: 1, kings: 2, penthouse: 3, cellar: 2 };
+  const tierRank: Record<RoomTier, number> = { standard: 0, suite: 1, kings: 2, penthouse: 3, cellar: 2, garden: 0 };
   const ownedRank = currentTier ? tierRank[currentTier] : -1;
 
   // Auto-redirect first-time visitors to the how-it-works explainer
@@ -663,7 +697,7 @@ export default function GhostRoomsPage() {
         {/* Room cards */}
         <div style={{ padding: "8px 14px calc(env(safe-area-inset-bottom, 0px) + 24px)", display: "flex", flexDirection: "column", gap: 12 }}>
           {ROOMS.map((room, idx) => {
-            const owned   = ownedRank >= idx;
+            const owned   = room.key === "garden" ? currentTier === "garden" : currentTier !== "garden" && ownedRank >= idx;
             const active  = buying === room.key;
             const bought  = justBought === room.key;
 
@@ -742,6 +776,22 @@ export default function GhostRoomsPage() {
                   <div style={{
                     position: "absolute", inset: 0,
                     background: "linear-gradient(to right, rgba(6,4,2,0.78), rgba(6,4,2,0.5))",
+                    pointerEvents: "none",
+                  }} />
+                </>}
+
+                {/* Garden Lodge background overlay */}
+                {room.key === "garden" && <>
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    backgroundImage: `url(${GARDEN_BG})`,
+                    backgroundSize: "cover", backgroundPosition: "center",
+                    opacity: 0.45,
+                    pointerEvents: "none",
+                  }} />
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: "linear-gradient(to right, rgba(4,12,5,0.82), rgba(4,12,5,0.55))",
                     pointerEvents: "none",
                   }} />
                 </>}
@@ -898,8 +948,47 @@ export default function GhostRoomsPage() {
                     ) : owned ? (
                       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
 
-                        {/* Penthouse: 2-button row — Check Out + View Floor */}
-                        {room.key === "penthouse" ? (
+                        {/* Garden Lodge: 2-button row — Private Terrace + Privacy Mode */}
+                        {room.key === "garden" ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            <motion.button
+                              whileTap={{ scale: 0.97 }}
+                              onClick={() => navigate("/ghost/floor/garden")}
+                              style={{
+                                width: "100%", height: 48, borderRadius: 12, border: "none", cursor: "pointer",
+                                background: room.gradient, color: "#0a0700",
+                                fontSize: 13, fontWeight: 900,
+                                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                boxShadow: `0 3px 16px ${room.glow}`,
+                              }}
+                            >
+                              <span style={{ fontSize: 16 }}>🌿</span>
+                              Enter Private Terrace
+                              <span style={{ fontSize: 12, opacity: 0.7 }}>›</span>
+                            </motion.button>
+                            <motion.button
+                              whileTap={{ scale: 0.97 }}
+                              onClick={() => {
+                                const next = !gardenPrivate;
+                                setGardenPrivate(next);
+                                try { localStorage.setItem("ghost_garden_private", next ? "1" : "0"); } catch {}
+                              }}
+                              style={{
+                                width: "100%", height: 40, borderRadius: 10, cursor: "pointer",
+                                background: gardenPrivate ? "rgba(122,158,126,0.15)" : "rgba(255,255,255,0.04)",
+                                border: `1px solid ${gardenPrivate ? "rgba(122,158,126,0.5)" : "rgba(255,255,255,0.1)"}`,
+                                color: gardenPrivate ? "#7a9e7e" : "rgba(255,255,255,0.45)",
+                                fontSize: 11, fontWeight: 800,
+                                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                                transition: "all 0.2s",
+                              }}
+                            >
+                              <span style={{ fontSize: 14 }}>{gardenPrivate ? "🔒" : "🔓"}</span>
+                              {gardenPrivate ? "Privacy Mode: On — hidden from main browse" : "Enable Privacy Mode — remove from main browse"}
+                            </motion.button>
+                          </div>
+                        ) : room.key === "penthouse" ? (
+                          /* Penthouse: 2-button row — Check Out + View Floor */
                           <div style={{ display: "flex", gap: 8 }}>
                             <motion.button
                               whileTap={{ scale: 0.97 }}

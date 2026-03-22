@@ -48,6 +48,7 @@ import LateNightButlerPopup, { shouldShowLateNight, markLateNightShown } from ".
 import HotelEventsBoard from "../components/HotelEventsBoard";
 import GhostStatsDashboard from "../components/GhostStatsDashboard";
 import GhostReferralSheet from "../components/GhostReferralSheet";
+import FloorInviteSheet, { FloorNudgeSheet, getAcceptedFloorMembers, isProfileInvited, getProfileFloor, floorRank, FLOOR_LABELS, type AcceptedMember } from "../components/FloorInviteSheet";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
@@ -535,7 +536,7 @@ export default function GhostModePage() {
   const [matchTab, setMatchTab] = useState<"matches" | "ilike" | "liked" | "lobby" | "room">("matches");
   const [showFloorChat,      setShowFloorChat]      = useState(false);
   // Which floor chat to open — defaults to user's own tier, but Kings/Penthouse can visit lower floors
-  const [floorChatTier,     setFloorChatTier]      = useState<"standard"|"suite"|"kings"|"penthouse"|"cellar"|null>(null);
+  const [floorChatTier,     setFloorChatTier]      = useState<"standard"|"suite"|"kings"|"penthouse"|"cellar"|"garden"|null>(null);
   const [chatUnread,         setChatUnreadState]    = useState(() => getChatUnread());
   const [showInviteSheet,    setShowInviteSheet]    = useState(false);
   const [showCheckout,       setShowCheckout]       = useState(false);
@@ -546,8 +547,15 @@ export default function GhostModePage() {
   const [showStats,          setShowStats]          = useState(false);
   const [showReferral,       setShowReferral]       = useState(false);
   const [showLobbyPopup,     setShowLobbyPopup]     = useState(false);
+  const [showViewedMe,       setShowViewedMe]       = useState(false);
+  const [showFloorInvite,    setShowFloorInvite]    = useState(false);
+  const [floorInviteProfile, setFloorInviteProfile] = useState<import("../types/ghostTypes").GhostProfile | null>(null);
+  const [floorInviteMode,    setFloorInviteMode]    = useState<"invite" | "request">("invite");
+  const [floorInviteTarget,  setFloorInviteTarget]  = useState("standard");
+  const [invitedMembers,     setInvitedMembers]     = useState<AcceptedMember[]>(() => getAcceptedFloorMembers());
+  const [nudgeProfile,       setNudgeProfile]       = useState<AcceptedMember | null>(null);
   // Read room tier as state so navigation back from Rooms page triggers re-render
-  const [userRoomTier, setUserRoomTier] = useState<"standard"|"suite"|"kings"|"penthouse"|"cellar"|null>(() => {
+  const [userRoomTier, setUserRoomTier] = useState<"standard"|"suite"|"kings"|"penthouse"|"cellar"|"garden"|null>(() => {
     try {
       const t = localStorage.getItem("ghost_house_tier");
       const valid = ["standard","suite","kings","penthouse","cellar"];
@@ -600,6 +608,19 @@ export default function GhostModePage() {
     const t = setTimeout(() => setShowLateNight(true), 90000);
     return () => clearTimeout(t);
   }, []);
+
+  // Butler nudge — if an invited member joined but hasn't interacted, fire after 30s
+  useEffect(() => {
+    const members = getAcceptedFloorMembers();
+    const silent  = members.find(m => !m.nudgeSentAt && Date.now() - m.joinedAt > 30_000);
+    if (!silent) return;
+    const t = setTimeout(() => {
+      const updated = members.map(m => m.profileId === silent.profileId ? { ...m, nudgeSentAt: Date.now() } : m);
+      try { localStorage.setItem("ghost_floor_accepted", JSON.stringify(updated)); } catch {}
+      setNudgeProfile(silent);
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [invitedMembers]);
 
   // Open a specific floor chat when navigated back from Rooms page via "Enter Chat"
   useEffect(() => {
@@ -951,9 +972,9 @@ export default function GhostModePage() {
   );
 
   // Room members — profiles "assigned" to the same tier as the user (seeded by profile ID hash)
-  const TIER_COLORS: Record<string, string> = { standard: "#a8a8b0", suite: "#cd7f32", kings: "#d4af37", penthouse: "#e0ddd8", cellar: "#9b1c1c" };
-  const TIER_LABELS: Record<string, string> = { standard: "Standard Room", suite: "Suite", kings: "Kings Room", penthouse: "Penthouse", cellar: "The Cellar" };
-  const TIER_ICONS: Record<string, string>  = { standard: "🛏️", suite: "🛎️", kings: "👑", penthouse: "🏙️", cellar: "🕯️" };
+  const TIER_COLORS: Record<string, string> = { standard: "#a8a8b0", suite: "#cd7f32", kings: "#d4af37", penthouse: "#e0ddd8", cellar: "#9b1c1c", garden: "#7a9e7e" };
+  const TIER_LABELS: Record<string, string> = { standard: "Standard Room", suite: "Suite", kings: "Kings Room", penthouse: "Penthouse", cellar: "The Cellar", garden: "Garden Lodge" };
+  const TIER_ICONS: Record<string, string>  = { standard: "🛏️", suite: "🛎️", kings: "👑", penthouse: "🏙️", cellar: "🕯️", garden: "🌿" };
   const tierColor = userRoomTier ? (TIER_COLORS[userRoomTier] ?? a.accent) : a.accent;
   const tierLabel = userRoomTier ? (TIER_LABELS[userRoomTier] ?? "My Room") : "My Room";
   const tierIcon  = userRoomTier ? (TIER_ICONS[userRoomTier] ?? "🏠") : "🏠";
@@ -967,6 +988,24 @@ export default function GhostModePage() {
       return hash % 4 === targetIdx;
     }).slice(0, 24);
   }, [allProfiles, userRoomTier]);
+
+  // Profiles that viewed the user's profile — seeded deterministically per Ghost ID
+  const viewedMeList = useMemo(() => {
+    if (!allProfiles.length) return [] as Array<typeof allProfiles[0] & { viewCount: number }>;
+    try {
+      const gid = (() => { const p = JSON.parse(localStorage.getItem("ghost_profile") || "{}"); return p.id || "anon"; })();
+      const seed = gid.split("").reduce((h: number, c: string) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0);
+      const arr = [...allProfiles];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.abs(Math.sin(i * 71 + seed * 137)) * (i + 1) | 0;
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      const VIEW_COUNTS = [4, 3, 2, 2, 2, 1, 3, 1, 2, 1, 1, 2, 1, 1, 1];
+      return arr.slice(0, 15)
+        .map((p, i) => ({ ...p, viewCount: VIEW_COUNTS[i] ?? 1 }))
+        .sort((a, b) => b.viewCount - a.viewCount);
+    } catch { return [] as Array<typeof allProfiles[0] & { viewCount: number }>; }
+  }, [allProfiles]);
 
   // Profiles that "liked" the user — seeded demo: unfiltered profiles the user hasn't liked back
   // A seeded-shuffle changes their order every shuffleSeed tick so it feels "live"
@@ -1111,14 +1150,9 @@ export default function GhostModePage() {
         <div style={{ padding: "0 16px 6px", display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
             <img src="https://ik.imagekit.io/7grri5v7d/asdfasdfasdwq.png" alt="2Ghost" style={{ width: 52, height: 52, objectFit: "contain" }} />
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <h1 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
-                <span style={{ color: a.accent, fontWeight: 900 }}>2</span>Ghost
-              </h1>
-              <span style={{ background: a.glow(0.15), border: `1px solid ${a.glow(0.3)}`, borderRadius: 6, padding: "1px 6px", fontSize: 9, fontWeight: 700, color: a.glow(0.9), letterSpacing: "0.08em" }}>
-                {plan === "bundle" ? "GHOST + VIP" : "ACTIVE"}
-              </span>
-            </div>
+            <h1 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
+              <span style={{ color: a.accent, fontWeight: 900 }}>2</span>Ghost
+            </h1>
           </div>
           {/* Coin balance */}
           <button
@@ -1135,19 +1169,19 @@ export default function GhostModePage() {
               {coinBalance.toLocaleString()}
             </span>
           </button>
-          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-            <button
-              onClick={() => { setSettingsGateFeature(null); setShowSettingsSheet(true); }}
-              style={{
-                width: 34, height: 34, borderRadius: 10,
-                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", color: "rgba(255,255,255,0.3)",
-              }}
-            >
-              <Settings size={15} />
-            </button>
-          </div>
+          {/* Settings — opens side drawer */}
+          <button
+            onClick={() => { setSettingsGateFeature(null); setShowSettingsSheet(true); }}
+            style={{
+              width: 38, height: 38, borderRadius: 12, flexShrink: 0,
+              background: a.glow(0.1), border: `1.5px solid ${a.glow(0.3)}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", color: a.accent,
+              boxShadow: `0 0 12px ${a.glow(0.2)}`,
+            }}
+          >
+            <Settings size={17} />
+          </button>
         </div>
 
       </div>
@@ -1423,7 +1457,7 @@ export default function GhostModePage() {
                     boxShadow: matchTab === "ilike" ? `0 0 14px ${a.glow(0.5)}` : "none",
                   }}
                 >
-                  <img src="https://ik.imagekit.io/7grri5v7d/Lipstick%20kiss%20mark%20on%20checkered%20background.png" alt="" style={{ width: 22, height: 22, objectFit: "contain", display: "block" }} />
+                  <img src="https://ik.imagekit.io/7grri5v7d/dfghdfghdfghdfg-removebg-preview.png?updatedAt=1774183141963" alt="" style={{ width: 22, height: 22, objectFit: "contain", display: "block" }} />
                   <span style={{ fontSize: 8, fontWeight: 700, color: matchTab === "ilike" ? "#fff" : "rgba(255,255,255,0.5)", letterSpacing: "0.02em" }}>I Like</span>
                 </button>
                 <button
@@ -1466,7 +1500,7 @@ export default function GhostModePage() {
                 background: a.glow(0.12), border: `1.5px solid ${a.glow(0.35)}`,
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                <span style={{ fontSize: 17 }}>🏨</span>
+                <img src="https://ik.imagekit.io/7grri5v7d/sdfasdfasdfacxv-removebg-preview.png?updatedAt=1774185654860" alt="" style={{ width: 22, height: 22, objectFit: "contain" }} />
               </div>
               <div style={{ textAlign: "left" }}>
                 <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: a.accent, letterSpacing: "0.03em" }}>Hotel Lobby</p>
@@ -1561,17 +1595,22 @@ export default function GhostModePage() {
           </div>
         </motion.button>
 
-        {/* Invite Friend */}
+        {/* Viewed Me */}
         <motion.button
           whileTap={{ scale: 0.95 }}
-          onClick={() => setShowReferral(true)}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.06), border: `1px solid ${a.glow(0.2)}`, borderRadius: 14, cursor: "pointer" }}
+          onClick={() => setShowViewedMe(true)}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.06), border: `1px solid ${a.glow(0.2)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
         >
-          <span style={{ fontSize: 18 }}>👻</span>
+          <span style={{ fontSize: 18 }}>👁️</span>
           <div style={{ textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Invite Friend</p>
-            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Earn rewards</p>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Viewed Me</p>
+            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>{viewedMeList.length} profiles</p>
           </div>
+          {viewedMeList.some(p => p.viewCount >= 2) && (
+            <div style={{ position: "absolute", top: 6, right: 8, minWidth: 16, height: 16, borderRadius: 8, background: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
+              <span style={{ fontSize: 8, fontWeight: 900, color: "#fff" }}>{viewedMeList.filter(p => p.viewCount >= 2).length}</span>
+            </div>
+          )}
         </motion.button>
       </div>
 
@@ -2770,6 +2809,198 @@ export default function GhostModePage() {
         {showReferral && <GhostReferralSheet onClose={() => setShowReferral(false)} />}
       </AnimatePresence>
 
+      {/* ── Floor Invite Sheet ── */}
+      <AnimatePresence>
+        {showFloorInvite && floorInviteProfile && (
+          <FloorInviteSheet
+            profile={floorInviteProfile}
+            targetFloor={floorInviteTarget}
+            mode={floorInviteMode}
+            onClose={() => setShowFloorInvite(false)}
+            onSuccess={(member) => {
+              setInvitedMembers(getAcceptedFloorMembers());
+              setShowFloorInvite(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Butler nudge for silent floor joiner ── */}
+      <AnimatePresence>
+        {nudgeProfile && (
+          <FloorNudgeSheet member={nudgeProfile} onClose={() => setNudgeProfile(null)} />
+        )}
+      </AnimatePresence>
+
+      {/* ── Viewed Me popup ── */}
+      <AnimatePresence>
+        {showViewedMe && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowViewedMe(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 520, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+          >
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 32 }}
+              onClick={e => e.stopPropagation()}
+              style={{ width: "100%", maxWidth: 480, height: "88dvh", background: "rgba(6,6,10,0.99)", borderRadius: "22px 22px 0 0", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none", display: "flex", flexDirection: "column", overflow: "hidden" }}
+            >
+              {/* Top stripe */}
+              <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)`, flexShrink: 0 }} />
+
+              {/* Header */}
+              <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 12, padding: "14px 16px 12px", borderBottom: `1px solid ${a.glow(0.1)}`, background: a.gradientSubtle }}>
+                <div style={{ width: 38, height: 38, borderRadius: 11, background: a.glow(0.14), border: `1.5px solid ${a.glow(0.38)}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <span style={{ fontSize: 19 }}>👁️</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: a.accent }}>Who Viewed Me</p>
+                  <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.35)", marginTop: 1 }}>
+                    {viewedMeList.length} profiles · {viewedMeList.filter(p => p.viewCount >= 2).length} viewed you more than once
+                  </p>
+                </div>
+                <button onClick={() => setShowViewedMe(false)} style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                  <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 16 }}>✕</span>
+                </button>
+              </div>
+
+              {/* Keen viewers callout */}
+              {viewedMeList.some(p => p.viewCount >= 3) && (
+                <div style={{ flexShrink: 0, margin: "10px 14px 0", padding: "10px 14px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 12, display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 16 }}>🔥</span>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 700 }}>
+                    {viewedMeList.filter(p => p.viewCount >= 3).length} {viewedMeList.filter(p => p.viewCount >= 3).length === 1 ? "person has" : "people have"} viewed your profile 3+ times — they're interested.
+                  </p>
+                </div>
+              )}
+
+              {/* Profile list */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "10px 14px max(20px,env(safe-area-inset-bottom,20px))" }}>
+                {viewedMeList.map((p, i) => {
+                  const isKeen      = p.viewCount >= 3;
+                  const isWarm      = p.viewCount === 2;
+                  const cardBg      = isKeen ? "rgba(239,68,68,0.07)" : isWarm ? a.glow(0.07) : "rgba(255,255,255,0.03)";
+                  const cardBdr     = isKeen ? "1px solid rgba(239,68,68,0.25)" : isWarm ? `1px solid ${a.glow(0.22)}` : "1px solid rgba(255,255,255,0.07)";
+                  const badgeBg     = isKeen ? "rgba(239,68,68,0.18)" : isWarm ? a.glow(0.15) : "rgba(255,255,255,0.07)";
+                  const badgeCol    = isKeen ? "#f87171" : isWarm ? a.accent : "rgba(255,255,255,0.35)";
+                  const badgeTxt    = isKeen ? `🔥 Viewed ${p.viewCount}×` : isWarm ? `👀 Viewed twice` : "Viewed once";
+                  const pFloor      = getProfileFloor(p.id);
+                  const myFloor     = userRoomTier ?? "standard";
+                  const diffFloor   = pFloor !== myFloor;
+                  const theirHigher = floorRank(pFloor) > floorRank(myFloor);
+                  const invited     = isProfileInvited(p.id);
+                  return (
+                    <motion.div
+                      key={p.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                      style={{ marginBottom: 8, borderRadius: 16, background: cardBg, border: cardBdr, overflow: "hidden" }}
+                    >
+                      {/* Main row */}
+                      <div
+                        style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 12px", cursor: "pointer" }}
+                        onClick={() => { setShowViewedMe(false); openMatchAction(p, "match"); }}
+                      >
+                        {/* Photo */}
+                        <div style={{ position: "relative", flexShrink: 0 }}>
+                          <img
+                            src={p.image} alt={p.name}
+                            style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: isKeen ? "2px solid rgba(239,68,68,0.5)" : isWarm ? `2px solid ${a.glow(0.5)}` : "2px solid rgba(255,255,255,0.12)", display: "block" }}
+                            onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                          />
+                          {isOnline(p.last_seen_at) && (
+                            <div style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", background: "#4ade80", border: "2px solid rgba(6,6,10,1)" }} />
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3, flexWrap: "wrap" }}>
+                            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {p.name}{p.age ? `, ${p.age}` : ""}
+                            </p>
+                            <span style={{ fontSize: 9, fontWeight: 800, color: badgeCol, background: badgeBg, borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap", flexShrink: 0 }}>{badgeTxt}</span>
+                          </div>
+                          {p.city && <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>📍 {p.city}</p>}
+                          <p style={{ margin: "2px 0 0", fontSize: 9, color: "rgba(255,255,255,0.25)" }}>
+                            {FLOOR_LABELS[pFloor] ?? pFloor}
+                          </p>
+                          {invited && (
+                            <p style={{ margin: "3px 0 0", fontSize: 9, fontWeight: 800, color: a.accent }}>✓ Invited by {invited.invitedByName}</p>
+                          )}
+                          {isKeen && !invited && <p style={{ margin: "3px 0 0", fontSize: 10, fontWeight: 700, color: "#f87171" }}>Keeps coming back — make a move</p>}
+                          {isWarm && !isKeen && !invited && <p style={{ margin: "3px 0 0", fontSize: 10, fontWeight: 700, color: a.accent }}>Viewed you twice — like back?</p>}
+                        </div>
+
+                        {/* CTA buttons */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                          <motion.button
+                            whileTap={{ scale: 0.92 }}
+                            onClick={e => { e.stopPropagation(); if (!likedIds.has(p.id)) handleLike(p); }}
+                            style={{ width: 36, height: 36, borderRadius: 10, border: "none", background: likedIds.has(p.id) ? a.glow(0.25) : isKeen ? "rgba(239,68,68,0.2)" : a.glow(0.12), display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                          >
+                            <span style={{ fontSize: 16 }}>{likedIds.has(p.id) ? "💚" : "❤️"}</span>
+                          </motion.button>
+                          {(isKeen || isWarm) && (
+                            <motion.button
+                              whileTap={{ scale: 0.92 }}
+                              onClick={e => { e.stopPropagation(); setShowViewedMe(false); openMatchAction(p, "match"); }}
+                              style={{ width: 36, height: 36, borderRadius: 10, border: "none", background: isKeen ? "rgba(239,68,68,0.2)" : a.glow(0.12), display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                            >
+                              <span style={{ fontSize: 15 }}>👁️</span>
+                            </motion.button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Floor invite strip — shown when on a different floor and not yet invited */}
+                      {diffFloor && !invited && userRoomTier && (
+                        <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", padding: "8px 12px", display: "flex", gap: 8 }}>
+                          {/* Invite them to MY floor */}
+                          <motion.button
+                            whileTap={{ scale: 0.97 }}
+                            onClick={e => {
+                              e.stopPropagation();
+                              setFloorInviteProfile(p);
+                              setFloorInviteMode("invite");
+                              setFloorInviteTarget(myFloor);
+                              setShowViewedMe(false);
+                              setShowFloorInvite(true);
+                            }}
+                            style={{ flex: 1, height: 32, borderRadius: 10, border: "none", background: a.glow(0.14), color: a.accent, fontSize: 10, fontWeight: 800, cursor: "pointer" }}
+                          >
+                            ✉️ Invite to My Floor
+                          </motion.button>
+                          {/* Request them to invite ME to THEIR floor */}
+                          {theirHigher && (
+                            <motion.button
+                              whileTap={{ scale: 0.97 }}
+                              onClick={e => {
+                                e.stopPropagation();
+                                setFloorInviteProfile(p);
+                                setFloorInviteMode("request");
+                                setFloorInviteTarget(pFloor);
+                                setShowViewedMe(false);
+                                setShowFloorInvite(true);
+                              }}
+                              style={{ flex: 1, height: 32, borderRadius: 10, border: `1px solid ${a.glow(0.25)}`, background: "transparent", color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: 800, cursor: "pointer" }}
+                            >
+                              ⬆️ Invite Me Up
+                            </motion.button>
+                          )}
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Hotel Lobby popup ── */}
       <AnimatePresence>
         {showLobbyPopup && (
@@ -2896,9 +3127,9 @@ export default function GhostModePage() {
       {/* ── Floor Chat popup ── */}
       <AnimatePresence>
         {showFloorChat && (floorChatTier ?? userRoomTier) && (() => {
-          const TIER_COLORS_ALL: Record<string, string> = { standard: "#a8a8b0", suite: "#cd7f32", kings: "#d4af37", penthouse: "#e0ddd8", cellar: "#9b1c1c" };
-          const TIER_LABELS_ALL: Record<string, string> = { standard: "Standard Room", suite: "Suite", kings: "Kings Room", penthouse: "Penthouse", cellar: "The Cellar" };
-          const TIER_ICONS_ALL:  Record<string, string> = { standard: "🛏️", suite: "🛎️", kings: "👑", penthouse: "🏙️", cellar: "🕯️" };
+          const TIER_COLORS_ALL: Record<string, string> = { standard: "#a8a8b0", suite: "#cd7f32", kings: "#d4af37", penthouse: "#e0ddd8", cellar: "#9b1c1c", garden: "#7a9e7e" };
+          const TIER_LABELS_ALL: Record<string, string> = { standard: "Standard Room", suite: "Suite", kings: "Kings Room", penthouse: "Penthouse", cellar: "The Cellar", garden: "Garden Lodge" };
+          const TIER_ICONS_ALL:  Record<string, string> = { standard: "🛏️", suite: "🛎️", kings: "👑", penthouse: "🏙️", cellar: "🕯️", garden: "🌿" };
           const activeTier  = (floorChatTier ?? userRoomTier)!;
           const activeColor = TIER_COLORS_ALL[activeTier] ?? tierColor;
           const activeLabel = TIER_LABELS_ALL[activeTier] ?? tierLabel;
