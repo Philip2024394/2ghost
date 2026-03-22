@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 import type { GhostProfile } from "../types/ghostTypes";
 import { toGhostId } from "../utils/ghostHelpers";
@@ -39,6 +39,9 @@ function fmt(ms: number): string {
 
 export default function SeancePopup({ profile, onClose }: Props) {
   const a = useGenderAccent();
+  const [showExplainer, setShowExplainer] = useState(() => {
+    try { return !sessionStorage.getItem("seance_explained"); } catch { return true; }
+  });
   const [phase,    setPhase]    = useState<Phase>("chatting");
   const [messages, setMessages] = useState<SeanceMessage[]>([
     { id: "sys-0", text: "The Séance has begun. You have 15 minutes before the veil lifts. No photos. No names. Just words.", isOwn: false, timestamp: Date.now() - 100 },
@@ -99,6 +102,55 @@ export default function SeancePopup({ profile, onClose }: Props) {
   }
 
   const ghostId = toGhostId(profile.id);
+
+  if (showExplainer) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }}
+        style={{
+          position: "fixed", inset: 0, zIndex: 500,
+          background: "rgba(0,0,0,0.94)", backdropFilter: "blur(28px)",
+          display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 20px",
+        }}
+      >
+        <motion.div style={{ width: "100%", maxWidth: 340, background: "rgba(8,6,20,0.98)", borderRadius: 22, border: "1px solid rgba(139,92,246,0.3)", overflow: "hidden" }}>
+          <div style={{ height: 3, background: "linear-gradient(90deg, #7c3aed, #a78bfa, #7c3aed)" }} />
+          <div style={{ padding: "28px 24px 24px", textAlign: "center" }}>
+            <div style={{ fontSize: 52, marginBottom: 16 }}>🕯️</div>
+            <h2 style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: "0 0 8px" }}>The Séance</h2>
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: "0 0 20px", lineHeight: 1.65 }}>
+              The Séance is a 15-minute anonymous chat with someone you've already liked. No names. No photos. Just conversation.
+            </p>
+            {[
+              ["🕯️", "Anonymous", "Neither of you knows who the other is"],
+              ["⏳", "15 Minutes", "The session expires — no pressure, no history"],
+              ["💚", "Vote to Connect", "At the end, both choose to reveal or part ways"],
+              ["🔒", "Disappears", "The chat vanishes when the session ends"],
+            ].map(([icon, title, desc]) => (
+              <div key={String(title)} style={{ display: "flex", gap: 12, marginBottom: 12, textAlign: "left" }}>
+                <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{icon}</span>
+                <div>
+                  <p style={{ fontSize: 12, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>{title}</p>
+                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>{desc}</p>
+                </div>
+              </div>
+            ))}
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={() => {
+                try { sessionStorage.setItem("seance_explained", "1"); } catch {}
+                setShowExplainer(false);
+              }}
+              style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#7c3aed,#a78bfa)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 8 }}
+            >
+              Enter the Séance →
+            </motion.button>
+            <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 12, cursor: "pointer", marginTop: 10 }}>Not now</button>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

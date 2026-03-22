@@ -51,11 +51,31 @@ const AdminTasksPage    = lazyWithRetry(() => import("./features/admin/pages/Adm
 const AdminHealthPage   = lazyWithRetry(() => import("./features/admin/pages/AdminHealthPage"));
 const AdminTrafficPage  = lazyWithRetry(() => import("./features/admin/pages/AdminTrafficPage"));
 
+// Request push notification permission and subscribe to push
+async function requestPushPermission() {
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+  if (Notification.permission === "granted") return;
+  if (Notification.permission === "denied") return;
+  // Delay slightly so it doesn't fire on first load before user interaction
+  await Notification.requestPermission();
+}
+
 export default function App() {
   // Set data-gender on root so CSS variables can respond to gender theme
   useEffect(() => {
     const gender = getStoredGender();
     document.documentElement.setAttribute("data-gender", gender);
+  }, []);
+
+  // Request push permission after a short delay (not on cold first visit)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      // Only request if user has been to the app before (has ghost profile)
+      if (localStorage.getItem("ghost_phone") || localStorage.getItem("ghost_profile")) {
+        requestPushPermission();
+      }
+    }, 5000);
+    return () => clearTimeout(t);
   }, []);
 
   return (

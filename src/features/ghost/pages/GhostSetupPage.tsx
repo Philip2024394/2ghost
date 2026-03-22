@@ -50,8 +50,10 @@ export default function GhostSetupPage() {
   });
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
+  const fileRef2 = useRef<HTMLInputElement>(null);
 
   const [photo, setPhoto] = useState<string | null>(null);
+  const [photo2, setPhoto2] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [city, setCity] = useState("");
@@ -68,6 +70,41 @@ export default function GhostSetupPage() {
   const [saving, setSaving] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [gpsCoords, setGpsCoords] = useState<{ lat: number; lon: number } | null>(null);
+
+  const [voiceBlob, setVoiceBlob] = useState<string | null>(() => {
+    try { return localStorage.getItem("ghost_voice_note") || null; } catch { return null; }
+  });
+  const [recording, setRecording] = useState(false);
+  const [recSeconds, setRecSeconds] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      mr.ondataavailable = e => chunks.push(e.data);
+      mr.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        const url = URL.createObjectURL(blob);
+        setVoiceBlob(url);
+        try { localStorage.setItem("ghost_voice_note", url); } catch {}
+        stream.getTracks().forEach(t => t.stop());
+      };
+      mr.start();
+      mediaRecorderRef.current = mr;
+      setRecording(true);
+      setRecSeconds(0);
+      recTimerRef.current = setInterval(() => setRecSeconds(s => s + 1), 1000);
+    } catch {}
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    if (recTimerRef.current) clearInterval(recTimerRef.current);
+    setRecording(false);
+  };
 
   useEffect(() => {
     const cached = getCachedIpCountry();
@@ -115,6 +152,14 @@ export default function GhostSetupPage() {
     reader.readAsDataURL(file);
   };
 
+  const handlePhoto2Change = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setPhoto2(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const handleSave = async () => {
     setSubmitAttempted(true);
     if (!isValid) return;
@@ -122,6 +167,7 @@ export default function GhostSetupPage() {
 
     const profileData = {
       photo,
+      photo2: photo2 || null,
       name: name.trim(),
       age: ageNum,
       city: city.trim(),
@@ -136,6 +182,7 @@ export default function GhostSetupPage() {
       religion: religion || null,
       lookingFor: lookingFor || null,
       connectPhone: connectPhone.trim() || null,
+      voiceNote: voiceBlob,
       connectAlt: null,
       connectAltHandle: null,
       latitude: gpsCoords?.lat ?? null,
@@ -232,6 +279,32 @@ export default function GhostSetupPage() {
           {submitAttempted && errors.photo && (
             <p style={{ fontSize: 11, color: "rgba(239,68,68,0.8)", margin: "2px 0 0", fontWeight: 700 }}>Please add a photo</p>
           )}
+
+          {/* Second photo */}
+          <input ref={fileRef2} type="file" accept="image/*" capture="user" onChange={handlePhoto2Change} style={{ display: "none" }} />
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            onClick={() => fileRef2.current?.click()}
+            style={{
+              marginTop: 12, width: 72, height: 72, borderRadius: 14,
+              background: photo2 ? "transparent" : "rgba(255,255,255,0.03)",
+              border: photo2 ? `2px solid ${a.glow(0.4)}` : `2px dashed ${a.glow(0.15)}`,
+              cursor: "pointer", overflow: "hidden", position: "relative",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            {photo2 ? (
+              <img src={photo2} alt="Second photo" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : (
+              <div style={{ textAlign: "center" }}>
+                <Camera size={18} style={{ color: a.glow(0.35), display: "block", margin: "0 auto 4px" }} />
+                <span style={{ fontSize: 9, color: a.glow(0.35), fontWeight: 700 }}>2nd Photo</span>
+              </div>
+            )}
+          </motion.button>
+          <p style={{ fontSize: 10, color: photo2 ? a.glow(0.6) : "rgba(255,255,255,0.2)", marginTop: 6, fontWeight: photo2 ? 700 : 400 }}>
+            {photo2 ? "✓ Second photo added" : "Add a second photo · optional"}
+          </p>
         </div>
 
         {/* ── Required fields section ── */}
@@ -470,6 +543,38 @@ export default function GhostSetupPage() {
             }}>
               {72 - bio.length}
             </span>
+          </div>
+        </div>
+
+        {/* Voice Note Bio */}
+        <div style={{ marginBottom: 20 }}>
+          <span style={label}>Voice Note Bio <span style={{ color: "rgba(255,255,255,0.3)", fontWeight: 400 }}>(optional · max 30s)</span></span>
+          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", gap: 12 }}>
+            {voiceBlob ? (
+              <>
+                <audio src={voiceBlob} controls style={{ flex: 1, height: 32, opacity: 0.8 }} />
+                <button onClick={() => { setVoiceBlob(null); try { localStorage.removeItem("ghost_voice_note"); } catch {} }}
+                  style={{ background: "none", border: "none", color: "rgba(239,68,68,0.7)", fontSize: 12, cursor: "pointer", fontWeight: 700 }}>✕</button>
+              </>
+            ) : (
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={recording ? stopRecording : startRecording}
+                style={{
+                  flex: 1, height: 44, borderRadius: 10, border: `1px solid ${recording ? "rgba(239,68,68,0.4)" : a.glow(0.25)}`,
+                  background: recording ? "rgba(239,68,68,0.08)" : a.glow(0.05),
+                  color: recording ? "#f87171" : a.accent,
+                  fontSize: 13, fontWeight: 800, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                }}
+              >
+                {recording ? (
+                  <><motion.span animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 0.8, repeat: Infinity }} style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444", display: "inline-block" }} /> Stop · {recSeconds}s</>
+                ) : (
+                  <><span>🎙️</span> Record Voice Note</>
+                )}
+              </motion.button>
+            )}
           </div>
         </div>
 

@@ -57,8 +57,9 @@ import GhostConciergeSheet from "../components/GhostConciergeSheet";
 import SeancePopup from "../components/SeancePopup";
 import VideoIntroPlayer from "../components/VideoIntroPlayer";
 import VideoIntroUploader from "../components/VideoIntroUploader";
+import GhostStreakBanner from "../components/GhostStreakBanner";
 import { hasActiveWindowMode, getDaysConnected, getConciergeShown, whisperWillConvert, profileHasVideo, isProfileInWindow } from "../utils/featureGating";
-import { recordLike, loadMyMatches, getMyGhostId, syncTierToSupabase, loadTierFromSupabase, syncCoinsToSupabase, loadCoinsFromSupabase } from "../ghostDataService";
+import { recordLike, loadMyMatches, getMyGhostId, syncTierToSupabase, loadTierFromSupabase, syncCoinsToSupabase, loadCoinsFromSupabase, loadGhostProfiles, type RealProfileRow } from "../ghostDataService";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
@@ -401,6 +402,7 @@ export default function GhostModePage() {
     setFlagReason("");
   };
 
+  const [realProfiles, setRealProfiles] = useState<RealProfileRow[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<GhostProfile | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [matchProfile, setMatchProfile] = useState<GhostProfile | null>(null);
@@ -471,6 +473,11 @@ export default function GhostModePage() {
     };
     window.addEventListener("focus", refresh);
     return () => window.removeEventListener("focus", refresh);
+  }, []);
+
+  // Load real ghost profiles from Supabase (mixed into browse feed)
+  useEffect(() => {
+    loadGhostProfiles().then(rows => { if (rows.length) setRealProfiles(rows); });
   }, []);
 
   // Supabase: sync tier + coins on mount
@@ -606,6 +613,10 @@ export default function GhostModePage() {
   const [showVideoPlayer,  setShowVideoPlayer]   = useState(false);
   const [videoProfile,     setVideoProfile]      = useState<GhostProfile | null>(null);
   const [showVideoUpload,  setShowVideoUpload]   = useState(false);
+  const [showLeaderboard,  setShowLeaderboard]   = useState(false);
+  const [showTonightSheet, setShowTonightSheet]  = useState(false);
+  // Revealed "liked me" avatars in hero tab
+  const [revealedInbound,  setRevealedInbound]   = useState<Set<string>>(new Set());
   const [windowActive,     setWindowActive]      = useState(hasActiveWindowMode);
   // Read room tier as state so navigation back from Rooms page triggers re-render
   const [userRoomTier, setUserRoomTier] = useState<"standard"|"suite"|"kings"|"penthouse"|"cellar"|"garden"|null>(() => {
@@ -862,6 +873,18 @@ export default function GhostModePage() {
   const [inboundLike, setInboundLike] = useState<InboundLike | null>(null);
   const inboundShownRef = useRef(false);
 
+  // Hearts cascade on inbound like
+  const [showLikeRain, setShowLikeRain] = useState(false);
+  const [likeRainHearts] = useState(() =>
+    Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 90 + 5,
+      delay: Math.random() * 1.2,
+      size: 18 + Math.random() * 18,
+      duration: 2.5 + Math.random() * 1.5,
+    }))
+  );
+
   // New Guests popup
   const [showNewGuests, setShowNewGuests] = useState(false);
   const [lobbyMode, setLobbyMode] = useState(false);
@@ -921,6 +944,14 @@ export default function GhostModePage() {
     return () => clearTimeout(t);
   }, [isGhost, hasGhostProfile]);
 
+  // Trigger hearts cascade when a new inbound like arrives
+  useEffect(() => {
+    if (!inboundLike) return;
+    setShowLikeRain(true);
+    const t = setTimeout(() => setShowLikeRain(false), 3500);
+    return () => clearTimeout(t);
+  }, [inboundLike]);
+
   // New Guests popup — fires once per session after 5–9 random minutes
   useEffect(() => {
     if (newGuestsShownRef.current || !hasGhostProfile) return;
@@ -933,8 +964,34 @@ export default function GhostModePage() {
     return () => clearTimeout(t);
   }, [hasGhostProfile]);
 
-  // Base profiles — all SEA countries + international, sorted by IP proximity
+  // Base profiles — real Supabase profiles + mock SEA + international
   const allProfiles = useMemo<GhostProfile[]>(() => {
+    // Convert real DB rows to GhostProfile shape
+    const real: GhostProfile[] = realProfiles.map(r => ({
+      id: r.id,
+      name: r.name,
+      age: r.age,
+      city: r.city,
+      country: r.country,
+      countryFlag: r.country_flag,
+      gender: r.gender,
+      image: r.photo_url || "https://i.pravatar.cc/400",
+      bio: r.bio ?? null,
+      interests: r.interests ?? null,
+      firstDateIdea: r.first_date_idea ?? null,
+      religion: r.religion ?? null,
+      connectPhone: r.connect_phone ?? null,
+      connectAlt: r.connect_alt ?? null,
+      connectAltHandle: r.connect_alt_handle ?? null,
+      isVerified: r.is_verified ?? false,
+      faceVerified: r.face_verified ?? false,
+      latitude: r.latitude ?? undefined,
+      longitude: r.longitude ?? undefined,
+      distanceKm: userLat !== null && userLon !== null && r.latitude && r.longitude
+        ? haversineKm(userLat, userLon, r.latitude, r.longitude) : undefined,
+      lastActiveHoursAgo: 0, // real users are considered active
+    }));
+
     const raw = generateIndonesianProfiles();
     const sea: GhostProfile[] = raw.map((p) => {
       const lat = p.latitude ?? undefined;
@@ -963,7 +1020,9 @@ export default function GhostModePage() {
       };
     });
     const intl = INTL_PROFILES.map((p) => ({ ...p, lastActiveHoursAgo: activeHoursAgo(p.id), isVerified: profileIsVerified(p.id) }));
-    const merged = [...sea, ...intl];
+    // Real profiles go first, then mocks
+    const realIds = new Set(real.map(r => r.id));
+    const merged = [...real, ...sea.filter(p => !realIds.has(p.id)), ...intl];
 
     if (ipCountry?.countryCode) {
       const userCC = ipCountry.countryCode;
@@ -974,7 +1033,7 @@ export default function GhostModePage() {
       });
     }
     return merged;
-  }, [userLat, userLon, ipCountry]);
+  }, [userLat, userLon, ipCountry, realProfiles]);
 
   // New guest profiles subset (for popup + lobby mode)
   const newGuestProfiles = useMemo(() => allProfiles.filter((p) => p.isNewGuest), [allProfiles]);
@@ -1210,12 +1269,12 @@ export default function GhostModePage() {
               <span style={{ color: a.accent, fontWeight: 900 }}>2</span>Ghost
             </h1>
           </div>
-          {/* Coin balance */}
+          {/* Coin balance pill */}
           <button
-            onClick={() => navigate("/ghost/dashboard")}
+            onClick={() => setShowCoinShop(true)}
             style={{
               display: "flex", alignItems: "center", gap: 5,
-              background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)",
+              background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.4)",
               borderRadius: 20, padding: "5px 10px",
               cursor: "pointer", flexShrink: 0,
             }}
@@ -1310,24 +1369,42 @@ export default function GhostModePage() {
             const phCount = TOTAL - likedMeProfiles.length;
             return (
               <>
-                {likedMeProfiles.map((p, i) => (
-                  <div key={p.id} onClick={() => openMatchAction(p, "liked")}
-                    style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
-                  >
-                    <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
-                      <motion.div
-                        animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0, 0.5] }}
-                        transition={{ duration: 2, repeat: Infinity, delay: i * 0.18 }}
-                        style={{ position: "absolute", inset: -4, borderRadius: "50%", border: "2px solid rgba(244,114,182,0.65)", pointerEvents: "none" }}
-                      />
-                      <img src={p.image} alt=""
-                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(244,114,182,0.45)", display: "block" }}
-                        onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
-                      />
+                {likedMeProfiles.map((p, i) => {
+                  const revealed = revealedInbound.has(p.id);
+                  return (
+                    <div key={p.id}
+                      onClick={() => {
+                        if (revealed) { openMatchAction(p, "liked"); return; }
+                        const current = (() => { try { return Number(localStorage.getItem("ghost_coins") || "0"); } catch { return 0; } })();
+                        if (current < 20) { setShowCoinShop(true); return; }
+                        try { localStorage.setItem("ghost_coins", String(current - 20)); } catch {}
+                        setCoinBalance(current - 20);
+                        setRevealedInbound(prev => new Set([...prev, p.id]));
+                      }}
+                      style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
+                    >
+                      <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
+                        <motion.div
+                          animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0, 0.5] }}
+                          transition={{ duration: 2, repeat: Infinity, delay: i * 0.18 }}
+                          style={{ position: "absolute", inset: -4, borderRadius: "50%", border: "2px solid rgba(244,114,182,0.65)", pointerEvents: "none" }}
+                        />
+                        <img src={p.image} alt=""
+                          style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(244,114,182,0.45)", display: "block", filter: revealed ? "none" : "blur(7px) brightness(0.65)", transition: "filter 0.4s" }}
+                          onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                        />
+                        {!revealed && (
+                          <div style={{ position: "absolute", inset: 0, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.15)" }}>
+                            <span style={{ fontSize: 8, fontWeight: 900, color: "#d4af37", textAlign: "center", lineHeight: 1.3 }}>20🪙</span>
+                          </div>
+                        )}
+                      </div>
+                      <p style={{ fontSize: 8, color: "rgba(244,114,182,0.85)", fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
+                        {revealed ? p.name : "???"}
+                      </p>
                     </div>
-                    <p style={{ fontSize: 8, color: "rgba(244,114,182,0.85)", fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name}</p>
-                  </div>
-                ))}
+                  );
+                })}
                 {Array.from({ length: phCount }).map((_, i) => (
                   <div key={`ph-${i}`} style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                     <div style={{ width: avatarSize, height: avatarH, borderRadius: "50%", border: "2px dashed rgba(244,114,182,0.2)", background: "rgba(244,114,182,0.03)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1462,6 +1539,11 @@ export default function GhostModePage() {
                     )}
                   </div>
                   <p style={{ fontSize: 8, color: a.glow(0.8), fontWeight: 700, margin: 0, letterSpacing: "0.04em", textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{m.profile.name}</p>
+                  {getDaysConnected(m.matchedAt) >= 1 && (
+                    <p style={{ fontSize: 7, fontWeight: 900, color: "#fb923c", margin: 0, letterSpacing: "0.02em" }}>
+                      Day {getDaysConnected(m.matchedAt)} 🔥
+                    </p>
+                  )}
                 </div>
               ))}
               {Array.from({ length: placeholderCount }).map((_, i) => (
@@ -1602,15 +1684,24 @@ export default function GhostModePage() {
           </div>
           <span style={{ fontSize: 9, fontWeight: 800, color: a.glow(0.7), letterSpacing: "0.05em", textTransform: "uppercase" }}>Vault</span>
         </button>
-        {/* Shield */}
-        <button onClick={() => navigate("/ghost/block")}
-          style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 16, padding: "10px 4px", cursor: "pointer" }}
+        {/* Tonight Lobby */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowTonightSheet(true)}
+          style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: lobbyList.length > 0 ? "rgba(74,222,128,0.08)" : a.glow(0.06), border: `1px solid ${lobbyList.length > 0 ? "rgba(74,222,128,0.35)" : a.glow(0.15)}`, borderRadius: 16, padding: "10px 4px", cursor: "pointer", position: "relative" }}
         >
-          <div style={{ width: 38, height: 38, borderRadius: "50%", background: a.glow(0.1), border: `1px solid ${a.glow(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img src={SHIELD_LOGO} alt="shield" style={{ width: 22, height: 22, objectFit: "contain" }} />
+          {lobbyList.length > 0 && (
+            <motion.div
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 1.6, repeat: Infinity }}
+              style={{ position: "absolute", top: 8, right: 10, width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)" }}
+            />
+          )}
+          <div style={{ width: 38, height: 38, borderRadius: "50%", background: lobbyList.length > 0 ? "rgba(74,222,128,0.12)" : a.glow(0.1), border: `1px solid ${lobbyList.length > 0 ? "rgba(74,222,128,0.4)" : a.glow(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: 20 }}>🌙</span>
           </div>
-          <span style={{ fontSize: 9, fontWeight: 800, color: a.glow(0.7), letterSpacing: "0.05em", textTransform: "uppercase" }}>Shield</span>
-        </button>
+          <span style={{ fontSize: 9, fontWeight: 800, color: lobbyList.length > 0 ? "#4ade80" : a.glow(0.7), letterSpacing: "0.05em", textTransform: "uppercase" }}>Tonight</span>
+        </motion.button>
         {/* Rooms */}
         <button onClick={() => navigate("/ghost/rooms")}
           style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 16, padding: "10px 4px", cursor: "pointer" }}
@@ -1926,8 +2017,53 @@ export default function GhostModePage() {
         )}
       </AnimatePresence>
 
+      {/* ── Profile completion nudge ── */}
+      {(() => {
+        try {
+          const p = JSON.parse(localStorage.getItem("ghost_profile") || "{}");
+          let pct = 0;
+          if (p.photo || p.image) pct += 25;
+          if (p.bio) pct += 25;
+          if (localStorage.getItem("ghost_voice_note")) pct += 20;
+          if (p.photo2 || p.secondPhoto) pct += 15;
+          if (p.firstDateIdea) pct += 15;
+          if (pct >= 100) return null;
+          return (
+            <div
+              onClick={() => navigate("/ghost/setup")}
+              style={{ margin: "8px 14px 0", cursor: "pointer" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>
+                  Profile {pct}% complete — complete it for 3× more matches
+                </span>
+                <span style={{ fontSize: 10, color: a.accent, fontWeight: 700 }}>Edit →</span>
+              </div>
+              <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)" }}>
+                <div style={{ height: "100%", width: `${pct}%`, borderRadius: 2, background: `linear-gradient(90deg,${a.accentDark},${a.accent})`, transition: "width 0.5s" }} />
+              </div>
+            </div>
+          );
+        } catch { return null; }
+      })()}
+
+      {/* ── Daily Login Streak Banner ── */}
+      <GhostStreakBanner />
+
       {/* ── Country + Filter floating bar ── */}
       <div style={{ margin: "10px 14px 6px", display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Trophy — leaderboard */}
+        <button
+          onClick={() => setShowLeaderboard(true)}
+          style={{
+            width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+            background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", fontSize: 16,
+          }}
+        >
+          🏆
+        </button>
         {/* Country dropdown — left */}
         <div style={{ position: "relative", flex: 1 }}>
           <select
@@ -1964,11 +2100,31 @@ export default function GhostModePage() {
         </button>
       </div>
 
+
       {/* Profile grid */}
       {profiles.length === 0 ? (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, opacity: 0.5 }}>
-          <img src={GHOST_LOGO} alt="ghost" style={{ width: 120, height: 120, objectFit: "contain" }} />
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", textAlign: "center" }}>No profiles match your filters.<br />Try widening your search.</p>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", gap: 14 }}>
+          <span style={{ fontSize: 64 }}>👻</span>
+          <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#fff", textAlign: "center" }}>No ghosts in {userCity} yet</p>
+          <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.5)", textAlign: "center", lineHeight: 1.55 }}>
+            Be the first. Invite 3 friends → get 50 free coins
+          </p>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => {
+              const url = `https://2ghost.app?ref=${getMyGhostId()}`;
+              if (navigator.share) {
+                navigator.share({ title: "Join 2Ghost", text: "Join me on 2Ghost — anonymous dating done right 👻", url });
+              } else {
+                try { navigator.clipboard.writeText(url); } catch {}
+                setReferralCopied(true);
+                setTimeout(() => setReferralCopied(false), 2000);
+              }
+            }}
+            style={{ height: 46, borderRadius: 14, background: "linear-gradient(135deg,#16a34a,#4ade80)", border: "none", color: "#000", fontSize: 14, fontWeight: 900, cursor: "pointer", padding: "0 28px" }}
+          >
+            {referralCopied ? "Link copied! ✓" : "Invite Friends 🤝"}
+          </motion.button>
         </div>
       ) : (
         <div style={{ flex: 1, padding: "12px 14px 24px", paddingBottom: `max(24px, env(safe-area-inset-bottom, 24px))`, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -1989,6 +2145,85 @@ export default function GhostModePage() {
               isFoundBoo={!!(isProfilePaused && foundBoo?.matchProfileId === profile.id)}
             />
           ))}
+        </div>
+      )}
+
+      {/* ── 🌙 Ready to Meet Tonight ── */}
+      {lobbyList.length > 0 && (
+        <div style={{ padding: "20px 14px 0" }}>
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <motion.span
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 1.6, repeat: Infinity }}
+                style={{ fontSize: 16 }}
+              >🌙</motion.span>
+              <div>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em" }}>Ready to Meet Tonight</p>
+                <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>{lobbyList.length} ghost{lobbyList.length !== 1 ? "s" : ""} available now</p>
+              </div>
+            </div>
+            <motion.div
+              animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 1.8, repeat: Infinity }}
+              style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 8px rgba(74,222,128,0.9)" }}
+            />
+          </div>
+
+          {/* Horizontal scroll row of cards */}
+          <div style={{ overflowX: "auto", scrollbarWidth: "none", marginLeft: -14, marginRight: -14 } as React.CSSProperties}>
+            <style>{`.tonight-row::-webkit-scrollbar{display:none}`}</style>
+            <div className="tonight-row" style={{ display: "flex", gap: 10, padding: "4px 14px 8px" }}>
+              {lobbyList.slice(0, 12).map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05, type: "spring", stiffness: 300, damping: 26 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setSelectedProfile(p)}
+                  style={{ flexShrink: 0, width: 110, cursor: "pointer" }}
+                >
+                  <div style={{ position: "relative", width: 110, height: 140, borderRadius: 14, overflow: "hidden", border: `1.5px solid ${a.glow(0.4)}`, boxShadow: `0 0 12px ${a.glow(0.18)}` }}>
+                    <img src={p.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%)" }} />
+
+                    {/* Tonight badge */}
+                    <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "2px 7px", border: `1px solid ${a.glow(0.45)}` }}>
+                      <span style={{ fontSize: 8, fontWeight: 800, color: a.glow(0.95), letterSpacing: "0.04em" }}>🌙 TONIGHT</span>
+                    </div>
+
+                    {/* Online pulse */}
+                    <motion.div
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.2 }}
+                      style={{ position: "absolute", top: 7, right: 7, width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)" }}
+                    />
+
+                    {/* Name + age */}
+                    <div style={{ position: "absolute", bottom: 7, left: 8, right: 8 }}>
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#fff", lineHeight: 1.2, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name.split(" ")[0]}</p>
+                      <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.55)", fontWeight: 600 }}>{p.age} · {p.city}</p>
+                    </div>
+                  </div>
+
+                  {/* Like button below card */}
+                  <motion.button
+                    whileTap={{ scale: 0.88 }}
+                    onClick={e => { e.stopPropagation(); handleLike(p); }}
+                    style={{ width: "100%", marginTop: 6, height: 30, borderRadius: 9, border: likedIds.has(p.id) ? `1.5px solid ${a.accent}` : "1px solid rgba(255,255,255,0.12)", background: likedIds.has(p.id) ? a.glowMid(0.2) : "rgba(255,255,255,0.05)", color: likedIds.has(p.id) ? a.accent : "rgba(255,255,255,0.6)", fontSize: 11, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
+                  >
+                    {likedIds.has(p.id) ? "❤️ Liked" : "♡ Like"}
+                  </motion.button>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent)", margin: "14px 0 0" }} />
         </div>
       )}
 
@@ -2023,6 +2258,204 @@ export default function GhostModePage() {
             }}
             onNeedCoins={() => { setMatchActionProfile(null); setShowCoinShop(true); }}
           />
+        )}
+      </AnimatePresence>
+
+
+      {/* ── 🏆 Top Profiles — City Leaderboard ── */}
+      <AnimatePresence>
+        {showLeaderboard && (() => {
+          const plc = (id: string) => { let h = 0; for (let i = 0; i < id.length; i++) h = Math.imul(37, h) + id.charCodeAt(i) | 0; return 50 + (Math.abs(h) % 950); };
+          const cityProfiles = allProfiles
+            .filter(p => p.city === userCity || p.countryFlag === homeFlag)
+            .map(p => ({ p, likes: plc(p.id) }))
+            .sort((a, b) => b.likes - a.likes)
+            .slice(0, 20);
+          return (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowLeaderboard(false)}
+              style={{ position: "fixed", inset: 0, zIndex: 700, background: "rgba(0,0,0,0.88)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+            >
+              <motion.div
+                initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                onClick={e => e.stopPropagation()}
+                style={{ width: "100%", maxWidth: 480, background: "rgba(5,5,10,0.99)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.25)", borderBottom: "none", maxHeight: "88dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}
+              >
+                {/* Gold top stripe */}
+                <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #d4af37, #fbbf24, #d4af37, transparent)", flexShrink: 0 }} />
+
+                {/* Header */}
+                <div style={{ flexShrink: 0, padding: "14px 18px 10px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 22 }}>🏆</span>
+                    <div>
+                      <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>Top in {userCity}</p>
+                      <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>Most liked · last 24 hours</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowLeaderboard(false)} style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                </div>
+
+                {/* Profile list */}
+                <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none", padding: "10px 14px max(24px,env(safe-area-inset-bottom,24px))" }}>
+                  {cityProfiles.map(({ p, likes }, i) => (
+                    <motion.div
+                      key={p.id}
+                      initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < cityProfiles.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none" }}
+                    >
+                      {/* Rank */}
+                      <div style={{ width: 24, flexShrink: 0, textAlign: "center" }}>
+                        {i === 0 ? <span style={{ fontSize: 16 }}>🥇</span>
+                          : i === 1 ? <span style={{ fontSize: 16 }}>🥈</span>
+                          : i === 2 ? <span style={{ fontSize: 16 }}>🥉</span>
+                          : <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.3)" }}>#{i + 1}</span>}
+                      </div>
+
+                      {/* Avatar */}
+                      <div style={{ position: "relative", flexShrink: 0 }}>
+                        <img src={p.image} alt="" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: i < 3 ? "2px solid #d4af37" : "2px solid rgba(255,255,255,0.12)", display: "block" }}
+                          onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
+                        {isOnline(p.last_seen_at) && (
+                          <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
+                            style={{ position: "absolute", bottom: 1, right: 1, width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 5px rgba(74,222,128,0.9)", border: "1.5px solid rgba(5,5,10,1)" }} />
+                        )}
+                      </div>
+
+                      {/* Info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{toGhostId(p.id)}</p>
+                          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", flexShrink: 0 }}>{p.age}</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 1 }}>
+                          <span style={{ fontSize: 10 }}>{p.countryFlag}</span>
+                          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{p.city}</span>
+                          <span style={{ fontSize: 9, color: "#ec4899", fontWeight: 700, marginLeft: 4 }}>❤ {likes}</span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                        <motion.button whileTap={{ scale: 0.88 }}
+                          onClick={() => { setShowLeaderboard(false); setSelectedProfile(p); }}
+                          style={{ height: 32, padding: "0 10px", borderRadius: 9, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                          View
+                        </motion.button>
+                        <motion.button whileTap={{ scale: 0.88 }}
+                          onClick={() => handleLike(p)}
+                          style={{ height: 32, padding: "0 10px", borderRadius: 9, background: likedIds.has(p.id) ? "rgba(236,72,153,0.18)" : "rgba(255,255,255,0.06)", border: likedIds.has(p.id) ? "1px solid rgba(236,72,153,0.5)" : "1px solid rgba(255,255,255,0.14)", color: likedIds.has(p.id) ? "#ec4899" : "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
+                          {likedIds.has(p.id) ? "❤️" : "♡"}
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  ))}
+                  {cityProfiles.length === 0 && (
+                    <div style={{ textAlign: "center", padding: "40px 0" }}>
+                      <span style={{ fontSize: 40 }}>👻</span>
+                      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 12 }}>No profiles in {userCity} yet</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
+
+      {/* ── 🌙 Tonight Lobby Sheet ── */}
+      <AnimatePresence>
+        {showTonightSheet && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowTonightSheet(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 700, background: "rgba(0,0,0,0.9)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+          >
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={e => e.stopPropagation()}
+              style={{ width: "100%", maxWidth: 480, background: "rgba(4,8,12,0.99)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none", maxHeight: "90dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}
+            >
+              {/* Green top stripe */}
+              <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #4ade80, #86efac, #4ade80, transparent)", flexShrink: 0 }} />
+
+              {/* Header */}
+              <div style={{ flexShrink: 0, padding: "14px 18px 10px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <motion.span animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.6, repeat: Infinity }} style={{ fontSize: 22 }}>🌙</motion.span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>Ready to Meet Tonight</p>
+                    <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>
+                      {lobbyList.length > 0 ? `${lobbyList.length} ghost${lobbyList.length !== 1 ? "s" : ""} available now` : "No one in the lobby yet"}
+                    </p>
+                  </div>
+                </div>
+                <button onClick={() => setShowTonightSheet(false)} style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+              </div>
+
+              {/* Profile grid */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px 24px", scrollbarWidth: "none" } as React.CSSProperties}>
+                {lobbyList.length === 0 ? (
+                  <div style={{ textAlign: "center", paddingTop: 48 }}>
+                    <p style={{ fontSize: 48, margin: "0 0 12px" }}>🌙</p>
+                    <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#fff" }}>Lobby is quiet</p>
+                    <p style={{ margin: "6px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Check back later tonight</p>
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                    {lobbyList.map((p, i) => (
+                      <motion.div
+                        key={p.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => { setShowTonightSheet(false); setSelectedProfile(p); }}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", aspectRatio: "3/4", border: "1.5px solid rgba(74,222,128,0.3)", boxShadow: "0 0 10px rgba(74,222,128,0.12)" }}>
+                          <img src={p.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                            onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
+                          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)" }} />
+
+                          {/* Tonight badge */}
+                          <div style={{ position: "absolute", top: 6, left: 6, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "2px 6px" }}>
+                            <span style={{ fontSize: 7, fontWeight: 900, color: "#4ade80", letterSpacing: "0.04em" }}>🌙 TONIGHT</span>
+                          </div>
+
+                          {/* Online pulse */}
+                          <motion.div
+                            animate={{ opacity: [0.4, 1, 0.4] }}
+                            transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.15 }}
+                            style={{ position: "absolute", top: 6, right: 6, width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)" }}
+                          />
+
+                          {/* Info */}
+                          <div style={{ position: "absolute", bottom: 6, left: 7, right: 7 }}>
+                            <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: "#fff", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name.split(" ")[0]}</p>
+                            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>{p.age} · {p.city}</p>
+                          </div>
+                        </div>
+
+                        {/* Like button */}
+                        <motion.button
+                          whileTap={{ scale: 0.88 }}
+                          onClick={e => { e.stopPropagation(); handleLike(p); }}
+                          style={{ width: "100%", marginTop: 5, height: 28, borderRadius: 8, border: likedIds.has(p.id) ? "1.5px solid rgba(74,222,128,0.6)" : "1px solid rgba(255,255,255,0.1)", background: likedIds.has(p.id) ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)", color: likedIds.has(p.id) ? "#4ade80" : "rgba(255,255,255,0.55)", fontSize: 10, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}
+                        >
+                          {likedIds.has(p.id) ? "❤️ Liked" : "♡ Like"}
+                        </motion.button>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -3400,6 +3833,28 @@ export default function GhostModePage() {
           setInboundLike(pick);
         }}
       />
+
+      {/* ── Hearts cascade on inbound like ── */}
+      <AnimatePresence>
+        {showLikeRain && (
+          <motion.div
+            initial={{ opacity: 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}
+          >
+            {likeRainHearts.map(h => (
+              <motion.div
+                key={h.id}
+                initial={{ opacity: 0.9, y: "-8vh", x: `${h.x}vw` }}
+                animate={{ opacity: 0, y: "108vh" }}
+                transition={{ duration: h.duration, delay: h.delay, ease: "easeIn" }}
+                style={{ position: "absolute", fontSize: h.size, pointerEvents: "none" }}
+              >
+                ❤️
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
     </div>

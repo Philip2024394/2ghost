@@ -7,6 +7,32 @@ import GhostRadioRecorder from "./GhostRadioRecorder";
 import { isKingsPlus, incrementFloorGift } from "../utils/featureGating";
 import { sendFloorMessage, subscribeFloorMessages, loadFloorMessages, loadMsgLikes, recordMsgLike, getMyGhostId, type FloorMsgRow } from "../ghostDataService";
 
+// ── Word filter ───────────────────────────────────────────────────────────────
+const BAD_WORDS = ["fuck","shit","bitch","cunt","asshole","dick","pussy","nigger","faggot","whore","slut","bastard"];
+function containsBadWord(text: string): boolean {
+  const lower = text.toLowerCase();
+  return BAD_WORDS.some(w => lower.includes(w));
+}
+function filterText(text: string): string {
+  let result = text;
+  BAD_WORDS.forEach(w => {
+    const re = new RegExp(w, "gi");
+    result = result.replace(re, "*".repeat(w.length));
+  });
+  return result;
+}
+
+// ── Lockout helpers ───────────────────────────────────────────────────────────
+function isChatLocked(): boolean {
+  try {
+    const until = parseInt(localStorage.getItem("ghost_chat_locked_until") || "0", 10);
+    return Date.now() < until;
+  } catch { return false; }
+}
+function lockChatFor24h(): void {
+  try { localStorage.setItem("ghost_chat_locked_until", String(Date.now() + 24 * 60 * 60 * 1000)); } catch {}
+}
+
 // ── Deterministic avatar seed from ghost ID ───────────────────────────────────
 function senderSeed(name: string): number {
   let h = 0;
@@ -99,11 +125,14 @@ function saveCoins(n: number): void {
 
 // ── Floor gifts ────────────────────────────────────────────────────────────────
 const FLOOR_GIFTS = [
-  { emoji: "🌹", name: "Rose",        coins: 10  },
-  { emoji: "🥂", name: "Champagne",   coins: 25  },
-  { emoji: "💎", name: "Diamond",     coins: 50  },
-  { emoji: "🎭", name: "Masquerade",  coins: 100 },
-  { emoji: "🛥️", name: "Yacht Night", coins: 200 },
+  { emoji: "🌹", name: "Rose",        coins: 5   },
+  { emoji: "🍸", name: "Cocktail",    coins: 8   },
+  { emoji: "🍷", name: "Wine",        coins: 10  },
+  { emoji: "💐", name: "Bouquet",     coins: 15  },
+  { emoji: "💎", name: "Diamond",     coins: 25  },
+  { emoji: "👑", name: "Crown",       coins: 40  },
+  { emoji: "🛩️", name: "Private Jet", coins: 100 },
+  { emoji: "🏰", name: "Ghost Villa", coins: 500 },
 ];
 
 // ── Floor members per tier ─────────────────────────────────────────────────────
@@ -208,6 +237,7 @@ export default function FloorChatPopup({
   const [mediaPreview, setMediaPreview] = useState<{ url: string; type: "image" | "video" } | null>(null);
   const [subscribed,   setSubscribed]  = useState(() => isChatSubscribed());
   useEffect(() => { setSubscribed(isChatSubscribed()); }, [tier]);
+  const [locked] = useState(isChatLocked);
 
   // Drawer
   const [drawerOpen,   setDrawerOpen]   = useState(false);
@@ -216,6 +246,12 @@ export default function FloorChatPopup({
 
   // Notification toast
   const [notifToast, setNotifToast] = useState<string | null>(null);
+
+  // Safe exit toast (cellar)
+  const [safeExitToast, setSafeExitToast] = useState(false);
+
+  // Big gift animation overlay
+  const [bigGiftAnim, setBigGiftAnim] = useState<{ emoji: string; name: string } | null>(null);
 
   // Incoming gift — must reply before modal closes
   const [pendingGiftReply, setPendingGiftReply] = useState<PendingGift | null>(null);
@@ -351,8 +387,16 @@ export default function FloorChatPopup({
   }
 
   function handleSend() {
-    const text = input.trim();
-    if (!text || sending) return;
+    const rawText = input.trim();
+    if (!rawText || sending) return;
+    if (isChatLocked()) {
+      showToast("🔒 Chat restricted — a message you reported is under review");
+      return;
+    }
+    if (containsBadWord(rawText)) {
+      showToast("⚠️ Your message contains restricted language and will be filtered.");
+    }
+    const text = filterText(rawText);
     setSending(true);
     const isDirected = text.startsWith("@");
     const directedTo = isDirected ? text.split(" ")[0].substring(1) : undefined;
@@ -386,7 +430,13 @@ export default function FloorChatPopup({
     setDrawerMember(null);
     setDrawerAction("idle");
     incrementFloorGift(tier);
-    showToast(`${gift.emoji} ${gift.name} sent to ${member.name}!`);
+    // Big gift animation for premium gifts (Private Jet, Ghost Villa)
+    if (gift.coins >= 100) {
+      setBigGiftAnim({ emoji: gift.emoji, name: gift.name });
+      setTimeout(() => setBigGiftAnim(null), 2500);
+    } else {
+      showToast(`${gift.emoji} ${gift.name} sent to ${member.name}!`);
+    }
     setTimeout(() => {
       const rList = (SEED[tier] ?? SEED.standard);
       const replier = rList[Math.floor(Math.random() * rList.length)].name;
@@ -677,6 +727,20 @@ export default function FloorChatPopup({
                                 )}
                               </motion.button>
                             )}
+
+                            {/* ── Flag button (non-own messages only) ── */}
+                            {!msg.isOwn && (
+                              <button
+                                onClick={() => {
+                                  lockChatFor24h();
+                                  alert("Message reported. You are temporarily restricted from chat for 24 hours while we review.");
+                                }}
+                                style={{ background: "none", border: "none", cursor: "pointer", opacity: 0.3, fontSize: 10, padding: "0 2px", color: "#f87171" }}
+                                title="Report message"
+                              >
+                                🚩
+                              </button>
+                            )}
                           </div>
                         )}
 
@@ -770,33 +834,54 @@ export default function FloorChatPopup({
 
         {/* ── Input bar / Paywall ── */}
         {subscribed ? (
-          <div style={{ flexShrink: 0, padding: "10px 14px max(16px,env(safe-area-inset-bottom,16px))", borderTop: `1px solid ${a.glow(0.12)}`, background: "rgba(8,8,14,0.98)", display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ flexShrink: 0, height: 36, borderRadius: 10, background: a.glow(0.1), border: `1px solid ${a.glow(0.25)}`, display: "flex", alignItems: "center", padding: "0 8px" }}>
-              <span style={{ fontSize: 10, fontWeight: 800, color: a.accent, whiteSpace: "nowrap" }}>💬 {msgCount}</span>
+          <div style={{ flexShrink: 0, padding: "10px 14px max(16px,env(safe-area-inset-bottom,16px))", borderTop: `1px solid ${a.glow(0.12)}`, background: "rgba(8,8,14,0.98)", display: "flex", flexDirection: "column", gap: 8 }}>
+            {locked && (
+              <div style={{ padding: "10px 14px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, textAlign: "center" }}>
+                <p style={{ fontSize: 11, color: "#f87171", margin: 0, fontWeight: 700 }}>🔒 Chat restricted for 24 hours — a message you reported is under review</p>
+              </div>
+            )}
+            {/* Safe Exit — cellar only */}
+            {tier === "cellar" && (
+              <div style={{ marginBottom: 6 }}>
+                <button
+                  onClick={() => {
+                    setSafeExitToast(true);
+                    setTimeout(() => { setSafeExitToast(false); onClose(); }, 2000);
+                  }}
+                  style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 10, padding: "6px 12px", cursor: "pointer", fontSize: 11, fontWeight: 700, color: "#4ade80" }}
+                >
+                  🛡️ Safe Exit
+                </button>
+              </div>
+            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ flexShrink: 0, height: 36, borderRadius: 10, background: a.glow(0.1), border: `1px solid ${a.glow(0.25)}`, display: "flex", alignItems: "center", padding: "0 8px" }}>
+                <span style={{ fontSize: 10, fontWeight: 800, color: a.accent, whiteSpace: "nowrap" }}>💬 {msgCount}</span>
+              </div>
+              <input ref={fileRef} type="file" accept="image/*,video/*" style={{ display: "none" }} onChange={handleFileChange} />
+              <motion.button whileTap={{ scale: 0.88 }} onClick={() => fileRef.current?.click()}
+                style={{ flexShrink: 0, width: 36, height: 36, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                <span style={{ fontSize: 17 }}>📎</span>
+              </motion.button>
+              <motion.button whileTap={{ scale: 0.88 }}
+                onClick={() => { if (isKingsPlus()) setShowRadio(true); else showToast("Ghost Radio is Kings Room and above 👑"); }}
+                style={{ flexShrink: 0, width: 36, height: 36, borderRadius: 10, border: `1px solid ${isKingsPlus() ? a.glow(0.3) : "rgba(255,255,255,0.08)"}`, background: isKingsPlus() ? a.glow(0.08) : "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                <span style={{ fontSize: 17 }}>🎤</span>
+              </motion.button>
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                placeholder={input.startsWith("@") ? "Type your message…" : "Say something or @name someone…"}
+                maxLength={280}
+                style={{ flex: 1, height: 40, borderRadius: 12, background: "rgba(255,255,255,0.06)", border: `1px solid ${input ? a.glow(0.4) : "rgba(255,255,255,0.1)"}`, color: "#fff", fontSize: 13, padding: "0 14px", outline: "none", fontFamily: "inherit", transition: "border-color 0.2s" }}
+              />
+              <motion.button whileTap={{ scale: 0.9 }} onClick={handleSend} disabled={!input.trim() || sending}
+                style={{ flexShrink: 0, width: 40, height: 40, borderRadius: 12, border: "none", background: input.trim() ? a.gradient : "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", cursor: input.trim() ? "pointer" : "default", transition: "all 0.2s", boxShadow: input.trim() ? `0 2px 12px ${a.glow(0.35)}` : "none" }}>
+                <span style={{ fontSize: 16 }}>↑</span>
+              </motion.button>
             </div>
-            <input ref={fileRef} type="file" accept="image/*,video/*" style={{ display: "none" }} onChange={handleFileChange} />
-            <motion.button whileTap={{ scale: 0.88 }} onClick={() => fileRef.current?.click()}
-              style={{ flexShrink: 0, width: 36, height: 36, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-              <span style={{ fontSize: 17 }}>📎</span>
-            </motion.button>
-            <motion.button whileTap={{ scale: 0.88 }}
-              onClick={() => { if (isKingsPlus()) setShowRadio(true); else showToast("Ghost Radio is Kings Room and above 👑"); }}
-              style={{ flexShrink: 0, width: 36, height: 36, borderRadius: 10, border: `1px solid ${isKingsPlus() ? a.glow(0.3) : "rgba(255,255,255,0.08)"}`, background: isKingsPlus() ? a.glow(0.08) : "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-              <span style={{ fontSize: 17 }}>🎤</span>
-            </motion.button>
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder={input.startsWith("@") ? "Type your message…" : "Say something or @name someone…"}
-              maxLength={280}
-              style={{ flex: 1, height: 40, borderRadius: 12, background: "rgba(255,255,255,0.06)", border: `1px solid ${input ? a.glow(0.4) : "rgba(255,255,255,0.1)"}`, color: "#fff", fontSize: 13, padding: "0 14px", outline: "none", fontFamily: "inherit", transition: "border-color 0.2s" }}
-            />
-            <motion.button whileTap={{ scale: 0.9 }} onClick={handleSend} disabled={!input.trim() || sending}
-              style={{ flexShrink: 0, width: 40, height: 40, borderRadius: 12, border: "none", background: input.trim() ? a.gradient : "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", cursor: input.trim() ? "pointer" : "default", transition: "all 0.2s", boxShadow: input.trim() ? `0 2px 12px ${a.glow(0.35)}` : "none" }}>
-              <span style={{ fontSize: 16 }}>↑</span>
-            </motion.button>
           </div>
         ) : (
           <div style={{ flexShrink: 0, padding: "14px 16px max(18px,env(safe-area-inset-bottom,18px))", borderTop: `1px solid ${a.glow(0.2)}`, background: "rgba(6,6,10,0.99)" }}>
@@ -1027,6 +1112,63 @@ export default function FloorChatPopup({
             </motion.div>
           );
         })()}
+      </AnimatePresence>
+
+      {/* ── Big gift animation overlay ── */}
+      <AnimatePresence>
+        {bigGiftAnim && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.88)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20 }}
+          >
+            <motion.div
+              initial={{ scale: 0.3, opacity: 0 }}
+              animate={{ scale: [0.3, 1.2, 1.05, 1], opacity: 1 }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              style={{ fontSize: 96 }}
+            >
+              {bigGiftAnim.emoji}
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              style={{ textAlign: "center" }}
+            >
+              <p style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "#d4af37" }}>
+                {bigGiftAnim.emoji} {bigGiftAnim.name} sent!
+              </p>
+              <p style={{ margin: "6px 0 0", fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
+                A legendary gift 👑
+              </p>
+            </motion.div>
+            {[...Array(12)].map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+                animate={{ opacity: 0, x: (Math.cos(i * 30 * Math.PI / 180)) * 120, y: (Math.sin(i * 30 * Math.PI / 180)) * 120, scale: 0 }}
+                transition={{ duration: 1.2, delay: 0.2 + i * 0.05 }}
+                style={{ position: "absolute", fontSize: 18, pointerEvents: "none" }}
+              >
+                ✨
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Safe exit toast ── */}
+      <AnimatePresence>
+        {safeExitToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: "rgba(20,20,30,0.95)", border: "1px solid rgba(74,222,128,0.35)", borderRadius: 12, padding: "10px 20px", fontSize: 13, fontWeight: 700, color: "#4ade80", whiteSpace: "nowrap" }}
+          >
+            🛡️ Chat closed safely
+          </motion.div>
+        )}
       </AnimatePresence>
     </>
   );

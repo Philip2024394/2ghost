@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 import {
   getCurrentISOWeek, seededFloorGifts, getFloorGiftsThisWeek,
   hasClaimedWarsBonus, claimWarsBonus, getTier,
 } from "../utils/featureGating";
+import { loadFloorGiftsThisWeek } from "../ghostDataService";
 
 const FLOORS = [
   { key: "penthouse", label: "Penthouse",    icon: "🏙️", color: "#e8e4d0", glow: "rgba(232,228,208,0.45)" },
@@ -31,13 +32,27 @@ export default function FloorWarsBoard({ onClose }: Props) {
   const a = useGenderAccent();
   const myTier = getTier();
   const week   = getCurrentISOWeek();
-  const realGifts = getFloorGiftsThisWeek();
+  const [localGifts, setLocalGifts] = useState(getFloorGiftsThisWeek);
   const [claimed, setClaimed] = useState(hasClaimedWarsBonus);
+
+  // Merge real Supabase floor gift counts on mount
+  useEffect(() => {
+    loadFloorGiftsThisWeek().then(remote => {
+      if (Object.keys(remote).length === 0) return;
+      setLocalGifts(prev => {
+        const merged: Record<string, number> = { ...prev };
+        for (const [floor, count] of Object.entries(remote)) {
+          merged[floor] = (merged[floor] ?? 0) + count;
+        }
+        return merged;
+      });
+    });
+  }, []);
 
   // Build leaderboard
   const leaderboard = FLOORS.map(f => {
     const seeded = seededFloorGifts(f.key, week);
-    const real   = realGifts[f.key] ?? 0;
+    const real   = localGifts[f.key] ?? 0;
     return { ...f, gifts: seeded + real };
   }).sort((a, b) => b.gifts - a.gifts);
 

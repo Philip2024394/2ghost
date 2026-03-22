@@ -4,6 +4,7 @@ import { ArrowRight, ArrowLeft, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
+import { ghostSupabase } from "../ghostSupabase";
 const GHOST_HERO = "https://ik.imagekit.io/7grri5v7d/find%20meddddd.png";
 
 const COUNTRY_CODES = [
@@ -33,6 +34,7 @@ export default function GhostAuthPage() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -65,23 +67,28 @@ export default function GhostAuthPage() {
     return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
   }, [resendCooldown]);
 
-  const handleSendCode = () => {
+  const handleSendCode = async () => {
     if (!isPhoneValid) return;
     setSending(true);
     setServerError(false);
     const fullNumber = countryCode.code + cleanPhone;
-    // TODO: call Twilio Verify → WhatsApp channel with fullNumber
-    setTimeout(() => {
+    if (isBlocked(fullNumber)) {
       setSending(false);
-      // Check if this number has been blocked by another user
-      if (isBlocked(fullNumber)) {
-        setServerError(true);
-        return;
-      }
-      setStep("otp");
-      setResendCooldown(30);
-      setTimeout(() => otpRefs.current[0]?.focus(), 300);
-    }, 1800);
+      setServerError(true);
+      return;
+    }
+    const { error } = await ghostSupabase.auth.signInWithOtp({
+      phone: fullNumber,
+      options: { channel: "whatsapp" },
+    });
+    setSending(false);
+    if (error) {
+      setServerError(true);
+      return;
+    }
+    setStep("otp");
+    setResendCooldown(30);
+    setTimeout(() => otpRefs.current[0]?.focus(), 300);
   };
 
   const handleOtpKey = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -106,19 +113,30 @@ export default function GhostAuthPage() {
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (!isOtpComplete) return;
     setVerifying(true);
-    // TODO: verify OTP with Twilio — for now any 6 digits pass
-    setTimeout(() => {
-      setVerifying(false);
-      try {
-        localStorage.setItem("ghost_gender", gender);
-        localStorage.setItem("ghost_phone", countryCode.code + cleanPhone);
-        localStorage.removeItem("ghost_house_welcomed");
-      } catch {}
-      navigate("/ghost/gateway", { replace: true });
-    }, 1000);
+    setVerifyError("");
+    const fullNumber = countryCode.code + cleanPhone;
+    const { data, error } = await ghostSupabase.auth.verifyOtp({
+      phone: fullNumber,
+      token: fullOtp,
+      type: "sms",
+    });
+    setVerifying(false);
+    if (error) {
+      setVerifyError("Incorrect code — please try again");
+      setOtp(["", "", "", "", "", ""]);
+      setTimeout(() => otpRefs.current[0]?.focus(), 100);
+      return;
+    }
+    try {
+      localStorage.setItem("ghost_gender", gender);
+      localStorage.setItem("ghost_phone", fullNumber);
+      if (data.user) localStorage.setItem("ghost_auth_uid", data.user.id);
+      localStorage.removeItem("ghost_house_welcomed");
+    } catch {}
+    navigate("/ghost/gateway", { replace: true });
   };
 
   const inputBase: React.CSSProperties = {
@@ -541,6 +559,18 @@ export default function GhostAuthPage() {
                     />
                   ))}
                 </div>
+
+                {/* Verify error */}
+                <AnimatePresence>
+                  {verifyError && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                      style={{ fontSize: 12, color: "#f87171", margin: 0, textAlign: "center" }}
+                    >
+                      {verifyError}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
 
                 {/* ── Verify button ── */}
                 <motion.button

@@ -7,6 +7,16 @@ import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
+const ROOM_ROUTES: Record<string, string> = {
+  suite:     "/ghost/rooms",
+  kings:     "/ghost/rooms",
+  penthouse: "/ghost/rooms",
+  cellar:    "/ghost/rooms",
+  garden:    "/ghost/rooms",
+  gold:      "/ghost/rooms",
+  standard:  "/ghost/mode",
+};
+
 const TIER_META: Record<string, { label: string; icon: string; color: string; gradient: string; floor: string; welcome: string }> = {
   standard:  { label: "Standard",      icon: "🏠", color: "#4ade80",  gradient: "linear-gradient(135deg,#16a34a,#4ade80)",     floor: "Standard Floor",   welcome: "Your room is ready on the Standard Floor." },
   suite:     { label: "Ghost Suite",   icon: "🏨", color: "#4ade80",  gradient: "linear-gradient(135deg,#16a34a,#22c55e)",     floor: "Suite Floor",      welcome: "Your suite has been prepared. The finest standard of comfort awaits." },
@@ -199,7 +209,7 @@ export default function GhostPaymentSuccessPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: done ? 1 : 0, y: done ? 0 : 10 }}
         whileTap={{ scale: 0.97 }}
-        onClick={() => navigate("/ghost/mode", { replace: true })}
+        onClick={() => navigate(ROOM_ROUTES[plan] ?? "/ghost/mode", { replace: true })}
         style={{
           width: "100%", maxWidth: 320, height: 54, borderRadius: 50, border: "none",
           background: meta.gradient,
@@ -209,7 +219,7 @@ export default function GhostPaymentSuccessPage() {
         }}
       >
         <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom,rgba(255,255,255,0.2),transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
-        Check In Now →
+        {`Enter ${meta.floor} →`}
       </motion.button>
 
       <motion.p

@@ -63,7 +63,7 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%", maxWidth: 480,
-          backgroundImage: "url('https://ik.imagekit.io/7grri5v7d/butlersdasdas.png')",
+          backgroundImage: "url('https://ik.imagekit.io/7grri5v7d/cccccccccsfsfsdfadsfasdfasdasddsfasdfffsdfsdewrweewrwertrewrtdsd.png')",
           backgroundSize: "cover", backgroundPosition: "center top",
           borderRadius: "24px 24px 0 0",
           border: `1px solid ${G_BORDER}`,

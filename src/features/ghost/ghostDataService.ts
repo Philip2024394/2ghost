@@ -344,6 +344,39 @@ export async function loadMsgLikes(floor: string): Promise<Record<string, number
   return counts;
 }
 
+// ── Real Profiles ─────────────────────────────────────────────────────────────
+
+export interface RealProfileRow {
+  id: string;
+  name: string;
+  age: number;
+  city: string;
+  country: string;
+  country_flag: string;
+  gender: string;
+  photo_url?: string | null;
+  bio?: string | null;
+  interests?: string[] | null;
+  first_date_idea?: string | null;
+  religion?: string | null;
+  connect_phone?: string | null;
+  connect_alt?: string | null;
+  connect_alt_handle?: string | null;
+  is_verified?: boolean;
+  face_verified?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+export async function loadGhostProfiles(): Promise<RealProfileRow[]> {
+  const { data } = await ghostSupabase
+    .from("ghost_profiles")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  return data ?? [];
+}
+
 // ── Ghost Clock / Window Mode ─────────────────────────────────────────────────
 
 export async function syncWindowModeToSupabase(ghostId: string, untilTs: number): Promise<void> {
@@ -362,4 +395,14 @@ export async function loadWindowModeFromSupabase(ghostId: string): Promise<numbe
     .eq("ghost_id", ghostId)
     .maybeSingle();
   return data?.until_ts ?? null;
+}
+
+// ── Contact Preference ─────────────────────────────────────────────────────────
+
+export async function saveContactPref(ghostId: string, pref: "video" | "connect"): Promise<void> {
+  if (!ghostId) return;
+  await ghostSupabase
+    .from("ghost_profiles")
+    .update({ contact_pref: pref })
+    .eq("id", ghostId);
 }

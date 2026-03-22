@@ -58,7 +58,7 @@ const PLANS = [
   {
     key: "gold",
     icon: null,
-    name: "Gold Room",
+    name: "Kings Room",
     price: "$9.99",
     period: "per month",
     sub: "Unlimited everything · highest visibility",
@@ -79,7 +79,7 @@ const PLANS = [
       "See who liked you",
       "Profile featured in Ghost Pulse row",
     ],
-    cta: "Unlock Gold Room",
+    cta: "Unlock Kings Room",
   },
 ];
 
@@ -169,6 +169,74 @@ export default function GhostPricingPage() {
         </p>
       </div>
 
+      {/* ── Subscriptions section ── */}
+      <div style={{ padding: "20px 16px 0" }}>
+        <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 12px" }}>Subscriptions</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {/* Ghost Pass */}
+          <div style={{ background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: 18, padding: "16px 18px", overflow: "hidden", position: "relative" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 22 }}>🌙</span>
+                  <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#4ade80" }}>Ghost Pass</p>
+                </div>
+                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Daily coins · weekly boost · read receipts</p>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#4ade80" }}>$4.99</p>
+                <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.3)" }}>per month</p>
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 14 }}>
+              {["Daily 5 coins credited to your account", "1 boost per week — top of the feed", "See read receipts on messages", "Ghost Pass badge on your profile"].map(perk => (
+                <div key={perk} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ color: "#4ade80", fontSize: 11, flexShrink: 0 }}>✓</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)" }}>{perk}</span>
+                </div>
+              ))}
+            </div>
+            <a href="#" style={{ display: "block", textDecoration: "none", textAlign: "center", height: 44, lineHeight: "44px", borderRadius: 12, background: "linear-gradient(135deg,#16a34a,#4ade80)", color: "#000", fontSize: 14, fontWeight: 900 }}>
+              Join Ghost Pass →
+            </a>
+          </div>
+
+          {/* Ghost Black */}
+          <div style={{ background: "rgba(212,175,55,0.06)", border: "2px solid rgba(212,175,55,0.4)", borderRadius: 18, padding: "16px 18px", overflow: "hidden", position: "relative" }}>
+            <div style={{ position: "absolute", top: 12, right: 12, background: "#d4af37", borderRadius: 6, padding: "3px 10px", fontSize: 9, fontWeight: 900, color: "#000", letterSpacing: "0.08em" }}>ELITE</div>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 22 }}>⚫</span>
+                  <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#d4af37" }}>Ghost Black</p>
+                </div>
+                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Unlimited everything · all cities · priority</p>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#d4af37" }}>$14.99</p>
+                <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.3)" }}>per month</p>
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 14 }}>
+              {["Unlimited boosts — always top of feed", "All cities unlocked globally", "Ghost Black badge — highest status", "Priority concierge queue", "First access to new features"].map(perk => (
+                <div key={perk} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ color: "#d4af37", fontSize: 11, flexShrink: 0 }}>✓</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)" }}>{perk}</span>
+                </div>
+              ))}
+            </div>
+            <a href="#" style={{ display: "block", textDecoration: "none", textAlign: "center", height: 44, lineHeight: "44px", borderRadius: 12, background: "linear-gradient(135deg,#92660a,#d4af37,#f0d060)", color: "#000", fontSize: 14, fontWeight: 900 }}>
+              Unlock Ghost Black →
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* ── One-Time Room Entry Label ── */}
+      <div style={{ padding: "20px 16px 0" }}>
+        <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>One-Time Room Entry</p>
+      </div>
+
       {/* Social proof bar */}
       <motion.div
         initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
@@ -211,7 +279,7 @@ export default function GhostPricingPage() {
             {p.key === "gold"
               ? <img src={GOLD_KEY} alt="" style={{ width: 20, height: 20, objectFit: "contain" }} />
               : <span style={{ fontSize: 16 }}>{p.icon}</span>}
-            <span style={{ fontSize: 9, letterSpacing: "0.04em" }}>{p.key === "free" ? "Free" : p.key === "suite" ? "Suite" : "Gold"}</span>
+            <span style={{ fontSize: 9, letterSpacing: "0.04em" }}>{p.key === "free" ? "Free" : p.key === "suite" ? "Suite" : "Kings"}</span>
           </button>
         ))}
       </div>

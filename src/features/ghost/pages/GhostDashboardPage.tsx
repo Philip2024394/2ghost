@@ -114,6 +114,55 @@ function getStreak(): number {
   try { return parseInt(localStorage.getItem("ghost_streak") ?? "0", 10) || 0; } catch { return 0; }
 }
 
+function toGhostIdDash(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = Math.imul(31, h) + id.charCodeAt(i) | 0;
+  return `Ghost-${1000 + Math.abs(h) % 9000}`;
+}
+
+function BlockedProfilesSection() {
+  const [blockedIds, setBlockedIds] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem("ghost_reported_ids") || "[]"); } catch { return []; }
+  });
+
+  const handleUnblock = (id: string) => {
+    const next = blockedIds.filter(b => b !== id);
+    setBlockedIds(next);
+    try { localStorage.setItem("ghost_reported_ids", JSON.stringify(next)); } catch {}
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.176 }}>
+      <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>
+        Blocked Profiles
+      </p>
+      <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 16 }}>
+        {blockedIds.length === 0 ? (
+          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center", padding: "4px 0" }}>No blocked profiles</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {blockedIds.map(id => (
+              <div key={id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 14 }}>🚩</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.6)" }}>{toGhostIdDash(id)}</span>
+                </div>
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => handleUnblock(id)}
+                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "4px 12px", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)", cursor: "pointer" }}
+                >
+                  Unblock
+                </motion.button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 export default function GhostDashboardPage() {
   const a = useGenderAccent();
   const navigate = useNavigate();
@@ -158,6 +207,16 @@ export default function GhostDashboardPage() {
     try { return localStorage.getItem("ghost_butler_optin") === "1"; } catch { return false; }
   });
   const [butlerAddressEdit, setButlerAddressEdit] = useState(false);
+
+  const [contactPref, setContactPref] = useState<"video" | "connect">(() => {
+    try { return (localStorage.getItem("ghost_contact_pref") as "video" | "connect") || "connect"; } catch { return "connect"; }
+  });
+
+  const handleContactPrefChange = async (pref: "video" | "connect") => {
+    setContactPref(pref);
+    try { localStorage.setItem("ghost_contact_pref", pref); } catch {}
+    await saveField("contactPref", pref);
+  };
 
   const handleButlerOptIn = (val: boolean) => {
     setButlerOptIn(val);
@@ -539,6 +598,43 @@ export default function GhostDashboardPage() {
 
               <>
                 <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "12px 0" }} />
+                <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 10px" }}>
+                  First Contact Preference
+                </p>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "0 0 10px", lineHeight: 1.5 }}>
+                  How do you prefer to connect with a match first?
+                </p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {([
+                    { key: "video",   emoji: "🎥", label: "Ghost Date",   sub: "Video call first" },
+                    { key: "connect", emoji: "📱", label: "Phone / Chat", sub: "WhatsApp / app first" },
+                  ] as const).map((opt) => (
+                    <motion.button
+                      key={opt.key}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => handleContactPrefChange(opt.key)}
+                      style={{
+                        flex: 1, borderRadius: 14, padding: "12px 8px",
+                        border: contactPref === opt.key ? `1px solid ${opt.key === "video" ? "rgba(74,222,128,0.5)" : "rgba(251,191,36,0.4)"}` : "1px solid rgba(255,255,255,0.08)",
+                        background: contactPref === opt.key ? (opt.key === "video" ? "rgba(74,222,128,0.08)" : "rgba(251,191,36,0.07)") : "rgba(255,255,255,0.02)",
+                        cursor: "pointer", textAlign: "center",
+                        boxShadow: contactPref === opt.key ? `0 0 14px ${opt.key === "video" ? "rgba(74,222,128,0.1)" : "rgba(251,191,36,0.1)"}` : "none",
+                        transition: "all 0.18s",
+                      }}
+                    >
+                      <div style={{ fontSize: 22, marginBottom: 5 }}>{opt.emoji}</div>
+                      <p style={{ fontSize: 12, fontWeight: 900, color: contactPref === opt.key ? "#fff" : "rgba(255,255,255,0.45)", margin: "0 0 2px" }}>{opt.label}</p>
+                      <p style={{ fontSize: 9, color: contactPref === opt.key ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.25)", margin: 0 }}>{opt.sub}</p>
+                    </motion.button>
+                  ))}
+                </div>
+                {contactPref === "video" && (
+                  <p style={{ fontSize: 10, color: "rgba(74,222,128,0.65)", margin: "8px 0 0", lineHeight: 1.5 }}>
+                    🎥 Your matches will be invited for a Ghost Date video call first, in the Gallery Room.
+                  </p>
+                )}
+
+                <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "12px 0" }} />
                 <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 8px" }}>Take Me On A Date</p>
                 <select
                   value={firstDateIdea}
@@ -887,6 +983,50 @@ export default function GhostDashboardPage() {
               </motion.div>
             );
           })()}
+
+          {/* ── Section 7a: Get Verified ── */}
+          {(() => {
+            const isVerified = (() => { try { return localStorage.getItem("ghost_face_verified") === "1"; } catch { return false; } })();
+            const requested = (() => { try { return localStorage.getItem("ghost_verification_requested") === "1"; } catch { return false; } })();
+            return (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.175 }}>
+                <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>
+                  Get Verified ✅
+                </p>
+                <div style={{ ...CARD, display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>✅</div>
+                  <div style={{ flex: 1 }}>
+                    {isVerified ? (
+                      <>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#4ade80" }}>Face Verified ✓</p>
+                        <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Your profile shows the verified badge</p>
+                      </>
+                    ) : (
+                      <>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>Verified profiles get 2× more matches</p>
+                        <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Quick selfie check · takes 24h · free</p>
+                      </>
+                    )}
+                  </div>
+                  {!isVerified && (
+                    <motion.button
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => {
+                        try { localStorage.setItem("ghost_verification_requested", "1"); } catch {}
+                        window.alert("Verification request sent! We'll review your selfie within 24 hours. 📸");
+                      }}
+                      style={{ flexShrink: 0, borderRadius: 10, padding: "8px 14px", border: "none", background: requested ? "rgba(74,222,128,0.1)" : "rgba(74,222,128,0.15)", color: requested ? "#4ade80" : "#4ade80", fontSize: 11, fontWeight: 800, cursor: "pointer", borderWidth: 1, borderStyle: "solid", borderColor: "rgba(74,222,128,0.35)" }}
+                    >
+                      {requested ? "Pending ⏳" : "Verify My Face 📸"}
+                    </motion.button>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })()}
+
+          {/* ── Section 7b: Blocked Profiles ── */}
+          <BlockedProfilesSection />
 
           {/* ── Section 7: Quick Actions ── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>

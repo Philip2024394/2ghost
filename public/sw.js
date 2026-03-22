@@ -76,3 +76,34 @@ self.addEventListener("fetch", (event) => {
 
   // All other requests — network only (Supabase API calls etc.)
 });
+
+// ── Push Notifications ────────────────────────────────────────────────────────
+
+self.addEventListener("push", (event) => {
+  let data = { title: "2Ghost Hotel", body: "You have a new notification 👻", icon: "/icon-192.png", badge: "/icon-192.png", tag: "ghost-default" };
+  try {
+    if (event.data) data = { ...data, ...event.data.json() };
+  } catch {}
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon,
+      badge: data.badge,
+      tag: data.tag,
+      data: data.url ? { url: data.url } : undefined,
+      vibrate: [100, 50, 100],
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) ? event.notification.data.url : "/ghost/mode";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      const existing = clients.find((c) => c.url.includes(self.location.origin));
+      if (existing) { existing.focus(); existing.navigate(url); }
+      else self.clients.openWindow(url);
+    })
+  );
+});

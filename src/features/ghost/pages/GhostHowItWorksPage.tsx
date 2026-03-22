@@ -12,43 +12,42 @@ export function hasSeenHowItWorks(): boolean {
 
 const SLIDES = [
   {
-    emoji: "🏨",
+    bgImage: "https://ik.imagekit.io/7grri5v7d/fgsdfgsdfgdfgsd.png?updatedAt=1774006241624",
     accent: "#d4af37",
     grad: "linear-gradient(135deg, #92660a 0%, #d4af37 60%, #f5e88a 100%)",
-    bg: "linear-gradient(180deg, #0a0800 0%, #1a1200 100%)",
     border: "rgba(212,175,55,0.35)",
     glow: "rgba(212,175,55,0.25)",
     title: "Welcome to the Ghost House",
     subtitle: "Not just another dating app.",
     body: "Ghost is built like a hotel. You check into a Room that matches where you are in life — and everyone inside knows the vibe. No noise. No mismatches. Just the right people at the right level.",
     bullets: [
-      "🏨 Four room tiers — Standard to Penthouse",
+      "🏨 Six rooms — from The Cellar to the Penthouse",
       "🎭 Anonymous Ghost ID — real name never shown",
       "🌍 City-based matching — your floor, your city",
     ],
   },
   {
-    emoji: "🗝️",
+    bgImage: "https://ik.imagekit.io/7grri5v7d/cccccccccsfsfsdfadsfasdfasdasd.png",
     accent: "#c0c0c0",
     grad: "linear-gradient(135deg, #505050 0%, #c0c0c0 50%, #e8e8e8 100%)",
-    bg: "linear-gradient(180deg, #080808 0%, #141414 100%)",
     border: "rgba(192,192,192,0.3)",
     glow: "rgba(192,192,192,0.15)",
     title: "Your Room = Your Level",
     subtitle: "One payment. In forever.",
-    body: "Every room is a one-time entry — not a subscription. Pay once, stay as long as you want. Higher rooms unlock more power: more matches, more visibility, better tools. Your room shows on your profile card so others instantly know your level.",
+    body: "Six rooms, one entry fee — no subscriptions, ever. From The Cellar to the Penthouse, each room has its own vibe and crowd. Pick the one that fits you, pay once, and stay as long as you want. Your room shows on your card so others instantly know your level.",
     bullets: [
-      "🛏️ Standard  — $4.99  · 2 match unlocks",
-      "🏨 Suite      — $9.99  · 5 unlocks + boosts",
-      "👑 Kings      — $11.99 · unlimited unlocks",
-      "🏙️ Penthouse — $19.99 · everything, globally",
+      "🍷 The Cellar — $11.99 · adults only, bold connections",
+      "🌿 Garden Lodge — $9.99 · relaxed, nature vibes",
+      "🛏️ Standard    — $4.99  · 2 match unlocks",
+      "🏨 Suite        — $9.99  · 5 unlocks + boosts",
+      "👑 Kings        — $11.99 · unlimited unlocks",
+      "🏙️ Penthouse   — $19.99 · everything, globally",
     ],
   },
   {
-    emoji: "👻",
+    bgImage: "https://ik.imagekit.io/7grri5v7d/cccccccccsfsfsdfadsfasdfasdasddsfasdf.png",
     accent: "#4ade80",
     grad: "linear-gradient(135deg, #14532d 0%, #22c55e 60%, #4ade80 100%)",
-    bg: "linear-gradient(180deg, #020d05 0%, #051a08 100%)",
     border: "rgba(74,222,128,0.3)",
     glow: "rgba(74,222,128,0.2)",
     title: "Your Ghost ID Protects You",
@@ -62,10 +61,9 @@ const SLIDES = [
     ],
   },
   {
-    emoji: "🎁",
+    bgImage: "https://ik.imagekit.io/7grri5v7d/cccccccccsfsfsdfadsfasdfasdasddsfasdfffsdfsd.png",
     accent: "#f472b6",
     grad: "linear-gradient(135deg, #831843 0%, #ec4899 60%, #f472b6 100%)",
-    bg: "linear-gradient(180deg, #0d0208 0%, #1a0510 100%)",
     border: "rgba(244,114,182,0.3)",
     glow: "rgba(244,114,182,0.2)",
     title: "Gifts Speak Louder Than Swipes",
@@ -79,10 +77,9 @@ const SLIDES = [
     ],
   },
   {
-    emoji: "🪟",
+    bgImage: "https://ik.imagekit.io/7grri5v7d/cccccccccsfsfsdfadsfasdfasdasddsfasdfffsdfsdewrwe.png",
     accent: "#d4af37",
     grad: "linear-gradient(135deg, #92660a 0%, #d4af37 60%, #f5e88a 100%)",
-    bg: "linear-gradient(180deg, #0a0800 0%, #1a1200 100%)",
     border: "rgba(212,175,55,0.3)",
     glow: "rgba(212,175,55,0.2)",
     title: "Three Exclusive Floors",
@@ -96,10 +93,9 @@ const SLIDES = [
     ],
   },
   {
-    emoji: "🚀",
+    bgImage: "https://ik.imagekit.io/7grri5v7d/cccccccccsfsfsdfadsfasdfasdasddsfasdfffsdfsdewrweewrwer.png",
     accent: "#4ade80",
     grad: "linear-gradient(135deg, #14532d 0%, #22c55e 60%, #4ade80 100%)",
-    bg: "linear-gradient(180deg, #020d05 0%, #051a08 100%)",
     border: "rgba(74,222,128,0.3)",
     glow: "rgba(74,222,128,0.2)",
     title: "You're Ready",
@@ -137,10 +133,9 @@ export default function GhostHowItWorksPage() {
 
   return (
     <div style={{
-      minHeight: "100dvh", background: current.bg,
+      minHeight: "100dvh", position: "relative",
       display: "flex", flexDirection: "column",
       fontFamily: "system-ui, sans-serif", color: "#fff",
-      transition: "background 0.5s ease",
       overflowX: "hidden",
     }}
       onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
@@ -152,16 +147,24 @@ export default function GhostHowItWorksPage() {
         else if (dx > 50) prev();
       }}
     >
-      {/* Ambient glow */}
-      <div style={{
-        position: "fixed", top: -100, left: "50%", transform: "translateX(-50%)",
-        width: 320, height: 320, borderRadius: "50%",
-        background: current.glow, filter: "blur(80px)",
-        pointerEvents: "none", transition: "background 0.5s ease",
-      }} />
+      {/* Background image with dark overlay */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`bg-${slide}`}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          style={{
+            position: "fixed", inset: 0, zIndex: 0,
+            backgroundImage: `url(${current.bgImage})`,
+            backgroundSize: "cover", backgroundPosition: "center",
+          }}
+        />
+      </AnimatePresence>
+      {/* Dark scrim so text stays readable */}
+      <div style={{ position: "fixed", inset: 0, zIndex: 1, background: "rgba(0,0,0,0.62)" }} />
 
       {/* Skip */}
-      <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px 20px 0", position: "relative", zIndex: 1 }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px 20px 0", position: "relative", zIndex: 2 }}>
         <button
           onClick={finish}
           style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 13, fontWeight: 700, cursor: "pointer", padding: "4px 8px" }}
@@ -171,7 +174,7 @@ export default function GhostHowItWorksPage() {
       </div>
 
       {/* Slide content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 24px", position: "relative", zIndex: 1 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 24px", position: "relative", zIndex: 2 }}>
         <AnimatePresence mode="wait" custom={dir}>
           <motion.div
             key={slide}
@@ -181,23 +184,6 @@ export default function GhostHowItWorksPage() {
             exit={{ opacity: 0, x: dir * -40 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
-            {/* Emoji icon */}
-            <motion.div
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1, type: "spring", stiffness: 260, damping: 20 }}
-              style={{
-                width: 80, height: 80, borderRadius: 24,
-                background: `linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))`,
-                border: `1px solid ${current.border}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 38, marginBottom: 24,
-                boxShadow: `0 0 40px ${current.glow}`,
-              }}
-            >
-              {current.emoji}
-            </motion.div>
-
             {/* Title */}
             <motion.h1
               initial={{ opacity: 0, y: 12 }}
@@ -261,7 +247,7 @@ export default function GhostHowItWorksPage() {
       </div>
 
       {/* Bottom nav */}
-      <div style={{ padding: "20px 24px 40px", position: "relative", zIndex: 1 }}>
+      <div style={{ padding: "20px 24px 40px", position: "relative", zIndex: 2 }}>
         {/* Dot indicators */}
         <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20 }}>
           {SLIDES.map((_, i) => (

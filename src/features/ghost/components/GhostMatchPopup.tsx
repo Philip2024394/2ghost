@@ -1,10 +1,12 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { PHONE_APPS, getUsernamePlatform } from "../data/connectPlatforms";
 import type { GhostProfile } from "../types/ghostTypes";
 import { toGhostId } from "../utils/ghostHelpers";
 import { getDateIdea } from "../data/dateIdeas";
+import VaultPrivateChatPopup from "./VaultPrivateChatPopup";
 
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
@@ -23,6 +25,32 @@ export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConn
   const ghostId = toGhostId(profile.id);
   const altPlatform = profile.connectAlt ? getUsernamePlatform(profile.connectAlt) : undefined;
   const hasPhone = !!profile.connectPhone;
+  const [showChat, setShowChat] = useState(false);
+
+  // Confetti particles on mount
+  const [confetti] = useState(() =>
+    Array.from({ length: 24 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      color: ["#fbbf24","#4ade80","#f472b6","#a78bfa","#fff","#fb923c"][i % 6],
+      delay: Math.random() * 0.5,
+      rotate: Math.random() * 360,
+      size: 6 + Math.random() * 8,
+    }))
+  );
+
+  if (showChat) {
+    return (
+      <AnimatePresence>
+        <VaultPrivateChatPopup
+          targetId={`vault_${[toGhostId(profile.id), 'me'].sort().join('_')}`}
+          tierColor={a.accent}
+          tierIcon="💬"
+          onClose={() => setShowChat(false)}
+        />
+      </AnimatePresence>
+    );
+  }
 
   return (
     <motion.div
@@ -33,6 +61,18 @@ export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConn
         display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 20px",
       }}
     >
+      {confetti.map(c => (
+        <motion.div
+          key={c.id}
+          initial={{ opacity: 1, y: "-5vh", x: `${c.x}vw`, rotate: c.rotate, scale: 0 }}
+          animate={{ opacity: 0, y: "110vh", rotate: c.rotate + 720, scale: 1 }}
+          transition={{ duration: 2.5 + Math.random(), delay: c.delay, ease: "easeIn" }}
+          style={{
+            position: "fixed", width: c.size, height: c.size * 0.6,
+            background: c.color, borderRadius: 2, zIndex: 299, pointerEvents: "none",
+          }}
+        />
+      ))}
       <motion.div
         initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 22 }}
@@ -185,6 +225,12 @@ export default function GhostMatchPopup({ profile, onClose, isSubscribed, onConn
               🎩 Send a Surprise via Ghost Butler
             </button>
           )}
+          <button
+            onClick={() => setShowChat(true)}
+            style={{ background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 12, padding: "11px 0", width: "100%", color: "#4ade80", fontSize: 13, fontWeight: 800, cursor: "pointer", marginTop: 8 }}
+          >
+            Chat in 2Ghost 💬
+          </button>
           <button onClick={onClose} style={{ display: "block", margin: "10px auto 0", background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer" }}>
             Keep browsing
           </button>
