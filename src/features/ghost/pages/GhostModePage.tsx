@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Moon, Settings, Gift, SlidersHorizontal } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
 import { useGhostMode } from "../hooks/useGhostMode";
@@ -41,6 +41,13 @@ import GhostButlerSheet from "../components/GhostButlerSheet";
 import { isCitySupported } from "../data/butlerProviders";
 import MatchActionPopup, { type MatchActionContext } from "../components/MatchActionPopup";
 import GhostCoinShop from "../components/GhostCoinShop";
+import FloorChatPopup, { getChatUnread, setChatUnread } from "../components/FloorChatPopup";
+import CheckoutReminderPopup, { shouldShowCheckout, markCheckoutShown } from "../components/CheckoutReminderPopup";
+import ButlerWelcomePopup, { shouldShowButlerWelcome, markButlerGreeted } from "../components/ButlerWelcomePopup";
+import LateNightButlerPopup, { shouldShowLateNight, markLateNightShown } from "../components/LateNightButlerPopup";
+import HotelEventsBoard from "../components/HotelEventsBoard";
+import GhostStatsDashboard from "../components/GhostStatsDashboard";
+import GhostReferralSheet from "../components/GhostReferralSheet";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
@@ -302,6 +309,7 @@ function DevPanel({
 export default function GhostModePage() {
   const a = useGenderAccent();
   const navigate = useNavigate();
+  const location = useLocation();
   useLanguage();
   const { isGhost, plan, activate, deactivate } = useGhostMode();
 
@@ -474,6 +482,14 @@ export default function GhostModePage() {
 
   const handleHouseRulesAccept = () => {
     try { localStorage.setItem("ghost_house_welcomed", "1"); } catch {}
+    // Grant 15 complimentary starter coins on first acceptance
+    try {
+      if (!localStorage.getItem("ghost_starter_coins_given")) {
+        const current = Number(localStorage.getItem("ghost_coins") || "0");
+        localStorage.setItem("ghost_coins", String(current + 15));
+        localStorage.setItem("ghost_starter_coins_given", "1");
+      }
+    } catch {}
     setHouseRulesAgreed(true);
     setShowHouseRules(false);
   };
@@ -516,7 +532,43 @@ export default function GhostModePage() {
   const [connectedMatchIds, setConnectedMatchIds] = useState<Set<string>>(() => {
     try { return new Set(JSON.parse(localStorage.getItem("ghost_connected_matches") || "[]")); } catch { return new Set(); }
   });
-  const [matchTab, setMatchTab] = useState<"matches" | "ilike" | "liked" | "lobby">("matches");
+  const [matchTab, setMatchTab] = useState<"matches" | "ilike" | "liked" | "lobby" | "room">("matches");
+  const [showFloorChat,      setShowFloorChat]      = useState(false);
+  // Which floor chat to open — defaults to user's own tier, but Kings/Penthouse can visit lower floors
+  const [floorChatTier,     setFloorChatTier]      = useState<"standard"|"suite"|"kings"|"penthouse"|"cellar"|null>(null);
+  const [chatUnread,         setChatUnreadState]    = useState(() => getChatUnread());
+  const [showInviteSheet,    setShowInviteSheet]    = useState(false);
+  const [showCheckout,       setShowCheckout]       = useState(false);
+  const [showButlerWelcome,  setShowButlerWelcome]  = useState(false);
+  const [showLateNight,      setShowLateNight]      = useState(false);
+  const [showCoinShop,       setShowCoinShop]       = useState(false);
+  const [showEvents,         setShowEvents]         = useState(false);
+  const [showStats,          setShowStats]          = useState(false);
+  const [showReferral,       setShowReferral]       = useState(false);
+  const [showLobbyPopup,     setShowLobbyPopup]     = useState(false);
+  // Read room tier as state so navigation back from Rooms page triggers re-render
+  const [userRoomTier, setUserRoomTier] = useState<"standard"|"suite"|"kings"|"penthouse"|"cellar"|null>(() => {
+    try {
+      const t = localStorage.getItem("ghost_house_tier");
+      const valid = ["standard","suite","kings","penthouse","cellar"];
+      return (t && valid.includes(t) ? t : null) as "standard"|"suite"|"kings"|"penthouse"|"cellar"|null;
+    } catch { return null; }
+  });
+
+  // Re-read tier whenever the page becomes visible again (returning from Rooms page)
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const t = localStorage.getItem("ghost_house_tier");
+        const valid = ["standard","suite","kings","penthouse","cellar"];
+        const next = (t && valid.includes(t) ? t : null) as "standard"|"suite"|"kings"|"penthouse"|"cellar"|null;
+        setUserRoomTier(next);
+      } catch {}
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
   // Match-action popup
   const [matchActionProfile, setMatchActionProfile] = useState<GhostProfile | null>(null);
   const [matchActionContext, setMatchActionContext] = useState<MatchActionContext>("match");
@@ -526,6 +578,81 @@ export default function GhostModePage() {
     const t = setInterval(() => setShuffleSeed(s => s + 1), 20000);
     return () => clearInterval(t);
   }, []);
+
+  // Checkout reminder — show 8s after load if within 3 days of plan expiry
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (shouldShowCheckout()) setShowCheckout(true);
+    }, 8000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Butler welcome — show 60s after first house rules acceptance
+  useEffect(() => {
+    if (!shouldShowButlerWelcome()) return;
+    const t = setTimeout(() => setShowButlerWelcome(true), 60000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Late-night butler — show 90s after load if time is 10pm–3:59am, once per day
+  useEffect(() => {
+    if (!shouldShowLateNight()) return;
+    const t = setTimeout(() => setShowLateNight(true), 90000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Open a specific floor chat when navigated back from Rooms page via "Enter Chat"
+  useEffect(() => {
+    const state = location.state as { openFloorChat?: string } | null;
+    if (!state?.openFloorChat) return;
+    const valid = ["standard","suite","kings","penthouse","cellar"];
+    const tier = state.openFloorChat;
+    if (!valid.includes(tier)) return;
+    // Clear state so it doesn't re-trigger on re-render
+    navigate(location.pathname, { replace: true, state: {} });
+    const t = setTimeout(() => {
+      setFloorChatTier(tier as "standard"|"suite"|"kings"|"penthouse"|"cellar");
+      setShowFloorChat(true);
+      setChatUnreadState(0);
+      setChatUnread(0);
+    }, 300);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
+
+  // Auto-open floor chat once per session if user has a room
+  useEffect(() => {
+    if (!userRoomTier) return;
+    if (sessionStorage.getItem("floor_chat_session_opened")) return;
+    sessionStorage.setItem("floor_chat_session_opened", "1");
+    const t = setTimeout(() => {
+      setFloorChatTier(userRoomTier);
+      setShowFloorChat(true);
+      setChatUnreadState(0);
+      setChatUnread(0);
+    }, 2000);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userRoomTier]);
+
+  // Simulate incoming floor chat messages every 45-90s → increment unread badge when chat is closed
+  useEffect(() => {
+    if (!userRoomTier) return;
+    const schedule = () => {
+      const delay = 45000 + Math.random() * 45000;
+      return setTimeout(() => {
+        if (!showFloorChat) {
+          const next = getChatUnread() + 1;
+          setChatUnread(next);
+          setChatUnreadState(next);
+        }
+        timerRef.current = schedule();
+      }, delay);
+    };
+    const timerRef = { current: schedule() };
+    return () => clearTimeout(timerRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userRoomTier, showFloorChat]);
 
   // Auto-revert: if user switches to I Like / Liked Me and does nothing for 10s → back to Matches
   const tabRevertRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -543,6 +670,8 @@ export default function GhostModePage() {
       // Don't start revert while welcome popup is visible — start it only after dismiss
       cancelTabRevert();
       setShowLobbyWelcome(true);
+    } else if (matchTab === "room") {
+      cancelTabRevert();
     } else {
       cancelTabRevert();
     }
@@ -821,6 +950,24 @@ export default function GhostModePage() {
     [allProfiles]
   );
 
+  // Room members — profiles "assigned" to the same tier as the user (seeded by profile ID hash)
+  const TIER_COLORS: Record<string, string> = { standard: "#a8a8b0", suite: "#cd7f32", kings: "#d4af37", penthouse: "#e0ddd8", cellar: "#9b1c1c" };
+  const TIER_LABELS: Record<string, string> = { standard: "Standard Room", suite: "Suite", kings: "Kings Room", penthouse: "Penthouse", cellar: "The Cellar" };
+  const TIER_ICONS: Record<string, string>  = { standard: "🛏️", suite: "🛎️", kings: "👑", penthouse: "🏙️", cellar: "🕯️" };
+  const tierColor = userRoomTier ? (TIER_COLORS[userRoomTier] ?? a.accent) : a.accent;
+  const tierLabel = userRoomTier ? (TIER_LABELS[userRoomTier] ?? "My Room") : "My Room";
+  const tierIcon  = userRoomTier ? (TIER_ICONS[userRoomTier] ?? "🏠") : "🏠";
+  // Assign tier to each profile deterministically, then filter to match user's tier
+  const roomMemberList = useMemo(() => {
+    const TIER_ORDER = ["standard", "suite", "kings", "penthouse"];
+    if (!userRoomTier) return allProfiles.slice(0, 12);
+    const targetIdx = TIER_ORDER.indexOf(userRoomTier);
+    return allProfiles.filter(p => {
+      const hash = p.id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+      return hash % 4 === targetIdx;
+    }).slice(0, 24);
+  }, [allProfiles, userRoomTier]);
+
   // Profiles that "liked" the user — seeded demo: unfiltered profiles the user hasn't liked back
   // A seeded-shuffle changes their order every shuffleSeed tick so it feels "live"
   const likedMeList = useMemo(() => {
@@ -891,7 +1038,6 @@ export default function GhostModePage() {
     }
   };
 
-  const [showCoinShop, setShowCoinShop] = useState(false);
   const [showLobbyWelcome, setShowLobbyWelcome] = useState(false);
 
   // ── Match-action popup handlers ──────────────────────────────────────────
@@ -1026,8 +1172,8 @@ export default function GhostModePage() {
         const avatarH = 78;
 
         // Header label
-        const tabLabel = matchTab === "ilike" ? "I Like" : matchTab === "liked" ? "Liked Me" : matchTab === "lobby" ? "Hotel Lobby" : "Matches";
-        const tabCount = matchTab === "ilike" ? iLikeProfiles.length : matchTab === "liked" ? likedMeProfiles.length : matchTab === "lobby" ? lobbyList.length : activeMatches.length;
+        const tabLabel = matchTab === "ilike" ? "I Like" : matchTab === "liked" ? "Liked Me" : matchTab === "lobby" ? "Hotel Lobby" : matchTab === "room" ? tierLabel : "Matches";
+        const tabCount = matchTab === "ilike" ? iLikeProfiles.length : matchTab === "liked" ? likedMeProfiles.length : matchTab === "lobby" ? lobbyList.length : matchTab === "room" ? roomMemberList.length : activeMatches.length;
         // Lobby uses gender accent (same as everything else — pink/green)
         const dotColor = a.accent;
         const dotGlow  = a.glow(0.9);
@@ -1145,6 +1291,48 @@ export default function GhostModePage() {
             );
           }
 
+          if (matchTab === "room") {
+            const TOTAL = Math.max(3, roomMemberList.length);
+            const phCount = TOTAL - roomMemberList.length;
+            return (
+              <>
+                {roomMemberList.map((p, i) => (
+                  <div key={p.id} onClick={() => openMatchAction(p, "match")}
+                    style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
+                  >
+                    <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
+                      <motion.div
+                        animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0, 0.5] }}
+                        transition={{ duration: 2.1, repeat: Infinity, delay: i * 0.18 }}
+                        style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px solid ${tierColor}80`, pointerEvents: "none" }}
+                      />
+                      <img src={p.image} alt=""
+                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: `2px solid ${tierColor}60`, display: "block" }}
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                      />
+                      {isOnline(p.last_seen_at) && (
+                        <motion.span
+                          animate={{ opacity: [1, 0.3, 1], scale: [1, 1.3, 1] }}
+                          transition={{ duration: 1.4, repeat: Infinity }}
+                          style={{ position: "absolute", bottom: 1, right: 1, width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)", display: "block" }}
+                        />
+                      )}
+                    </div>
+                    <p style={{ fontSize: 8, color: `${tierColor}cc`, fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name}</p>
+                  </div>
+                ))}
+                {Array.from({ length: phCount }).map((_, i) => (
+                  <div key={`ph-${i}`} style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <div style={{ width: avatarSize, height: avatarH, borderRadius: "50%", border: `2px dashed ${tierColor}30`, background: `${tierColor}05`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontSize: 16, opacity: 0.3 }}>{tierIcon}</span>
+                    </div>
+                    <p style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", margin: 0 }}>Soon…</p>
+                  </div>
+                ))}
+              </>
+            );
+          }
+
           // Default: matches tab
           const TOTAL_SLOTS = Math.max(3, activeMatches.length);
           const placeholderCount = TOTAL_SLOTS - activeMatches.length;
@@ -1235,7 +1423,7 @@ export default function GhostModePage() {
                     boxShadow: matchTab === "ilike" ? `0 0 14px ${a.glow(0.5)}` : "none",
                   }}
                 >
-                  <span style={{ fontSize: 15 }}>👍</span>
+                  <img src="https://ik.imagekit.io/7grri5v7d/Lipstick%20kiss%20mark%20on%20checkered%20background.png" alt="" style={{ width: 22, height: 22, objectFit: "contain", display: "block" }} />
                   <span style={{ fontSize: 8, fontWeight: 700, color: matchTab === "ilike" ? "#fff" : "rgba(255,255,255,0.5)", letterSpacing: "0.02em" }}>I Like</span>
                 </button>
                 <button
@@ -1257,39 +1445,53 @@ export default function GhostModePage() {
         );
       })()}
 
+      {/* ── My Room members button ── */}
+      {userRoomTier && (
+        <div style={{ margin: "10px 14px 0" }}>
+          <button
+            onClick={() => setShowLobbyPopup(true)}
+            style={{
+              width: "100%", height: 52, borderRadius: 16, border: "none", cursor: "pointer",
+              background: `linear-gradient(135deg, ${a.glow(0.08)}, ${a.glow(0.04)})`,
+              borderWidth: 1, borderStyle: "solid",
+              borderColor: a.glow(0.2),
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "0 16px",
+              transition: "all 0.2s",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{
+                width: 34, height: 34, borderRadius: "50%",
+                background: a.glow(0.12), border: `1.5px solid ${a.glow(0.35)}`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <span style={{ fontSize: 17 }}>🏨</span>
+              </div>
+              <div style={{ textAlign: "left" }}>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: a.accent, letterSpacing: "0.03em" }}>Hotel Lobby</p>
+                <p style={{ margin: 0, fontSize: 9, color: a.glow(0.6), fontWeight: 600 }}>
+                  Guests available to meet tonight
+                </p>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              {roomMemberList.slice(0, 3).map(p => (
+                <img key={p.id} src={p.image} alt=""
+                  style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", border: `1.5px solid ${a.glow(0.4)}` }}
+                  onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                />
+              ))}
+              <span style={{ fontSize: 13, color: a.glow(0.6), marginLeft: 2 }}>›</span>
+            </div>
+          </button>
+        </div>
+      )}
+
+
+
       {/* ── Quick-action buttons ── */}
       <div style={{ margin: "12px 14px 0", display: "flex", justifyContent: "space-between", gap: 8 }}>
-        {/* Lobby button — "Leave" when flash active */}
-        {(() => {
-          const isLobbyActive = isFlashActive;
-          const isLobbyTab = matchTab === "lobby";
-          return (
-            <button
-              onClick={() => {
-                if (isLobbyActive) { exitFlash(); setMatchTab("matches"); }
-                else setMatchTab(isLobbyTab ? "matches" : "lobby");
-              }}
-              style={{
-                flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
-                background: isLobbyActive ? "rgba(239,68,68,0.1)" : isLobbyTab ? a.glow(0.1) : a.glow(0.06),
-                border: isLobbyActive ? "1px solid rgba(239,68,68,0.3)" : isLobbyTab ? `1px solid ${a.glow(0.35)}` : `1px solid ${a.glow(0.15)}`,
-                borderRadius: 16, padding: "10px 4px", cursor: "pointer",
-              }}
-            >
-              <div style={{ width: 38, height: 38, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-                background: isLobbyActive ? "rgba(239,68,68,0.15)" : isLobbyTab ? a.glow(0.15) : a.glow(0.1),
-                border: isLobbyActive ? "1px solid rgba(239,68,68,0.3)" : isLobbyTab ? `1px solid ${a.glow(0.35)}` : `1px solid ${a.glow(0.2)}`,
-              }}>
-                <span style={{ fontSize: 20 }}>{isLobbyActive ? "🚪" : "🏨"}</span>
-              </div>
-              <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase",
-                color: isLobbyActive ? "rgba(239,68,68,0.9)" : isLobbyTab ? a.glow(0.9) : a.glow(0.7),
-              }}>
-                {isLobbyActive ? "Leave" : "Lobby"}
-              </span>
-            </button>
-          );
-        })()}
         {/* Vault */}
         <button onClick={() => navigate("/ghost/room")}
           style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: a.glow(0.06), border: `1px solid ${a.glow(0.15)}`, borderRadius: 16, padding: "10px 4px", cursor: "pointer" }}
@@ -1317,6 +1519,60 @@ export default function GhostModePage() {
           </div>
           <span style={{ fontSize: 9, fontWeight: 800, color: a.glow(0.7), letterSpacing: "0.05em", textTransform: "uppercase" }}>Rooms</span>
         </button>
+      </div>
+
+      {/* ── Second row: Coins · Events · Stats ── */}
+      <div style={{ margin: "8px 14px 0", display: "flex", gap: 8 }}>
+        {/* Floor Chat */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {
+            if (userRoomTier) {
+              setFloorChatTier(userRoomTier);
+              setShowFloorChat(true);
+              setChatUnreadState(0);
+              setChatUnread(0);
+            }
+          }}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: `${a.glow(0.08)}`, border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
+        >
+          <span style={{ fontSize: 18 }}>💬</span>
+          <div style={{ textAlign: "left" }}>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Floor Chat</p>
+            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Members live</p>
+          </div>
+          {chatUnread > 0 && (
+            <div style={{ position: "absolute", top: 6, right: 8, minWidth: 16, height: 16, borderRadius: 8, background: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
+              <span style={{ fontSize: 8, fontWeight: 900, color: "#fff" }}>{chatUnread > 9 ? "9+" : chatUnread}</span>
+            </div>
+          )}
+        </motion.button>
+
+        {/* Events board */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowEvents(true)}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "rgba(124,58,237,0.07)", border: "1px solid rgba(124,58,237,0.22)", borderRadius: 14, cursor: "pointer" }}
+        >
+          <span style={{ fontSize: 18 }}>🎪</span>
+          <div style={{ textAlign: "left" }}>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#a78bfa" }}>Events</p>
+            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Today</p>
+          </div>
+        </motion.button>
+
+        {/* Invite Friend */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowReferral(true)}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.06), border: `1px solid ${a.glow(0.2)}`, borderRadius: 14, cursor: "pointer" }}
+        >
+          <span style={{ fontSize: 18 }}>👻</span>
+          <div style={{ textAlign: "left" }}>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Invite Friend</p>
+            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Earn rewards</p>
+          </div>
+        </motion.button>
       </div>
 
       {/* Filter slide-up sheet */}
@@ -2497,6 +2753,166 @@ export default function GhostModePage() {
             onClose={() => setShowIntlModal(false)}
           />
         )}
+      </AnimatePresence>
+
+      {/* ── Hotel events ── */}
+      <AnimatePresence>
+        {showEvents && <HotelEventsBoard onClose={() => setShowEvents(false)} />}
+      </AnimatePresence>
+
+      {/* ── Stats dashboard ── */}
+      <AnimatePresence>
+        {showStats && <GhostStatsDashboard onClose={() => setShowStats(false)} />}
+      </AnimatePresence>
+
+      {/* ── Invite Friend / Referral ── */}
+      <AnimatePresence>
+        {showReferral && <GhostReferralSheet onClose={() => setShowReferral(false)} />}
+      </AnimatePresence>
+
+      {/* ── Hotel Lobby popup ── */}
+      <AnimatePresence>
+        {showLobbyPopup && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowLobbyPopup(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 520, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+          >
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 32 }}
+              onClick={e => e.stopPropagation()}
+              style={{ width: "100%", maxWidth: 480, height: "88dvh", background: "rgba(6,6,10,0.99)", borderRadius: "22px 22px 0 0", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none", display: "flex", flexDirection: "column", overflow: "hidden" }}
+            >
+              {/* Top stripe */}
+              <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)`, flexShrink: 0 }} />
+
+              {/* Header */}
+              <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 12, padding: "14px 16px 12px", borderBottom: `1px solid ${a.glow(0.1)}`, background: a.gradientSubtle }}>
+                <div style={{ width: 38, height: 38, borderRadius: 11, background: a.glow(0.14), border: `1.5px solid ${a.glow(0.38)}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <span style={{ fontSize: 19 }}>🏨</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: a.accent }}>Hotel Lobby</p>
+                  <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.35)", marginTop: 1 }}>
+                    {roomMemberList.filter(p => isOnline(p.last_seen_at)).length} online · {roomMemberList.length} guests available to meet tonight
+                  </p>
+                </div>
+                <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.6, repeat: Infinity }}
+                  style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", display: "inline-block", flexShrink: 0 }} />
+                <button onClick={() => setShowLobbyPopup(false)} style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                  <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 16 }}>✕</span>
+                </button>
+              </div>
+
+              {/* Profile grid */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px max(20px,env(safe-area-inset-bottom,20px))" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                  {roomMemberList.map((p, i) => (
+                    <motion.div
+                      key={p.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.03, type: "spring", stiffness: 300, damping: 24 }}
+                      onClick={() => { setShowLobbyPopup(false); openMatchAction(p, "match"); }}
+                      style={{ borderRadius: 16, overflow: "hidden", position: "relative", cursor: "pointer", border: `1px solid ${a.glow(0.15)}` }}
+                    >
+                      <div style={{ paddingBottom: "130%", position: "relative" }}>
+                        <img
+                          src={p.image} alt={p.name}
+                          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                          onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                        />
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.78) 0%, transparent 55%)" }} />
+                        {isOnline(p.last_seen_at) && (
+                          <motion.div
+                            animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
+                            style={{ position: "absolute", top: 6, right: 6, width: 8, height: 8, borderRadius: "50%", background: "#4ade80", border: "1.5px solid rgba(6,6,10,0.8)" }}
+                          />
+                        )}
+                        <div style={{ position: "absolute", bottom: 6, left: 7, right: 7 }}>
+                          <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: "#fff", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {p.name}{p.age ? `, ${p.age}` : ""}
+                          </p>
+                          {p.city && <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.5)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.city}</p>}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+                {roomMemberList.length === 0 && (
+                  <div style={{ textAlign: "center", padding: "48px 24px" }}>
+                    <span style={{ fontSize: 36 }}>🏨</span>
+                    <p style={{ margin: "12px 0 0", fontSize: 13, color: "rgba(255,255,255,0.35)" }}>The lobby is quiet right now.<br />Check back tonight.</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Late-night butler ── */}
+      <AnimatePresence>
+        {showLateNight && (
+          <LateNightButlerPopup
+            onDismiss={() => {
+              markLateNightShown();
+              setShowLateNight(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Butler welcome ── */}
+      <AnimatePresence>
+        {showButlerWelcome && (
+          <ButlerWelcomePopup
+            onDismiss={() => {
+              markButlerGreeted();
+              setShowButlerWelcome(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Checkout reminder ── */}
+      <AnimatePresence>
+        {showCheckout && (
+          <CheckoutReminderPopup
+            onExtend={() => {
+              markCheckoutShown();
+              setShowCheckout(false);
+              navigate("/ghost/rooms");
+            }}
+            onDismiss={() => {
+              markCheckoutShown();
+              setShowCheckout(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Floor Chat popup ── */}
+      <AnimatePresence>
+        {showFloorChat && (floorChatTier ?? userRoomTier) && (() => {
+          const TIER_COLORS_ALL: Record<string, string> = { standard: "#a8a8b0", suite: "#cd7f32", kings: "#d4af37", penthouse: "#e0ddd8", cellar: "#9b1c1c" };
+          const TIER_LABELS_ALL: Record<string, string> = { standard: "Standard Room", suite: "Suite", kings: "Kings Room", penthouse: "Penthouse", cellar: "The Cellar" };
+          const TIER_ICONS_ALL:  Record<string, string> = { standard: "🛏️", suite: "🛎️", kings: "👑", penthouse: "🏙️", cellar: "🕯️" };
+          const activeTier  = (floorChatTier ?? userRoomTier)!;
+          const activeColor = TIER_COLORS_ALL[activeTier] ?? tierColor;
+          const activeLabel = TIER_LABELS_ALL[activeTier] ?? tierLabel;
+          const activeIcon  = TIER_ICONS_ALL[activeTier]  ?? tierIcon;
+          return (
+            <FloorChatPopup
+              tier={activeTier}
+              tierColor={activeColor}
+              tierLabel={activeLabel}
+              tierIcon={activeIcon}
+              onClose={() => { setShowFloorChat(false); setFloorChatTier(null); }}
+            />
+          );
+        })()}
       </AnimatePresence>
 
       {/* ── Ghost Flash paywall ── */}

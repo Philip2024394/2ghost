@@ -397,6 +397,83 @@ export default function GhostDashboardPage() {
             </div>
           </motion.div>
 
+          {/* ── Section 2b: My Stats ── */}
+          {(() => {
+            const ghostId = (() => {
+              try {
+                const p = JSON.parse(localStorage.getItem("ghost_profile") || "{}");
+                const id = p.id || "anon";
+                let h = 0;
+                for (let i = 0; i < id.length; i++) { h = Math.imul(31, h) + id.charCodeAt(i) | 0; }
+                return `Ghost-${1000 + Math.abs(h) % 9000}`;
+              } catch { return "Ghost-0000"; }
+            })();
+            const tier = (() => { try { return localStorage.getItem("ghost_house_tier") || "standard"; } catch { return "standard"; } })();
+            const ROOM_MAP: Record<string, { label: string; icon: string; color: string; members: number; active: number }> = {
+              standard:  { label: "Standard Room", icon: "🛏️", color: "#a8a8b0", members: 1247, active: 89 },
+              suite:     { label: "Suite",          icon: "🛎️", color: "#cd7f32", members: 428,  active: 34 },
+              kings:     { label: "Kings Room",     icon: "👑", color: "#d4af37", members: 156,  active: 21 },
+              penthouse: { label: "Penthouse",       icon: "🏙️", color: "#e0ddd8", members: 47,   active: 12 },
+              cellar:    { label: "The Cellar",      icon: "🕯️", color: "#9b1c1c", members: 83,   active: 18 },
+            };
+            const room = ROOM_MAP[tier] ?? ROOM_MAP.standard;
+            function seedStat(key: string, min: number, max: number): number {
+              let h = 0; const s = ghostId + key;
+              for (let i = 0; i < s.length; i++) { h = Math.imul(31, h) + s.charCodeAt(i) | 0; }
+              return min + (Math.abs(h) % (max - min + 1));
+            }
+            const coins = (() => { try { return Number(localStorage.getItem("ghost_coins") || "0"); } catch { return 0; } })();
+            const likesSent = (() => { try { return JSON.parse(localStorage.getItem("ghost_liked_ids") || "[]").length; } catch { return 0; } })();
+            const vaultChats = (() => { try { return Object.keys(localStorage).filter(k => k.startsWith("ghost_vault_chat_")).length; } catch { return 0; } })();
+            const giftsSent = (() => {
+              try {
+                let total = 0;
+                Object.keys(localStorage).forEach(k => {
+                  if (!k.startsWith("ghost_vault_chat_")) return;
+                  const msgs = JSON.parse(localStorage.getItem(k) || "[]");
+                  total += msgs.filter((m: { isGift?: boolean; isOwn?: boolean }) => m.isGift && m.isOwn).length;
+                });
+                return total;
+              } catch { return 0; }
+            })();
+            const floorRank = seedStat("rank", 3, room.active);
+            const STAT_ROWS = [
+              { icon: "👁️", label: "Profile views",      value: seedStat("views", 48, 312), sub: "this month",   color: "#60a5fa" },
+              { icon: "❤️", label: "Likes received",      value: seedStat("likes_recv", 12, 94), sub: "from members", color: "#f472b6" },
+              { icon: "🤍", label: "Likes sent",          value: likesSent,                  sub: "by you",       color: "#a78bfa" },
+              { icon: "🔐", label: "Vault chats",         value: vaultChats,                 sub: "opened",       color: "#fbbf24" },
+              { icon: "🎁", label: "Gifts sent",          value: giftsSent,                  sub: "total",        color: "#34d399" },
+              { icon: "🪙", label: "Coins balance",       value: coins,                      sub: "available",    color: "#ffd700" },
+            ];
+            return (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 }}>
+                <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>
+                  My Stats
+                </p>
+                {/* Floor rank bar */}
+                <div style={{ marginBottom: 10, padding: "10px 14px", background: `${room.color}0a`, border: `1px solid ${room.color}20`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: room.color }}>🏆 Floor Rank #{floorRank}</p>
+                    <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 1 }}>Among {room.active} active tonight · {room.icon} {room.label}</p>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>{room.members.toLocaleString()} total</p>
+                </div>
+                {/* Stats grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                  {STAT_ROWS.map((s, i) => (
+                    <motion.div key={s.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 + i * 0.05 }}
+                      style={{ background: `${s.color}08`, border: `1px solid ${s.color}20`, borderRadius: 14, padding: "12px 8px", textAlign: "center" }}>
+                      <span style={{ fontSize: 18, display: "block", marginBottom: 4 }}>{s.icon}</span>
+                      <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: s.color }}>{s.value}</p>
+                      <p style={{ margin: "2px 0 0", fontSize: 9, color: "rgba(255,255,255,0.35)", lineHeight: 1.3 }}>{s.label}</p>
+                      <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.2)" }}>{s.sub}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            );
+          })()}
+
           {/* ── Section 3: How I Connect ── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>

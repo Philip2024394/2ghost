@@ -137,7 +137,7 @@ export default function GhostCard({
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 55%)" }} />
 
         {/* Top-left: km distance or Tonight badge */}
-        <div style={{ position: "absolute", top: 7, left: 7 }}>
+        <div style={{ position: "absolute", top: 7, left: 7, display: "flex", flexDirection: "column", gap: 4 }}>
           {isTonight ? (
             <div style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "3px 7px", fontSize: 8, fontWeight: 700, color: a.glow(0.85) }}>
               🌙 {t("card.tonight")}
@@ -147,6 +147,18 @@ export default function GhostCard({
               {fmtKm(profile.distanceKm)}
             </div>
           ) : null}
+          {/* Floor-only badge — shown on ~20% of profiles (hash-seeded) */}
+          {(Math.abs(oh) % 5 === 0) && (
+            <div style={{
+              background: "rgba(0,0,0,0.62)", backdropFilter: "blur(8px)",
+              borderRadius: 20, padding: "2px 7px",
+              display: "flex", alignItems: "center", gap: 3,
+              border: "1px solid rgba(255,255,255,0.12)",
+            }}>
+              <span style={{ fontSize: 7 }}>🔒</span>
+              <span style={{ fontSize: 7, fontWeight: 800, color: "rgba(255,255,255,0.75)", letterSpacing: "0.06em" }}>FLOOR ONLY</span>
+            </div>
+          )}
         </div>
 
         {/* Online dot — always green */}
