@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { generateCode, upsertAffiliate } from "../affiliateStorage";
 
 const BG   = "https://ik.imagekit.io/7grri5v7d/ghost%20roomssadasdasdfasdfasdf.png";
-const LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
+const LOGO = "https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasd.png?updatedAt=1773948067293";
 
 const TERMS = `AFFILIATE PROGRAMME — TERMS & CONDITIONS
 Last updated: March 2026

@@ -4,7 +4,7 @@ import { ArrowLeft, Plus, Trash2, ArrowRight, Phone, X, Globe, MapPin } from "lu
 import { useNavigate } from "react-router-dom";
 
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
-const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
+const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/ccccccccc-removebg-preview.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 const COUNTRY_CODES = [
