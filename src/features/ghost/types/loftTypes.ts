@@ -30,8 +30,8 @@ export interface LoftGiftRecord {
   status: "pending" | "seen" | "replied";
 }
 
-export const LOFT_SUB_PRICE         = "$29.99";
-export const LOFT_EXTRA_CITY_PRICE  = "$14.99";
+export const LOFT_SUB_PRICE         = "$11.99";
+export const LOFT_EXTRA_CITY_PRICE  = "$4.99";
 export const LOFT_DAILY_FREE_GIFTS  = 2;
 export const LOFT_NOTE_COST         = 5;
 export const LOFT_OPENER_MAX_CHARS  = 180;

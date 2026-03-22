@@ -30,8 +30,8 @@ export interface CellarGiftRecord {
   status: "pending" | "seen" | "replied";
 }
 
-export const CELLAR_SUB_PRICE        = "$24.99";
-export const CELLAR_EXTRA_CITY_PRICE = "$12.99";
+export const CELLAR_SUB_PRICE        = "$11.99";
+export const CELLAR_EXTRA_CITY_PRICE = "$4.99";
 export const CELLAR_DAILY_FREE_GIFTS = 2;
 export const CELLAR_NOTE_COST        = 5;
 export const CELLAR_OPENER_MAX_CHARS = 180;

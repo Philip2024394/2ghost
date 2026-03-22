@@ -387,7 +387,7 @@ function CellarTeaser({ onSubscribe }: { onSubscribe: () => void }) {
           boxShadow: "0 4px 24px rgba(192,57,43,0.5)",
         }}
       >
-        🔥 Access The Cellar — {CELLAR_SUB_PRICE}/mo
+        🔥 Enter The Cellar — {CELLAR_SUB_PRICE} one-time
       </motion.button>
     </div>
   );

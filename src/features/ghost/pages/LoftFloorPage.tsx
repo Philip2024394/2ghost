@@ -345,7 +345,7 @@ function LoftTeaser({ onSubscribe }: { onSubscribe: () => void }) {
         }}
       >
         <span>🪟</span>
-        <span>Enter The Loft — {LOFT_SUB_PRICE}/mo</span>
+        <span>Enter The Loft — {LOFT_SUB_PRICE} one-time</span>
       </motion.button>
       <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 10 }}>
         Cancel anytime · Curated guests · Safe & anonymous
@@ -613,7 +613,7 @@ export default function LoftFloorPage() {
                     key={city.code} whileTap={{ scale: 0.95 }}
                     onClick={() => {
                       if (hasAccess) setActiveCity(city.code);
-                      else alert(`Add ${city.name} for ${LOFT_EXTRA_CITY_PRICE}/mo`);
+                      else alert(`Add ${city.name} for ${LOFT_EXTRA_CITY_PRICE} one-time`);
                     }}
                     style={{
                       flexShrink: 0, height: 32, borderRadius: 50, padding: "0 12px",

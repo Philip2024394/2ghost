@@ -255,14 +255,14 @@ const ROOMS = [
     icon: "🛏️",
     name: "Standard Room",
     tagline: "Your first key to the Ghost House",
-    price: "🪙 200 / mo",
+    price: "$4.99 one-time",
     color: "#c0c0c0",
     border: "rgba(192,192,192,0.4)",
     bg: "rgba(192,192,192,0.06)",
     glow: "rgba(192,192,192,0.35)",
     gradient: "linear-gradient(135deg, #707070, #c0c0c0, #e8e8e8)",
     features: [
-      "2 match unlocks / month",
+      "2 match unlocks included",
       "Ghost Vault: 5 photos",
       "Ghost Flash: 1 session / month",
       "Standard Room badge on profile",
@@ -274,14 +274,14 @@ const ROOMS = [
     icon: "🏨",
     name: "Suite Room",
     tagline: "More space, more power, more matches",
-    price: "🪙 500 / mo",
+    price: "$9.99 one-time",
     color: "#cd7f32",
     border: "rgba(205,127,50,0.4)",
     bg: "rgba(205,127,50,0.07)",
     glow: "rgba(205,127,50,0.4)",
     gradient: "linear-gradient(135deg, #7a3b10, #cd7f32, #e8a050)",
     features: [
-      "5 match unlocks / month included",
+      "5 match unlocks included",
       "Ghost Vault: 10 photos · 3 videos",
       "Ghost Flash: 4 sessions / month",
       "1 weekly profile boost (1 hr top of stack)",
@@ -295,7 +295,7 @@ const ROOMS = [
     icon: "👑",
     name: "Kings Room",
     tagline: "The room where serious matches happen",
-    price: "🪙 1,000 / mo",
+    price: "$14.99 one-time",
     color: "#d4af37",
     border: "rgba(212,175,55,0.45)",
     bg: "rgba(212,175,55,0.07)",
@@ -318,7 +318,7 @@ const ROOMS = [
     icon: "🏙️",
     name: "Penthouse",
     tagline: "The highest floor. Reserved for the elite.",
-    price: "🪙 3,000 / mo",
+    price: "$19.99 one-time",
     color: "#e8e4d0",
     border: "rgba(232,228,208,0.45)",
     bg: "rgba(232,228,208,0.07)",
@@ -664,7 +664,7 @@ export default function GhostRoomsPage() {
                             Unlocking…
                           </motion.span>
                         ) : (
-                          `Unlock ${room.name}`
+                          `Enter ${room.name} — ${room.price}`
                         )}
                       </motion.button>
                     )}
@@ -721,7 +721,7 @@ export default function GhostRoomsPage() {
                       </div>
                       <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Gay · Lesbian · The Mix — curated & safe</p>
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>$29.99 / mo</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>$11.99 one-time</span>
                   </div>
 
                   {/* Room image thumbnail */}
@@ -788,7 +788,7 @@ export default function GhostRoomsPage() {
                       boxShadow: `0 3px 16px ${VGLOW}`,
                     }}
                   >
-                    🪟 Enter The Loft →
+                    🪟 Enter The Loft — $11.99 →
                   </motion.button>
                 </div>
               </motion.div>
@@ -835,7 +835,7 @@ export default function GhostRoomsPage() {
                       </div>
                       <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>The highest floor. Reserved for the elite.</p>
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>$49.99 / mo</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>$19.99 one-time</span>
                   </div>
 
                   {/* Room image thumbnail */}
@@ -955,7 +955,7 @@ export default function GhostRoomsPage() {
                       </div>
                       <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Flirty · Naughty · Wild — bold & no judgement</p>
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>$24.99 / mo</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>$11.99 one-time</span>
                   </div>
 
                   {/* Room image thumbnail */}
@@ -1020,7 +1020,7 @@ export default function GhostRoomsPage() {
                       boxShadow: `0 3px 16px ${CGLOW}`,
                     }}
                   >
-                    🔥 Enter The Cellar →
+                    🔥 Enter The Cellar — $11.99 →
                   </motion.button>
                 </div>
               </motion.div>

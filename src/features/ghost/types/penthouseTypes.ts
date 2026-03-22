@@ -105,8 +105,8 @@ export const PENTHOUSE_NOTE_MAX_CHARS   = 500;
 export const PENTHOUSE_OPENER_MAX_CHARS = 120;
 export const PENTHOUSE_VAULT_ARCHIVE_DAYS = 30;
 export const PENTHOUSE_MAX_PER_CITY     = 30;
-export const PENTHOUSE_SUB_PRICE        = "$29.99";
-export const PENTHOUSE_EXTRA_CITY_PRICE = "$19.99";
+export const PENTHOUSE_SUB_PRICE        = "$19.99";
+export const PENTHOUSE_EXTRA_CITY_PRICE = "$4.99";
 
 // ── Mock profiles (Jakarta floor) ────────────────────────────────────────────
 export const MOCK_PENTHOUSE_PROFILES: PenthouseProfile[] = [
