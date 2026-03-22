@@ -26,6 +26,11 @@ export default function GhostAuthPage() {
   const a = useGenderAccent();
   const navigate = useNavigate();
   const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [dobDay,   setDobDay]   = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobYear,  setDobYear]  = useState("");
+  const [tosChecked, setTosChecked] = useState(false);
+  const [dobError,   setDobError]   = useState("");
   const [gender, setGender] = useState<"Female" | "Male">("Female");
   const [countryCode, setCountryCode] = useState(COUNTRY_CODES[0]);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
@@ -150,37 +155,114 @@ export default function GhostAuthPage() {
 
   // ── Age gate ──────────────────────────────────────────────────────────────
   if (!ageConfirmed) {
+    const currentYear = new Date().getFullYear();
+    const years  = Array.from({ length: 100 }, (_, i) => currentYear - 18 - i);
+    const months = [
+      { v: "1", l: "January" }, { v: "2", l: "February" }, { v: "3", l: "March" },
+      { v: "4", l: "April" },   { v: "5", l: "May" },      { v: "6", l: "June" },
+      { v: "7", l: "July" },    { v: "8", l: "August" },   { v: "9", l: "September" },
+      { v: "10", l: "October" },{ v: "11", l: "November" },{ v: "12", l: "December" },
+    ];
+    const days = Array.from({ length: 31 }, (_, i) => i + 1);
+
+    const handleDobConfirm = () => {
+      if (!dobDay || !dobMonth || !dobYear) { setDobError("Please enter your full date of birth."); return; }
+      const dob   = new Date(`${dobYear}-${dobMonth.padStart(2, "0")}-${dobDay.padStart(2, "0")}`);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+      if (isNaN(age) || age < 0) { setDobError("Please enter a valid date of birth."); return; }
+      if (age < 18) { setDobError("You must be 18 or older to join 2Ghost."); return; }
+      const iso = `${dobYear}-${dobMonth.padStart(2, "0")}-${dobDay.padStart(2, "0")}`;
+      try { localStorage.setItem("ghost_dob", iso); } catch {}
+      setDobError("");
+      setAgeConfirmed(true);
+    };
+
+    const selectStyle: React.CSSProperties = {
+      background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.14)",
+      borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 600,
+      padding: "0 12px", height: 46, outline: "none", appearance: "none",
+      WebkitAppearance: "none", cursor: "pointer", width: "100%",
+    };
+    const canConfirm = !!dobDay && !!dobMonth && !!dobYear && tosChecked;
+
     return (
       <div style={{
         minHeight: "100dvh", background: "#050508", color: "#fff",
         display: "flex", flexDirection: "column", alignItems: "center",
-        justifyContent: "center", padding: "32px 28px", textAlign: "center",
+        justifyContent: "center", padding: "32px 24px",
       }}>
-        <div style={{ fontSize: 52, marginBottom: 20 }}>👻</div>
-        <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }}>
-          Welcome to<br />2Ghost
-        </h1>
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", margin: "0 0 36px", lineHeight: 1.6, maxWidth: 280 }}>
-          This app is for adults 18 and over. Please confirm your age to continue.
-        </p>
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => setAgeConfirmed(true)}
-          style={{
-            width: "100%", maxWidth: 320, height: 52, borderRadius: 50, border: "none",
-            background: `linear-gradient(135deg,${a.accentDark},${a.accent})`,
-            color: "#fff", fontSize: 16, fontWeight: 900, cursor: "pointer",
-            boxShadow: `0 8px 28px ${a.glow(0.3)}`, marginBottom: 14,
-          }}
-        >
-          I am 18 or older — Continue
-        </motion.button>
-        <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: 0, maxWidth: 260, lineHeight: 1.6 }}>
-          By continuing you agree to our{" "}
-          <a href="/ghost/terms" style={{ color: a.glow(0.5), textDecoration: "none" }}>Terms of Service</a>
-          {" "}and{" "}
-          <a href="/ghost/privacy" style={{ color: a.glow(0.5), textDecoration: "none" }}>Privacy Policy</a>.
-        </p>
+        <div style={{ width: "100%", maxWidth: 360 }}>
+          <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <div style={{ fontSize: 48, marginBottom: 14 }}>👻</div>
+            <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 8px", lineHeight: 1.2 }}>
+              Welcome to 2Ghost
+            </h1>
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.65, maxWidth: 280, marginInline: "auto" }}>
+              This platform is exclusively for adults aged <strong style={{ color: "#fff" }}>18 and over</strong>. Please enter your date of birth to continue.
+            </p>
+          </div>
+
+          {/* DOB selects */}
+          <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 8px" }}>Date of Birth</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr 1fr", gap: 8, marginBottom: 16 }}>
+            <div style={{ position: "relative" }}>
+              <select value={dobDay} onChange={e => { setDobDay(e.target.value); setDobError(""); }} style={selectStyle}>
+                <option value="">Day</option>
+                {days.map(d => <option key={d} value={String(d)}>{d}</option>)}
+              </select>
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: "rgba(255,255,255,0.3)" }}>▾</span>
+            </div>
+            <div style={{ position: "relative" }}>
+              <select value={dobMonth} onChange={e => { setDobMonth(e.target.value); setDobError(""); }} style={selectStyle}>
+                <option value="">Month</option>
+                {months.map(m => <option key={m.v} value={m.v}>{m.l}</option>)}
+              </select>
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: "rgba(255,255,255,0.3)" }}>▾</span>
+            </div>
+            <div style={{ position: "relative" }}>
+              <select value={dobYear} onChange={e => { setDobYear(e.target.value); setDobError(""); }} style={selectStyle}>
+                <option value="">Year</option>
+                {years.map(y => <option key={y} value={String(y)}>{y}</option>)}
+              </select>
+              <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: "rgba(255,255,255,0.3)" }}>▾</span>
+            </div>
+          </div>
+
+          {/* Age error */}
+          <AnimatePresence>
+            {dobError && (
+              <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "10px 14px", marginBottom: 14, display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <span style={{ fontSize: 14, flexShrink: 0 }}>⚠️</span>
+                <p style={{ margin: 0, fontSize: 12, color: "#fca5a5", fontWeight: 700 }}>{dobError}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ToS checkbox */}
+          <div onClick={() => setTosChecked(c => !c)}
+            style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 24, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px 16px", cursor: "pointer" }}>
+            <div style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, marginTop: 1, border: `2px solid ${tosChecked ? a.accent : "rgba(255,255,255,0.2)"}`, background: tosChecked ? a.glow(0.3) : "transparent", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>
+              {tosChecked && <span style={{ color: "#fff", fontSize: 12, lineHeight: 1 }}>✓</span>}
+            </div>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.6 }}>
+              I confirm I am <strong style={{ color: "#fff" }}>18 years or older</strong> and I agree to the{" "}
+              <span style={{ color: a.accent, fontWeight: 700 }}>Terms of Service</span>. This platform is for adults only — no minors permitted.
+            </p>
+          </div>
+
+          <motion.button whileTap={{ scale: 0.97 }} onClick={handleDobConfirm} disabled={!canConfirm}
+            style={{ width: "100%", height: 52, borderRadius: 50, border: "none", background: canConfirm ? `linear-gradient(135deg,${a.accentDark},${a.accent})` : "rgba(255,255,255,0.07)", color: canConfirm ? "#fff" : "rgba(255,255,255,0.3)", fontSize: 16, fontWeight: 900, cursor: canConfirm ? "pointer" : "default", boxShadow: canConfirm ? `0 8px 28px ${a.glow(0.3)}` : "none", transition: "all 0.2s", marginBottom: 14 }}>
+            Confirm &amp; Continue
+          </motion.button>
+
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: 0, textAlign: "center", lineHeight: 1.6 }}>
+            Your date of birth is used solely for age verification and is never shown on your profile.
+          </p>
+        </div>
       </div>
     );
   }

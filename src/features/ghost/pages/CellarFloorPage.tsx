@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   MOCK_CELLAR_PROFILES, CELLAR_GIFTS, CELLAR_CITIES,
   CELLAR_SUB_PRICE, CELLAR_EXTRA_CITY_PRICE,
-  CELLAR_DAILY_FREE_GIFTS, CELLAR_NOTE_COST, CELLAR_OPENER_MAX_CHARS,
+  CELLAR_DAILY_FREE_GIFTS, CELLAR_OPENER_MAX_CHARS,
   type CellarProfile, type CellarSection,
 } from "../types/cellarTypes";
 import {
@@ -393,12 +393,32 @@ function CellarTeaser({ onSubscribe }: { onSubscribe: () => void }) {
   );
 }
 
+// ── DOB age check from signup ─────────────────────────────────────────────────
+function dobAgeCheck(): "over18" | "under18" | "unknown" {
+  try {
+    const dob = localStorage.getItem("ghost_dob");
+    if (!dob) return "unknown";
+    const born  = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - born.getFullYear();
+    const m = today.getMonth() - born.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < born.getDate())) age--;
+    return age >= 18 ? "over18" : "under18";
+  } catch { return "unknown"; }
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function CellarFloorPage() {
   const navigate = useNavigate();
-  const [ageVerified,   setAgeVerified]   = useState(isCellarAgeVerified);
+
+  const [ageVerified, setAgeVerified] = useState(() => {
+    if (isCellarAgeVerified()) return true;
+    // Auto-pass if signup DOB already confirms 18+
+    if (dobAgeCheck() === "over18") { setCellarAgeVerified(); return true; }
+    return false;
+  });
   // If age already verified, treat as subscribed so they don't hit a second paywall
-  const [subscribed,    setSubscribed]    = useState(() => isCellarSubscribed() || isCellarAgeVerified());
+  const [subscribed, setSubscribed] = useState(() => isCellarSubscribed() || isCellarAgeVerified());
   const [section,       setSection]       = useState<CellarSection>("flirty");
   const [activeCity,    setActiveCity]    = useState("LON");
   const [likedIds,      setLikedIds]      = useState<string[]>(getCellarLikedIds);
@@ -474,6 +494,22 @@ export default function CellarFloorPage() {
   const avatarH    = 78;
 
   if (!ageVerified) {
+    // Hard block if signup DOB confirms under 18 — no override possible
+    if (dobAgeCheck() === "under18") {
+      return (
+        <div style={{ minHeight: "100dvh", background: "#0a0000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", textAlign: "center" }}>
+          <div style={{ fontSize: 52, marginBottom: 16 }}>🔞</div>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: "0 0 10px" }}>Access Denied</h1>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 28px", lineHeight: 1.65, maxWidth: 280 }}>
+            The Cellar is restricted to members aged <strong style={{ color: "#fff" }}>18 and over</strong>. Your date of birth on file does not meet this requirement.
+          </p>
+          <motion.button whileTap={{ scale: 0.96 }} onClick={() => navigate(-1)}
+            style={{ height: 46, padding: "0 28px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+            ← Go Back
+          </motion.button>
+        </div>
+      );
+    }
     return (
       <CellarAgeGate
         onConfirm={() => { setCellarAgeVerified(); activateCellarSub(); setAgeVerified(true); setSubscribed(true); }}
