@@ -72,7 +72,7 @@ export default function ButlerWelcomePopup({ onDismiss }: { onDismiss: () => voi
       }}
     >
       {/* Full-screen background image */}
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsds.png?updatedAt=1774134023247)", backgroundSize: "cover", backgroundPosition: "center top", zIndex: 0 }} />
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/sdfasdfdddsaasdf.png?updatedAt=1774270395199)", backgroundSize: "cover", backgroundPosition: "center top", zIndex: 0 }} />
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.72)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)", zIndex: 0 }} />
       <motion.div
         initial={{ opacity: 0, y: 48, scale: 0.93 }}
