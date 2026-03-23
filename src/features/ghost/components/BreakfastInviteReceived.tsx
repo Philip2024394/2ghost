@@ -86,11 +86,6 @@ export default function BreakfastInviteReceived({ invite, onAccept, onDecline }:
                   style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 <div style={{ position: "absolute", inset: 0,
                   background: "linear-gradient(to bottom, transparent 30%, rgba(6,6,15,0.95) 100%)" }} />
-                {/* Breakfast overlay image — centred over the lounge photo */}
-                <img src={BREAKFAST_IMG} alt=""
-                  style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)",
-                    height: "90%", objectFit: "contain", pointerEvents: "none",
-                    filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.7))" }} />
                 <div style={{ position: "absolute", bottom: 14, left: 18 }}>
                   <p style={{ margin: 0, fontSize: 11, color: meta.color, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" }}>
                     {meta.icon} The Lounge · {meta.label}
@@ -98,11 +93,18 @@ export default function BreakfastInviteReceived({ invite, onAccept, onDecline }:
                 </div>
               </div>
 
-              <div style={{ padding: "18px 20px 0" }}>
+              <div style={{ padding: "0 20px 0" }}>
+                {/* Breakfast image — top of content, centred above title */}
+                <div style={{ display: "flex", justifyContent: "center", marginTop: -48, marginBottom: 8, position: "relative", zIndex: 2 }}>
+                  <img src={BREAKFAST_IMG} alt=""
+                    style={{ height: 110, objectFit: "contain", pointerEvents: "none",
+                      filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.8))" }} />
+                </div>
+
                 {/* Title */}
                 <p style={{ margin: "0 0 16px", fontSize: 11, color: meta.color, fontWeight: 700,
-                  textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  ☕ Breakfast Invitation
+                  textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "center" }}>
+                  Breakfast Invitation
                 </p>
 
                 {/* ── Host profile card ── */}
