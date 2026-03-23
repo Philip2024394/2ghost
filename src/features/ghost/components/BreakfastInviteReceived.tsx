@@ -102,7 +102,7 @@ export default function BreakfastInviteReceived({ invite, onAccept, onDecline }:
                 {/* Title */}
                 <p style={{ margin: "0 0 16px", fontSize: 11, color: meta.color, fontWeight: 700,
                   textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  ☕ Breakfast invitation · {meta.icon} {meta.label}
+                  ☕ Breakfast Invitation
                 </p>
 
                 {/* ── Host profile card ── */}
@@ -142,25 +142,29 @@ export default function BreakfastInviteReceived({ invite, onAccept, onDecline }:
                           </span>
                         </div>
                       </div>
-                      {/* Floor badge */}
-                      <div style={{ flexShrink: 0, textAlign: "center" }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: glow(0.15),
-                          border: `1px solid ${glow(0.3)}`, display: "flex", alignItems: "center",
-                          justifyContent: "center", fontSize: 18 }}>
-                          {meta.icon}
-                        </div>
-                        <p style={{ margin: "4px 0 0", fontSize: 9, color: "rgba(255,255,255,0.35)", fontWeight: 700 }}>
-                          {meta.label.split(" ").slice(-1)[0]}
-                        </p>
-                      </div>
                     </div>
                   );
                 })()}
 
                 {/* Invite message */}
-                <p style={{ margin: "0 0 16px", fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
-                  <span style={{ color: meta.color, fontWeight: 800 }}>{invite.fromUserName}</span> has reserved a private table for two in the lounge and would love your company for breakfast.
+                <p style={{ margin: "0 0 10px", fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}>
+                  <span style={{ color: meta.color, fontWeight: 800 }}>{invite.fromUserName}</span> has reserved a private table for two and is inviting you to share breakfast together.
                 </p>
+
+                {/* Connection opportunity note */}
+                <div style={{ padding: "12px 14px", background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, marginBottom: 16 }}>
+                  <p style={{ margin: "0 0 7px", fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.75)", lineHeight: 1.6 }}>
+                    This could be the start of something real.
+                  </p>
+                  <p style={{ margin: "0 0 10px", fontSize: 12, color: "rgba(255,255,255,0.42)", lineHeight: 1.7 }}>
+                    A shared breakfast is one of the most natural ways to build a genuine connection — no pressure, no rush. Just two people getting to know each other over a quiet moment in the lounge.
+                  </p>
+                  <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "0 0 10px" }} />
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.7 }}>
+                    <span style={{ color: meta.color, fontWeight: 700 }}>Before you decide —</span> take a moment to review their profile. Check their guest reputation and attendance record. Your time is valuable, and a good connection starts with making an informed choice.
+                  </p>
+                </div>
 
                 {/* Gift teaser — mystery */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
