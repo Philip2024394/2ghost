@@ -1,9 +1,53 @@
 // ── Guest Reputation Service ──────────────────────────────────────────────────
-// Tracks show-ups and no-shows for each profile.
-// Stored in localStorage per profile ID.
-// Badges are computed from the show rate and displayed on profile popups.
+// Tracks show-ups, no-shows, billing, and coin debt per profile.
 
-const REP_KEY = (id: string) => `ghost_rep_${id}`;
+const REP_KEY  = (id: string) => `ghost_rep_${id}`;
+const DEBT_KEY = "ghost_coins_debt";
+
+// ── Breakfast no-show bill per floor ─────────────────────────────────────────
+// Billed for TWO covers — the table was reserved for both guests
+export const BREAKFAST_BILL: Record<string, number> = {
+  standard:  20,
+  loft:      30,
+  suite:     36,
+  kings:     44,
+  penthouse: 60,
+  cellar:    40,
+};
+
+// ── Debt functions (current user's own debt) ──────────────────────────────────
+export function getDebt(): number {
+  try { return Math.max(0, Number(localStorage.getItem(DEBT_KEY) || "0")); } catch { return 0; }
+}
+
+export function hasDebt(): boolean { return getDebt() > 0; }
+
+/** Deduct the bill from the current user's coins. Overflow goes to red debt. */
+export function billCurrentUser(floor: string): number {
+  const amount  = BREAKFAST_BILL[floor] ?? 10;
+  try {
+    const coins = Math.max(0, Number(localStorage.getItem("ghost_coins") || "0"));
+    const remaining = coins - amount;
+    if (remaining >= 0) {
+      localStorage.setItem("ghost_coins", String(remaining));
+    } else {
+      localStorage.setItem("ghost_coins", "0");
+      const prevDebt = getDebt();
+      localStorage.setItem(DEBT_KEY, String(prevDebt + Math.abs(remaining)));
+    }
+  } catch {}
+  return amount;
+}
+
+/** Pay off debt with coins — used when user tops up. */
+export function settleDebt(coinsAvailable: number): { paid: number; remaining: number } {
+  const debt = getDebt();
+  if (debt === 0) return { paid: 0, remaining: coinsAvailable };
+  const paid = Math.min(debt, coinsAvailable);
+  const newDebt = debt - paid;
+  try { localStorage.setItem(DEBT_KEY, String(newDebt)); } catch {}
+  return { paid, remaining: coinsAvailable - paid };
+}
 
 export type Reputation = {
   showUps:  number;

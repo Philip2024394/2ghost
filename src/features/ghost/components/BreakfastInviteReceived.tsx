@@ -10,6 +10,7 @@ import {
   DECLINE_REASONS, acceptInvite, declineInvite,
   formatInTimezone, tzCity, tzShortLabel, getLocalTimezone,
 } from "../utils/breakfastInviteService";
+import { BREAKFAST_BILL } from "../utils/reputationService";
 import type { BreakfastInvite } from "../utils/breakfastInviteService";
 import { FLOOR_META } from "../utils/breakfastGiftService";
 
@@ -219,16 +220,35 @@ export default function BreakfastInviteReceived({ invite, onAccept, onDecline }:
                   </div>
                 )}
 
-                {/* Butler commitment warning */}
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 12px",
-                  background: "rgba(251,146,60,0.07)", border: "1px solid rgba(251,146,60,0.22)",
-                  borderRadius: 12, marginBottom: 14 }}>
-                  <span style={{ fontSize: 14, flexShrink: 0 }}>🎩</span>
-                  <p style={{ margin: 0, fontSize: 11, color: "rgba(251,146,60,0.85)", lineHeight: 1.6 }}>
-                    <strong style={{ color: "rgba(251,146,60,1)" }}>By accepting, you make a commitment.</strong> Not
-                    honouring the agreed time will place a visible caution notice on your profile.
-                    Repeated no-shows may result in your account being suspended.
-                  </p>
+                {/* Butler commitment warning with penalty amount */}
+                <div style={{ borderRadius: 14, marginBottom: 14, overflow: "hidden",
+                  border: "1px solid rgba(239,68,68,0.28)" }}>
+                  <div style={{ padding: "9px 14px", background: "rgba(239,68,68,0.1)",
+                    borderBottom: "1px solid rgba(239,68,68,0.15)",
+                    display: "flex", alignItems: "center", gap: 7 }}>
+                    <span style={{ fontSize: 13 }}>🎩</span>
+                    <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: "#f87171",
+                      textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                      Butler Policy · Binding Commitment
+                    </p>
+                  </div>
+                  <div style={{ padding: "11px 14px", background: "rgba(239,68,68,0.05)" }}>
+                    <p style={{ margin: "0 0 6px", fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.65 }}>
+                      Accepting this invitation is a <strong style={{ color: "#fff" }}>binding commitment</strong>.
+                      If you do not appear at the agreed time, your account will be automatically charged:
+                    </p>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 12px",
+                      background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)",
+                      borderRadius: 8, marginBottom: 7 }}>
+                      <span style={{ fontSize: 16 }}>🔴</span>
+                      <span style={{ fontSize: 15, fontWeight: 900, color: "#f87171" }}>
+                        {BREAKFAST_BILL[invite.fromFloor] ?? 20}🪙 no-show penalty
+                      </span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 10, color: "rgba(248,113,113,0.6)", lineHeight: 1.6 }}>
+                      This covers both covers at the reserved table. Insufficient coins will result in a red debt balance and suspended invite privileges.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Buttons */}

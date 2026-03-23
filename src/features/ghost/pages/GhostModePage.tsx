@@ -475,9 +475,15 @@ export default function GhostModePage() {
   const [coinBalance, setCoinBalance] = useState(() => {
     try { return Number(localStorage.getItem("ghost_coins") || "0"); } catch { return 0; }
   });
+  const [coinDebt, setCoinDebt] = useState(() => {
+    try { return Number(localStorage.getItem("ghost_coins_debt") || "0"); } catch { return 0; }
+  });
   useEffect(() => {
     const refresh = () => {
-      try { setCoinBalance(Number(localStorage.getItem("ghost_coins") || "0")); } catch {}
+      try {
+        setCoinBalance(Number(localStorage.getItem("ghost_coins") || "0"));
+        setCoinDebt(Number(localStorage.getItem("ghost_coins_debt") || "0"));
+      } catch {}
     };
     window.addEventListener("focus", refresh);
     return () => window.removeEventListener("focus", refresh);
@@ -1323,14 +1329,16 @@ export default function GhostModePage() {
             onClick={() => setShowCoinShop(true)}
             style={{
               display: "flex", alignItems: "center", gap: 5,
-              background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.4)",
+              background: coinDebt > 0 ? "rgba(239,68,68,0.12)" : "rgba(212,175,55,0.08)",
+              border: coinDebt > 0 ? "1px solid rgba(239,68,68,0.5)" : "1px solid rgba(212,175,55,0.4)",
               borderRadius: 20, padding: "5px 10px",
               cursor: "pointer", flexShrink: 0,
             }}
           >
-            <span style={{ fontSize: 14 }}>🪙</span>
-            <span style={{ fontSize: 13, fontWeight: 900, color: "#d4af37", fontVariantNumeric: "tabular-nums" }}>
-              {coinBalance.toLocaleString()}
+            <span style={{ fontSize: 14 }}>{coinDebt > 0 ? "🔴" : "🪙"}</span>
+            <span style={{ fontSize: 13, fontWeight: 900, fontVariantNumeric: "tabular-nums",
+              color: coinDebt > 0 ? "#f87171" : "#d4af37" }}>
+              {coinDebt > 0 ? `−${coinDebt}` : coinBalance.toLocaleString()}
             </span>
           </button>
           {/* Settings — opens side drawer */}

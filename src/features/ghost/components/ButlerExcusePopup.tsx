@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { formatInTimezone, tzCity, tzShortLabel, markBreakfastMissed } from "../utils/breakfastInviteService";
 import type { BreakfastInvite } from "../utils/breakfastInviteService";
 import { FLOOR_META } from "../utils/breakfastGiftService";
-import { recordNoShow } from "../utils/reputationService";
+import { recordNoShow, BREAKFAST_BILL } from "../utils/reputationService";
 
 const BUTLER_IMG  = "https://ik.imagekit.io/7grri5v7d/ewrwerwerwer-removebg-preview.png";
 const CLOCK_IMG   = "https://ik.imagekit.io/7grri5v7d/Untitledsfsdfs-removebg-preview.png?updatedAt=1774267234482";
@@ -145,19 +145,32 @@ export default function ButlerExcusePopup({ invite, perspective, onDismiss, onRe
                 </p>
               </motion.div>
 
-              {/* Caution notice placed on their profile */}
+              {/* Justice served — billing notice */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px",
-                  background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.25)",
-                  borderRadius: 14, marginBottom: 20 }}>
-                <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
-                <p style={{ margin: 0, fontSize: 12, color: "rgba(248,113,113,0.85)", lineHeight: 1.7 }}>
-                  A <strong>caution notice</strong> has been placed on <strong>{absentName}</strong>'s profile.
-                  All guests browsing this hotel will now see their attendance record. Repeated no-shows
-                  may result in their account being suspended.
-                </p>
+                style={{ borderRadius: 14, marginBottom: 14, overflow: "hidden",
+                  border: "1px solid rgba(250,204,21,0.25)" }}>
+                <div style={{ padding: "10px 14px", background: "rgba(250,204,21,0.08)",
+                  borderBottom: "1px solid rgba(250,204,21,0.15)",
+                  display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 14 }}>⚖️</span>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: "rgba(250,204,21,0.85)",
+                    textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    Justice Has Been Served
+                  </p>
+                </div>
+                <div style={{ padding: "12px 14px", background: "rgba(250,204,21,0.04)" }}>
+                  <p style={{ margin: "0 0 6px", fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.6 }}>
+                    <strong style={{ color: "#facc15" }}>{absentName}</strong> has been billed{" "}
+                    <strong style={{ color: "#f87171" }}>{BREAKFAST_BILL[invite.fromFloor] ?? 20}🪙</strong>{" "}
+                    — the full cost of both covers — directly from their account.
+                  </p>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.6 }}>
+                    If they lacked sufficient coins their balance has gone into red debt.
+                    A caution notice has been placed on their profile, visible to all guests.
+                  </p>
+                </div>
               </motion.div>
             </>
           )}
