@@ -25,11 +25,20 @@ import {
 // Components
 import GhostParticles from "../components/GhostParticles";
 import GhostDevPanel from "../components/GhostDevPanel";
+import GhostButlerMessage, { BUTLER_MESSAGES, type ButlerMessageKey, type ButlerMessage } from "../components/GhostButlerMessage";
 import HouseRulesModal from "../components/HouseRulesModal";
 import GhostFlashPaywallSheet from "../components/GhostFlashPaywallSheet";
 import GhostAuthGateSheet from "../components/GhostAuthGateSheet";
 import GhostLobbySheet from "../components/GhostLobbySheet";
 import GhostViewedMeSheet from "../components/GhostViewedMeSheet";
+import GhostLeaderboardSheet from "../components/GhostLeaderboardSheet";
+import GhostTonightSheet from "../components/GhostTonightSheet";
+import GhostLobbyWelcomePopup from "../components/GhostLobbyWelcomePopup";
+import GhostFlagSheet from "../components/GhostFlagSheet";
+import GhostSecurityPopup from "../components/GhostSecurityPopup";
+import GhostButlerConnectPrompt from "../components/GhostButlerConnectPrompt";
+import GhostButlerUnavailablePopup from "../components/GhostButlerUnavailablePopup";
+import GhostSettingsDrawer, { type SettingsAction } from "../components/GhostSettingsDrawer";
 import FilterBar from "../components/FilterBar";
 import GhostProfilePopup from "../components/GhostProfilePopup";
 import GhostMatchPopup from "../components/GhostMatchPopup";
@@ -71,7 +80,6 @@ import { hasActiveWindowMode, getDaysConnected, getConciergeShown, whisperWillCo
 import { recordLike, loadMyMatches, getMyGhostId, syncTierToSupabase, loadTierFromSupabase, syncCoinsToSupabase, loadCoinsFromSupabase, loadGhostProfiles, type RealProfileRow } from "../ghostDataService";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
-const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
 
 
 // ── Dev Panel — moved to GhostDevPanel.tsx ───────────────────────────────────
@@ -158,15 +166,12 @@ export default function GhostModePage() {
   // Flag / Report state
   const [flaggedProfiles, setFlaggedProfiles] = useState<Record<string, { reason: string; at: number }>>(getFlaggedProfiles);
   const [flagSheet, setFlagSheet] = useState<{ profileId: string; ghostId: string } | null>(null);
-  const [flagReason, setFlagReason] = useState("");
 
-  const handleFlag = () => {
-    if (!flagSheet || !flagReason) return;
-    const next = { ...flaggedProfiles, [flagSheet.profileId]: { reason: flagReason, at: Date.now() } };
+  const handleFlag = (profileId: string, reason: string) => {
+    const next = { ...flaggedProfiles, [profileId]: { reason, at: Date.now() } };
     setFlaggedProfiles(next);
     saveFlaggedProfiles(next);
     setFlagSheet(null);
-    setFlagReason("");
   };
 
   const [realProfiles, setRealProfiles] = useState<RealProfileRow[]>([]);
@@ -399,6 +404,7 @@ export default function GhostModePage() {
   const [showButlerWelcome,  setShowButlerWelcome]  = useState(false);
   const [showLateNight,      setShowLateNight]      = useState(false);
   const [showCoinShop,       setShowCoinShop]       = useState(false);
+  const [butlerMessage,      setButlerMessage]      = useState<ButlerMessage | null>(null);
   const [showEvents,         setShowEvents]         = useState(false);
   const [showStats,          setShowStats]          = useState(false);
   const [showReferral,       setShowReferral]       = useState(false);
@@ -473,12 +479,12 @@ export default function GhostModePage() {
     return () => clearTimeout(t);
   }, []);
 
-  // Butler welcome — show 60s after first house rules acceptance
-  useEffect(() => {
-    if (!shouldShowButlerWelcome()) return;
-    const t = setTimeout(() => setShowButlerWelcome(true), 60000);
-    return () => clearTimeout(t);
-  }, []);
+  // Butler welcome — disabled (flow: house rules only auto-popup)
+  // useEffect(() => {
+  //   if (!shouldShowButlerWelcome()) return;
+  //   const t = setTimeout(() => setShowButlerWelcome(true), 60000);
+  //   return () => clearTimeout(t);
+  // }, []);
 
   // Late-night butler — show 90s after load if time is 10pm–3:59am, once per day
   useEffect(() => {
@@ -650,6 +656,13 @@ export default function GhostModePage() {
     setRevealedIds((prev) => new Set([...prev, id]));
   };
 
+  const handleSettingsAction = (action: SettingsAction) => {
+    if (action === "rooms") { setShowHouseModal(true); return; }
+    if (action === "ghostClock") { setWindowActive(hasActiveWindowMode()); setShowGhostClock(true); return; }
+    if (action === "floorWars") { setShowFloorWars(true); return; }
+    if (action === "video") { setShowVideoUpload(true); return; }
+  };
+
   // Passed (refused) profiles — persisted so they never reappear
   const [passedIds, setPassedIds] = useState<Set<string>>(() => {
     try {
@@ -749,13 +762,14 @@ export default function GhostModePage() {
     const joinedAt = (() => { try { return Number(localStorage.getItem("ghost_joined_at") || 0); } catch { return 0; } })();
     const accountAgeMs = joinedAt ? Date.now() - joinedAt : GRACE_MS + 1;
     if (accountAgeMs < GRACE_MS) return; // new account — skip notification
-    const t = setTimeout(() => {
-      if (inboundShownRef.current) return;
-      inboundShownRef.current = true;
-      const pick = DEMO_INBOUND[Math.floor(Math.random() * DEMO_INBOUND.length)];
-      setInboundLike(pick);
-    }, 18000);
-    return () => clearTimeout(t);
+    // Inbound like auto-timer disabled (flow: house rules only auto-popup)
+    // const t = setTimeout(() => {
+    //   if (inboundShownRef.current) return;
+    //   inboundShownRef.current = true;
+    //   const pick = DEMO_INBOUND[Math.floor(Math.random() * DEMO_INBOUND.length)];
+    //   setInboundLike(pick);
+    // }, 18000);
+    // return () => clearTimeout(t);
   }, [isGhost, hasGhostProfile]);
 
   // Trigger hearts cascade when a new inbound like arrives
@@ -766,17 +780,17 @@ export default function GhostModePage() {
     return () => clearTimeout(t);
   }, [inboundLike]);
 
-  // New Guests popup — fires once per session after 5–9 random minutes
-  useEffect(() => {
-    if (newGuestsShownRef.current || !hasGhostProfile) return;
-    const delayMs = (5 + Math.random() * 4) * 60 * 1000; // 5–9 minutes
-    const t = setTimeout(() => {
-      if (newGuestsShownRef.current) return;
-      newGuestsShownRef.current = true;
-      setShowNewGuests(true);
-    }, delayMs);
-    return () => clearTimeout(t);
-  }, [hasGhostProfile]);
+  // New Guests popup — disabled (flow: house rules only auto-popup)
+  // useEffect(() => {
+  //   if (newGuestsShownRef.current || !hasGhostProfile) return;
+  //   const delayMs = (5 + Math.random() * 4) * 60 * 1000;
+  //   const t = setTimeout(() => {
+  //     if (newGuestsShownRef.current) return;
+  //     newGuestsShownRef.current = true;
+  //     setShowNewGuests(true);
+  //   }, delayMs);
+  //   return () => clearTimeout(t);
+  // }, [hasGhostProfile]);
 
   // Base profiles — real Supabase profiles + mock SEA + international
   const allProfiles = useMemo<GhostProfile[]>(() => {
@@ -1065,7 +1079,6 @@ export default function GhostModePage() {
         />
       )}
       <GhostParticles />
-      <GhostInstallBanner />
 
       {/* Header */}
       <div style={{
@@ -2072,291 +2085,32 @@ export default function GhostModePage() {
 
 
       {/* ── 🏆 Top Profiles — City Leaderboard ── */}
-      <AnimatePresence>
-        {showLeaderboard && (() => {
-          const plc = (id: string) => { let h = 0; for (let i = 0; i < id.length; i++) h = Math.imul(37, h) + id.charCodeAt(i) | 0; return 50 + (Math.abs(h) % 950); };
-          const cityProfiles = allProfiles
-            .filter(p => p.city === userCity || p.countryFlag === homeFlag)
-            .map(p => ({ p, likes: plc(p.id) }))
-            .sort((a, b) => b.likes - a.likes)
-            .slice(0, 20);
-          return (
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowLeaderboard(false)}
-              style={{ position: "fixed", inset: 0, zIndex: 700, background: "rgba(0,0,0,0.88)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
-            >
-              <motion.div
-                initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                onClick={e => e.stopPropagation()}
-                style={{ width: "100%", maxWidth: 480, background: "rgba(5,5,10,0.99)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.25)", borderBottom: "none", maxHeight: "88dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}
-              >
-                {/* Gold top stripe */}
-                <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #d4af37, #fbbf24, #d4af37, transparent)", flexShrink: 0 }} />
-
-                {/* Header */}
-                <div style={{ flexShrink: 0, padding: "14px 18px 10px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 22 }}>🏆</span>
-                    <div>
-                      <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>Top in {userCity}</p>
-                      <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>Most liked · last 24 hours</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setShowLeaderboard(false)} style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
-                </div>
-
-                {/* Profile list */}
-                <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none", padding: "10px 14px max(24px,env(safe-area-inset-bottom,24px))" }}>
-                  {cityProfiles.map(({ p, likes }, i) => (
-                    <motion.div
-                      key={p.id}
-                      initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.04 }}
-                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < cityProfiles.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none" }}
-                    >
-                      {/* Rank */}
-                      <div style={{ width: 24, flexShrink: 0, textAlign: "center" }}>
-                        {i === 0 ? <span style={{ fontSize: 16 }}>🥇</span>
-                          : i === 1 ? <span style={{ fontSize: 16 }}>🥈</span>
-                          : i === 2 ? <span style={{ fontSize: 16 }}>🥉</span>
-                          : <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.3)" }}>#{i + 1}</span>}
-                      </div>
-
-                      {/* Avatar */}
-                      <div style={{ position: "relative", flexShrink: 0 }}>
-                        <img src={p.image} alt="" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: i < 3 ? "2px solid #d4af37" : "2px solid rgba(255,255,255,0.12)", display: "block" }}
-                          onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
-                        {isOnline(p.last_seen_at) && (
-                          <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
-                            style={{ position: "absolute", bottom: 1, right: 1, width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 5px rgba(74,222,128,0.9)", border: "1.5px solid rgba(5,5,10,1)" }} />
-                        )}
-                      </div>
-
-                      {/* Info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                          <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{toGhostId(p.id)}</p>
-                          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", flexShrink: 0 }}>{p.age}</span>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 1 }}>
-                          <span style={{ fontSize: 10 }}>{p.countryFlag}</span>
-                          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{p.city}</span>
-                          <span style={{ fontSize: 9, color: "#ec4899", fontWeight: 700, marginLeft: 4 }}>❤ {likes}</span>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                        <motion.button whileTap={{ scale: 0.88 }}
-                          onClick={() => { setShowLeaderboard(false); setSelectedProfile(p); }}
-                          style={{ height: 32, padding: "0 10px", borderRadius: 9, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-                          View
-                        </motion.button>
-                        <motion.button whileTap={{ scale: 0.88 }}
-                          onClick={() => handleLike(p)}
-                          style={{ height: 32, padding: "0 10px", borderRadius: 9, background: likedIds.has(p.id) ? "rgba(236,72,153,0.18)" : "rgba(255,255,255,0.06)", border: likedIds.has(p.id) ? "1px solid rgba(236,72,153,0.5)" : "1px solid rgba(255,255,255,0.14)", color: likedIds.has(p.id) ? "#ec4899" : "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
-                          {likedIds.has(p.id) ? "❤️" : "♡"}
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  ))}
-                  {cityProfiles.length === 0 && (
-                    <div style={{ textAlign: "center", padding: "40px 0" }}>
-                      <span style={{ fontSize: 40 }}>👻</span>
-                      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 12 }}>No profiles in {userCity} yet</p>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            </motion.div>
-          );
-        })()}
-      </AnimatePresence>
+      <GhostLeaderboardSheet
+        show={showLeaderboard}
+        profiles={allProfiles}
+        userCity={userCity}
+        homeFlag={homeFlag}
+        likedIds={likedIds}
+        onClose={() => setShowLeaderboard(false)}
+        onLike={handleLike}
+        onView={(p) => setSelectedProfile(p)}
+      />
 
       {/* ── 🌙 Tonight Lobby Sheet ── */}
-      <AnimatePresence>
-        {showTonightSheet && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setShowTonightSheet(false)}
-            style={{ position: "fixed", inset: 0, zIndex: 700, background: "rgba(0,0,0,0.9)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
-          >
-            <motion.div
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              onClick={e => e.stopPropagation()}
-              style={{ width: "100%", maxWidth: 480, background: "rgba(4,8,12,0.99)", borderRadius: "22px 22px 0 0", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none", maxHeight: "90dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}
-            >
-              {/* Accent top stripe */}
-              <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, ${a.accentMid}, ${a.accent}, transparent)`, flexShrink: 0 }} />
-
-              {/* Header */}
-              <div style={{ flexShrink: 0, padding: "14px 18px 10px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <motion.img src="https://ik.imagekit.io/7grri5v7d/SADFASDFASDFASDFSdsfasdf.png?updatedAt=1774213829792" alt="" animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.6, repeat: Infinity }} style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
-                  <div>
-                    <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>Ready to Meet Tonight</p>
-                    <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>
-                      {lobbyList.length > 0 ? `${lobbyList.length} ghost${lobbyList.length !== 1 ? "s" : ""} available now` : "No one in the lobby yet"}
-                    </p>
-                  </div>
-                </div>
-                <button onClick={() => setShowTonightSheet(false)} style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
-              </div>
-
-              {/* Profile grid */}
-              <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px 24px", scrollbarWidth: "none" } as React.CSSProperties}>
-                {lobbyList.length === 0 ? (
-                  <div style={{ textAlign: "center", paddingTop: 48 }}>
-                    <p style={{ fontSize: 48, margin: "0 0 12px" }}>🌙</p>
-                    <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#fff" }}>Lobby is quiet</p>
-                    <p style={{ margin: "6px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Check back later tonight</p>
-                  </div>
-                ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-                    {lobbyList.map((p, i) => (
-                      <motion.div
-                        key={p.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.04 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => { setShowTonightSheet(false); setSelectedProfile(p); }}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", aspectRatio: "3/4", border: `1.5px solid ${a.glow(0.3)}`, boxShadow: `0 0 10px ${a.glow(0.12)}` }}>
-                          <img src={p.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                            onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
-                          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)" }} />
-
-                          {/* Tonight badge */}
-                          <div style={{ position: "absolute", top: 6, left: 6, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "2px 6px" }}>
-                            <span style={{ fontSize: 7, fontWeight: 900, color: a.accent, letterSpacing: "0.04em" }}>🌙 TONIGHT</span>
-                          </div>
-
-                          {/* Online pulse */}
-                          <motion.div
-                            animate={{ opacity: [0.4, 1, 0.4] }}
-                            transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.15 }}
-                            style={{ position: "absolute", top: 6, right: 6, width: 7, height: 7, borderRadius: "50%", background: a.accent, boxShadow: `0 0 6px ${a.glow(0.9)}` }}
-                          />
-
-                          {/* Info */}
-                          <div style={{ position: "absolute", bottom: 6, left: 7, right: 7 }}>
-                            <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: "#fff", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name.split(" ")[0]}</p>
-                            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>{p.age} · {p.city}</p>
-                          </div>
-                        </div>
-
-                        {/* Like button */}
-                        <motion.button
-                          whileTap={{ scale: 0.88 }}
-                          onClick={e => { e.stopPropagation(); handleLike(p); }}
-                          style={{ width: "100%", marginTop: 5, height: 28, borderRadius: 8, border: likedIds.has(p.id) ? `1.5px solid ${a.glow(0.6)}` : "1px solid rgba(255,255,255,0.1)", background: likedIds.has(p.id) ? a.glow(0.15) : "rgba(255,255,255,0.04)", color: likedIds.has(p.id) ? a.accent : "rgba(255,255,255,0.55)", fontSize: 10, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}
-                        >
-                          {likedIds.has(p.id) ? "❤️ Liked" : "♡ Like"}
-                        </motion.button>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GhostTonightSheet
+        show={showTonightSheet}
+        lobbyList={lobbyList}
+        likedIds={likedIds}
+        onClose={() => setShowTonightSheet(false)}
+        onSelectProfile={(p) => setSelectedProfile(p)}
+        onLike={handleLike}
+      />
 
       {/* ── Lobby Welcome Popup ── */}
-      <AnimatePresence>
-        {showLobbyWelcome && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => { setShowLobbyWelcome(false); startTabRevert(); }}
-            style={{ position: "fixed", inset: 0, zIndex: 490, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
-          >
-            <motion.div
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              onClick={e => e.stopPropagation()}
-              style={{
-                width: "100%", maxWidth: 480,
-                background: "rgba(8,8,12,0.98)",
-                borderRadius: "24px 24px 0 0",
-                border: `1px solid ${a.glow(0.2)}`,
-                borderBottom: "none",
-                overflow: "hidden",
-              }}
-            >
-              {/* Accent bar */}
-              <motion.div
-                animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
-                style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)` }}
-              />
-
-              <div style={{ padding: "24px 22px 32px", display: "flex", flexDirection: "column", gap: 16 }}>
-                {/* Header */}
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <motion.span
-                    animate={{ scale: [1, 1.12, 1] }} transition={{ duration: 1.6, repeat: Infinity }}
-                    style={{ fontSize: 32, display: "block", flexShrink: 0 }}
-                  >🏨</motion.span>
-                  <div>
-                    <p style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: "0 0 4px", lineHeight: 1.2 }}>
-                      The Lobby is Open — <span style={{ color: a.accent }}>Right Now</span>
-                    </p>
-                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, fontWeight: 600 }}>
-                      Real Ghost members. Live. Tonight.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Body copy */}
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", margin: 0, lineHeight: 1.65 }}>
-                  Ghost members are in the Lobby <strong style={{ color: a.accent }}>at this very moment</strong> — anonymous, available, and searching for exactly what you are. No bios, no small talk. <strong style={{ color: "#fff" }}>Lobby Guests Are Ready Right Now To Date.</strong>
-                </p>
-
-                {/* 3 action tiles */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {[
-                    { icon: "❤️", title: "Like a profile", desc: "Tap any profile below and like them — if they like you back it's an instant match." },
-                    { icon: "🎁", title: "Send a gift first", desc: "Stand out before they even know your name. Gifts get noticed." },
-                    { icon: "🚀", title: "Join the 60-min session", desc: "Step fully into the Lobby and let tonight bring someone straight to you." },
-                  ].map(item => (
-                    <div key={item.icon} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 12px", borderRadius: 12, background: a.glow(0.05), border: `1px solid ${a.glow(0.1)}` }}>
-                      <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
-                      <div>
-                        <p style={{ fontSize: 12, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>{item.title}</p>
-                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.45 }}>{item.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Urgency note */}
-                <p style={{ fontSize: 10, color: a.glow(0.5), textAlign: "center", margin: 0, fontWeight: 700, letterSpacing: "0.04em" }}>
-                  ⚡ The Lobby resets every hour — don't miss this window
-                </p>
-
-                {/* CTA */}
-                <button
-                  onClick={() => { setShowLobbyWelcome(false); startTabRevert(); }}
-                  style={{
-                    width: "100%", height: 52, borderRadius: 16, border: "none",
-                    background: a.gradient,
-                    color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
-                    boxShadow: `0 4px 20px ${a.glow(0.4)}`,
-                    letterSpacing: "0.03em",
-                  }}
-                >
-                  Browse the Lobby →
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GhostLobbyWelcomePopup
+        show={showLobbyWelcome}
+        onDismiss={() => { setShowLobbyWelcome(false); startTabRevert(); }}
+      />
 
       <AnimatePresence>
         {showCoinShop && (
@@ -2431,120 +2185,30 @@ export default function GhostModePage() {
       </AnimatePresence>
 
       {/* Butler connect prompt — shows before opening WhatsApp when city is supported */}
-      <AnimatePresence>
-        {butlerConnectProfile && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: "fixed", inset: 0, zIndex: 320, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
-            onClick={() => {
-              const p = butlerConnectProfile;
-              setButlerConnectProfile(null);
-              if (p) { handleFoundBoo(p); setConnectNowProfile(p); }
-            }}
-          >
-            <motion.div
-              initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 28 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: "100%", maxWidth: 480,
-                background: "rgba(10,10,16,0.98)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
-                borderRadius: "22px 22px 0 0", border: "1px solid rgba(251,191,36,0.2)",
-                padding: "20px 20px max(20px, env(safe-area-inset-bottom, 20px))",
-              }}
-            >
-              <div style={{ textAlign: "center", marginBottom: 16 }}>
-                <span style={{ fontSize: 32, lineHeight: 1 }}>🎩</span>
-                <p style={{ margin: "8px 0 4px", fontSize: 15, fontWeight: 800, color: "#fbbf24" }}>
-                  Send a Surprise First?
-                </p>
-                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
-                  Impress {butlerConnectProfile.name.split(" ")[0]} with flowers, jewellery or a spa gift — delivered right to her door.
-                </p>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <button
-                  onClick={() => {
-                    const p = butlerConnectProfile;
-                    setButlerConnectProfile(null);
-                    if (isCitySupported(userCity)) {
-                      setButlerMatchName(p?.name);
-                      setTimeout(() => setShowButler(true), 200);
-                    } else {
-                      setTimeout(() => setShowButlerUnavailable(true), 200);
-                    }
-                  }}
-                  style={{
-                    width: "100%", height: 48, borderRadius: 14, border: "none",
-                    background: "linear-gradient(135deg, #d97706, #fbbf24)",
-                    color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  }}
-                >
-                  🎩 Open Ghost Butler
-                </button>
-                <button
-                  onClick={() => {
-                    const p = butlerConnectProfile;
-                    setButlerConnectProfile(null);
-                    if (p) { handleFoundBoo(p); setConnectNowProfile(p); }
-                  }}
-                  style={{
-                    width: "100%", height: 44, borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)",
-                    background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)",
-                    fontWeight: 700, fontSize: 13, cursor: "pointer",
-                  }}
-                >
-                  No thanks, connect now
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GhostButlerConnectPrompt
+        profile={butlerConnectProfile}
+        onConnectNow={() => {
+          const p = butlerConnectProfile;
+          setButlerConnectProfile(null);
+          if (p) { handleFoundBoo(p); setConnectNowProfile(p); }
+        }}
+        onOpenButler={() => {
+          const p = butlerConnectProfile;
+          setButlerConnectProfile(null);
+          if (isCitySupported(userCity)) {
+            setButlerMatchName(p?.name);
+            setTimeout(() => setShowButler(true), 200);
+          } else {
+            setTimeout(() => setShowButlerUnavailable(true), 200);
+          }
+        }}
+      />
 
       {/* Butler unavailable — city not yet served */}
-      <AnimatePresence>
-        {showButlerUnavailable && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: "fixed", inset: 0, zIndex: 320, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
-            onClick={() => setShowButlerUnavailable(false)}
-          >
-            <motion.div
-              initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 28 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: "100%", maxWidth: 480,
-                background: "rgba(10,10,16,0.98)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
-                borderRadius: "22px 22px 0 0", border: "1px solid rgba(251,191,36,0.15)",
-                padding: "32px 24px max(28px, env(safe-area-inset-bottom, 28px))",
-                textAlign: "center",
-              }}
-            >
-              <div style={{ fontSize: 48, lineHeight: 1, marginBottom: 16 }}>🎩</div>
-              <h3 style={{ margin: "0 0 10px", fontSize: 18, fontWeight: 900, color: "#fbbf24" }}>
-                The Butler Has Not Yet Arrived
-              </h3>
-              <p style={{ margin: "0 0 24px", fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.65 }}>
-                Our butler is not yet on service shift in your city. Please come back later — we're expanding our list of gift service providers soon.
-              </p>
-              <button
-                onClick={() => setShowButlerUnavailable(false)}
-                style={{
-                  width: "100%", height: 48, borderRadius: 14,
-                  background: "rgba(251,191,36,0.12)", color: "#fbbf24",
-                  fontWeight: 800, fontSize: 14, cursor: "pointer",
-                  border: "1px solid rgba(251,191,36,0.25)",
-                }}
-              >
-                Got it
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GhostButlerUnavailablePopup
+        show={showButlerUnavailable}
+        onClose={() => setShowButlerUnavailable(false)}
+      />
 
       <AnimatePresence>
         {matchPaywallProfile && (
@@ -2733,246 +2397,25 @@ export default function GhostModePage() {
       </AnimatePresence>
 
       {/* ── Settings Sheet ── */}
-      <AnimatePresence>
-        {showSettingsSheet && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowSettingsSheet(false)}
-              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 9000, backdropFilter: "blur(4px)" }}
-            />
-            {/* Right drawer */}
-            <motion.div
-              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 320 }}
-              style={{
-                position: "fixed", top: 0, right: 0, bottom: 0,
-                width: 260, zIndex: 9001,
-                background: "rgba(8,10,14,0.99)",
-                borderLeft: `1px solid ${a.glow(0.15)}`,
-                display: "flex", flexDirection: "column",
-                paddingTop: "max(48px, env(safe-area-inset-top, 48px))",
-                paddingBottom: "max(32px, env(safe-area-inset-bottom, 32px))",
-              }}
-            >
-              {/* Top rim */}
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)` }} />
-
-              {/* Header */}
-              <div style={{ padding: "0 20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div>
-                  <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0 }}>Menu</p>
-                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}>2Ghost</p>
-                </div>
-                <button onClick={() => setShowSettingsSheet(false)}
-                  style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-                >✕</button>
-              </div>
-
-              <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.15)}, transparent)`, margin: "0 20px 16px" }} />
-
-              {/* Nav items */}
-              <div style={{ flex: 1, overflowY: "auto", padding: "0 12px" }}>
-                {[
-                  { icon: "📊", label: "Dashboard", desc: "Your stats & activity", action: () => { setShowSettingsSheet(false); navigate("/ghost/dashboard"); } },
-                  { icon: null, label: "Shield", desc: "Block & privacy controls", isShield: true, action: () => { setShowSettingsSheet(false); navigate("/ghost/block"); } },
-                  { icon: "🏨", label: "Rooms", desc: "Ghost Hotel floor", action: () => { setShowSettingsSheet(false); setShowHouseModal(true); } },
-                  { icon: null, label: "Room Vault", desc: "Your private ghost room", isRoom: true, action: () => { setShowSettingsSheet(false); navigate("/ghost/room"); } },
-                  { icon: "🕐", label: "Ghost Clock", desc: "Open your 2-hour availability window", action: () => { setShowSettingsSheet(false); setWindowActive(hasActiveWindowMode()); setShowGhostClock(true); } },
-                  { icon: "⚔️", label: "Floor Wars", desc: "Weekly floor gift leaderboard", action: () => { setShowSettingsSheet(false); setShowFloorWars(true); } },
-                  { icon: "🎬", label: "Video Introduction", desc: "Upload & manage your video intro", action: () => { setShowSettingsSheet(false); setShowVideoUpload(true); } },
-                  { icon: "📄", label: "Terms & Conditions", desc: "Privacy & usage policy", action: () => { setShowSettingsSheet(false); window.open("https://2ghost.com/terms", "_blank"); } },
-                  { icon: "🏨", label: "Check Out of Hotel", desc: "Leave a calling card or check out with your match", isCheckout: true, action: () => { setShowSettingsSheet(false); navigate("/ghost/checkout"); } },
-                ].map(({ icon, label, desc, isShield, isRoom, isCheckout, action } : { icon: string | null; label: string; desc: string; isShield?: boolean; isRoom?: boolean; isCheckout?: boolean; action: () => void }) => (
-                  <button key={label} onClick={action}
-                    style={{
-                      width: "100%", display: "flex", alignItems: "center", gap: 14,
-                      background: isCheckout ? "rgba(239,68,68,0.04)" : "rgba(255,255,255,0.02)",
-                      border: isCheckout ? "1px solid rgba(239,68,68,0.15)" : "1px solid rgba(255,255,255,0.05)",
-                      borderRadius: 14, padding: "13px 14px", marginBottom: 8,
-                      cursor: "pointer", textAlign: "left",
-                    }}
-                  >
-                    <div style={{
-                      width: 38, height: 38, borderRadius: 10, flexShrink: 0,
-                      background: isShield ? "rgba(255,255,255,0.04)" : isCheckout ? "rgba(239,68,68,0.08)" : a.glow(0.07),
-                      border: `1px solid ${isShield ? "rgba(255,255,255,0.08)" : isCheckout ? "rgba(239,68,68,0.2)" : a.glow(0.15)}`,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      {isShield
-                        ? <img src={SHIELD_LOGO} alt="shield" style={{ width: 22, height: 22, objectFit: "contain" }} />
-                        : isRoom
-                        ? <img src="https://ik.imagekit.io/7grri5v7d/weqweqw.png" alt="room" style={{ width: 22, height: 22, objectFit: "contain" }} />
-                        : <span style={{ fontSize: 18 }}>{icon}</span>
-                      }
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 13, fontWeight: 800, color: isCheckout ? "rgba(239,68,68,0.85)" : "#fff", margin: 0 }}>{label}</p>
-                      <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>{desc}</p>
-                    </div>
-                    <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 14 }}>›</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Footer */}
-              <div style={{ padding: "16px 20px 0", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                <p style={{ fontSize: 10, color: "rgba(255,255,255,0.18)", margin: 0, textAlign: "center" }}>2Ghost · Find your boo 👻</p>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <GhostSettingsDrawer
+        show={showSettingsSheet}
+        onClose={() => setShowSettingsSheet(false)}
+        onAction={handleSettingsAction}
+      />
 
       {/* ── Flag / Report sheet ── */}
-      <AnimatePresence>
-        {flagSheet && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => { setFlagSheet(null); setFlagReason(""); }}
-            style={{
-              position: "fixed", inset: 0, zIndex: 500,
-              background: "rgba(0,0,0,0.78)", backdropFilter: "blur(12px)",
-              display: "flex", alignItems: "flex-end", justifyContent: "center",
-            }}
-          >
-            <motion.div
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: "100%", maxWidth: 480,
-                background: "rgba(8,6,6,0.98)",
-                borderRadius: "20px 20px 0 0",
-                border: "1px solid rgba(239,68,68,0.2)", borderBottom: "none",
-                padding: "0 18px max(28px, env(safe-area-inset-bottom, 28px))",
-              }}
-            >
-              <div style={{ height: 3, background: "linear-gradient(90deg, #ef4444, #f87171)", borderRadius: "4px 4px 0 0" }} />
-              <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 16px" }}>
-                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
-              </div>
-              <h3 style={{ fontSize: 16, fontWeight: 900, margin: "0 0 4px" }}>Report {flagSheet.ghostId}</h3>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: "0 0 16px" }}>
-                Select a reason. This profile will be flagged for admin review and frozen until investigated.
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-                {[
-                  { key: "spam", label: "Spam or repeated harassment", icon: "🚫" },
-                  { key: "fake", label: "Fake profile or catfishing", icon: "🎭" },
-                  { key: "inappropriate", label: "Inappropriate content", icon: "⚠️" },
-                  { key: "threatening", label: "Threatening or abusive behaviour", icon: "🛑" },
-                  { key: "underage", label: "Appears to be underage", icon: "🔞" },
-                ].map((r) => (
-                  <button
-                    key={r.key}
-                    onClick={() => setFlagReason(r.key)}
-                    style={{
-                      width: "100%", height: 46, borderRadius: 12, padding: "0 14px",
-                      background: flagReason === r.key ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.04)",
-                      border: flagReason === r.key ? "1px solid rgba(239,68,68,0.5)" : "1px solid rgba(255,255,255,0.08)",
-                      color: flagReason === r.key ? "#f87171" : "rgba(255,255,255,0.7)",
-                      fontSize: 13, fontWeight: 600, cursor: "pointer",
-                      display: "flex", alignItems: "center", gap: 10, textAlign: "left",
-                    }}
-                  >
-                    <span>{r.icon}</span>
-                    <span>{r.label}</span>
-                  </button>
-                ))}
-              </div>
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={handleFlag}
-                disabled={!flagReason}
-                style={{
-                  width: "100%", height: 48, borderRadius: 50, border: "none",
-                  background: flagReason ? "linear-gradient(to bottom, #f87171, #ef4444)" : "rgba(255,255,255,0.07)",
-                  color: flagReason ? "#fff" : "rgba(255,255,255,0.3)",
-                  fontSize: 14, fontWeight: 900, cursor: flagReason ? "pointer" : "default",
-                  boxShadow: flagReason ? "0 4px 16px rgba(239,68,68,0.4)" : "none",
-                  marginBottom: 10,
-                }}
-              >
-                Submit Report
-              </motion.button>
-              <button
-                onClick={() => { setFlagSheet(null); setFlagReason(""); }}
-                style={{ width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 12, cursor: "pointer", padding: "4px 0" }}
-              >
-                Cancel
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GhostFlagSheet
+        flagSheet={flagSheet}
+        onSubmit={handleFlag}
+        onClose={() => setFlagSheet(null)}
+      />
 
       {/* ── Security popup — fires when user taps before agreeing to house rules ── */}
-      <AnimatePresence>
-        {showSecurityPopup && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowSecurityPopup(false)}
-            style={{
-              position: "fixed", inset: 0, zIndex: 300,
-              background: "rgba(0,0,0,0.6)",
-              backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              padding: "0 24px",
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.88, opacity: 0, y: 12 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.88, opacity: 0, y: 12 }}
-              transition={{ type: "spring", stiffness: 360, damping: 28 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: "100%", maxWidth: 340,
-                background: "rgba(8,10,8,0.98)",
-                border: `1px solid ${a.glow(0.18)}`,
-                borderRadius: 20,
-                padding: "28px 24px 22px",
-                boxShadow: "0 24px 80px rgba(0,0,0,0.8)",
-                textAlign: "center",
-              }}
-            >
-              <img src={GHOST_LOGO} alt="ghost" style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 14 }} />
-              <p style={{ fontSize: 11, fontWeight: 800, color: a.glow(0.7), textTransform: "uppercase", letterSpacing: "0.12em", margin: "0 0 8px" }}>
-                🔒 Security Notice
-              </p>
-              <h3 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: "0 0 10px", lineHeight: 1.3 }}>
-                Account Required
-              </h3>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: "0 0 20px", lineHeight: 1.6 }}>
-                For security reasons, all users must agree to our house rules before viewing our house guests.
-              </p>
-              <motion.button
-                whileTap={{ scale: 0.96 }}
-                onClick={() => { setShowSecurityPopup(false); setShowHouseRules(true); }}
-                style={{
-                  width: "100%", height: 46, borderRadius: 50, border: "none",
-                  background: a.gradient,
-                  color: "#fff", fontSize: 14, fontWeight: 900,
-                  cursor: "pointer",
-                  boxShadow: `0 4px 20px ${a.glowMid(0.4)}`,
-                }}
-              >
-                View House Rules
-              </motion.button>
-              <button
-                onClick={() => setShowSecurityPopup(false)}
-                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 12, cursor: "pointer", marginTop: 12, padding: "4px 0" }}
-              >
-                Close
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GhostSecurityPopup
+        show={showSecurityPopup}
+        onClose={() => setShowSecurityPopup(false)}
+        onShowRules={() => setShowHouseRules(true)}
+      />
 
       {/* ── House rules modal ── */}
       <HouseRulesModal show={showHouseRules} onAccept={handleHouseRulesAccept} />
@@ -3232,7 +2675,11 @@ export default function GhostModePage() {
           const pick = DEMO_INBOUND[Math.floor(Math.random() * DEMO_INBOUND.length)];
           setInboundLike(pick);
         }}
+        onTriggerButler={(key: ButlerMessageKey) => setButlerMessage(BUTLER_MESSAGES[key])}
       />
+
+      {/* ── Butler Message ── */}
+      <GhostButlerMessage message={butlerMessage} onClose={() => setButlerMessage(null)} />
 
       {/* ── Hearts cascade on inbound like ── */}
       <AnimatePresence>

@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { Heart, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
 import type { GhostProfile } from "../types/ghostTypes";
@@ -220,20 +222,46 @@ export default function GhostProfilePopup({
             )}
           </button>
           </div>
-          {/* Games Room — online-only invite button */}
-          {online && onGameInvite && (
-            <motion.button
-              whileTap={{ scale: 0.97 }} onClick={onGameInvite}
-              style={{ width: "100%", height: 44, borderRadius: 14, cursor: "pointer",
-                background: "linear-gradient(135deg, rgba(250,204,21,0.18), rgba(250,204,21,0.08))",
-                border: "1.5px solid rgba(250,204,21,0.45)",
-                color: "#facc15", fontSize: 13, fontWeight: 900,
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                boxShadow: "0 4px 18px rgba(250,204,21,0.15)" }}>
-              <span>🎮</span>
-              <span>Invite to Games Room · Connect 4</span>
-            </motion.button>
-          )}
+          {/* Hotel Games Room */}
+          <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(250,204,21,0.2)" }}>
+            {/* Header */}
+            <div style={{ padding: "10px 14px 8px", background: "rgba(250,204,21,0.07)", borderBottom: "1px solid rgba(250,204,21,0.12)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 900, color: "rgba(250,204,21,0.9)" }}>Hotel Games Room</p>
+                <p style={{ margin: "1px 0 0", fontSize: 9, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>Connect 4 · Chat open at every level</p>
+              </div>
+              <Link to="/ghost/games" style={{ fontSize: 9, fontWeight: 800, color: "rgba(250,204,21,0.65)", textDecoration: "none", background: "rgba(250,204,21,0.1)", border: "1px solid rgba(250,204,21,0.25)", borderRadius: 8, padding: "4px 8px" }}>
+                Enter →
+              </Link>
+            </div>
+
+            {/* Connect 4 mini preview */}
+            <div style={{ padding: "10px 14px", background: "rgba(0,0,0,0.3)" }}>
+              {/* Grid preview */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3, marginBottom: 8 }}>
+                {[
+                  [0,0,0,0,0,0,0],
+                  [0,0,0,0,0,0,0],
+                  [0,0,0,1,0,0,0],
+                  [0,0,1,2,0,0,0],
+                  [0,1,2,1,2,0,0],
+                  [2,1,2,1,2,1,0],
+                ].flat().map((cell, i) => (
+                  <div key={i} style={{
+                    width: "100%", aspectRatio: "1",
+                    borderRadius: "50%",
+                    background: cell === 1 ? "rgba(250,204,21,0.9)" : cell === 2 ? "rgba(239,68,68,0.85)" : "rgba(255,255,255,0.07)",
+                    border: cell === 0 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                    boxShadow: cell === 1 ? "0 0 5px rgba(250,204,21,0.6)" : cell === 2 ? "0 0 5px rgba(239,68,68,0.5)" : "none",
+                  }} />
+                ))}
+              </div>
+              {/* Text */}
+              <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+                <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 700 }}>{ghostId}</span> may be open to a game. Chat unlocks as you play — it's a natural way to connect before revealing yourself.
+              </p>
+            </div>
+          </div>
 
           {/* Secondary action row */}
           {(onWhisper || onVideoIntro || onSeance || onCallButler) && (

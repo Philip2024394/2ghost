@@ -39,6 +39,7 @@ const PenthouseVaultPage       = lazyWithRetry(() => import("./features/ghost/pa
 const HotelCheckoutPage        = lazyWithRetry(() => import("./features/ghost/pages/HotelCheckoutPage"));
 const Connect4Page             = lazyWithRetry(() => import("./features/ghost/pages/Connect4Page"));
 const GamesRoomPage            = lazyWithRetry(() => import("./features/ghost/pages/GamesRoomPage"));
+const HotelRulesPage           = lazyWithRetry(() => import("./features/ghost/pages/HotelRulesPage"));
 
 // Affiliate
 const AffiliateJoinPage      = lazyWithRetry(() => import("./features/affiliate/pages/AffiliateJoinPage"));
@@ -123,6 +124,7 @@ export default function App() {
           <Route path="/ghost/floor/cellar-floor"     element={<CellarRoomPage />} />
           <Route path="/ghost/floor/:tier"            element={<FloorHomePage />} />
           <Route path="/ghost/how-it-works"           element={<GhostHowItWorksPage />} />
+          <Route path="/hotel-rules"                 element={<HotelRulesPage />} />
           <Route path="/ghost/checkout"              element={<HotelCheckoutPage />} />
           <Route path="/ghost/games"                  element={<GamesRoomPage />} />
           <Route path="/ghost/games/connect4"        element={<Connect4Page />} />

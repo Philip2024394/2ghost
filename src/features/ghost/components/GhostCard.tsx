@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { MapPin, Fingerprint } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
@@ -207,6 +208,11 @@ function ProfileWhisperModal({
 
   // ── Photo thumbnail state ─────────────────────────────────────────────────
   const [activeThumb, setActiveThumb] = useState(0);
+  const [showReport, setShowReport]       = useState(false);
+  const [reportReason, setReportReason]   = useState("");
+  const [reporterId, setReporterId]       = useState("");
+  const [reporterWA, setReporterWA]       = useState("");
+  const [reportExplanation, setReportExplanation] = useState("");
   const PHOTO_CROPS = ["center 8%", "center 32%", "center 58%", "center 85%"] as const;
 
   // ── Whisper state ────────────────────────────────────────────────────────
@@ -335,6 +341,7 @@ function ProfileWhisperModal({
 
   // ── Main: profile details + whisper ──────────────────────────────────────
   return (
+    <>
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       onClick={onClose}
@@ -569,6 +576,32 @@ function ProfileWhisperModal({
               )}
             </AnimatePresence>
           </div>
+
+          {/* ── Hotel Games Room ── */}
+          <div style={{ margin: "0 16px 20px" }}>
+            <p style={{ margin: "0 0 10px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.12em" }}>🎮 Hotel Games Room</p>
+
+            {/* Connect 4 — standard game on every profile */}
+            <Link
+              to="/ghost/games/connect4"
+              style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 11, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", textDecoration: "none", marginBottom: 10 }}
+            >
+              <span style={{ fontSize: 20, flexShrink: 0 }}>🔴</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>Connect 4</p>
+                <p style={{ margin: "1px 0 0", fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Hotel standard game · Chat opens as you play</p>
+              </div>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.2)" }}>→</span>
+            </Link>
+
+            {/* Butler suggestion */}
+            <div style={{ display: "flex", gap: 10, padding: "10px 12px", borderRadius: 11, background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.18)" }}>
+              <img src="https://ik.imagekit.io/7grri5v7d/werwerwer-removebg-preview.png" alt="" style={{ width: 30, height: 30, objectFit: "contain", flexShrink: 0, marginTop: 1 }} />
+              <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.65 }}>
+                <span style={{ color: "#d4af37", fontWeight: 800 }}>The Butler suggests —</span> rather than an opening question, consider inviting <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 700 }}>{toGhostId(profile.id)}</span> to a game. The chat room opens as you play — a natural way to connect before you reveal yourself.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* ── Sticky footer ── */}
@@ -578,13 +611,174 @@ function ProfileWhisperModal({
             <span>👻</span><span>Send Whisper</span>
           </motion.button>
           <motion.button whileTap={{ scale: 0.92 }}
-            onClick={() => { try { const r = JSON.parse(localStorage.getItem("ghost_reports") || "[]"); r.push({ profileId: profile.id, reportedAt: Date.now() }); localStorage.setItem("ghost_reports", JSON.stringify(r)); } catch {} alert("Profile reported. Our team will review it."); }}
+            onClick={() => setShowReport(true)}
             style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid rgba(239,68,68,0.25)", background: "rgba(239,68,68,0.07)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
             <span style={{ fontSize: 18 }}>⚠️</span>
           </motion.button>
         </div>
       </motion.div>
     </motion.div>
+
+    {/* ── Profile Report Page ── */}
+    <AnimatePresence>
+      {showReport && (
+        <motion.div
+          initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          style={{
+            position: "fixed", inset: 0, zIndex: 9999,
+            backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/sdfsdfssssdfsdfshkhj.png?updatedAt=1774292956820)",
+            backgroundSize: "cover", backgroundPosition: "center top",
+            display: "flex", flexDirection: "column",
+            maxWidth: 480, margin: "0 auto",
+          }}
+        >
+          {/* Dark overlay so text is readable */}
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.72)", zIndex: 0 }} />
+
+          {/* Content */}
+          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
+
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "env(safe-area-inset-top,16px) 20px 0" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0 16px" }}>
+                <div>
+                  <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>Profile Reporting</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>Reported to The Butler</p>
+                </div>
+                <motion.button whileTap={{ scale: 0.88 }} onClick={() => { setShowReport(false); setReportReason(""); setReporterId(""); setReporterWA(""); setReportExplanation(""); }}
+                  style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.6)", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  ✕
+                </motion.button>
+              </div>
+              <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(239,68,68,0.5), transparent)", marginBottom: 20 }} />
+            </div>
+
+            {/* Scrollable body */}
+            <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none", padding: "0 20px" }}>
+
+              {/* Intro text */}
+              <p style={{ margin: "0 0 20px", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.75 }}>
+                You have initiated a report against <span style={{ color: "#fff", fontWeight: 700 }}>{toGhostId(profile.id)}</span>. I ask that you select the most applicable violation below. Every report within this hotel is taken with the utmost seriousness — proper steps will follow. I would also remind you that false or malicious reports are treated with equal gravity. Reflect carefully before you submit.
+              </p>
+
+              {/* Violations */}
+              <p style={{ margin: "0 0 12px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.12em" }}>Select Violation</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+                {[
+                  { key: "fake",        icon: "🎭", label: "Fake profile or catfishing" },
+                  { key: "explicit",    icon: "🔞", label: "Indecent or explicit content shared" },
+                  { key: "harassment",  icon: "🛑", label: "Harassment or threatening behaviour" },
+                  { key: "spam",        icon: "📵", label: "Spam or unsolicited mass messaging" },
+                  { key: "noshow",      icon: "📅", label: "Accepted a date and did not appear" },
+                  { key: "underage",    icon: "⚠️", label: "Suspected underage guest" },
+                  { key: "scam",        icon: "💸", label: "Scam, soliciting money or gifts" },
+                  { key: "hate",        icon: "🚫", label: "Hate speech or discriminatory language" },
+                  { key: "contact",     icon: "🔓", label: "Shared contact details before mutual unlock" },
+                  { key: "impersonate", icon: "👤", label: "Impersonating another person or celebrity" },
+                  { key: "other",       icon: "📋", label: "Other — does not comply with Hotel Rules" },
+                ].map(r => (
+                  <button key={r.key} onClick={() => setReportReason(r.key)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 12, padding: "12px 14px",
+                      borderRadius: 12, cursor: "pointer", textAlign: "left",
+                      background: reportReason === r.key ? "rgba(239,68,68,0.14)" : "rgba(255,255,255,0.04)",
+                      border: reportReason === r.key ? "1px solid rgba(239,68,68,0.55)" : "1px solid rgba(255,255,255,0.08)",
+                      color: reportReason === r.key ? "#f87171" : "rgba(255,255,255,0.65)",
+                      fontSize: 13, fontWeight: reportReason === r.key ? 700 : 500,
+                    }}>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>{r.icon}</span>
+                    <span>{r.label}</span>
+                    {reportReason === r.key && <span style={{ marginLeft: "auto", fontSize: 12 }}>✓</span>}
+                  </button>
+                ))}
+              </div>
+
+              {/* Your ID */}
+              <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.12em" }}>Your Ghost ID</p>
+              <input
+                value={reporterId}
+                onChange={e => setReporterId(e.target.value)}
+                placeholder="e.g. #GH-00421"
+                style={{
+                  width: "100%", boxSizing: "border-box", padding: "12px 14px", borderRadius: 12,
+                  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff", fontSize: 13, outline: "none", marginBottom: 16,
+                }}
+              />
+
+              {/* WhatsApp */}
+              <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.12em" }}>Your WhatsApp Number</p>
+              <input
+                value={reporterWA}
+                onChange={e => setReporterWA(e.target.value)}
+                placeholder="+62 812 3456 7890"
+                type="tel"
+                style={{
+                  width: "100%", boxSizing: "border-box", padding: "12px 14px", borderRadius: 12,
+                  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff", fontSize: 13, outline: "none", marginBottom: 16,
+                }}
+              />
+
+              {/* Explanation */}
+              <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.12em" }}>Explanation</p>
+              <div style={{ position: "relative", marginBottom: 8 }}>
+                <textarea
+                  value={reportExplanation}
+                  onChange={e => setReportExplanation(e.target.value.slice(0, 500))}
+                  placeholder="Describe what happened in detail..."
+                  rows={4}
+                  style={{
+                    width: "100%", boxSizing: "border-box", padding: "12px 14px", borderRadius: 12,
+                    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                    color: "#fff", fontSize: 13, outline: "none", resize: "none",
+                    lineHeight: 1.6, fontFamily: "inherit",
+                  }}
+                />
+                <p style={{ margin: "4px 0 0", textAlign: "right", fontSize: 10, color: reportExplanation.length >= 490 ? "#f87171" : "rgba(255,255,255,0.25)" }}>
+                  {reportExplanation.length} / 500
+                </p>
+              </div>
+
+              {/* Disclaimer */}
+              <p style={{ margin: "0 0 24px", fontSize: 11, color: "rgba(255,255,255,0.25)", lineHeight: 1.65 }}>
+                By submitting this report you confirm the information provided is accurate to the best of your knowledge. False or malicious reports may result in action being taken against your own account. All reports are reviewed by hotel management.
+              </p>
+            </div>
+
+            {/* Sticky footer */}
+            <div style={{ flexShrink: 0, padding: "14px 20px max(28px,env(safe-area-inset-bottom,28px))", borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.6)" }}>
+              <motion.button whileTap={{ scale: 0.97 }}
+                disabled={!reportReason}
+                onClick={() => {
+                  if (!reportReason) return;
+                  try {
+                    const r = JSON.parse(localStorage.getItem("ghost_reports") || "[]");
+                    r.push({ profileId: profile.id, ghostId: toGhostId(profile.id), reason: reportReason, reporterId, reporterWA, explanation: reportExplanation, reportedAt: Date.now() });
+                    localStorage.setItem("ghost_reports", JSON.stringify(r));
+                  } catch {}
+                  setShowReport(false);
+                  setReportReason("");
+                  setReporterId("");
+                  setReporterWA("");
+                  setReportExplanation("");
+                }}
+                style={{
+                  width: "100%", height: 52, borderRadius: 50, border: "none",
+                  background: reportReason ? "linear-gradient(135deg, #b91c1c, #7f1d1d)" : "rgba(255,255,255,0.07)",
+                  color: reportReason ? "#fff" : "rgba(255,255,255,0.25)",
+                  fontSize: 15, fontWeight: 900, cursor: reportReason ? "pointer" : "default",
+                  boxShadow: reportReason ? "0 4px 20px rgba(127,29,29,0.5)" : "none",
+                }}>
+                Submit Report to The Butler
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
 
@@ -761,28 +955,6 @@ export default function GhostCard({
             <Fingerprint size={17} color="#fff" />
           </motion.button>
 
-          {/* Games Room button — bottom-left, online profiles only */}
-          {online && onGameInvite && (
-            <motion.button
-              whileTap={{ scale: 0.85 }}
-              onClick={(e) => { e.stopPropagation(); onGameInvite(profile); }}
-              style={{
-                position: "absolute", bottom: 12, left: 10, zIndex: 5,
-                height: 30, padding: "0 10px", borderRadius: 20,
-                background: "rgba(0,0,0,0.62)",
-                border: "1.5px solid rgba(250,204,21,0.55)",
-                backdropFilter: "blur(12px)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                gap: 5, cursor: "pointer",
-                boxShadow: "0 2px 10px rgba(250,204,21,0.25)",
-              }}
-            >
-              <span style={{ fontSize: 13 }}>🎮</span>
-              <span style={{ fontSize: 9, fontWeight: 800, color: "#facc15", letterSpacing: "0.04em" }}>
-                Games Room
-              </span>
-            </motion.button>
-          )}
 
           {/* Special overlays */}
           {flaggedReason === "spam" && (

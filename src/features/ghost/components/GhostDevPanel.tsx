@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { ButlerMessageKey } from "./GhostButlerMessage";
 
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
 
@@ -13,6 +14,7 @@ export type DevPanelProps = {
   houseTier: "gold" | "suite" | null; setHouseTier: (t: "gold" | "suite" | null) => void;
   activate: (p: "ghost" | "bundle") => void; deactivate: () => void;
   onTriggerFlashMatch: () => void; onTriggerMatch: () => void; onTriggerInbound: () => void;
+  onTriggerButler: (key: ButlerMessageKey) => void;
 };
 
 export default function GhostDevPanel({
@@ -21,6 +23,7 @@ export default function GhostDevPanel({
   houseTier, setHouseTier,
   activate, deactivate,
   onTriggerFlashMatch, onTriggerMatch, onTriggerInbound,
+  onTriggerButler,
 }: DevPanelProps) {
   const [open, setOpen] = useState(false);
 
@@ -202,6 +205,26 @@ export default function GhostDevPanel({
                   <button style={actionBtn} onClick={onTriggerFlashMatch}>⚡ Flash Match</button>
                   <button style={actionBtn} onClick={onTriggerMatch}>💚 Match</button>
                   <button style={actionBtn} onClick={onTriggerInbound}>👋 Inbound Like</button>
+                </div>
+              </div>
+
+              <div>
+                <span style={label}>🎩 Butler Messages</span>
+                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                  <button style={actionBtn} onClick={() => onTriggerButler("match_interest")}>💌 Interest</button>
+                  <button style={actionBtn} onClick={() => onTriggerButler("noshow_warning_1")}>⚠️ No-show 1</button>
+                  <button style={actionBtn} onClick={() => onTriggerButler("noshow_warning_2")}>⚠️ No-show 2</button>
+                  <button style={{ ...actionBtn, color: "rgba(248,113,113,0.9)", border: "1px solid rgba(239,68,68,0.25)" }} onClick={() => onTriggerButler("noshow_final")}>🚨 Final Strike</button>
+                  <button style={actionBtn} onClick={() => onTriggerButler("match_expiry")}>⏳ Expiry</button>
+                  <button style={{ ...actionBtn, color: "#d4af37", border: "1px solid rgba(212,175,55,0.3)" }} onClick={() => onTriggerButler("coin_shop")}>🪙 Coin Shop</button>
+                  <button style={{ ...actionBtn, color: "rgba(248,113,113,0.9)", border: "1px solid rgba(239,68,68,0.25)" }} onClick={() => onTriggerButler("banned")}>🚪 Banned</button>
+                  <button style={actionBtn} onClick={() => onTriggerButler("welcome_back")}>👋 Welcome Back</button>
+                  <button style={actionBtn} onClick={() => onTriggerButler("profile_incomplete")}>📋 Profile</button>
+                  <button style={actionBtn} onClick={() => onTriggerButler("gift_received")}>🎁 Gift</button>
+                  <button style={actionBtn} onClick={() => onTriggerButler("late_reply")}>⏰ Late Reply</button>
+                  <button style={{ ...actionBtn, color: "rgba(248,113,113,0.9)", border: "1px solid rgba(239,68,68,0.25)" }} onClick={() => onTriggerButler("spam_warning")}>📵 Spam</button>
+                  <button style={{ ...actionBtn, color: "rgba(248,113,113,0.9)", border: "1px solid rgba(239,68,68,0.25)" }} onClick={() => onTriggerButler("content_warning")}>🔞 Content</button>
+                  <button style={{ ...actionBtn, color: "#d4af37", border: "1px solid rgba(212,175,55,0.3)" }} onClick={() => onTriggerButler("floor_upgrade")}>🏨 Floor Up</button>
                 </div>
               </div>
 

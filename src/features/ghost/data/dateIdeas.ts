@@ -27,7 +27,7 @@ export const DATE_IDEAS: DateIdea[] = [
   { key: "live_music",       emoji: "🎶", label: "Live Music Night",            desc: "Jazz bar, concert, or rooftop" },
   { key: "city_explore",     emoji: "🚶", label: "City Explore",                desc: "Walk, discover, see where it leads" },
   { key: "bowling",          emoji: "🎳", label: "Bowling Night",               desc: "Playful, competitive, fun" },
-  { key: "boat_trip",        emoji: "⛵", label: "Boat Trip",                   desc: "Open water, coastal adventure" },
+  { key: "boat_trip",        emoji: "⛵", label: "Boat Trip",                   desc: "Open water, coastal adventure",     image: "https://ik.imagekit.io/7grri5v7d/ewrqwerqwer.png" },
 ];
 
 /** Deterministic fallback using seeded hash of profile ID */
