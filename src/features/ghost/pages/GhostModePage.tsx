@@ -25,6 +25,11 @@ import {
 // Components
 import GhostParticles from "../components/GhostParticles";
 import GhostDevPanel from "../components/GhostDevPanel";
+import HouseRulesModal from "../components/HouseRulesModal";
+import GhostFlashPaywallSheet from "../components/GhostFlashPaywallSheet";
+import GhostAuthGateSheet from "../components/GhostAuthGateSheet";
+import GhostLobbySheet from "../components/GhostLobbySheet";
+import GhostViewedMeSheet from "../components/GhostViewedMeSheet";
 import FilterBar from "../components/FilterBar";
 import GhostProfilePopup from "../components/GhostProfilePopup";
 import GhostMatchPopup from "../components/GhostMatchPopup";
@@ -49,7 +54,7 @@ import LateNightButlerPopup, { shouldShowLateNight, markLateNightShown } from ".
 import HotelEventsBoard from "../components/HotelEventsBoard";
 import GhostStatsDashboard from "../components/GhostStatsDashboard";
 import GhostReferralSheet from "../components/GhostReferralSheet";
-import FloorInviteSheet, { FloorNudgeSheet, getAcceptedFloorMembers, isProfileInvited, getProfileFloor, floorRank, FLOOR_LABELS, type AcceptedMember } from "../components/FloorInviteSheet";
+import FloorInviteSheet, { FloorNudgeSheet, getAcceptedFloorMembers, type AcceptedMember } from "../components/FloorInviteSheet";
 import GhostScoreSheet from "../components/GhostScoreSheet";
 import GhostClockSheet from "../components/GhostClockSheet";
 import WhisperSheet from "../components/WhisperSheet";
@@ -68,24 +73,6 @@ import { recordLike, loadMyMatches, getMyGhostId, syncTierToSupabase, loadTierFr
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
 
-const HOUSE_RULES = [
-  { icon: "🤝", title: "Respect Every Ghost", desc: "No harassment, hate, or disrespect. Every person here deserves dignity — no exceptions." },
-  { icon: "🔒", title: "Privacy is Sacred", desc: "Never share another member's identity, photos, or location outside the House." },
-  { icon: "🚫", title: "No Bad Energy", desc: "No spam, scams, or fake profiles. Genuine connections only — the House self-cleanses." },
-  { icon: "👻", title: "Stay Anonymous Until Ready", desc: "Your Ghost ID protects you. Only reveal yourself when you're truly comfortable." },
-  { icon: "💚", title: "Good Vibes Only", desc: "Bring curiosity, openness, and warmth. The energy you put in is the energy you get back." },
-];
-
-const HOW_IT_WORKS = [
-  { icon: "❤️", title: "Like for Free", desc: "Browse every profile and like as many as you want — completely free, no subscription needed." },
-  { icon: "✨", title: "Ghost Match", desc: "When two ghosts like each other it becomes a mutual match. You'll get notified instantly." },
-  { icon: "📱", title: "Connect on Match", desc: "After a mutual match, pay once to unlock their real contact — WhatsApp, Telegram, or any app they use." },
-  { icon: "🚪", title: "Ghost Vault", desc: "Your private vault. All your matches live here with a 48-hour countdown. Don't let them fade." },
-  { icon: "🌍", title: "Global House", desc: "Members from Indonesia 🇮🇩 Philippines 🇵🇭 Thailand 🇹🇭 Singapore 🇸🇬 Malaysia 🇲🇾 Vietnam 🇻🇳 and beyond." },
-  { icon: "👁️", title: "You're Invisible", desc: "Others only see your Ghost ID, photo, age, and city — nothing else — until you both connect." },
-];
-
-const PREVIEW_AVATARS = Array.from({ length: 8 }, (_, i) => `https://i.pravatar.cc/80?img=${i + 1}`);
 
 // ── Dev Panel — moved to GhostDevPanel.tsx ───────────────────────────────────
 // (kept as alias so no JSX changes needed below)
@@ -397,7 +384,6 @@ export default function GhostModePage() {
   const [_flashTick, setFlashTick] = useState(0);
   const [flashMatchProfile, setFlashMatchProfile] = useState<GhostProfile | null>(null);
   const [showFlashPaywall, setShowFlashPaywall] = useState(false);
-  const [flashPaywallPaying, setFlashPaywallPaying] = useState(false);
   const [flashConnectedIds, setFlashConnectedIds] = useState<Set<string>>(() => {
     try { return new Set(JSON.parse(localStorage.getItem("ghost_flash_connected") || "[]")); } catch { return new Set(); }
   });
@@ -409,7 +395,6 @@ export default function GhostModePage() {
   // Which floor chat to open — defaults to user's own tier, but Kings/Penthouse can visit lower floors
   const [floorChatTier,     setFloorChatTier]      = useState<"standard"|"suite"|"kings"|"penthouse"|"cellar"|"garden"|null>(null);
   const [chatUnread,         setChatUnreadState]    = useState(() => getChatUnread("standard"));
-  const [showInviteSheet,    setShowInviteSheet]    = useState(false);
   const [showCheckout,       setShowCheckout]       = useState(false);
   const [showButlerWelcome,  setShowButlerWelcome]  = useState(false);
   const [showLateNight,      setShowLateNight]      = useState(false);
@@ -2989,130 +2974,8 @@ export default function GhostModePage() {
         )}
       </AnimatePresence>
 
-      {/* ── House rules modal — slides up 5s after first arrival ── */}
-      <AnimatePresence>
-        {showHouseRules && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: "fixed", inset: 0, zIndex: 250,
-              background: "rgba(0,0,0,0.6)",
-              backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
-              display: "flex", alignItems: "flex-end", justifyContent: "center",
-            }}
-          >
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 280, damping: 32 }}
-              style={{
-                width: "100%", maxWidth: 480,
-                backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdfasdASD.png)",
-                backgroundSize: "cover", backgroundPosition: "center top",
-                borderRadius: "24px 24px 0 0",
-                border: `1px solid ${a.glow(0.12)}`, borderBottom: "none",
-                maxHeight: "92dvh",
-                display: "flex", flexDirection: "column",
-              }}
-            >
-              <div style={{ height: 3, flexShrink: 0, background: `linear-gradient(90deg, ${a.accentDeep}, ${a.accent}, ${a.accentMid}, ${a.accent}, ${a.accentDeep})` }} />
-              <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 0", flexShrink: 0 }}>
-                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
-              </div>
-
-              {/* Scrollable content */}
-              <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none", padding: "20px 22px 16px" }}>
-
-                <div style={{ textAlign: "center", marginBottom: 24 }}>
-                  <h1 style={{ fontSize: 24, fontWeight: 900, margin: "0 0 10px", letterSpacing: "-0.02em", lineHeight: 1.2, background: `linear-gradient(135deg, #fff 40%, ${a.accent})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                    Welcome to the Ghost Hotel 👻
-                  </h1>
-                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7, maxWidth: 320, marginInline: "auto" }}>
-                    Before you settle in, we have some{" "}
-                    <span style={{ color: a.glow(0.85), fontWeight: 700 }}>hotel rules</span>{" "}
-                    that keep our hotel free from bad energy.
-                  </p>
-                </div>
-
-                {/* Preview avatars */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 16 }}>
-                  {PREVIEW_AVATARS.map((src, i) => (
-                    <img key={i} src={src} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.45)}`, marginLeft: i === 0 ? 0 : -10, zIndex: PREVIEW_AVATARS.length - i, position: "relative" }} />
-                  ))}
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.45)", marginLeft: 10 }}>+120 ghosts inside</span>
-                </div>
-
-                <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.2)}, transparent)`, marginBottom: 22 }} />
-
-                {/* Rules */}
-                <div style={{ marginBottom: 26 }}>
-                  <p style={{ fontSize: 10, fontWeight: 800, color: a.glow(0.6), textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px" }}>🏠 House Rules</p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {HOUSE_RULES.map((rule) => (
-                      <div key={rule.title} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: a.glow(0.04), border: `1px solid ${a.glow(0.08)}`, borderRadius: 14, padding: "12px 14px" }}>
-                        <div style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: a.glow(0.1), border: `1px solid ${a.glow(0.18)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
-                          {rule.icon === "👻" ? <img src={GHOST_LOGO} alt="ghost" style={{ width: 54, height: 54, objectFit: "contain" }} /> : rule.icon}
-                        </div>
-                        <div>
-                          <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 3px" }}>{rule.title}</p>
-                          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.42)", margin: 0, lineHeight: 1.5 }}>{rule.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.2)}, transparent)`, marginBottom: 22 }} />
-
-                {/* How it works */}
-                <div style={{ marginBottom: 8 }}>
-                  <p style={{ fontSize: 10, fontWeight: 800, color: a.glow(0.6), textTransform: "uppercase", letterSpacing: "0.14em", margin: "0 0 14px" }}>⚙️ How It Works</p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {HOW_IT_WORKS.map((item) => (
-                      <div key={item.title} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                        <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
-                          {item.icon}
-                        </div>
-                        <div style={{ paddingTop: 2 }}>
-                          <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>{item.title}</p>
-                          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>{item.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Sticky footer */}
-              <div style={{ flexShrink: 0, padding: "14px 22px max(28px, env(safe-area-inset-bottom, 28px))", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(4,6,4,0.97)" }}>
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  whileHover={{ y: -2 }}
-                  onClick={handleHouseRulesAccept}
-                  style={{
-                    width: "100%", height: 54, borderRadius: 50, border: "none",
-                    background: a.gradient,
-                    color: "#fff", fontSize: 15, fontWeight: 900,
-                    cursor: "pointer", letterSpacing: "0.03em",
-                    boxShadow: `0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px ${a.glowMid(0.5)}`,
-                    position: "relative", overflow: "hidden",
-                  }}
-                >
-                  <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
-                  Agree To Abide By Rules
-                </motion.button>
-                <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.2)", margin: "10px 0 0", lineHeight: 1.6 }}>
-                  By entering you agree to the house rules above and our{" "}
-                  <span style={{ color: "rgba(255,255,255,0.35)" }}>Privacy Policy</span>
-                </p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── House rules modal ── */}
+      <HouseRulesModal show={showHouseRules} onAccept={handleHouseRulesAccept} />
 
       {/* ── International Ghost modal ── */}
       <AnimatePresence>
@@ -3248,255 +3111,30 @@ export default function GhostModePage() {
       </AnimatePresence>
 
       {/* ── Viewed Me popup ── */}
-      <AnimatePresence>
-        {showViewedMe && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setShowViewedMe(false)}
-            style={{ position: "fixed", inset: 0, zIndex: 520, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
-          >
-            <motion.div
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 320, damping: 32 }}
-              onClick={e => e.stopPropagation()}
-              style={{ width: "100%", maxWidth: 480, height: "88dvh", background: "rgba(6,6,10,0.99)", borderRadius: "22px 22px 0 0", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none", display: "flex", flexDirection: "column", overflow: "hidden" }}
-            >
-              {/* Top stripe */}
-              <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)`, flexShrink: 0 }} />
-
-              {/* Header */}
-              <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 12, padding: "14px 16px 12px", borderBottom: `1px solid ${a.glow(0.1)}`, background: a.gradientSubtle }}>
-                <div style={{ width: 38, height: 38, borderRadius: 11, background: a.glow(0.14), border: `1.5px solid ${a.glow(0.38)}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <span style={{ fontSize: 19 }}>👁️</span>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: a.accent }}>Who Viewed Me</p>
-                  <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.35)", marginTop: 1 }}>
-                    {viewedMeList.length} profiles · {viewedMeList.filter(p => p.viewCount >= 2).length} viewed you more than once
-                  </p>
-                </div>
-                <button onClick={() => setShowViewedMe(false)} style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                  <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 16 }}>✕</span>
-                </button>
-              </div>
-
-              {/* Keen viewers callout */}
-              {viewedMeList.some(p => p.viewCount >= 3) && (
-                <div style={{ flexShrink: 0, margin: "10px 14px 0", padding: "10px 14px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 12, display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 16 }}>🔥</span>
-                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 700 }}>
-                    {viewedMeList.filter(p => p.viewCount >= 3).length} {viewedMeList.filter(p => p.viewCount >= 3).length === 1 ? "person has" : "people have"} viewed your profile 3+ times — they're interested.
-                  </p>
-                </div>
-              )}
-
-              {/* Profile list */}
-              <div style={{ flex: 1, overflowY: "auto", padding: "10px 14px max(20px,env(safe-area-inset-bottom,20px))" }}>
-                {viewedMeList.map((p, i) => {
-                  const isKeen      = p.viewCount >= 3;
-                  const isWarm      = p.viewCount === 2;
-                  const cardBg      = isKeen ? "rgba(239,68,68,0.07)" : isWarm ? a.glow(0.07) : "rgba(255,255,255,0.03)";
-                  const cardBdr     = isKeen ? "1px solid rgba(239,68,68,0.25)" : isWarm ? `1px solid ${a.glow(0.22)}` : "1px solid rgba(255,255,255,0.07)";
-                  const badgeBg     = isKeen ? "rgba(239,68,68,0.18)" : isWarm ? a.glow(0.15) : "rgba(255,255,255,0.07)";
-                  const badgeCol    = isKeen ? "#f87171" : isWarm ? a.accent : "rgba(255,255,255,0.35)";
-                  const badgeTxt    = isKeen ? `🔥 Viewed ${p.viewCount}×` : isWarm ? `👀 Viewed twice` : "Viewed once";
-                  const pFloor      = getProfileFloor(p.id);
-                  const myFloor     = userRoomTier ?? "standard";
-                  const diffFloor   = pFloor !== myFloor;
-                  const theirHigher = floorRank(pFloor) > floorRank(myFloor);
-                  const invited     = isProfileInvited(p.id);
-                  return (
-                    <motion.div
-                      key={p.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04 }}
-                      style={{ marginBottom: 8, borderRadius: 16, background: cardBg, border: cardBdr, overflow: "hidden" }}
-                    >
-                      {/* Main row */}
-                      <div
-                        style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 12px", cursor: "pointer" }}
-                        onClick={() => { setShowViewedMe(false); openMatchAction(p, "match"); }}
-                      >
-                        {/* Photo */}
-                        <div style={{ position: "relative", flexShrink: 0 }}>
-                          <img
-                            src={p.image} alt={p.name}
-                            style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: isKeen ? "2px solid rgba(239,68,68,0.5)" : isWarm ? `2px solid ${a.glow(0.5)}` : "2px solid rgba(255,255,255,0.12)", display: "block" }}
-                            onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
-                          />
-                          {isOnline(p.last_seen_at) && (
-                            <div style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", background: "#4ade80", border: "2px solid rgba(6,6,10,1)" }} />
-                          )}
-                        </div>
-
-                        {/* Info */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3, flexWrap: "wrap" }}>
-                            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              {p.name}{p.age ? `, ${p.age}` : ""}
-                            </p>
-                            <span style={{ fontSize: 9, fontWeight: 800, color: badgeCol, background: badgeBg, borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap", flexShrink: 0 }}>{badgeTxt}</span>
-                          </div>
-                          {p.city && <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>📍 {p.city}</p>}
-                          <p style={{ margin: "2px 0 0", fontSize: 9, color: "rgba(255,255,255,0.25)" }}>
-                            {FLOOR_LABELS[pFloor] ?? pFloor}
-                          </p>
-                          {invited && (
-                            <p style={{ margin: "3px 0 0", fontSize: 9, fontWeight: 800, color: a.accent }}>✓ Invited by {invited.invitedByName}</p>
-                          )}
-                          {isKeen && !invited && <p style={{ margin: "3px 0 0", fontSize: 10, fontWeight: 700, color: "#f87171" }}>Keeps coming back — make a move</p>}
-                          {isWarm && !isKeen && !invited && <p style={{ margin: "3px 0 0", fontSize: 10, fontWeight: 700, color: a.accent }}>Viewed you twice — like back?</p>}
-                        </div>
-
-                        {/* CTA buttons */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
-                          <motion.button
-                            whileTap={{ scale: 0.92 }}
-                            onClick={e => { e.stopPropagation(); if (!likedIds.has(p.id)) handleLike(p); }}
-                            style={{ width: 36, height: 36, borderRadius: 10, border: "none", background: likedIds.has(p.id) ? a.glow(0.25) : isKeen ? "rgba(239,68,68,0.2)" : a.glow(0.12), display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-                          >
-                            <span style={{ fontSize: 16 }}>{likedIds.has(p.id) ? "💚" : "❤️"}</span>
-                          </motion.button>
-                          {(isKeen || isWarm) && (
-                            <motion.button
-                              whileTap={{ scale: 0.92 }}
-                              onClick={e => { e.stopPropagation(); setShowViewedMe(false); openMatchAction(p, "match"); }}
-                              style={{ width: 36, height: 36, borderRadius: 10, border: "none", background: isKeen ? "rgba(239,68,68,0.2)" : a.glow(0.12), display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-                            >
-                              <span style={{ fontSize: 15 }}>👁️</span>
-                            </motion.button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Floor invite strip — shown when on a different floor and not yet invited */}
-                      {diffFloor && !invited && userRoomTier && (
-                        <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", padding: "8px 12px", display: "flex", gap: 8 }}>
-                          {/* Invite them to MY floor */}
-                          <motion.button
-                            whileTap={{ scale: 0.97 }}
-                            onClick={e => {
-                              e.stopPropagation();
-                              setFloorInviteProfile(p);
-                              setFloorInviteMode("invite");
-                              setFloorInviteTarget(myFloor);
-                              setShowViewedMe(false);
-                              setShowFloorInvite(true);
-                            }}
-                            style={{ flex: 1, height: 32, borderRadius: 10, border: "none", background: a.glow(0.14), color: a.accent, fontSize: 10, fontWeight: 800, cursor: "pointer" }}
-                          >
-                            ✉️ Invite to My Floor
-                          </motion.button>
-                          {/* Request them to invite ME to THEIR floor */}
-                          {theirHigher && (
-                            <motion.button
-                              whileTap={{ scale: 0.97 }}
-                              onClick={e => {
-                                e.stopPropagation();
-                                setFloorInviteProfile(p);
-                                setFloorInviteMode("request");
-                                setFloorInviteTarget(pFloor);
-                                setShowViewedMe(false);
-                                setShowFloorInvite(true);
-                              }}
-                              style={{ flex: 1, height: 32, borderRadius: 10, border: `1px solid ${a.glow(0.25)}`, background: "transparent", color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: 800, cursor: "pointer" }}
-                            >
-                              ⬆️ Invite Me Up
-                            </motion.button>
-                          )}
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GhostViewedMeSheet
+        show={showViewedMe}
+        viewedMeList={viewedMeList}
+        userRoomTier={userRoomTier}
+        likedIds={likedIds}
+        onClose={() => setShowViewedMe(false)}
+        onLike={handleLike}
+        onMatchAction={(p) => openMatchAction(p, "match")}
+        onFloorInvite={(p, mode, target) => {
+          setFloorInviteProfile(p);
+          setFloorInviteMode(mode);
+          setFloorInviteTarget(target);
+          setShowViewedMe(false);
+          setShowFloorInvite(true);
+        }}
+      />
 
       {/* ── Hotel Lobby popup ── */}
-      <AnimatePresence>
-        {showLobbyPopup && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setShowLobbyPopup(false)}
-            style={{ position: "fixed", inset: 0, zIndex: 520, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
-          >
-            <motion.div
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 320, damping: 32 }}
-              onClick={e => e.stopPropagation()}
-              style={{ width: "100%", maxWidth: 480, height: "88dvh", background: "rgba(6,6,10,0.99)", borderRadius: "22px 22px 0 0", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none", display: "flex", flexDirection: "column", overflow: "hidden" }}
-            >
-              {/* Top stripe */}
-              <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)`, flexShrink: 0 }} />
-
-              {/* Header */}
-              <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 12, padding: "14px 16px 12px", borderBottom: `1px solid ${a.glow(0.1)}`, background: a.gradientSubtle }}>
-                <div style={{ width: 38, height: 38, borderRadius: 11, background: a.glow(0.14), border: `1.5px solid ${a.glow(0.38)}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <span style={{ fontSize: 19 }}>🏨</span>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: a.accent }}>Hotel Lobby</p>
-                  <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.35)", marginTop: 1 }}>
-                    {roomMemberList.filter(p => isOnline(p.last_seen_at)).length} online · {roomMemberList.length} guests available to meet tonight
-                  </p>
-                </div>
-                <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.6, repeat: Infinity }}
-                  style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", display: "inline-block", flexShrink: 0 }} />
-                <button onClick={() => setShowLobbyPopup(false)} style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                  <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 16 }}>✕</span>
-                </button>
-              </div>
-
-              {/* Profile grid */}
-              <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px max(20px,env(safe-area-inset-bottom,20px))" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-                  {roomMemberList.map((p, i) => (
-                    <motion.div
-                      key={p.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.03, type: "spring", stiffness: 300, damping: 24 }}
-                      onClick={() => { setShowLobbyPopup(false); openMatchAction(p, "match"); }}
-                      style={{ borderRadius: 16, overflow: "hidden", position: "relative", cursor: "pointer", border: `1px solid ${a.glow(0.15)}` }}
-                    >
-                      <div style={{ paddingBottom: "130%", position: "relative" }}>
-                        <img
-                          src={p.image} alt={p.name}
-                          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-                          onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
-                        />
-                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.78) 0%, transparent 55%)" }} />
-                        {isOnline(p.last_seen_at) && (
-                          <motion.div
-                            animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
-                            style={{ position: "absolute", top: 6, right: 6, width: 8, height: 8, borderRadius: "50%", background: "#4ade80", border: "1.5px solid rgba(6,6,10,0.8)" }}
-                          />
-                        )}
-                        <div style={{ position: "absolute", bottom: 6, left: 7, right: 7 }}>
-                          <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: "#fff", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {p.name}{p.age ? `, ${p.age}` : ""}
-                          </p>
-                          {p.city && <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.5)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.city}</p>}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-                {roomMemberList.length === 0 && (
-                  <div style={{ textAlign: "center", padding: "48px 24px" }}>
-                    <span style={{ fontSize: 36 }}>🏨</span>
-                    <p style={{ margin: "12px 0 0", fontSize: 13, color: "rgba(255,255,255,0.35)" }}>The lobby is quiet right now.<br />Check back tonight.</p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GhostLobbySheet
+        show={showLobbyPopup}
+        profiles={roomMemberList}
+        onClose={() => setShowLobbyPopup(false)}
+        onSelectProfile={(p) => openMatchAction(p, "match")}
+      />
 
       {/* ── Late-night butler ── */}
       <AnimatePresence>
@@ -3562,76 +3200,11 @@ export default function GhostModePage() {
       </AnimatePresence>
 
       {/* ── Ghost Flash paywall ── */}
-      <AnimatePresence>
-        {showFlashPaywall && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => { if (!flashPaywallPaying) setShowFlashPaywall(false); }}
-            style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
-          >
-            <motion.div
-              initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 28 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{ width: "100%", maxWidth: 480, background: "rgb(5,5,10)", borderRadius: "22px 22px 0 0", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none", padding: "24px 24px max(28px, env(safe-area-inset-bottom, 28px))" }}
-            >
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)", margin: "0 auto 20px" }} />
-              {/* Header */}
-              <div style={{ textAlign: "center", marginBottom: 22 }}>
-                <motion.div animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 7, background: a.glow(0.12), border: `1px solid ${a.glow(0.35)}`, borderRadius: 50, padding: "6px 16px", marginBottom: 14 }}>
-                  <span style={{ fontSize: 16 }}>⚡</span>
-                  <span style={{ fontSize: 13, fontWeight: 900, color: a.glow(0.95), letterSpacing: "0.1em" }}>GHOST FLASH</span>
-                </motion.div>
-                <p style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 6px" }}>Go Live for 60 Minutes</p>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.6 }}>
-                  Enter the live Flash pool and connect with active Ghosts right now. Up to 3 instant WhatsApp connections.
-                </p>
-              </div>
-              {/* Features */}
-              <div style={{ background: a.glow(0.05), border: `1px solid ${a.glow(0.12)}`, borderRadius: 14, padding: "14px 16px", marginBottom: 20, display: "flex", flexDirection: "column", gap: 10 }}>
-                {[
-                  ["⚡", "60-minute live session in the Flash pool"],
-                  ["💚", "Up to 3 instant WhatsApp connections"],
-                  ["👻", "Only live, active Ghosts shown"],
-                  ["🔄", "Rejoin anytime — each session is $2.99"],
-                ].map(([icon, text]) => (
-                  <div key={text} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 14, flexShrink: 0 }}>{icon}</span>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{text}</span>
-                  </div>
-                ))}
-              </div>
-              {/* Pay button */}
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                disabled={flashPaywallPaying}
-                onClick={() => {
-                  setFlashPaywallPaying(true);
-                  setTimeout(() => {
-                    enterFlash();
-                    setFlashPaywallPaying(false);
-                    setShowFlashPaywall(false);
-                  }, 1600);
-                }}
-                style={{
-                  width: "100%", height: 54, borderRadius: 50, border: "none",
-                  background: flashPaywallPaying ? "rgba(255,255,255,0.07)" : `linear-gradient(135deg, ${a.accent}, #16a34a)`,
-                  color: flashPaywallPaying ? "rgba(255,255,255,0.3)" : "#000",
-                  fontSize: 16, fontWeight: 900, cursor: flashPaywallPaying ? "default" : "pointer",
-                  marginBottom: 10,
-                  boxShadow: flashPaywallPaying ? "none" : `0 4px 24px ${a.glow(0.3)}`,
-                }}
-              >
-                {flashPaywallPaying ? "Processing…" : "⚡ Join Flash — $2.99"}
-              </motion.button>
-              <button onClick={() => setShowFlashPaywall(false)} style={{ width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 13, cursor: "pointer", padding: "6px 0" }}>
-                Maybe later
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GhostFlashPaywallSheet
+        show={showFlashPaywall}
+        onClose={() => setShowFlashPaywall(false)}
+        onEnterFlash={enterFlash}
+      />
 
       {/* ── Dev Popup Launcher ── */}
       <DevPopupLauncher />
@@ -3684,67 +3257,7 @@ export default function GhostModePage() {
       </AnimatePresence>
 
       {/* ── Auth Gate Popup ── */}
-      <AnimatePresence>
-        {showAuthGate && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setShowAuthGate(false)}
-            style={{ position: "fixed", inset: 0, zIndex: 9100, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
-          >
-            <motion.div
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 320, damping: 32 }}
-              onClick={e => e.stopPropagation()}
-              style={{ width: "100%", maxWidth: 480, background: "rgba(5,5,10,0.99)", borderRadius: "24px 24px 0 0", border: `1px solid ${a.glow(0.25)}`, borderBottom: "none", overflow: "hidden", paddingBottom: "max(28px, env(safe-area-inset-bottom, 28px))" }}
-            >
-              {/* Accent stripe */}
-              <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)` }} />
-
-              {/* Hero image + heading */}
-              <div style={{ textAlign: "center", padding: "28px 24px 20px" }}>
-                <img src="https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasdasdasd.png?updatedAt=1773971031454" alt="Ghost House" style={{ width: 120, height: 120, objectFit: "contain", marginBottom: 14, display: "block", margin: "0 auto 14px" }} />
-                <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>Join the Ghost House</p>
-                <p style={{ margin: "8px 0 0", fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.55 }}>
-                  Create a free account to like profiles,<br />connect with matches & unlock all features
-                </p>
-              </div>
-
-              {/* Feature pills */}
-              <div style={{ display: "flex", justifyContent: "center", gap: 8, padding: "0 24px 22px", flexWrap: "wrap" }}>
-                {["❤️ Like for free", "✨ Ghost Match", "👻 Stay anonymous", "🌍 Global"].map(f => (
-                  <div key={f} style={{ background: a.glow(0.08), border: `1px solid ${a.glow(0.2)}`, borderRadius: 20, padding: "4px 12px" }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)" }}>{f}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* CTA buttons */}
-              <div style={{ padding: "0 20px", display: "flex", flexDirection: "column", gap: 10 }}>
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => { setShowAuthGate(false); navigate("/ghost/auth"); }}
-                  style={{ width: "100%", height: 52, borderRadius: 16, border: "none", cursor: "pointer", background: `linear-gradient(135deg, ${a.accentDark}, ${a.accent})`, fontSize: 15, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em", boxShadow: `0 0 24px ${a.glow(0.35)}` }}
-                >
-                  Create Free Account 👻
-                </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => { setShowAuthGate(false); navigate("/ghost/auth"); }}
-                  style={{ width: "100%", height: 46, borderRadius: 16, border: `1px solid rgba(255,255,255,0.15)`, cursor: "pointer", background: "rgba(255,255,255,0.05)", fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}
-                >
-                  Sign In
-                </motion.button>
-                <button
-                  onClick={() => setShowAuthGate(false)}
-                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.25)", fontWeight: 600, paddingTop: 4 }}
-                >
-                  Maybe later
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GhostAuthGateSheet show={showAuthGate} onClose={() => setShowAuthGate(false)} />
 
     </div>
     </div>
