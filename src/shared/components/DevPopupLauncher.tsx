@@ -14,6 +14,8 @@ import BreakfastRatingPopup from "../../features/ghost/components/BreakfastRatin
 import ButlerMatchSignalPopup from "../../features/ghost/components/ButlerMatchSignalPopup";
 import SocialActivityInvitePopup from "../../features/ghost/components/SocialActivityInvitePopup";
 import ButlerExcusePopup from "../../features/ghost/components/ButlerExcusePopup";
+import ButlerWelcomePopup from "../../features/ghost/components/ButlerWelcomePopup";
+import ButlerBillPopup from "../../features/ghost/components/ButlerBillPopup";
 import { INTL_PROFILES } from "../../features/ghost/types/ghostTypes";
 import { FLOOR_META } from "../../features/ghost/utils/breakfastGiftService";
 import { loadActivities } from "../../features/ghost/utils/breakfastRatingService";
@@ -76,13 +78,16 @@ const MOCK_PROFILES = INTL_PROFILES.slice(0, 8).map((p, i) => ({
 type PopupId =
   | "butler-arrival" | "guest-picker" | "invite-received" | "lounge-splash"
   | "rating" | "match-signal" | "social-invite" | "excuse"
+  | "butler-welcome" | "butler-bill"
   | null;
 
 const SECTIONS = [
   {
     label: "🏨 Hotel",
     items: [
+      { id: "butler-welcome" as PopupId, icon: "🎩", label: "Butler Welcome"         },
       { id: "butler-arrival" as PopupId, icon: "🛎", label: "Butler Arrival"         },
+      { id: "butler-bill"    as PopupId, icon: "🔴", label: "Butler Bill (no-show)"  },
       { id: "lounge-splash"  as PopupId, icon: "☕", label: "Lounge Splash (5s)"     },
     ],
   },
@@ -332,6 +337,20 @@ export default function DevPopupLauncher() {
             perspective="guest"
             onDismiss={hide}
             onReschedule={hide}
+          />
+        )}
+
+        {active === "butler-welcome" && (
+          <ButlerWelcomePopup key="butler-welcome"
+            onDismiss={hide}
+          />
+        )}
+
+        {active === "butler-bill" && (
+          <ButlerBillPopup key="butler-bill"
+            floor={floor}
+            hostName="Sofia"
+            onDismiss={hide}
           />
         )}
       </AnimatePresence>
