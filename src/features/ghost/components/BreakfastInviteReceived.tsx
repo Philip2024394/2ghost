@@ -207,6 +207,18 @@ export default function BreakfastInviteReceived({ invite, onAccept, onDecline }:
                   </div>
                 )}
 
+                {/* Butler commitment warning */}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 12px",
+                  background: "rgba(251,146,60,0.07)", border: "1px solid rgba(251,146,60,0.22)",
+                  borderRadius: 12, marginBottom: 14 }}>
+                  <span style={{ fontSize: 14, flexShrink: 0 }}>🎩</span>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(251,146,60,0.85)", lineHeight: 1.6 }}>
+                    <strong style={{ color: "rgba(251,146,60,1)" }}>By accepting, you make a commitment.</strong> Not
+                    honouring the agreed time will place a visible caution notice on your profile.
+                    Repeated no-shows may result in your account being suspended.
+                  </p>
+                </div>
+
                 {/* Buttons */}
                 <div style={{ display: "flex", gap: 10 }}>
                   <motion.button whileTap={{ scale: 0.97 }}

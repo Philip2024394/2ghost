@@ -6,6 +6,7 @@ import type { GhostProfile } from "../types/ghostTypes";
 import { toGhostId, fmtKm } from "../utils/ghostHelpers";
 
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
+import { getReputation, getShowRate, getReputationBadge, BADGE_META } from "../utils/reputationService";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 // ── Profile popup overlay ───────────────────────────────────────────────────
@@ -25,6 +26,10 @@ export default function GhostProfilePopup({
   const { t } = useLanguage();
   const online = isOnline(profile.last_seen_at);
   const ghostId = toGhostId(profile.id);
+  const rep   = getReputation(profile.id);
+  const rate  = getShowRate(rep);
+  const badge = getReputationBadge(rep);
+  const total = rep.showUps + rep.noShows;
 
   return (
     <motion.div
@@ -121,6 +126,56 @@ export default function GhostProfilePopup({
             No bio · No details · Match on instinct
           </p>
         </div>
+
+        {/* ── Guest Reputation ── */}
+        {total >= 2 && (
+          <div style={{ margin: "0 16px 4px", padding: "12px 14px",
+            background: badge ? BADGE_META[badge].bg : "rgba(255,255,255,0.03)",
+            border: `1px solid ${badge ? BADGE_META[badge].border : "rgba(255,255,255,0.07)"}`,
+            borderRadius: 14 }}>
+            <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 700,
+              color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              🎩 Guest Reputation
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <span style={{ fontSize: 11, color: "rgba(74,222,128,0.9)", fontWeight: 700 }}>
+                    ✅ {rep.showUps} showed up
+                  </span>
+                  {rep.noShows > 0 && (
+                    <span style={{ fontSize: 11, color: "rgba(248,113,113,0.85)", fontWeight: 700 }}>
+                      ❌ {rep.noShows} no-show{rep.noShows > 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
+                {/* Rate bar */}
+                <div style={{ height: 4, borderRadius: 4, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${rate}%`, borderRadius: 4,
+                    background: rate >= 90 ? "#4ade80" : rate >= 60 ? "#facc15" : "#f87171",
+                    transition: "width 0.6s ease" }} />
+                </div>
+                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{rate}% show rate</span>
+              </div>
+              {badge && (
+                <div style={{ flexShrink: 0, textAlign: "center" }}>
+                  <div style={{ padding: "4px 8px", borderRadius: 8,
+                    background: BADGE_META[badge].bg, border: `1px solid ${BADGE_META[badge].border}` }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: BADGE_META[badge].color }}>
+                      {BADGE_META[badge].icon} {BADGE_META[badge].label}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Butler caution notice */}
+            {(badge === "caution" || badge === "flagged") && (
+              <p style={{ margin: "8px 0 0", fontSize: 10, color: "rgba(248,113,113,0.65)", lineHeight: 1.6 }}>
+                ⚠️ The butler has noted this guest has missed {rep.noShows} agreed connection{rep.noShows > 1 ? "s" : ""}. Please proceed with awareness.
+              </p>
+            )}
+          </div>
+        )}
 
         <div style={{ padding: "10px 20px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", gap: 12 }}>
