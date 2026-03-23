@@ -67,12 +67,13 @@ export default function ButlerWelcomePopup({ onDismiss }: { onDismiss: () => voi
       onClick={handleDismiss}
       style={{
         position: "fixed", inset: 0, zIndex: 490,
-        background: "rgba(0,0,0,0.72)",
-        backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)",
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: "0 20px",
       }}
     >
+      {/* Full-screen background image */}
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsds.png?updatedAt=1774134023247)", backgroundSize: "cover", backgroundPosition: "center top", zIndex: 0 }} />
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.72)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)", zIndex: 0 }} />
       <motion.div
         initial={{ opacity: 0, y: 48, scale: 0.93 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -81,22 +82,19 @@ export default function ButlerWelcomePopup({ onDismiss }: { onDismiss: () => voi
         onClick={e => e.stopPropagation()}
         style={{
           width: "100%", maxWidth: 390,
+          background: "rgba(5,4,2,0.88)",
           borderRadius: 26,
           border: `1px solid ${gold}30`,
           overflow: "hidden",
           boxShadow: `0 0 90px ${gold}12, 0 28px 70px rgba(0,0,0,0.75)`,
-          position: "relative",
+          position: "relative", zIndex: 1,
         }}
       >
-        {/* Background image */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsds.png?updatedAt=1774134023247)", backgroundSize: "cover", backgroundPosition: "center", opacity: 0.13, pointerEvents: "none", zIndex: 0 }} />
-        <div style={{ position: "absolute", inset: 0, background: "rgba(5,4,2,0.92)", pointerEvents: "none", zIndex: 0 }} />
-
         {/* Top shimmer stripe */}
-        <div style={{ height: 4, background: `linear-gradient(90deg, transparent, ${gold}cc, #fff8, ${gold}cc, transparent)`, position: "relative", zIndex: 1 }} />
+        <div style={{ height: 4, background: `linear-gradient(90deg, transparent, ${gold}cc, #fff8, ${gold}cc, transparent)` }} />
 
         {/* Letterhead */}
-        <div style={{ padding: "22px 22px 0", textAlign: "center", position: "relative", zIndex: 1 }}>
+        <div style={{ padding: "22px 22px 0", textAlign: "center" }}>
           <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 800, color: `${gold}77`, letterSpacing: "0.22em", textTransform: "uppercase" }}>
             Ghost House · Butler Service
           </p>
@@ -114,7 +112,7 @@ export default function ButlerWelcomePopup({ onDismiss }: { onDismiss: () => voi
         </div>
 
         {/* Body */}
-        <div style={{ padding: "8px 22px 20px", position: "relative", zIndex: 1 }}>
+        <div style={{ padding: "8px 22px 20px" }}>
 
           {/* Greeting */}
           <p style={{ margin: "0 0 16px", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.65, textAlign: "center", fontStyle: "italic" }}>
@@ -217,7 +215,7 @@ export default function ButlerWelcomePopup({ onDismiss }: { onDismiss: () => voi
         </div>
 
         {/* Bottom stripe */}
-        <div style={{ height: 2, background: `linear-gradient(90deg, transparent, ${gold}25, transparent)`, position: "relative", zIndex: 1 }} />
+        <div style={{ height: 2, background: `linear-gradient(90deg, transparent, ${gold}25, transparent)` }} />
       </motion.div>
     </motion.div>
   );
