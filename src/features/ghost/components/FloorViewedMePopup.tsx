@@ -4,7 +4,7 @@
 
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { GhostProfile } from "@/shared/types/ghost";
+import type { GhostProfile } from "../types/ghostTypes";
 import { getProfileFloor, FLOOR_LABELS } from "./FloorInviteSheet";
 
 const FLOOR_ICONS: Record<string, string> = {
