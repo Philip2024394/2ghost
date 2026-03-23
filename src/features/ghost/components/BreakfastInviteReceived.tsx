@@ -13,7 +13,8 @@ import {
 import type { BreakfastInvite } from "../utils/breakfastInviteService";
 import { FLOOR_META } from "../utils/breakfastGiftService";
 
-const LOUNGE_IMG = "https://ik.imagekit.io/7grri5v7d/SADFASDFASDFASDFSdsfasdfsssswefwe.png";
+const LOUNGE_IMG    = "https://ik.imagekit.io/7grri5v7d/SADFASDFASDFASDFSdsfasdfsssswefwe.png";
+const BREAKFAST_IMG = "https://ik.imagekit.io/7grri5v7d/sdfsdfsss-removebg-preview.png";
 
 type Props = {
   invite:    BreakfastInvite;
@@ -85,6 +86,11 @@ export default function BreakfastInviteReceived({ invite, onAccept, onDecline }:
                   style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 <div style={{ position: "absolute", inset: 0,
                   background: "linear-gradient(to bottom, transparent 30%, rgba(6,6,15,0.95) 100%)" }} />
+                {/* Breakfast overlay image — centred over the lounge photo */}
+                <img src={BREAKFAST_IMG} alt=""
+                  style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)",
+                    height: "90%", objectFit: "contain", pointerEvents: "none",
+                    filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.7))" }} />
                 <div style={{ position: "absolute", bottom: 14, left: 18 }}>
                   <p style={{ margin: 0, fontSize: 11, color: meta.color, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" }}>
                     {meta.icon} The Lounge · {meta.label}
