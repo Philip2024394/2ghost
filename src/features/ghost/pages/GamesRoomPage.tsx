@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-const HERO_BG   = "https://ik.imagekit.io/7grri5v7d/Haunted%20room%20with%20Connect%20Four%20game.png";
+const HERO_BG     = "https://ik.imagekit.io/7grri5v7d/Untitledsdaddfsadf.png";
 const BUTLER_FLIP = "https://ik.imagekit.io/7grri5v7d/Skeleton%20in%20tuxedo%20flips%20Connect%204%20disc.png";
 
 const LEADERBOARD = [
@@ -29,7 +29,7 @@ export default function GamesRoomPage() {
   return (
     <div style={{
       minHeight: "100dvh",
-      background: "#04040e",
+      background: "#05030a",
       color: "#fff",
       display: "flex", flexDirection: "column", alignItems: "center",
       overflowX: "hidden",
@@ -53,8 +53,8 @@ export default function GamesRoomPage() {
           style={{
             position: "absolute", inset: 0, width: "100%", height: "100%",
             objectFit: "cover", objectPosition: "center top",
-            opacity: imgLoaded ? 0.55 : 0,
-            transition: "opacity 0.8s ease",
+            opacity: imgLoaded ? 0.78 : 0,
+            transition: "opacity 1.2s ease",
             zIndex: 0,
           }}
         />
@@ -62,7 +62,13 @@ export default function GamesRoomPage() {
         {/* Dark gradient overlay — heavy at bottom so text is readable */}
         <div style={{
           position: "absolute", inset: 0, zIndex: 1,
-          background: "linear-gradient(180deg, rgba(4,4,14,0.55) 0%, rgba(4,4,14,0.3) 35%, rgba(4,4,14,0.72) 65%, rgba(4,4,14,0.98) 100%)",
+          background: "linear-gradient(180deg, rgba(4,3,8,0.45) 0%, rgba(4,3,8,0.1) 30%, rgba(10,6,2,0.55) 60%, rgba(4,3,8,0.97) 100%)",
+        }} />
+        {/* Warm amber chandelier glow overlay — matches the room's lighting */}
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 1,
+          background: "radial-gradient(ellipse 80% 50% at 50% 20%, rgba(212,140,20,0.12) 0%, transparent 70%)",
+          pointerEvents: "none",
         }} />
 
         {/* ── Header ── */}
@@ -109,24 +115,33 @@ export default function GamesRoomPage() {
           <motion.p
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            style={{ margin: "0 0 10px", fontSize: 38, fontWeight: 900,
+            style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700,
+              letterSpacing: "0.22em", textTransform: "uppercase",
+              color: "rgba(212,175,55,0.75)" }}>
+            The 2Ghost Hotel
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55 }}
+            style={{ margin: "0 0 10px", fontSize: 40, fontWeight: 900,
               letterSpacing: "-0.02em", lineHeight: 1,
-              background: "linear-gradient(135deg, #fff 20%, #facc15 60%, #fef08a 100%)",
+              background: "linear-gradient(135deg, #fff 15%, #fde68a 45%, #facc15 70%, #fef08a 100%)",
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               backgroundClip: "text" }}>
-            Connect 4
+            Games Room
           </motion.p>
 
           {/* Tagline */}
           <motion.p
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.65 }}
-            style={{ margin: "0 0 32px", fontSize: 15, fontWeight: 600, lineHeight: 1.5,
-              color: "rgba(255,255,255,0.62)", maxWidth: 260 }}>
-            The butler has never lost.
+            style={{ margin: "0 0 32px", fontSize: 15, fontWeight: 600, lineHeight: 1.6,
+              color: "rgba(255,255,255,0.58)", maxWidth: 280 }}>
+            Connect 4 · Icebreakers · Challenges
             <br />
             <span style={{ color: "rgba(255,255,255,0.88)", fontWeight: 800 }}>
-              Will you be the first?
+              The butler has never lost. Will you be the first?
             </span>
           </motion.p>
 
