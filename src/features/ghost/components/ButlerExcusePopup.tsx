@@ -8,7 +8,9 @@ import { getRandomExcuse, markBreakfastMissed, formatInTimezone, tzCity, tzShort
 import type { BreakfastInvite } from "../utils/breakfastInviteService";
 import { FLOOR_META } from "../utils/breakfastGiftService";
 
-const BUTLER_IMG = "https://ik.imagekit.io/7grri5v7d/sdfasdfacxv-removebg-preview.png?updatedAt=1774185654860";
+const BUTLER_IMG  = "https://ik.imagekit.io/7grri5v7d/ewrwerwerwer-removebg-preview.png";
+const CLOCK_IMG   = "https://ik.imagekit.io/7grri5v7d/Untitledsfsdfs-removebg-preview.png?updatedAt=1774267234482";
+const BACK_IMG    = "https://ik.imagekit.io/7grri5v7d/sdfasdfdddsaasdf.png?updatedAt=1774270395199";
 
 type Props = {
   invite:          BreakfastInvite;
@@ -50,13 +52,19 @@ export default function ButlerExcusePopup({ invite, perspective, onDismiss, onRe
       <motion.div
         initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 280, damping: 28 }}
-        style={{ width: "100%", maxWidth: 480, background: "rgba(6,6,15,0.99)",
+        style={{ width: "100%", maxWidth: 480,
           borderRadius: "24px 24px 0 0", border: `1px solid ${glow(0.3)}`,
-          borderBottom: "none", paddingBottom: "max(28px,env(safe-area-inset-bottom,28px))" }}
+          borderBottom: "none", paddingBottom: "max(28px,env(safe-area-inset-bottom,28px))",
+          position: "relative", overflow: "hidden" }}
       >
-        <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${meta.color}, transparent)` }} />
+        {/* Back panel image */}
+        <img src={BACK_IMG} alt=""
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%",
+            objectFit: "cover", objectPosition: "center top", opacity: 0.12, zIndex: 0 }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(6,6,15,0.92)", zIndex: 0 }} />
+        <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${meta.color}, transparent)`, position: "relative", zIndex: 1 }} />
 
-        <div style={{ padding: "20px 20px 0" }}>
+        <div style={{ padding: "20px 20px 0", position: "relative", zIndex: 1 }}>
           {/* Butler header */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
             <motion.img src={BUTLER_IMG} alt="Butler"
@@ -65,7 +73,7 @@ export default function ButlerExcusePopup({ invite, perspective, onDismiss, onRe
                 border: `2px solid ${glow(0.4)}` }} />
             <div>
               <p style={{ margin: 0, fontSize: 11, color: meta.color, fontWeight: 700,
-                textTransform: "uppercase", letterSpacing: "0.07em" }}>A word from your butler</p>
+                textTransform: "uppercase", letterSpacing: "0.07em" }}>Butler Update</p>
               <p style={{ margin: "3px 0 0", fontSize: 16, fontWeight: 900, color: "#fff" }}>
                 {absentName} didn't make it
               </p>
@@ -77,7 +85,7 @@ export default function ButlerExcusePopup({ invite, perspective, onDismiss, onRe
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
               background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
               borderRadius: 12, marginBottom: 16 }}>
-              <span style={{ fontSize: 18, flexShrink: 0 }}>⏰</span>
+              <img src={CLOCK_IMG} alt="clock" style={{ width: 32, height: 32, objectFit: "contain", flexShrink: 0 }} />
               <div>
                 <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.6)" }}>
                   The agreed time was <span style={{ color: "#fff" }}>{hostTime}</span>
@@ -112,7 +120,7 @@ export default function ButlerExcusePopup({ invite, perspective, onDismiss, onRe
                   background: `linear-gradient(135deg, ${meta.color}44, ${meta.color}22)`,
                   border: `1.5px solid ${glow(0.6)}`, color: meta.color,
                   fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
-                Try again tomorrow ☕
+                Try again tomorrow
               </motion.button>
             )}
           </div>
