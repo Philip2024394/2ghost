@@ -413,186 +413,110 @@ const CO_PROFILES: COProfile[] = [
 const GOLD = "#d4af37";
 const GOLD_GRAD = "linear-gradient(135deg, #92400e, #d4af37, #f0d060)";
 
-function PenthouseCheckOut({ onClose }: { onClose: () => void }) {
-  const [idx,          setIdx]          = useState(0);
-  const [direction,    setDirection]    = useState<"left" | "right" | null>(null);
-  const [matchProfile, setMatchProfile] = useState<COProfile | null>(null);
-  const [done,         setDone]         = useState(false);
 
-  const profile = CO_PROFILES[idx];
+const FLOOR_CHECKOUT_META: Record<string, { label: string; icon: string; color: string }> = {
+  suite:     { label: "The Suite",       icon: "🛎️", color: "#b8a4e8" },
+  kings:     { label: "The Kings Room",  icon: "👑", color: "#d4af6a" },
+  penthouse: { label: "The Penthouse",   icon: "🏙️", color: "#c8a84b" },
+  loft:      { label: "The Loft",        icon: "🎨", color: "#a8c5a0" },
+  cellar:    { label: "The Cellar",      icon: "🍷", color: "#9b6b9b" },
+};
 
-  function next(dir: "left" | "right") {
-    setDirection(dir);
-    setTimeout(() => {
-      setDirection(null);
-      if (idx + 1 >= CO_PROFILES.length) { setDone(true); }
-      else setIdx(i => i + 1);
-    }, 280);
+const BUTLER_IMG_URL = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdfccc-removebg-preview.png";
+
+function FloorCheckoutPopup({ roomKey, onClose, onConfirm }: { roomKey: RoomTier; onClose: () => void; onConfirm: () => void }) {
+  const meta = FLOOR_CHECKOUT_META[roomKey];
+  if (!meta) return null;
+  const [confirmed, setConfirmed] = useState(false);
+
+  function handleConfirm() {
+    setConfirmed(true);
+    setTimeout(() => { onConfirm(); }, 1800);
   }
 
-  function handleLike() {
-    if (profile.willMatch) { setMatchProfile(profile); return; }
-    next("right");
-  }
-  function handlePass() { next("left"); }
-
-  // ── Match screen
-  if (matchProfile) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        style={{ position: "fixed", inset: 0, zIndex: 700, background: "rgba(0,0,0,0.96)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 24px" }}
-      >
-        <motion.div
-          initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 260, damping: 22 }}
-          style={{ width: "100%", maxWidth: 360, textAlign: "center" }}
-        >
-          {/* Avatars */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 24 }}>
-            <div style={{ width: 80, height: 80, borderRadius: "50%", border: `3px solid ${GOLD}`, overflow: "hidden", boxShadow: `0 0 30px ${GOLD}55` }}>
-              <img src={`https://i.pravatar.cc/80?img=${matchProfile.seed}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            </div>
-            <motion.span animate={{ scale: [1, 1.25, 1] }} transition={{ duration: 1.2, repeat: Infinity }} style={{ fontSize: 28 }}>🥂</motion.span>
-            <div style={{ width: 80, height: 80, borderRadius: "50%", border: "3px solid rgba(255,255,255,0.3)", overflow: "hidden" }}>
-              <img src="https://i.pravatar.cc/80?img=68" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            </div>
-          </div>
-
-          <p style={{ margin: "0 0 4px", fontSize: 9, fontWeight: 800, color: `${GOLD}99`, letterSpacing: "0.2em", textTransform: "uppercase" }}>Penthouse Match</p>
-          <h2 style={{ margin: "0 0 8px", fontSize: 26, fontWeight: 900, color: "#fff" }}>You & {matchProfile.name}</h2>
-          <p style={{ margin: "0 0 28px", fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
-            {matchProfile.name} liked you back. You can now connect outside the house.
-          </p>
-
-          {/* Connect options */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-            <motion.a
-              whileTap={{ scale: 0.97 }}
-              href={`https://wa.me/?text=Hey%2C%20I%20matched%20with%20you%20on%202Ghost%20%F0%9F%91%BB`}
-              target="_blank" rel="noopener noreferrer"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, height: 52, borderRadius: 14, background: "#25d366", textDecoration: "none", color: "#fff", fontSize: 14, fontWeight: 900, boxShadow: "0 4px 20px rgba(37,211,102,0.4)" }}
-            >
-              <span style={{ fontSize: 20 }}>📱</span>
-              Connect on WhatsApp
-            </motion.a>
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              onClick={() => { setMatchProfile(null); next("right"); }}
-              style={{ height: 44, borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
-            >
-              Keep Browsing
-            </motion.button>
-          </div>
-
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 11, cursor: "pointer" }}>
-            Close
-          </button>
-        </motion.div>
-      </motion.div>
-    );
-  }
-
-  // ── Done screen
-  if (done) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose}
-        style={{ position: "fixed", inset: 0, zIndex: 700, background: "rgba(0,0,0,0.92)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 24px" }}
-      >
-        <div style={{ textAlign: "center" }} onClick={e => e.stopPropagation()}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🏙️</div>
-          <p style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 900, color: "#fff" }}>That's everyone tonight</p>
-          <p style={{ margin: "0 0 24px", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>New guests check in every evening.<br />Come back tomorrow night.</p>
-          <motion.button whileTap={{ scale: 0.97 }} onClick={onClose} style={{ height: 46, padding: "0 32px", borderRadius: 12, border: "none", background: GOLD_GRAD, color: "#0a0700", fontSize: 13, fontWeight: 900, cursor: "pointer" }}>
-            Back to Rooms
-          </motion.button>
-        </div>
-      </motion.div>
-    );
-  }
-
-  // ── Profile card
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      style={{ position: "fixed", inset: 0, zIndex: 700, background: "rgba(0,0,0,0.92)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", display: "flex", flexDirection: "column" }}
+      style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(0,0,0,0.88)",
+        backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+        display: "flex", alignItems: "flex-end", justifyContent: "center" }}
     >
-      {/* Header */}
-      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "max(env(safe-area-inset-top,16px),16px) 18px 12px" }}>
-        <div>
-          <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#fff" }}>🏙️ Penthouse Check Out</p>
-          <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{CO_PROFILES.length - idx} members available tonight</p>
-        </div>
-        <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 16 }}>✕</span>
-        </button>
-      </div>
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        style={{ width: "100%", maxWidth: 480, background: "rgba(6,6,15,0.99)",
+          borderRadius: "24px 24px 0 0", border: `1px solid ${meta.color}44`,
+          borderBottom: "none", overflow: "hidden",
+          paddingBottom: "max(28px,env(safe-area-inset-bottom,28px))" }}
+      >
+        <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${meta.color}, transparent)` }} />
 
-      {/* Card */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 20px" }}>
         <AnimatePresence mode="wait">
-          <motion.div
-            key={profile.id}
-            initial={{ opacity: 0, x: direction === "left" ? 60 : direction === "right" ? -60 : 0, scale: 0.96 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: direction === "left" ? -80 : 80, scale: 0.94 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-            style={{ width: "100%", maxWidth: 360 }}
-          >
-            {/* Photo */}
-            <div style={{ width: "100%", height: 340, borderRadius: 22, overflow: "hidden", position: "relative", border: `1px solid ${GOLD}30`, boxShadow: `0 0 40px ${GOLD}18` }}>
-              <img src={`https://i.pravatar.cc/400?img=${profile.seed}`} alt={profile.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%)" }} />
-              {/* Name / info */}
-              <div style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 18, fontWeight: 900, color: "#fff" }}>{profile.name}, {profile.age}</span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}35`, borderRadius: 20, padding: "2px 8px" }}>🏙️ Penthouse</span>
+          {confirmed ? (
+            <motion.div key="done"
+              initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
+              style={{ padding: "36px 24px 24px", textAlign: "center" }}
+            >
+              <div style={{ fontSize: 48, marginBottom: 16 }}>🧳</div>
+              <p style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 900, color: "#fff" }}>Bags on their way down</p>
+              <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+                Your butler is arranging your transfer to the Standard Room. See you downstairs.
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div key="confirm" style={{ padding: "24px 24px 20px" }}>
+              {/* Butler + floor */}
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
+                <div style={{ position: "relative" }}>
+                  <img src={BUTLER_IMG_URL} alt="Butler"
+                    style={{ width: 60, height: 60, borderRadius: 14, objectFit: "cover",
+                      border: `2px solid ${meta.color}66`, boxShadow: `0 0 18px ${meta.color}33` }} />
+                  <div style={{ position: "absolute", bottom: -4, right: -4, width: 20, height: 20,
+                    borderRadius: "50%", background: "#050508", border: `1.5px solid ${meta.color}`,
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 }}>
+                    {meta.icon}
+                  </div>
                 </div>
-                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.6)" }}>📍 {profile.city}</p>
+                <div>
+                  <p style={{ margin: 0, fontSize: 11, color: meta.color, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>Your Butler</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 16, fontWeight: 900, color: "#fff" }}>Checking out of {meta.label}</p>
+                </div>
               </div>
-              {/* Ready badge */}
-              <div style={{ position: "absolute", top: 14, right: 14, background: "rgba(74,222,128,0.2)", border: "1px solid rgba(74,222,128,0.4)", borderRadius: 20, padding: "4px 10px", display: "flex", alignItems: "center", gap: 5 }}>
-                <motion.div animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 1.2, repeat: Infinity }} style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80" }} />
-                <span style={{ fontSize: 9, fontWeight: 800, color: "#4ade80" }}>Ready to Connect</span>
+
+              {/* Info cards */}
+              {[
+                { icon: "🧳", text: `Your bags will be moved down to the Standard Room — you remain a hotel guest.` },
+                { icon: "🛏️", text: "Your Standard Room will be prepared and ready when you arrive downstairs." },
+                { icon: "🔑", text: `Your ${meta.label} access ends on checkout and cannot be accessed again without a new room booking.` },
+              ].map((line, i) => (
+                <motion.div key={i}
+                  initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 + i * 0.08 }}
+                  style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10,
+                    padding: "11px 14px", background: `${meta.color}0d`, border: `1px solid ${meta.color}22`, borderRadius: 12 }}>
+                  <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{line.icon}</span>
+                  <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.5 }}>{line.text}</p>
+                </motion.div>
+              ))}
+
+              <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+                <motion.button whileTap={{ scale: 0.97 }} onClick={onClose}
+                  style={{ flex: 1, height: 48, borderRadius: 14, background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)",
+                    fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                  Stay
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.97 }} onClick={handleConfirm}
+                  style={{ flex: 2, height: 48, borderRadius: 14,
+                    background: "linear-gradient(135deg, #c8a84b, #e0ddd8, #c8a84b)",
+                    border: "none", color: "#0a0700",
+                    fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                  🧳 Check Out of {meta.label}
+                </motion.button>
               </div>
-            </div>
-
-            {/* Bio */}
-            <div style={{ margin: "14px 0 20px", padding: "12px 14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14 }}>
-              <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.6, fontStyle: "italic" }}>"{profile.bio}"</p>
-            </div>
-
-            {/* Like / Pass */}
-            <div style={{ display: "flex", gap: 14 }}>
-              <motion.button
-                whileTap={{ scale: 0.94 }}
-                onClick={handlePass}
-                style={{ flex: 1, height: 54, borderRadius: 16, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)", fontSize: 22, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-              >
-                👋
-              </motion.button>
-              <motion.button
-                whileTap={{ scale: 0.94 }}
-                onClick={handleLike}
-                style={{ flex: 2, height: 54, borderRadius: 16, border: "none", background: GOLD_GRAD, color: "#0a0700", fontSize: 14, fontWeight: 900, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 4px 20px ${GOLD}40` }}
-              >
-                <span style={{ fontSize: 18 }}>🥂</span>
-                Like
-              </motion.button>
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
         </AnimatePresence>
-      </div>
-
-      {/* Progress dots */}
-      <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", gap: 5, padding: "12px 0 max(env(safe-area-inset-bottom,20px),20px)" }}>
-        {CO_PROFILES.map((p, i) => (
-          <div key={p.id} style={{ width: i === idx ? 18 : 6, height: 6, borderRadius: 3, background: i === idx ? GOLD : "rgba(255,255,255,0.15)", transition: "all 0.25s" }} />
-        ))}
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
@@ -610,7 +534,7 @@ export default function GhostRoomsPage() {
   const [reviewTarget,  setReviewTarget]   = useState<RoomTier | null>(null);
   const [storedReviews, setStoredReviews]  = useState<UserReview[]>(getStoredReviews);
   const [welcomeGiftTier, setWelcomeGiftTier] = useState<RoomTier | null>(null);
-  const [showCheckOut,    setShowCheckOut]    = useState(false);
+  const [checkoutRoom,    setCheckoutRoom]    = useState<RoomTier | null>(null);
   const [gardenPrivate,   setGardenPrivate]   = useState(() => {
     try { return localStorage.getItem("ghost_garden_private") === "1"; } catch { return false; }
   });
@@ -1003,12 +927,12 @@ export default function GhostRoomsPage() {
                               {gardenPrivate ? "Privacy Mode: On — hidden from main browse" : "Enable Privacy Mode — remove from main browse"}
                             </motion.button>
                           </div>
-                        ) : room.key === "penthouse" ? (
-                          /* Penthouse: 2-button row — Check Out + View Floor */
+                        ) : (
+                          /* All rooms: Check Out + View Floor */
                           <div style={{ display: "flex", gap: 8 }}>
                             <motion.button
                               whileTap={{ scale: 0.97 }}
-                              onClick={() => setShowCheckOut(true)}
+                              onClick={() => room.key === "standard" ? navigate("/ghost/checkout") : setCheckoutRoom(room.key)}
                               style={{
                                 flex: 1, height: 48, borderRadius: 12, border: "none", cursor: "pointer",
                                 background: "linear-gradient(135deg, #c8a84b, #e0ddd8, #c8a84b)",
@@ -1022,7 +946,17 @@ export default function GhostRoomsPage() {
                             </motion.button>
                             <motion.button
                               whileTap={{ scale: 0.97 }}
-                              onClick={() => navigate("/ghost/penthouse")}
+                              onClick={() => {
+                                const routes: Record<string, string> = {
+                                  standard:  "/",
+                                  suite:     "/ghost/floor/suite",
+                                  kings:     "/ghost/floor/kings",
+                                  penthouse: "/ghost/floor/penthouse-floor",
+                                  loft:      "/ghost/floor/loft-floor",
+                                  cellar:    "/ghost/floor/cellar-floor",
+                                };
+                                navigate(routes[room.key] ?? "/");
+                              }}
                               style={{
                                 flex: 1, height: 48, borderRadius: 12, cursor: "pointer",
                                 background: `${room.color}14`, border: `1px solid ${room.color}45`,
@@ -1030,37 +964,13 @@ export default function GhostRoomsPage() {
                                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
                               }}
                             >
-                              <span style={{ fontSize: 16 }}>🏙️</span>
+                              {(room as any).iconImg
+                                ? <img src={(room as any).iconImg} alt="" style={{ width: 18, height: 18, objectFit: "contain" }} />
+                                : <span style={{ fontSize: 16 }}>{room.icon}</span>
+                              }
                               <span>View Floor</span>
                             </motion.button>
                           </div>
-                        ) : (
-                          /* All other rooms: navigate to their dedicated floor page */
-                          <motion.button
-                            whileTap={{ scale: 0.97 }}
-                            onClick={() => {
-                              const routes: Record<string, string> = {
-                                standard: "/ghost/floor/standard",
-                                suite:    "/ghost/floor/suite",
-                                kings:    "/ghost/loft",
-                              };
-                              navigate(routes[room.key] ?? "/ghost/floor/standard");
-                            }}
-                            style={{
-                              width: "100%", height: 48, borderRadius: 12, border: "none", cursor: "pointer",
-                              background: room.gradient, color: "#0a0700",
-                              fontSize: 13, fontWeight: 900,
-                              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                              boxShadow: `0 3px 16px ${room.glow}`,
-                            }}
-                          >
-                            {(room as any).iconImg
-                              ? <img src={(room as any).iconImg} alt="" style={{ width: 20, height: 20, objectFit: "contain" }} />
-                              : <span style={{ fontSize: 16 }}>{room.icon}</span>
-                            }
-                            View {room.name}
-                            <span style={{ fontSize: 12, opacity: 0.7 }}>›</span>
-                          </motion.button>
                         )}
 
                         {/* Rate button for own tier */}
@@ -1215,7 +1125,7 @@ export default function GhostRoomsPage() {
                   {/* CTA */}
                   <motion.button
                     whileTap={{ scale: 0.97 }}
-                    onClick={() => navigate("/ghost/loft")}
+                    onClick={() => navigate("/ghost/floor/loft-floor")}
                     style={{
                       width: "100%", height: 44, borderRadius: 12, border: "none",
                       background: VGRAD, color: "#fff",
@@ -1335,7 +1245,7 @@ export default function GhostRoomsPage() {
                   {/* CTA */}
                   <motion.button
                     whileTap={{ scale: 0.97 }}
-                    onClick={() => navigate("/ghost/cellar")}
+                    onClick={() => navigate("/ghost/floor/cellar-floor")}
                     style={{
                       width: "100%", height: 44, borderRadius: 12, border: "none",
                       background: CGRAD, color: "#fff",
@@ -1421,7 +1331,13 @@ export default function GhostRoomsPage() {
 
       {/* ── Penthouse Check Out popup ── */}
       <AnimatePresence>
-        {showCheckOut && <PenthouseCheckOut onClose={() => setShowCheckOut(false)} />}
+        {checkoutRoom && checkoutRoom !== "standard" && (
+          <FloorCheckoutPopup
+            roomKey={checkoutRoom}
+            onClose={() => setCheckoutRoom(null)}
+            onConfirm={() => { writeTier("standard"); setCurrentTier("standard"); setCheckoutRoom(null); }}
+          />
+        )}
       </AnimatePresence>
     </div>
   );

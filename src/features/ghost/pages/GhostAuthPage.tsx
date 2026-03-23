@@ -181,7 +181,7 @@ export default function GhostAuthPage() {
     };
 
     const selectStyle: React.CSSProperties = {
-      background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.14)",
+      background: "#050508", border: "1px solid rgba(255,255,255,0.14)",
       borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 600,
       padding: "0 12px", height: 46, outline: "none", appearance: "none",
       WebkitAppearance: "none", cursor: "pointer", width: "100%",
@@ -196,7 +196,7 @@ export default function GhostAuthPage() {
       }}>
         <div style={{ width: "100%", maxWidth: 360 }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{ fontSize: 48, marginBottom: 14 }}>👻</div>
+            <img src="https://ik.imagekit.io/7grri5v7d/Untitledsfasdfasdf.png" alt="2Ghost" style={{ width: 120, height: 120, objectFit: "contain", display: "block", margin: "0 auto 14px" }} />
             <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 8px", lineHeight: 1.2 }}>
               Welcome to 2Ghost
             </h1>

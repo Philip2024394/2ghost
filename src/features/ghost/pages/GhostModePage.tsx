@@ -58,6 +58,9 @@ import SeancePopup from "../components/SeancePopup";
 import VideoIntroPlayer from "../components/VideoIntroPlayer";
 import VideoIntroUploader from "../components/VideoIntroUploader";
 import GhostStreakBanner from "../components/GhostStreakBanner";
+import DevPopupLauncher from "@/shared/components/DevPopupLauncher";
+import GameInvitePopup from "../components/GameInvitePopup";
+import { sendGameInvite, subscribeToGameInvites, respondToInvite, type GameInvite } from "../utils/gameInviteService";
 import { hasActiveWindowMode, getDaysConnected, getConciergeShown, whisperWillConvert, profileHasVideo, isProfileInWindow } from "../utils/featureGating";
 import { recordLike, loadMyMatches, getMyGhostId, syncTierToSupabase, loadTierFromSupabase, syncCoinsToSupabase, loadCoinsFromSupabase, loadGhostProfiles, type RealProfileRow } from "../ghostDataService";
 
@@ -408,6 +411,7 @@ export default function GhostModePage() {
 
   const [realProfiles, setRealProfiles] = useState<RealProfileRow[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<GhostProfile | null>(null);
+  const [pendingGameInvite, setPendingGameInvite] = useState<GameInvite | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [matchProfile, setMatchProfile] = useState<GhostProfile | null>(null);
   const [icebreakerProfile, setIcebreakerProfile] = useState<GhostProfile | null>(null);
@@ -508,6 +512,27 @@ export default function GhostModePage() {
     loadGhostProfiles().then(rows => { if (rows.length) setRealProfiles(rows); });
   }, []);
 
+  // Subscribe to incoming game invites via Supabase realtime
+  useEffect(() => {
+    const myId = localStorage.getItem("ghost_phone") ?? "";
+    if (!myId) return;
+    const unsub = subscribeToGameInvites(myId, (invite) => {
+      setPendingGameInvite(invite);
+    });
+    return unsub;
+  }, []);
+
+  // Send a game invite to a profile from the browse feed
+  const handleGameInvite = useCallback(async (profile: GhostProfile) => {
+    const myPhone = localStorage.getItem("ghost_phone") ?? "";
+    if (!myPhone) return;
+    const rawProfile = (() => { try { return JSON.parse(localStorage.getItem("ghost_profile") ?? "{}"); } catch { return {}; } })();
+    const myName = rawProfile.name ?? myPhone;
+    const myImage = rawProfile.photo ?? "";
+    await sendGameInvite(myPhone, myName, myImage, profile.id);
+    setSelectedProfile(null);
+  }, []);
+
   // Supabase: sync tier + coins on mount
   useEffect(() => {
     const myId = getMyGhostId();
@@ -604,7 +629,7 @@ export default function GhostModePage() {
   const [showFloorChat,      setShowFloorChat]      = useState(false);
   // Which floor chat to open — defaults to user's own tier, but Kings/Penthouse can visit lower floors
   const [floorChatTier,     setFloorChatTier]      = useState<"standard"|"suite"|"kings"|"penthouse"|"cellar"|"garden"|null>(null);
-  const [chatUnread,         setChatUnreadState]    = useState(() => getChatUnread());
+  const [chatUnread,         setChatUnreadState]    = useState(() => getChatUnread("standard"));
   const [showInviteSheet,    setShowInviteSheet]    = useState(false);
   const [showCheckout,       setShowCheckout]       = useState(false);
   const [showButlerWelcome,  setShowButlerWelcome]  = useState(false);
@@ -724,7 +749,7 @@ export default function GhostModePage() {
       setFloorChatTier(tier as "standard"|"suite"|"kings"|"penthouse"|"cellar");
       setShowFloorChat(true);
       setChatUnreadState(0);
-      setChatUnread(0);
+      setChatUnread("standard", 0);
     }, 300);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -739,7 +764,7 @@ export default function GhostModePage() {
       setFloorChatTier(userRoomTier);
       setShowFloorChat(true);
       setChatUnreadState(0);
-      setChatUnread(0);
+      setChatUnread("standard", 0);
     }, 2000);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -752,8 +777,8 @@ export default function GhostModePage() {
       const delay = 45000 + Math.random() * 45000;
       return setTimeout(() => {
         if (!showFloorChat) {
-          const next = getChatUnread() + 1;
-          setChatUnread(next);
+          const next = getChatUnread("standard") + 1;
+          setChatUnread("standard", next);
           setChatUnreadState(next);
         }
         timerRef.current = schedule();
@@ -1651,51 +1676,6 @@ export default function GhostModePage() {
         );
       })()}
 
-      {/* ── My Room members button ── */}
-      {userRoomTier && (
-        <div style={{ margin: "10px 14px 0" }}>
-          <button
-            onClick={() => setShowLobbyPopup(true)}
-            style={{
-              width: "100%", borderRadius: 16, border: `1px solid ${a.glow(0.22)}`, cursor: "pointer",
-              background: `linear-gradient(135deg, ${a.glow(0.08)}, ${a.glow(0.04)})`,
-              display: "flex", flexDirection: "column", alignItems: "center",
-              padding: "0 16px 12px",
-              overflow: "hidden", position: "relative",
-              transition: "all 0.2s",
-            }}
-          >
-            {/* Gender top rim */}
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: a.accent }} />
-
-            {/* Centred enlarged icon */}
-            <div style={{ marginTop: 18, marginBottom: 6 }}>
-              <img
-                src="https://ik.imagekit.io/7grri5v7d/sdfasdfasdfacxv-removebg-preview.png?updatedAt=1774185654860"
-                alt=""
-                style={{ width: 44, height: 44, objectFit: "contain" }}
-              />
-            </div>
-
-            {/* Title + subtitle */}
-            <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 800, color: a.accent, letterSpacing: "0.03em" }}>Hotel Lobby</p>
-            <p style={{ margin: "0 0 10px", fontSize: 9, color: a.glow(0.6), fontWeight: 600 }}>
-              Guests available to meet tonight
-            </p>
-
-            {/* Avatars row */}
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              {roomMemberList.slice(0, 3).map(p => (
-                <img key={p.id} src={p.image} alt=""
-                  style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", border: `1.5px solid ${a.glow(0.4)}` }}
-                  onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
-                />
-              ))}
-              <span style={{ fontSize: 13, color: a.glow(0.6), marginLeft: 2 }}>›</span>
-            </div>
-          </button>
-        </div>
-      )}
 
 
 
@@ -1750,7 +1730,7 @@ export default function GhostModePage() {
               setFloorChatTier(userRoomTier);
               setShowFloorChat(true);
               setChatUnreadState(0);
-              setChatUnread(0);
+              setChatUnread("standard", 0);
             }
           })}
           style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
@@ -2183,6 +2163,7 @@ export default function GhostModePage() {
               flaggedReason={flaggedProfiles[profile.id]?.reason}
               onFlagOpen={() => { const gId = toGhostId(profile.id); setFlagSheet({ profileId: profile.id, ghostId: gId }); }}
               isFoundBoo={!!(isProfilePaused && foundBoo?.matchProfileId === profile.id)}
+              onGameInvite={isOnline(profile.last_seen_at) ? () => handleGameInvite(profile) : undefined}
             />
           ))}
         </div>
@@ -2282,6 +2263,24 @@ export default function GhostModePage() {
             onWhisper={() => { setWhisperProfile(selectedProfile); setSelectedProfile(null); setShowWhisper(true); }}
             onVideoIntro={profileHasVideo(selectedProfile.id) ? () => { setVideoProfile(selectedProfile); setSelectedProfile(null); setShowVideoPlayer(true); } : undefined}
             onSeance={likedIds.has(selectedProfile.id) ? () => { setSeanceProfile(selectedProfile); setSelectedProfile(null); setShowSeance(true); } : undefined}
+            onGameInvite={isOnline(selectedProfile.last_seen_at) ? () => handleGameInvite(selectedProfile) : undefined}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {pendingGameInvite && (
+          <GameInvitePopup
+            invite={pendingGameInvite}
+            onAccept={async () => {
+              await respondToInvite(pendingGameInvite.id, "accepted");
+              setPendingGameInvite(null);
+              navigate("/ghost/games/connect4");
+            }}
+            onDecline={async (reason) => {
+              await respondToInvite(pendingGameInvite.id, "declined", reason);
+              setPendingGameInvite(null);
+            }}
           />
         )}
       </AnimatePresence>
@@ -2422,15 +2421,15 @@ export default function GhostModePage() {
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               onClick={e => e.stopPropagation()}
-              style={{ width: "100%", maxWidth: 480, background: "rgba(4,8,12,0.99)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(74,222,128,0.2)", borderBottom: "none", maxHeight: "90dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}
+              style={{ width: "100%", maxWidth: 480, background: "rgba(4,8,12,0.99)", borderRadius: "22px 22px 0 0", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none", maxHeight: "90dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}
             >
-              {/* Green top stripe */}
-              <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #4ade80, #86efac, #4ade80, transparent)", flexShrink: 0 }} />
+              {/* Accent top stripe */}
+              <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, ${a.accentMid}, ${a.accent}, transparent)`, flexShrink: 0 }} />
 
               {/* Header */}
               <div style={{ flexShrink: 0, padding: "14px 18px 10px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <motion.span animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.6, repeat: Infinity }} style={{ fontSize: 22 }}>🌙</motion.span>
+                  <motion.img src="https://ik.imagekit.io/7grri5v7d/SADFASDFASDFASDFSdsfasdf.png?updatedAt=1774213829792" alt="" animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.6, repeat: Infinity }} style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
                   <div>
                     <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>Ready to Meet Tonight</p>
                     <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>
@@ -2461,21 +2460,21 @@ export default function GhostModePage() {
                         onClick={() => { setShowTonightSheet(false); setSelectedProfile(p); }}
                         style={{ cursor: "pointer" }}
                       >
-                        <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", aspectRatio: "3/4", border: "1.5px solid rgba(74,222,128,0.3)", boxShadow: "0 0 10px rgba(74,222,128,0.12)" }}>
+                        <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", aspectRatio: "3/4", border: `1.5px solid ${a.glow(0.3)}`, boxShadow: `0 0 10px ${a.glow(0.12)}` }}>
                           <img src={p.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                             onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
                           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)" }} />
 
                           {/* Tonight badge */}
                           <div style={{ position: "absolute", top: 6, left: 6, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "2px 6px" }}>
-                            <span style={{ fontSize: 7, fontWeight: 900, color: "#4ade80", letterSpacing: "0.04em" }}>🌙 TONIGHT</span>
+                            <span style={{ fontSize: 7, fontWeight: 900, color: a.accent, letterSpacing: "0.04em" }}>🌙 TONIGHT</span>
                           </div>
 
                           {/* Online pulse */}
                           <motion.div
                             animate={{ opacity: [0.4, 1, 0.4] }}
                             transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.15 }}
-                            style={{ position: "absolute", top: 6, right: 6, width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)" }}
+                            style={{ position: "absolute", top: 6, right: 6, width: 7, height: 7, borderRadius: "50%", background: a.accent, boxShadow: `0 0 6px ${a.glow(0.9)}` }}
                           />
 
                           {/* Info */}
@@ -2489,7 +2488,7 @@ export default function GhostModePage() {
                         <motion.button
                           whileTap={{ scale: 0.88 }}
                           onClick={e => { e.stopPropagation(); handleLike(p); }}
-                          style={{ width: "100%", marginTop: 5, height: 28, borderRadius: 8, border: likedIds.has(p.id) ? "1.5px solid rgba(74,222,128,0.6)" : "1px solid rgba(255,255,255,0.1)", background: likedIds.has(p.id) ? "rgba(74,222,128,0.15)" : "rgba(255,255,255,0.04)", color: likedIds.has(p.id) ? "#4ade80" : "rgba(255,255,255,0.55)", fontSize: 10, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}
+                          style={{ width: "100%", marginTop: 5, height: 28, borderRadius: 8, border: likedIds.has(p.id) ? `1.5px solid ${a.glow(0.6)}` : "1px solid rgba(255,255,255,0.1)", background: likedIds.has(p.id) ? a.glow(0.15) : "rgba(255,255,255,0.04)", color: likedIds.has(p.id) ? a.accent : "rgba(255,255,255,0.55)", fontSize: 10, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}
                         >
                           {likedIds.has(p.id) ? "❤️ Liked" : "♡ Like"}
                         </motion.button>
@@ -3018,19 +3017,21 @@ export default function GhostModePage() {
                   { icon: "⚔️", label: "Floor Wars", desc: "Weekly floor gift leaderboard", action: () => { setShowSettingsSheet(false); setShowFloorWars(true); } },
                   { icon: "🎬", label: "Video Introduction", desc: "Upload & manage your video intro", action: () => { setShowSettingsSheet(false); setShowVideoUpload(true); } },
                   { icon: "📄", label: "Terms & Conditions", desc: "Privacy & usage policy", action: () => { setShowSettingsSheet(false); window.open("https://2ghost.com/terms", "_blank"); } },
-                ].map(({ icon, label, desc, isShield, isRoom, action }) => (
+                  { icon: "🏨", label: "Check Out of Hotel", desc: "Leave a calling card or check out with your match", isCheckout: true, action: () => { setShowSettingsSheet(false); navigate("/ghost/checkout"); } },
+                ].map(({ icon, label, desc, isShield, isRoom, isCheckout, action } : { icon: string | null; label: string; desc: string; isShield?: boolean; isRoom?: boolean; isCheckout?: boolean; action: () => void }) => (
                   <button key={label} onClick={action}
                     style={{
                       width: "100%", display: "flex", alignItems: "center", gap: 14,
-                      background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)",
+                      background: isCheckout ? "rgba(239,68,68,0.04)" : "rgba(255,255,255,0.02)",
+                      border: isCheckout ? "1px solid rgba(239,68,68,0.15)" : "1px solid rgba(255,255,255,0.05)",
                       borderRadius: 14, padding: "13px 14px", marginBottom: 8,
                       cursor: "pointer", textAlign: "left",
                     }}
                   >
                     <div style={{
                       width: 38, height: 38, borderRadius: 10, flexShrink: 0,
-                      background: isShield ? "rgba(255,255,255,0.04)" : a.glow(0.07),
-                      border: `1px solid ${a.glow(0.15)}`,
+                      background: isShield ? "rgba(255,255,255,0.04)" : isCheckout ? "rgba(239,68,68,0.08)" : a.glow(0.07),
+                      border: `1px solid ${isShield ? "rgba(255,255,255,0.08)" : isCheckout ? "rgba(239,68,68,0.2)" : a.glow(0.15)}`,
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
                       {isShield
@@ -3041,7 +3042,7 @@ export default function GhostModePage() {
                       }
                     </div>
                     <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>{label}</p>
+                      <p style={{ fontSize: 13, fontWeight: 800, color: isCheckout ? "rgba(239,68,68,0.85)" : "#fff", margin: 0 }}>{label}</p>
                       <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>{desc}</p>
                     </div>
                     <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 14 }}>›</span>
@@ -3851,6 +3852,9 @@ export default function GhostModePage() {
         )}
       </AnimatePresence>
 
+      {/* ── Dev Popup Launcher ── */}
+      <DevPopupLauncher />
+
       {/* ── Dev Panel ── */}
       <DevPanel
         isTonightMode={isTonightMode}
@@ -3915,9 +3919,9 @@ export default function GhostModePage() {
               {/* Accent stripe */}
               <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)` }} />
 
-              {/* Ghost logo + heading */}
+              {/* Hero image + heading */}
               <div style={{ textAlign: "center", padding: "28px 24px 20px" }}>
-                <img src={GHOST_LOGO} alt="2Ghost" style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 14 }} />
+                <img src="https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasdasdasd.png?updatedAt=1773971031454" alt="Ghost House" style={{ width: 120, height: 120, objectFit: "contain", marginBottom: 14, display: "block", margin: "0 auto 14px" }} />
                 <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>Join the Ghost House</p>
                 <p style={{ margin: "8px 0 0", fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.55 }}>
                   Create a free account to like profiles,<br />connect with matches & unlock all features

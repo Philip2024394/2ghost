@@ -6,6 +6,7 @@ import GiftReplyModal, { type PendingGift } from "./GiftReplyModal";
 import GhostRadioRecorder from "./GhostRadioRecorder";
 import { isKingsPlus, incrementFloorGift } from "../utils/featureGating";
 import { sendFloorMessage, subscribeFloorMessages, loadFloorMessages, loadMsgLikes, recordMsgLike, getMyGhostId, type FloorMsgRow } from "../ghostDataService";
+import type { BreakfastGift } from "../utils/breakfastGiftService";
 
 // ── Word filter ───────────────────────────────────────────────────────────────
 const BAD_WORDS = ["fuck","shit","bitch","cunt","asshole","dick","pussy","nigger","faggot","whore","slut","bastard"];
@@ -73,6 +74,8 @@ export type ChatMessage = {
   giftCoins?: number;
   isDirected?: boolean;
   directedTo?: string;
+  isButler?: boolean;   // butler system message (breakfast gifts reveal)
+  butlerGifts?: Array<{ emoji: string; name: string }>;
 };
 
 type FloorMember = { id: string; name: string; seed: number; online: boolean; city: string };
@@ -95,26 +98,33 @@ const CHAT_PRICES: Record<string, string> = {
 };
 
 // ── localStorage helpers ───────────────────────────────────────────────────────
-const MSGS_KEY   = "ghost_floor_chat_messages";
-const COUNT_KEY  = "ghost_chat_message_count";
-const UNREAD_KEY = "ghost_chat_unread";
 const COINS_KEY  = "ghost_coins";
 
-export function getChatMessageCount(): number {
-  try { return Number(localStorage.getItem(COUNT_KEY) || "0"); } catch { return 0; }
+function msgsKey(tier: string)   { return `ghost_floor_chat_messages_${tier}`; }
+function countKey(tier: string)  { return `ghost_chat_message_count_${tier}`; }
+function unreadKey(tier: string) { return `ghost_chat_unread_${tier}`; }
+
+export function getChatMessageCount(tier = "standard"): number {
+  try { return Number(localStorage.getItem(countKey(tier)) || "0"); } catch { return 0; }
 }
-export function getChatUnread(): number {
-  try { return Number(localStorage.getItem(UNREAD_KEY) || "0"); } catch { return 0; }
+export function getChatUnread(tier = "standard"): number {
+  try { return Number(localStorage.getItem(unreadKey(tier)) || "0"); } catch { return 0; }
 }
-export function setChatUnread(n: number): void {
-  try { localStorage.setItem(UNREAD_KEY, String(n)); } catch {}
+export function setChatUnread(tier: string, n: number): void;
+export function setChatUnread(n: number): void;
+export function setChatUnread(tierOrN: string | number, n?: number): void {
+  if (typeof tierOrN === "number") {
+    try { localStorage.setItem(unreadKey("standard"), String(tierOrN)); } catch {}
+  } else {
+    try { localStorage.setItem(unreadKey(tierOrN), String(n ?? 0)); } catch {}
+  }
 }
-function loadMessages(): ChatMessage[] {
-  try { return JSON.parse(localStorage.getItem(MSGS_KEY) || "[]"); } catch { return []; }
+function loadMessages(tier: string): ChatMessage[] {
+  try { return JSON.parse(localStorage.getItem(msgsKey(tier)) || "[]"); } catch { return []; }
 }
-function saveMessages(msgs: ChatMessage[]): void {
+function saveMessages(tier: string, msgs: ChatMessage[]): void {
   const clean = msgs.slice(-60).map(m => ({ ...m, mediaUrl: undefined }));
-  try { localStorage.setItem(MSGS_KEY, JSON.stringify(clean)); } catch {}
+  try { localStorage.setItem(msgsKey(tier), JSON.stringify(clean)); } catch {}
 }
 function loadCoins(): number {
   try { return Number(localStorage.getItem(COINS_KEY) || "100"); } catch { return 100; }
@@ -220,17 +230,36 @@ function idColor(name: string): string {
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function FloorChatPopup({
   tier, tierColor, tierLabel, tierIcon, onClose,
+  isBreakfast, onEndBreakfast, breakfastGuestName,
+  breakfastGifts, breakfastHostName,
 }: {
   tier: string; tierColor: string; tierLabel: string; tierIcon: string; onClose: () => void;
+  isBreakfast?: boolean; onEndBreakfast?: () => void; breakfastGuestName?: string;
+  breakfastGifts?: BreakfastGift[];
+  breakfastHostName?: string;
 }) {
-  const a = useGenderAccent();
+  const _a = useGenderAccent();
+  const a = (() => {
+    const r = parseInt(tierColor.slice(1,3),16);
+    const g = parseInt(tierColor.slice(3,5),16);
+    const b = parseInt(tierColor.slice(5,7),16);
+    return {
+      ..._a,
+      accent:         tierColor,
+      accentMid:      tierColor,
+      accentDark:     tierColor,
+      gradient:       `linear-gradient(135deg, ${tierColor}cc, ${tierColor})`,
+      gradientSubtle: `rgba(${r},${g},${b},0.08)`,
+      glow: (o: number) => `rgba(${r},${g},${b},${o})`,
+    };
+  })();
   const scrollRef  = useRef<HTMLDivElement>(null);
   const inputRef   = useRef<HTMLInputElement>(null);
   const fileRef    = useRef<HTMLInputElement>(null);
 
   const [input,        setInput]       = useState("");
   const [sending,      setSending]     = useState(false);
-  const [msgCount,     setMsgCount]    = useState(getChatMessageCount);
+  const [msgCount,     setMsgCount]    = useState(() => getChatMessageCount(tier));
   const [coins,        setCoins]       = useState(loadCoins);
   const [tappedMsg,    setTappedMsg]   = useState<ChatMessage | null>(null);
   const [vaultTarget,  setVaultTarget] = useState<string | null>(null);
@@ -345,11 +374,38 @@ export default function FloorChatPopup({
       id: `seed-${i}`, senderId: s.name, senderName: s.name,
       text: s.text, timestamp: Date.now() - s.minsAgo * 60000, isOwn: false,
     }));
-    const own = loadMessages().filter(m => m.isOwn);
+    const own = loadMessages(tier).filter(m => m.isOwn);
     return [...seeds, ...own].sort((x, y) => x.timestamp - y.timestamp);
   }, [tier]);
 
   const [messages, setMessages] = useState<ChatMessage[]>(buildMessages);
+
+  // ── Butler gift reveal on breakfast chat open ─────────────────────────────
+  useEffect(() => {
+    if (!isBreakfast || !breakfastGifts || breakfastGifts.length === 0) return;
+    // Only inject once per breakfast session (check if a butler message already exists)
+    const alreadyInjected = messages.some(m => m.isButler);
+    if (alreadyInjected) return;
+    const giftNames = breakfastGifts.map(g => `${g.emoji} ${g.name}`).join("  ·  ");
+    const hostLabel = breakfastHostName ?? "Your host";
+    const butlerMsg: ChatMessage = {
+      id:          `butler-gifts-${Date.now()}`,
+      senderId:    "butler",
+      senderName:  "The Butler",
+      text:        `${hostLabel} has left a few gifts at your seat — a small gesture before breakfast begins.`,
+      timestamp:   Date.now() - 1000,
+      isOwn:       false,
+      isButler:    true,
+      butlerGifts: breakfastGifts.map(g => ({ emoji: g.emoji, name: g.name })),
+    };
+    // Append as system message — shown as a styled butler bubble in chat
+    void giftNames; // included in butlerGifts, no need to embed in text
+    setMessages(prev => {
+      if (prev.some(m => m.isButler)) return prev;
+      return [...prev, butlerMsg].sort((a, b) => a.timestamp - b.timestamp);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isBreakfast]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -378,12 +434,12 @@ export default function FloorChatPopup({
   function addMessage(msg: ChatMessage) {
     setMessages(prev => {
       const next = [...prev, msg];
-      saveMessages(next.filter(m => m.isOwn));
+      saveMessages(tier, next.filter(m => m.isOwn));
       return next;
     });
     const nc = msgCount + 1;
     setMsgCount(nc);
-    try { localStorage.setItem(COUNT_KEY, String(nc)); } catch {}
+    try { localStorage.setItem(countKey(tier), String(nc)); } catch {}
   }
 
   function handleSend() {
@@ -513,19 +569,53 @@ export default function FloorChatPopup({
 
   return (
     <>
-      {/* ── Full-screen chat window ── */}
+      {/* ── Backdrop (breakfast floating mode only) ── */}
+      {isBreakfast && (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          style={{ position: "fixed", inset: 0, zIndex: 499,
+            background: "rgba(0,0,0,0.72)",
+            backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}
+        />
+      )}
+
+      {/* ── Chat window ── */}
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 24 }}
         transition={{ type: "spring", stiffness: 340, damping: 32 }}
-        style={{ position: "fixed", inset: 0, zIndex: 500, background: "#06060a", display: "flex", flexDirection: "column", overflow: "hidden" }}
+        style={isBreakfast ? {
+          // Floating card — inset from all edges
+          position: "fixed",
+          top: "max(env(safe-area-inset-top,12px),12px)",
+          left: 12, right: 12, bottom: 12,
+          zIndex: 500,
+          background: "#06060a",
+          display: "flex", flexDirection: "column",
+          overflow: "hidden",
+          borderRadius: 22,
+          boxShadow: `0 12px 48px rgba(0,0,0,0.75), 0 0 0 1px ${a.glow(0.18)}`,
+        } : {
+          // Normal full-screen
+          position: "fixed", inset: 0, zIndex: 500,
+          background: "#06060a",
+          display: "flex", flexDirection: "column",
+          overflow: "hidden",
+        }}
       >
         {/* Top accent stripe */}
         <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)`, flexShrink: 0 }} />
 
         {/* Header */}
-        <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 10, padding: `max(env(safe-area-inset-top,14px),14px) 14px 12px`, borderBottom: `1px solid ${a.glow(0.15)}`, background: a.gradientSubtle }}>
+        <div style={{
+          flexShrink: 0, display: "flex", alignItems: "center", gap: 10,
+          padding: isBreakfast ? "12px 14px" : `max(env(safe-area-inset-top,14px),14px) 14px 12px`,
+          borderBottom: `1px solid ${a.glow(0.15)}`,
+          background: isBreakfast
+            ? `linear-gradient(180deg, ${a.glow(0.12)} 0%, ${a.glow(0.06)} 100%)`
+            : a.gradientSubtle,
+        }}>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 17, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             ←
           </button>
@@ -534,12 +624,25 @@ export default function FloorChatPopup({
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: a.accent }}>{tierLabel} Chat</p>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: a.accent }}>
+                {isBreakfast ? `☕ Breakfast · ${breakfastGuestName ?? "Guest"}` : `${tierLabel} Chat`}
+              </p>
               <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.6, repeat: Infinity }}
                 style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block", flexShrink: 0 }} />
             </div>
-            <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 1 }}>{onlineCount} online · {floorMembers.length} members</p>
+            <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 1 }}>
+              {isBreakfast ? "Private breakfast table · The Lounge" : `${onlineCount} online · ${floorMembers.length} members`}
+            </p>
           </div>
+          {/* End Breakfast button */}
+          {isBreakfast && onEndBreakfast && (
+            <button onClick={onEndBreakfast}
+              style={{ flexShrink: 0, padding: "5px 10px", borderRadius: 8, fontSize: 10, fontWeight: 800,
+                background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
+                color: "#ef4444", cursor: "pointer", whiteSpace: "nowrap" }}>
+              End Breakfast
+            </button>
+          )}
           {/* Coin balance */}
           <div style={{ height: 30, borderRadius: 8, background: a.glow(0.1), border: `1px solid ${a.glow(0.28)}`, display: "flex", alignItems: "center", padding: "0 9px", gap: 4, flexShrink: 0 }}>
             <span style={{ fontSize: 12 }}>🪙</span>
@@ -587,6 +690,60 @@ export default function FloorChatPopup({
               <AnimatePresence initial={false}>
                 {messages.map((msg, idx) => {
                   const showSender = !msg.isOwn && (idx === 0 || messages[idx - 1].senderId !== msg.senderId);
+
+                  // ── Butler system message (breakfast gift reveal) ──
+                  if (msg.isButler) {
+                    return (
+                      <motion.div key={msg.id}
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 28 }}
+                        style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "4px 0" }}
+                      >
+                        {/* Divider */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+                          <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.2)})` }} />
+                          <span style={{ fontSize: 10, color: a.accentMid, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+                            🛎 Butler message
+                          </span>
+                          <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${a.glow(0.2)}, transparent)` }} />
+                        </div>
+                        {/* Butler card */}
+                        <div style={{ width: "85%", background: a.glow(0.07), border: `1px solid ${a.glow(0.22)}`,
+                          borderRadius: 16, padding: "12px 14px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                            <img src="https://ik.imagekit.io/7grri5v7d/sdfasdfacxv-removebg-preview.png?updatedAt=1774185654860"
+                              alt="Butler" style={{ width: 28, height: 28, borderRadius: 8, objectFit: "cover",
+                                border: `1px solid ${a.glow(0.4)}`, flexShrink: 0 }} />
+                            <p style={{ margin: 0, fontSize: 12, color: "#fff", fontWeight: 700 }}>
+                              {msg.senderName}
+                            </p>
+                          </div>
+                          <p style={{ margin: "0 0 10px", fontSize: 12, color: "rgba(255,255,255,0.6)",
+                            lineHeight: 1.6, fontStyle: "italic" }}>
+                            "{msg.text}"
+                          </p>
+                          {/* Gift list */}
+                          {msg.butlerGifts && msg.butlerGifts.length > 0 && (
+                            <div style={{ display: "flex", gap: 8 }}>
+                              {msg.butlerGifts.map((g, gi) => (
+                                <motion.div key={gi}
+                                  initial={{ opacity: 0, scale: 0.7 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: gi * 0.12, type: "spring", stiffness: 400, damping: 20 }}
+                                  style={{ flex: 1, padding: "8px 6px", background: a.glow(0.1),
+                                    border: `1px solid ${a.glow(0.28)}`, borderRadius: 12, textAlign: "center" }}>
+                                  <div style={{ fontSize: 22, marginBottom: 4 }}>{g.emoji}</div>
+                                  <p style={{ margin: 0, fontSize: 9, color: a.accentMid, fontWeight: 800,
+                                    lineHeight: 1.3 }}>{g.name}</p>
+                                </motion.div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                  }
+
                   return (
                     <motion.div
                       key={msg.id}
@@ -834,7 +991,7 @@ export default function FloorChatPopup({
 
         {/* ── Input bar / Paywall ── */}
         {subscribed ? (
-          <div style={{ flexShrink: 0, padding: "10px 14px max(16px,env(safe-area-inset-bottom,16px))", borderTop: `1px solid ${a.glow(0.12)}`, background: "rgba(8,8,14,0.98)", display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ flexShrink: 0, padding: isBreakfast ? "10px 14px 10px" : "10px 14px max(16px,env(safe-area-inset-bottom,16px))", borderTop: `1px solid ${a.glow(0.12)}`, background: "rgba(8,8,14,0.98)", display: "flex", flexDirection: "column", gap: 8 }}>
             {locked && (
               <div style={{ padding: "10px 14px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, textAlign: "center" }}>
                 <p style={{ fontSize: 11, color: "#f87171", margin: 0, fontWeight: 700 }}>🔒 Chat restricted for 24 hours — a message you reported is under review</p>

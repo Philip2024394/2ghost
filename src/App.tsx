@@ -28,9 +28,17 @@ const PenthouseFloorPage       = lazyWithRetry(() => import("./features/ghost/pa
 const LoftFloorPage            = lazyWithRetry(() => import("./features/ghost/pages/LoftFloorPage"));
 const CellarFloorPage          = lazyWithRetry(() => import("./features/ghost/pages/CellarFloorPage"));
 const FloorHomePage            = lazyWithRetry(() => import("./features/ghost/pages/FloorHomePage"));
+const SuiteRoomPage            = lazyWithRetry(() => import("./features/ghost/pages/SuiteRoomPage"));
+const KingsRoomPage            = lazyWithRetry(() => import("./features/ghost/pages/KingsRoomPage"));
+const PenthouseRoomPage        = lazyWithRetry(() => import("./features/ghost/pages/PenthouseRoomPage"));
+const LoftRoomPage             = lazyWithRetry(() => import("./features/ghost/pages/LoftRoomPage"));
+const CellarRoomPage           = lazyWithRetry(() => import("./features/ghost/pages/CellarRoomPage"));
 const GhostHowItWorksPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostHowItWorksPage"));
 const PenthouseApplyPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseApplyPage"));
 const PenthouseVaultPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseVaultPage"));
+const HotelCheckoutPage        = lazyWithRetry(() => import("./features/ghost/pages/HotelCheckoutPage"));
+const Connect4Page             = lazyWithRetry(() => import("./features/ghost/pages/Connect4Page"));
+const GamesRoomPage            = lazyWithRetry(() => import("./features/ghost/pages/GamesRoomPage"));
 
 // Affiliate
 const AffiliateJoinPage      = lazyWithRetry(() => import("./features/affiliate/pages/AffiliateJoinPage"));
@@ -51,6 +59,8 @@ const AdminTasksPage    = lazyWithRetry(() => import("./features/admin/pages/Adm
 const AdminHealthPage   = lazyWithRetry(() => import("./features/admin/pages/AdminHealthPage"));
 const AdminTrafficPage      = lazyWithRetry(() => import("./features/admin/pages/AdminTrafficPage"));
 const AdminUserControlPage  = lazyWithRetry(() => import("./features/admin/pages/AdminUserControlPage"));
+const AdminGiftsPage        = lazyWithRetry(() => import("./features/admin/pages/AdminGiftsPage"));
+const AdminActivitiesPage   = lazyWithRetry(() => import("./features/admin/pages/AdminActivitiesPage"));
 
 // Request push notification permission and subscribe to push
 async function requestPushPermission() {
@@ -106,8 +116,16 @@ export default function App() {
           <Route path="/ghost/penthouse/vault/:matchId" element={<PenthouseVaultPage />} />
           <Route path="/ghost/loft"                   element={<LoftFloorPage />} />
           <Route path="/ghost/cellar"                 element={<CellarFloorPage />} />
+          <Route path="/ghost/floor/suite"             element={<SuiteRoomPage />} />
+          <Route path="/ghost/floor/kings"            element={<KingsRoomPage />} />
+          <Route path="/ghost/floor/penthouse-floor"  element={<PenthouseRoomPage />} />
+          <Route path="/ghost/floor/loft-floor"       element={<LoftRoomPage />} />
+          <Route path="/ghost/floor/cellar-floor"     element={<CellarRoomPage />} />
           <Route path="/ghost/floor/:tier"            element={<FloorHomePage />} />
           <Route path="/ghost/how-it-works"           element={<GhostHowItWorksPage />} />
+          <Route path="/ghost/checkout"              element={<HotelCheckoutPage />} />
+          <Route path="/ghost/games"                  element={<GamesRoomPage />} />
+          <Route path="/ghost/games/connect4"        element={<Connect4Page />} />
 
           {/* Affiliate */}
           <Route path="/affiliate/join"          element={<AffiliateJoinPage />} />
@@ -129,6 +147,8 @@ export default function App() {
             <Route path="payments"  element={<AdminPaymentsPage />} />
             <Route path="services"  element={<AdminServicesPage />} />
             <Route path="control"   element={<AdminUserControlPage />} />
+            <Route path="gifts"      element={<AdminGiftsPage />} />
+            <Route path="activities" element={<AdminActivitiesPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/ghost" replace />} />

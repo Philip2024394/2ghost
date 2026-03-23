@@ -159,11 +159,25 @@ function Divider() {
 type WhisperScreen = "main" | "sent" | "strike1" | "deactivated";
 
 function ProfileWhisperModal({
-  profile, liked, onLike, onClose,
+  profile, liked, onLike, onClose, accentColor,
 }: {
   profile: GhostProfile; liked: boolean; onLike: () => void; onClose: () => void;
+  accentColor?: string;
 }) {
-  const a = useGenderAccent();
+  const _a = useGenderAccent();
+  const a = accentColor ? {
+    ..._a,
+    accent:     accentColor,
+    accentMid:  accentColor,
+    accentDark: accentColor,
+    gradient:   `linear-gradient(135deg, ${accentColor}cc, ${accentColor})`,
+    glow:       (o: number) => {
+      const r = parseInt(accentColor.slice(1,3),16);
+      const g = parseInt(accentColor.slice(3,5),16);
+      const b = parseInt(accentColor.slice(5,7),16);
+      return `rgba(${r},${g},${b},${o})`;
+    },
+  } : _a;
   const online     = isOnline(profile.last_seen_at);
   const ghostId    = toGhostId(profile.id);
   const memberStars = getMemberStars(profile.id);
@@ -577,15 +591,31 @@ function ProfileWhisperModal({
 // ── Main Card ─────────────────────────────────────────────────────────────────
 export default function GhostCard({
   profile, liked, onClick, onLike, isRevealed: _isRevealed, onReveal: _onReveal, canReveal: _canReveal, isTonight, houseTier: _houseTier,
-  flaggedReason, onFlagOpen: _onFlagOpen, isFoundBoo,
+  flaggedReason, onFlagOpen: _onFlagOpen, isFoundBoo, accentColor, onGameInvite,
 }: {
   profile: GhostProfile; liked: boolean; onClick: () => void; onLike?: () => void;
   isRevealed: boolean; onReveal: () => void; canReveal: boolean;
   isTonight?: boolean; houseTier?: "gold" | "suite" | null;
   flaggedReason?: string; onFlagOpen?: () => void;
   isFoundBoo?: boolean;
+  accentColor?: string;
+  onGameInvite?: (profile: GhostProfile) => void;
 }) {
-  const a = useGenderAccent();
+  const _a = useGenderAccent();
+  // When a room accent is provided, override the gender accent throughout the card
+  const a = accentColor ? {
+    ..._a,
+    accent:     accentColor,
+    accentMid:  accentColor,
+    accentDark: accentColor,
+    gradient:   `linear-gradient(135deg, ${accentColor}cc, ${accentColor})`,
+    glow:       (o: number) => {
+      const r = parseInt(accentColor.slice(1,3),16);
+      const g = parseInt(accentColor.slice(3,5),16);
+      const b = parseInt(accentColor.slice(5,7),16);
+      return `rgba(${r},${g},${b},${o})`;
+    },
+  } : _a;
   const online    = isOnline(profile.last_seen_at);
   const ghostId   = toGhostId(profile.id);
   const [expanded, setExpanded] = useState(false);
@@ -731,6 +761,29 @@ export default function GhostCard({
             <Fingerprint size={17} color="#fff" />
           </motion.button>
 
+          {/* Games Room button — bottom-left, online profiles only */}
+          {online && onGameInvite && (
+            <motion.button
+              whileTap={{ scale: 0.85 }}
+              onClick={(e) => { e.stopPropagation(); onGameInvite(profile); }}
+              style={{
+                position: "absolute", bottom: 12, left: 10, zIndex: 5,
+                height: 30, padding: "0 10px", borderRadius: 20,
+                background: "rgba(0,0,0,0.62)",
+                border: "1.5px solid rgba(250,204,21,0.55)",
+                backdropFilter: "blur(12px)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 5, cursor: "pointer",
+                boxShadow: "0 2px 10px rgba(250,204,21,0.25)",
+              }}
+            >
+              <span style={{ fontSize: 13 }}>🎮</span>
+              <span style={{ fontSize: 9, fontWeight: 800, color: "#facc15", letterSpacing: "0.04em" }}>
+                Games Room
+              </span>
+            </motion.button>
+          )}
+
           {/* Special overlays */}
           {flaggedReason === "spam" && (
             <div style={{ position: "absolute", inset: 0, zIndex: 5, borderRadius: 18, overflow: "hidden" }}>
@@ -783,6 +836,7 @@ export default function GhostCard({
             liked={liked}
             onLike={() => { onLike?.(); }}
             onClose={() => setExpanded(false)}
+            accentColor={accentColor}
           />
         )}
       </AnimatePresence>

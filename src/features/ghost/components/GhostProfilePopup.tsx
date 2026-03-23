@@ -11,11 +11,12 @@ const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,
 // ── Profile popup overlay ───────────────────────────────────────────────────
 export default function GhostProfilePopup({
   profile, liked, onLike, onClose, onPass, isLobby = false, cooldownSecs = 0, onCallButler,
-  onWhisper, onVideoIntro, onSeance,
+  onWhisper, onVideoIntro, onSeance, onGameInvite,
 }: {
   profile: GhostProfile; liked: boolean; onLike: () => void; onClose: () => void; onPass: () => void;
   isLobby?: boolean; cooldownSecs?: number; onCallButler?: () => void;
   onWhisper?: () => void; onVideoIntro?: () => void; onSeance?: () => void;
+  onGameInvite?: () => void;
 }) {
   const a = useGenderAccent();
   const accent = isLobby ? "#d4af37" : a.accent;
@@ -164,6 +165,21 @@ export default function GhostProfilePopup({
             )}
           </button>
           </div>
+          {/* Games Room — online-only invite button */}
+          {online && onGameInvite && (
+            <motion.button
+              whileTap={{ scale: 0.97 }} onClick={onGameInvite}
+              style={{ width: "100%", height: 44, borderRadius: 14, cursor: "pointer",
+                background: "linear-gradient(135deg, rgba(250,204,21,0.18), rgba(250,204,21,0.08))",
+                border: "1.5px solid rgba(250,204,21,0.45)",
+                color: "#facc15", fontSize: 13, fontWeight: 900,
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                boxShadow: "0 4px 18px rgba(250,204,21,0.15)" }}>
+              <span>🎮</span>
+              <span>Invite to Games Room · Connect 4</span>
+            </motion.button>
+          )}
+
           {/* Secondary action row */}
           {(onWhisper || onVideoIntro || onSeance || onCallButler) && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
