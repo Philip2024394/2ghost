@@ -164,20 +164,24 @@ export default function SlotsGame() {
             const [r1, r2, r3] = finalResult.current!;
             const payout = calcPayout(bet, r1, r2, r3);
             if (payout.coins > 0) {
-              addCoins(payout.coins, `Slots: ${payout.label} — won ${payout.coins} coins`, "win");
+              const dealerCut = Math.floor(payout.coins * 0.1);
+              const netCoins  = payout.coins - dealerCut;
+              addCoins(netCoins, `Slots: ${payout.label}`, "win");
               setStats(p => ({
                 spins: p.spins + 1,
-                totalWon: p.totalWon + payout.coins,
-                biggestWin: Math.max(p.biggestWin, payout.coins),
+                totalWon: p.totalWon + netCoins,
+                biggestWin: Math.max(p.biggestWin, netCoins),
               }));
               if (payout.label) {
                 setLastWins(prev => [payout.label, ...prev].slice(0, 5));
               }
+              setReels([r1, r2, r3]);
+              setResult({ ...payout, coins: netCoins, label: `${payout.label} (dealer 🪙${dealerCut})` });
             } else {
               setStats(p => ({ ...p, spins: p.spins + 1 }));
+              setReels([r1, r2, r3]);
+              setResult(payout);
             }
-            setReels([r1, r2, r3]);
-            setResult(payout);
             setSpinState("done");
             setTimeout(() => setSpinState("idle"), payout.coins >= bet * 25 ? 3000 : 1200);
           }, 300);

@@ -216,11 +216,13 @@ export default function HighLowGame() {
       // Streak bonus: +0.1x multiplier per consecutive win, max +0.5x
       const streakBonus = Math.min(streak * 0.1, 0.5);
       const finalMult = mult + streakBonus;
-      const won = Math.floor(bet * finalMult);
-      addCoins(bet + won, `High/Low win ×${finalMult.toFixed(1)}`, "win");
-      setWinAmount(won);
+      const won       = Math.floor(bet * finalMult);
+      const dealerCut = Math.floor(won * 0.1);
+      const netWon    = won - dealerCut;
+      addCoins(bet + netWon, `High/Low win ×${finalMult.toFixed(1)} (dealer 🪙${dealerCut})`, "win");
+      setWinAmount(netWon);
       setStreak(s => s + 1);
-      setStats(p => ({ ...p, rounds: p.rounds + 1, wins: p.wins + 1, totalWon: p.totalWon + won }));
+      setStats(p => ({ ...p, rounds: p.rounds + 1, wins: p.wins + 1, totalWon: p.totalWon + netWon }));
     } else {
       setWinAmount(-bet);
       setStreak(0);

@@ -230,10 +230,21 @@ interface SentItem {
   type: "drink" | "note";
 }
 
+const ENTRY_FEE = 25;
+const ENTRY_KEY = "casino_entry_date";
+
+function hasPaidEntryToday(): boolean {
+  try { return localStorage.getItem(ENTRY_KEY) === new Date().toDateString(); } catch { return false; }
+}
+function markEntryPaid(): void {
+  try { localStorage.setItem(ENTRY_KEY, new Date().toDateString()); } catch {}
+}
+
 export default function CasinoFloorPage() {
   const navigate = useNavigate();
   const { deductCoins, canAfford } = useCoins();
 
+  const [entryPaid, setEntryPaid] = useState(hasPaidEntryToday);
   const [view, setView]                         = useState<View>("floor");
   const [activeTable, setActiveTable]           = useState<CasinoTable | null>(null);
   const [previewTable, setPreviewTable]         = useState<CasinoTable | null>(null);
@@ -342,6 +353,113 @@ export default function CasinoFloorPage() {
         position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
         background: "radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.07) 0%, transparent 60%)",
       }} />
+
+      {/* ── ENTRY FEE GATE ── */}
+      <AnimatePresence>
+        {!entryPaid && (
+          <motion.div
+            key="entry-gate"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{
+              position: "fixed", inset: 0, zIndex: 500,
+              background: "rgba(6,6,10,0.97)", backdropFilter: "blur(12px)",
+              display: "flex", flexDirection: "column", alignItems: "center",
+              justifyContent: "center", padding: "0 24px",
+            }}
+          >
+            <motion.div
+              initial={{ y: 24, scale: 0.94 }} animate={{ y: 0, scale: 1 }}
+              transition={{ type: "spring", damping: 22, stiffness: 280 }}
+              style={{ width: "100%", maxWidth: 340, textAlign: "center" }}
+            >
+              <div style={{ fontSize: 56, marginBottom: 16 }}>🎰</div>
+              <p style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 900, color: "#d4af37" }}>
+                Kings Floor
+              </p>
+              <p style={{ margin: "0 0 24px", fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
+                The dealer charges an entry fee to play.<br />
+                Games also carry a 10% dealer rake on all winnings.
+              </p>
+
+              {/* Entry fee card */}
+              <div style={{
+                background: "rgba(212,175,55,0.07)", border: "1px solid rgba(212,175,55,0.25)",
+                borderRadius: 20, padding: "20px 24px", marginBottom: 20,
+              }}>
+                <p style={{ margin: "0 0 4px", fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                  Daily Entry Fee
+                </p>
+                <p style={{ margin: "0 0 14px", fontSize: 38, fontWeight: 900, color: "#d4af37" }}>
+                  🪙{ENTRY_FEE}
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                  {[
+                    "Access all 7 tables on the floor",
+                    "Blackjack · Slots · High/Low",
+                    "Send drinks & notes to other ghosts",
+                    "10% dealer rake on all wins",
+                  ].map(line => (
+                    <div key={line} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 10, color: "#d4af37" }}>✦</span>
+                      <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.45)", textAlign: "left" }}>{line}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {canAfford(ENTRY_FEE) ? (
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => {
+                    deductCoins(ENTRY_FEE, "Kings Floor entry fee");
+                    markEntryPaid();
+                    setEntryPaid(true);
+                  }}
+                  style={{
+                    width: "100%", padding: "16px",
+                    background: "linear-gradient(135deg, #92660a, #d4af37, #f0d060)",
+                    border: "none", borderRadius: 16, cursor: "pointer",
+                    fontSize: 15, fontWeight: 900, color: "#0a0700", marginBottom: 12,
+                  }}
+                >
+                  Pay 🪙{ENTRY_FEE} · Enter the Floor →
+                </motion.button>
+              ) : (
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{
+                    background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
+                    borderRadius: 14, padding: "12px 16px", marginBottom: 12,
+                  }}>
+                    <p style={{ margin: 0, fontSize: 12, color: "#f87171", fontWeight: 700 }}>
+                      Not enough coins — you need 🪙{ENTRY_FEE}
+                    </p>
+                  </div>
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => navigate(-1)}
+                    style={{
+                      width: "100%", padding: "14px",
+                      background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                      borderRadius: 16, cursor: "pointer", fontSize: 13, fontWeight: 800,
+                      color: "rgba(255,255,255,0.5)",
+                    }}
+                  >
+                    Buy Coins First
+                  </motion.button>
+                </div>
+              )}
+
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={() => navigate(-1)}
+                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 12, cursor: "pointer", padding: "8px 0" }}
+              >
+                Leave the floor
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div style={{ position: "relative", zIndex: 1 }}>
 

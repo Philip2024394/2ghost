@@ -316,19 +316,23 @@ export default function BlackjackGame() {
     else if (pTotal < dTotal) { outcome = "lose";   payout = -finalBet; }
     else                   { outcome = "push";      payout = 0; }
 
+    // 10% dealer rake on winnings
+    const dealerCut = payout > 0 ? Math.floor(payout * 0.1) : 0;
+    const netPayout = payout > 0 ? payout - dealerCut : payout;
+
     const labels: Record<Result["outcome"], string> = {
-      blackjack: `Blackjack! +${Math.floor(finalBet * 1.5)} coins`,
-      win:       `You win! +${finalBet} coins`,
+      blackjack: `Blackjack! +${Math.floor(finalBet * 1.5) - dealerCut} coins (dealer 🪙${dealerCut})`,
+      win:       `You win! +${netPayout} coins (dealer 🪙${dealerCut})`,
       push:      "Push — bet returned",
       lose:      `Dealer wins — −${finalBet} coins`,
       bust:      `Bust — −${finalBet} coins`,
       surrender: "Surrender",
     };
 
-    if (payout > 0)        addCoins(finalBet + payout, `Blackjack ${outcome}`, "win");
+    if (payout > 0)        addCoins(finalBet + netPayout, `Blackjack ${outcome}`, "win");
     else if (payout === 0) addCoins(finalBet, "Blackjack push — bet returned", "refund");
 
-    setResult({ outcome, payout, label: labels[outcome] });
+    setResult({ outcome, payout: netPayout, label: labels[outcome] });
     setPhase("result");
     setStats(p => ({
       hands: p.hands + 1,
@@ -487,7 +491,7 @@ export default function BlackjackGame() {
                   whileTap={{ scale: 0.92 }}
                   onClick={b.action}
                   style={{
-                    flex: 1, height: 52, borderRadius: 13, border: "none", cursor: "pointer",
+                    flex: 1, height: 52, borderRadius: 13, cursor: "pointer",
                     background: `${b.color}20`, border: `1.5px solid ${b.color}50`,
                     color: b.color, fontSize: 11, fontWeight: 900, letterSpacing: "0.04em",
                     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
