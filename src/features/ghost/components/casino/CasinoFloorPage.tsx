@@ -348,6 +348,12 @@ export default function CasinoFloorPage() {
       minHeight: "100dvh", background: "#06060a", color: "#fff",
       fontFamily: "system-ui, sans-serif", position: "relative", overflowX: "hidden",
     }}>
+      {/* Floor background image */}
+      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
+        <img src="https://ik.imagekit.io/7grri5v7d/mmmmm.png" alt=""
+          style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.12 }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(6,6,10,0.72)" }} />
+      </div>
       {/* Ambient glow */}
       <div style={{
         position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
@@ -367,6 +373,9 @@ export default function CasinoFloorPage() {
               overflowY: "auto",
             }}
           >
+            {/* Landing background image */}
+            <img src="https://ik.imagekit.io/7grri5v7d/mmmmmdfgdsfgdfgsadasd.png" alt=""
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.18, pointerEvents: "none" }} />
             {/* Gold glow */}
             <div style={{
               position: "absolute", inset: 0, pointerEvents: "none",
