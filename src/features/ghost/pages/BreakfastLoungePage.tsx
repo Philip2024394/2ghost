@@ -801,7 +801,7 @@ export default function BreakfastLoungePage() {
             return (
               <motion.div key={p.id}
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                style={{ borderRadius: 16, background: "rgba(74,222,128,0.04)", border: "1px solid rgba(74,222,128,0.16)", overflow: "hidden", opacity: locked ? 0.45 : 1 }}>
+                style={{ borderRadius: 16, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", overflow: "hidden", opacity: locked ? 0.45 : 1 }}>
 
                 {/* Main row */}
                 <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 12px", cursor: locked ? "default" : "pointer" }}
@@ -858,7 +858,7 @@ export default function BreakfastLoungePage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
               {atTable.map(({ profile: p, tableWith }) => {
                 return (
-                  <div key={p.id} style={{ borderRadius: 16, background: "rgba(249,115,22,0.03)", border: "1px solid rgba(249,115,22,0.12)", overflow: "hidden", opacity: 0.5 }}>
+                  <div key={p.id} style={{ borderRadius: 16, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", overflow: "hidden", opacity: 0.5 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 12px" }}>
                       <Avatar p={p} size={54} status="at-table" />
                       <div style={{ flex: 1, minWidth: 0 }}>
