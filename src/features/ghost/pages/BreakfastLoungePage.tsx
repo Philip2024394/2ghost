@@ -661,6 +661,7 @@ export default function BreakfastLoungePage() {
 
       {/* Hero */}
       <div style={{ position: "relative", height: 210, overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, transparent, #d4af37, rgba(212,175,55,0.5), transparent)", zIndex: 10 }} />
         <img src={LOUNGE_IMG} alt="Breakfast Lounge" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%" }} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(8,8,14,0.25) 0%, rgba(8,8,14,0.88) 100%)" }} />
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(env(safe-area-inset-top,16px) + 10px) 16px 0" }}>
