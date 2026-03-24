@@ -758,7 +758,7 @@ export default function BreakfastLoungePage() {
                 onClick={() => { setSelectedProfile(butlerRec); setInviteNote(""); }}
                 disabled={locked}
                 style={{ flex: 2, padding: "11px", background: locked ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", border: "none", borderRadius: 12, cursor: locked ? "default" : "pointer", fontSize: 13, fontWeight: 900, color: locked ? "rgba(255,255,255,0.2)" : "#0a0500" }}>
-                🍳 View & Invite
+                View & Invite
               </motion.button>
               <motion.button whileTap={{ scale: 0.96 }}
                 onClick={getExtraRec}
@@ -843,7 +843,7 @@ export default function BreakfastLoungePage() {
                     onClick={() => { if (!locked) { setSelectedProfile(p); setInviteNote(""); }}}
                     disabled={locked}
                     style={{ width: "100%", height: 34, borderRadius: 10, border: "none", background: locked ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, rgba(212,175,55,0.22), rgba(212,175,55,0.1))", color: locked ? "rgba(255,255,255,0.2)" : "#d4af37", fontSize: 11, fontWeight: 800, cursor: locked ? "default" : "pointer" }}>
-                    🍳 Invite to Breakfast · <span style={{ opacity: 0.7 }}>🪙{INVITE_COST}</span>
+                    Invite to Breakfast · <span style={{ opacity: 0.7 }}>🪙{INVITE_COST}</span>
                   </motion.button>
                 </div>
               </motion.div>
@@ -912,7 +912,7 @@ export default function BreakfastLoungePage() {
                 <motion.button whileTap={{ scale: 0.97 }} onClick={handleSendInvite}
                   disabled={!canAfford(INVITE_COST)}
                   style={{ width: "100%", padding: "15px", background: canAfford(INVITE_COST) ? "linear-gradient(135deg, #78350f, #d97706, #fbbf24)" : "rgba(255,255,255,0.04)", border: canAfford(INVITE_COST) ? "none" : "1px solid rgba(255,255,255,0.07)", borderRadius: 16, cursor: canAfford(INVITE_COST) ? "pointer" : "not-allowed", fontSize: 14, fontWeight: 900, color: canAfford(INVITE_COST) ? "#0a0500" : "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                  <span>🍳</span><span>Invite to join me</span><span style={{ fontSize: 11, opacity: 0.65 }}>· 🪙{INVITE_COST}</span>
+                  <span>Invite to join me</span><span style={{ fontSize: 11, opacity: 0.65 }}>· 🪙{INVITE_COST}</span>
                 </motion.button>
               </div>
             </motion.div>
@@ -1037,7 +1037,7 @@ export default function BreakfastLoungePage() {
                   style={{ flex: 1, padding: "14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, cursor: "pointer", fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.35)" }}>Decline</motion.button>
                 <motion.button whileTap={{ scale: 0.95 }} onClick={acceptIncoming}
                   style={{ flex: 2, padding: "14px", background: "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", border: "none", borderRadius: 14, cursor: "pointer", fontSize: 14, fontWeight: 900, color: "#0a0500", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
-                  <span>🍳</span> Accept Invitation
+                  Accept Invitation
                 </motion.button>
               </div>
             </motion.div>
