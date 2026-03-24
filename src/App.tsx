@@ -40,6 +40,7 @@ const HotelCheckoutPage        = lazyWithRetry(() => import("./features/ghost/pa
 const Connect4Page             = lazyWithRetry(() => import("./features/ghost/pages/Connect4Page"));
 const GamesRoomPage            = lazyWithRetry(() => import("./features/ghost/pages/GamesRoomPage"));
 const HotelRulesPage           = lazyWithRetry(() => import("./features/ghost/pages/HotelRulesPage"));
+const BreakfastLoungePage      = lazyWithRetry(() => import("./features/ghost/pages/BreakfastLoungePage"));
 
 // Affiliate
 const AffiliateJoinPage      = lazyWithRetry(() => import("./features/affiliate/pages/AffiliateJoinPage"));
@@ -128,6 +129,7 @@ export default function App() {
           <Route path="/ghost/checkout"              element={<HotelCheckoutPage />} />
           <Route path="/ghost/games"                  element={<GamesRoomPage />} />
           <Route path="/ghost/games/connect4"        element={<Connect4Page />} />
+          <Route path="/ghost/breakfast-lounge"     element={<BreakfastLoungePage />} />
 
           {/* Affiliate */}
           <Route path="/affiliate/join"          element={<AffiliateJoinPage />} />

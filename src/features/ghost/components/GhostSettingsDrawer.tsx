@@ -10,7 +10,7 @@ const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.pn
 
 export type SettingsAction =
   | "dashboard" | "shield" | "rooms" | "roomVault"
-  | "ghostClock" | "floorWars" | "video" | "terms" | "checkout" | "games";
+  | "ghostClock" | "floorWars" | "video" | "terms" | "checkout" | "games" | "breakfastLounge";
 
 type Props = {
   show: boolean;
@@ -37,6 +37,7 @@ export default function GhostSettingsDrawer({ show, onClose, onAction }: Props) 
     { icon: null, label: "Room Vault", desc: "Your private ghost room", isRoom: true, action: "roomVault" },
     { icon: "🕐", label: "Ghost Clock", desc: "Open your 2-hour availability window", action: "ghostClock" },
     { icon: "🎮", label: "Games", desc: "Rooms", action: "games" },
+    { icon: "🍳", label: "Breakfast Lounge", desc: "Invite a guest to your table", action: "breakfastLounge" },
     { icon: "⚔️", label: "Floor Wars", desc: "Weekly floor gift leaderboard", action: "floorWars" },
     { icon: "🎬", label: "Video Introduction", desc: "Upload & manage your video intro", action: "video" },
     { icon: "📄", label: "Terms & Conditions", desc: "Privacy & usage policy", action: "terms" },
@@ -50,6 +51,7 @@ export default function GhostSettingsDrawer({ show, onClose, onAction }: Props) 
     if (action === "roomVault") { navigate("/ghost/room"); return; }
     if (action === "terms") { window.open("https://2ghost.com/terms", "_blank"); return; }
     if (action === "checkout") { navigate("/ghost/checkout"); return; }
+    if (action === "breakfastLounge") { navigate("/ghost/breakfast-lounge"); return; }
     onAction(action);
   };
 

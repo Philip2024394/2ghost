@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const LOUNGE_IMG = "https://ik.imagekit.io/7grri5v7d/mmmmmdfgdsfgdfg.png";
 
@@ -17,6 +18,7 @@ type Props = {
 
 export default function LoungeSplashScreen({ floorLabel, floorColor, floorIcon, guestName, onDone }: Props) {
   const [progress, setProgress] = useState(0);
+  const navigate = useNavigate();
 
   const r = parseInt(floorColor.slice(1,3),16);
   const g = parseInt(floorColor.slice(3,5),16);
@@ -105,6 +107,19 @@ export default function LoungeSplashScreen({ floorLabel, floorColor, floorIcon, 
               style={{ width: 8, height: 8, borderRadius: "50%", background: floorColor }} />
           ))}
         </motion.div>
+
+        {/* Breakfast Lounge CTA */}
+        <motion.button
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.8 }}
+          onClick={() => navigate("/ghost/breakfast-lounge")}
+          style={{
+            marginTop: 28, padding: "13px 28px", borderRadius: 14, cursor: "pointer",
+            background: `linear-gradient(135deg, ${floorColor}, ${glow(0.8)})`,
+            border: "none", color: "#fff", fontSize: 14, fontWeight: 800,
+            letterSpacing: "0.02em", boxShadow: `0 0 24px ${glow(0.4)}`,
+          }}>
+          🍳 Enter Breakfast Lounge
+        </motion.button>
       </div>
 
       {/* Progress bar at bottom */}
