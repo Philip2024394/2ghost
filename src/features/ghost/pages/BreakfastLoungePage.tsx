@@ -1006,7 +1006,7 @@ export default function BreakfastLoungePage() {
                   <div style={{ position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: "50%", background: "#d4af37", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 }}>🔔</div>
                 </div>
                 <div>
-                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase" }}>Mr. Butla</p>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase" }}>Breakfast Invitation</p>
                   <p style={{ margin: "2px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>A message from the breakfast lounge</p>
                 </div>
               </div>
@@ -1018,7 +1018,9 @@ export default function BreakfastLoungePage() {
                     <p style={{ margin: "3px 0 0", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{incomingInvite.flag} {incomingInvite.city}, {incomingInvite.country}</p>
                   </div>
                 </div>
-                <p style={{ margin: "0 0 5px", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>has invited you to join them at their breakfast table.</p>
+                <p style={{ margin: "0 0 5px", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
+                  Guest {incomingInvite.ghostId}, age {incomingInvite.age} from {incomingInvite.country} would like to invite you for breakfast at their table. Chat will open for breakfast.
+                </p>
                 <p style={{ margin: 0, fontSize: 11, fontStyle: "italic", color: "rgba(255,255,255,0.28)" }}>"{incomingInvite.mood}"</p>
               </div>
               <div style={{ display: "flex", gap: 10 }}>
