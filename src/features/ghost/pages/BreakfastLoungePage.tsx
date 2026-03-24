@@ -835,7 +835,7 @@ export default function BreakfastLoungePage() {
                       onClick={e => sendCoffee(p.id, p.ghostId, e)}
                       disabled={coffeesSent.has(p.id) || !canAfford(COFFEE_COST) || locked}
                       style={{ width: 36, height: 36, borderRadius: 10, border: "none", background: coffeesSent.has(p.id) ? "rgba(255,255,255,0.04)" : "rgba(251,191,36,0.12)", display: "flex", alignItems: "center", justifyContent: "center", cursor: coffeesSent.has(p.id) || locked ? "default" : "pointer", fontSize: 16 }}>
-                      {coffeesSent.has(p.id) ? "✓" : "☕"}
+                      {coffeesSent.has(p.id) ? "✓" : <img src="https://ik.imagekit.io/7grri5v7d/Untitledsdfsdfsdfdsf-removebg-preview.png" alt="coffee" style={{ width: 22, height: 22, objectFit: "contain" }} />}
                     </motion.button>
                   </div>
                 </div>
@@ -1089,7 +1089,7 @@ export default function BreakfastLoungePage() {
                 {/* Quick replies */}
                 {coffeeReplySent ? (
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "16px", background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", borderRadius: 16 }}>
-                    <span style={{ fontSize: 18 }}>☕</span>
+                    <img src="https://ik.imagekit.io/7grri5v7d/Untitledsdfsdfsdfdsf-removebg-preview.png" alt="coffee" style={{ width: 22, height: 22, objectFit: "contain" }} />
                     <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#4ade80" }}>
                       Mr. Butla delivered your reply
                     </p>
