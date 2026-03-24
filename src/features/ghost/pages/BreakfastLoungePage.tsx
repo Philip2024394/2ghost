@@ -745,7 +745,13 @@ export default function BreakfastLoungePage() {
           <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 16, padding: "13px 14px", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <img src={BUTLER_IMG} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
-              <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase" }}>Mr. Butla's Pick</p>
+              <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase", flex: 1 }}>Mr. Butla's Pick</p>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#fbbf24", lineHeight: 1 }}>
+                  {42 + (butlerRec.seed % 57)}%
+                </p>
+                <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(212,175,55,0.55)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Match</p>
+              </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
               <Avatar p={butlerRec} size={44} status="available" />
