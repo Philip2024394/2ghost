@@ -354,59 +354,129 @@ export default function CasinoFloorPage() {
         background: "radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.07) 0%, transparent 60%)",
       }} />
 
-      {/* ── ENTRY FEE GATE ── */}
+      {/* ── BUTLER LANDING PAGE ── */}
       <AnimatePresence>
         {!entryPaid && (
           <motion.div
-            key="entry-gate"
+            key="butler-landing"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             style={{
               position: "fixed", inset: 0, zIndex: 500,
-              background: "rgba(6,6,10,0.97)", backdropFilter: "blur(12px)",
-              display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", padding: "0 24px",
+              background: "#06060a",
+              display: "flex", flexDirection: "column",
+              overflowY: "auto",
             }}
           >
-            <motion.div
-              initial={{ y: 24, scale: 0.94 }} animate={{ y: 0, scale: 1 }}
-              transition={{ type: "spring", damping: 22, stiffness: 280 }}
-              style={{ width: "100%", maxWidth: 340, textAlign: "center" }}
-            >
-              <div style={{ fontSize: 56, marginBottom: 16 }}>🎰</div>
-              <p style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 900, color: "#d4af37" }}>
+            {/* Gold glow */}
+            <div style={{
+              position: "absolute", inset: 0, pointerEvents: "none",
+              background: "radial-gradient(ellipse at 50% 25%, rgba(212,175,55,0.14) 0%, transparent 65%)",
+            }} />
+            {/* Subtle floor pattern */}
+            <div style={{
+              position: "absolute", bottom: 0, left: 0, right: 0, height: "40%",
+              pointerEvents: "none",
+              background: "radial-gradient(ellipse at 50% 100%, rgba(212,175,55,0.06) 0%, transparent 70%)",
+            }} />
+
+            {/* Header */}
+            <div style={{
+              position: "relative", zIndex: 2,
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "calc(env(safe-area-inset-top,16px) + 14px) 20px 0",
+            }}>
+              <motion.button whileTap={{ scale: 0.92 }} onClick={() => navigate(-1)}
+                style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 17, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                ←
+              </motion.button>
+              <CoinBalanceChip size="md" />
+            </div>
+
+            {/* Title */}
+            <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "14px 20px 0" }}>
+              <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 800, color: "rgba(212,175,55,0.55)", letterSpacing: "0.2em", textTransform: "uppercase" }}>
+                Welcome to
+              </p>
+              <p style={{ margin: 0, fontSize: 30, fontWeight: 900, color: "#d4af37", letterSpacing: "-0.01em" }}>
                 Kings Floor
               </p>
-              <p style={{ margin: "0 0 24px", fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
-                The dealer charges an entry fee to play.<br />
-                Games also carry a 10% dealer rake on all winnings.
-              </p>
+            </div>
 
-              {/* Entry fee card */}
+            {/* Butler image */}
+            <div style={{
+              position: "relative", zIndex: 2,
+              flex: 1, display: "flex", alignItems: "flex-end", justifyContent: "center",
+              minHeight: 220, paddingBottom: 0,
+            }}>
+              <motion.img
+                src="https://ik.imagekit.io/7grri5v7d/mmmmm.png"
+                alt="Mr. Butla — your host"
+                initial={{ y: 28, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.18, type: "spring", damping: 24, stiffness: 200 }}
+                style={{
+                  width: "68%", maxWidth: 260,
+                  objectFit: "contain", display: "block",
+                  filter: "drop-shadow(0 0 32px rgba(212,175,55,0.22))",
+                }}
+              />
+            </div>
+
+            {/* Bottom panel — speech + rules + CTA */}
+            <motion.div
+              initial={{ y: 48, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3, type: "spring", damping: 24, stiffness: 200 }}
+              style={{
+                position: "relative", zIndex: 3,
+                padding: "0 18px calc(env(safe-area-inset-bottom,0px) + 22px)",
+              }}
+            >
+              {/* Speech bubble */}
               <div style={{
-                background: "rgba(212,175,55,0.07)", border: "1px solid rgba(212,175,55,0.25)",
-                borderRadius: 20, padding: "20px 24px", marginBottom: 20,
+                background: "rgba(212,175,55,0.07)",
+                border: "1px solid rgba(212,175,55,0.22)",
+                borderRadius: 18, padding: "14px 16px", marginBottom: 12,
+                position: "relative",
               }}>
-                <p style={{ margin: "0 0 4px", fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                  Daily Entry Fee
+                {/* Pointer toward butler */}
+                <div style={{
+                  position: "absolute", top: -8, left: "50%",
+                  width: 0, height: 0, transform: "translateX(-50%)",
+                  borderLeft: "8px solid transparent",
+                  borderRight: "8px solid transparent",
+                  borderBottom: "8px solid rgba(212,175,55,0.22)",
+                }} />
+                <p style={{ margin: "0 0 5px", fontSize: 11, fontWeight: 900, color: "#d4af37", letterSpacing: "0.04em" }}>
+                  Mr. Butla · Your host for the evening
                 </p>
-                <p style={{ margin: "0 0 14px", fontSize: 38, fontWeight: 900, color: "#d4af37" }}>
-                  🪙{ENTRY_FEE}
+                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, fontStyle: "italic" }}>
+                  "Good evening. The Kings Floor is open. Play your cards well — I'll be watching over every table tonight."
                 </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                  {[
-                    "Access all 7 tables on the floor",
-                    "Blackjack · Slots · High/Low",
-                    "Send drinks & notes to other ghosts",
-                    "10% dealer rake on all wins",
-                  ].map(line => (
-                    <div key={line} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 10, color: "#d4af37" }}>✦</span>
-                      <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.45)", textAlign: "left" }}>{line}</p>
-                    </div>
-                  ))}
-                </div>
               </div>
 
+              {/* House rules */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
+                {[
+                  { icon: "🪙", text: `Daily entry — 🪙${ENTRY_FEE} covers all tables` },
+                  { icon: "🃏", text: "Blackjack  ·  Ghost Slots  ·  High / Low" },
+                  { icon: "📊", text: "10% dealer rake applied to all winnings" },
+                  { icon: "🍸", text: "Send drinks & notes to other guests" },
+                ].map(r => (
+                  <div key={r.text} style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    padding: "8px 12px",
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    borderRadius: 10,
+                  }}>
+                    <span style={{ fontSize: 14, flexShrink: 0 }}>{r.icon}</span>
+                    <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.42)" }}>{r.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
               {canAfford(ENTRY_FEE) ? (
                 <motion.button
                   whileTap={{ scale: 0.97 }}
@@ -416,19 +486,21 @@ export default function CasinoFloorPage() {
                     setEntryPaid(true);
                   }}
                   style={{
-                    width: "100%", padding: "16px",
+                    width: "100%", padding: "17px",
                     background: "linear-gradient(135deg, #92660a, #d4af37, #f0d060)",
                     border: "none", borderRadius: 16, cursor: "pointer",
-                    fontSize: 15, fontWeight: 900, color: "#0a0700", marginBottom: 12,
+                    fontSize: 16, fontWeight: 900, color: "#0a0700",
+                    letterSpacing: "0.02em", marginBottom: 10,
+                    boxShadow: "0 4px 24px rgba(212,175,55,0.25)",
                   }}
                 >
-                  Pay 🪙{ENTRY_FEE} · Enter the Floor →
+                  Enter the Casino · 🪙{ENTRY_FEE}
                 </motion.button>
               ) : (
-                <div style={{ marginBottom: 12 }}>
+                <>
                   <div style={{
-                    background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
-                    borderRadius: 14, padding: "12px 16px", marginBottom: 12,
+                    background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.18)",
+                    borderRadius: 14, padding: "11px 14px", marginBottom: 10, textAlign: "center",
                   }}>
                     <p style={{ margin: 0, fontSize: 12, color: "#f87171", fontWeight: 700 }}>
                       Not enough coins — you need 🪙{ENTRY_FEE}
@@ -438,24 +510,23 @@ export default function CasinoFloorPage() {
                     whileTap={{ scale: 0.97 }}
                     onClick={() => navigate(-1)}
                     style={{
-                      width: "100%", padding: "14px",
-                      background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 16, cursor: "pointer", fontSize: 13, fontWeight: 800,
-                      color: "rgba(255,255,255,0.5)",
+                      width: "100%", padding: "15px",
+                      background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)",
+                      borderRadius: 16, cursor: "pointer", fontSize: 14, fontWeight: 800,
+                      color: "#d4af37", marginBottom: 10,
                     }}
                   >
-                    Buy Coins First
+                    Get Coins →
                   </motion.button>
-                </div>
+                </>
               )}
 
-              <motion.button
-                whileTap={{ scale: 0.96 }}
+              <button
                 onClick={() => navigate(-1)}
-                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 12, cursor: "pointer", padding: "8px 0" }}
+                style={{ width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 12, cursor: "pointer", padding: "6px 0" }}
               >
-                Leave the floor
-              </motion.button>
+                Leave for now
+              </button>
             </motion.div>
           </motion.div>
         )}
