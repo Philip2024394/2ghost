@@ -16,9 +16,12 @@ type Props = {
   show: boolean;
   onClose: () => void;
   onAction: (action: SettingsAction) => void;
+  loungeGuestCount?: number;
+  loungeEnabled?: boolean;
+  onToggleLounge?: () => void;
 };
 
-export default function GhostSettingsDrawer({ show, onClose, onAction }: Props) {
+export default function GhostSettingsDrawer({ show, onClose, onAction, loungeGuestCount, loungeEnabled = true, onToggleLounge }: Props) {
   const a = useGenderAccent();
   const navigate = useNavigate();
 
@@ -37,7 +40,7 @@ export default function GhostSettingsDrawer({ show, onClose, onAction }: Props) 
     { icon: null, label: "Room Vault", desc: "Your private ghost room", isRoom: true, action: "roomVault" },
     { icon: "🕐", label: "Ghost Clock", desc: "Open your 2-hour availability window", action: "ghostClock" },
     { icon: "🎮", label: "Games", desc: "Rooms", action: "games" },
-    { icon: "🍳", label: "Breakfast Lounge", desc: "Invite a guest to your table", action: "breakfastLounge" },
+    { icon: "🍳", label: "Breakfast Lounge", desc: loungeGuestCount != null ? `${loungeGuestCount} guests online worldwide` : "Invite a guest to your table", action: "breakfastLounge" },
     { icon: "⚔️", label: "Floor Wars", desc: "Weekly floor gift leaderboard", action: "floorWars" },
     { icon: "🎬", label: "Video Introduction", desc: "Upload & manage your video intro", action: "video" },
     { icon: "📄", label: "Terms & Conditions", desc: "Privacy & usage policy", action: "terms" },
@@ -51,7 +54,6 @@ export default function GhostSettingsDrawer({ show, onClose, onAction }: Props) 
     if (action === "roomVault") { navigate("/ghost/room"); return; }
     if (action === "terms") { window.open("https://2ghost.com/terms", "_blank"); return; }
     if (action === "checkout") { navigate("/ghost/checkout"); return; }
-    if (action === "breakfastLounge") { navigate("/ghost/breakfast-lounge"); return; }
     onAction(action);
   };
 
@@ -97,14 +99,17 @@ export default function GhostSettingsDrawer({ show, onClose, onAction }: Props) 
 
             {/* Nav items */}
             <div style={{ flex: 1, overflowY: "auto", padding: "0 12px" }}>
-              {items.map(({ icon, label, desc, action, isShield, isRoom, isCheckout }) => (
-                <button key={label} onClick={() => handleItem(action)}
+              {items.map(({ icon, label, desc, action, isShield, isRoom, isCheckout }) => {
+                const isLounge = action === "breakfastLounge";
+                return (
+                <button key={label} onClick={() => isLounge && !loungeEnabled ? undefined : handleItem(action)}
                   style={{
                     width: "100%", display: "flex", alignItems: "center", gap: 14,
                     background: isCheckout ? "rgba(239,68,68,0.04)" : "rgba(255,255,255,0.02)",
                     border: isCheckout ? "1px solid rgba(239,68,68,0.15)" : "1px solid rgba(255,255,255,0.05)",
                     borderRadius: 14, padding: "13px 14px", marginBottom: 8,
-                    cursor: "pointer", textAlign: "left",
+                    cursor: isLounge && !loungeEnabled ? "default" : "pointer", textAlign: "left",
+                    opacity: isLounge && !loungeEnabled ? 0.5 : 1,
                   }}
                 >
                   <div style={{
@@ -122,11 +127,29 @@ export default function GhostSettingsDrawer({ show, onClose, onAction }: Props) 
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 13, fontWeight: 800, color: isCheckout ? "rgba(239,68,68,0.85)" : "#fff", margin: 0 }}>{label}</p>
-                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>{desc}</p>
+                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>
+                      {isLounge && !loungeEnabled ? "You are opted out" : desc}
+                    </p>
                   </div>
-                  <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 14 }}>›</span>
+                  {isLounge ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                      {loungeEnabled && loungeGuestCount != null && loungeGuestCount > 0 && (
+                        <span style={{ fontSize: 10, fontWeight: 800, color: "#d4af37", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, padding: "2px 7px" }}>{loungeGuestCount}</span>
+                      )}
+                      {/* Toggle switch */}
+                      <div
+                        onClick={e => { e.stopPropagation(); onToggleLounge?.(); }}
+                        style={{ width: 38, height: 22, borderRadius: 11, background: loungeEnabled ? "#22c55e" : "rgba(255,255,255,0.1)", border: `1px solid ${loungeEnabled ? "#16a34a" : "rgba(255,255,255,0.15)"}`, position: "relative", cursor: "pointer", flexShrink: 0, transition: "background 0.2s" }}
+                      >
+                        <div style={{ position: "absolute", top: 2, left: loungeEnabled ? 18 : 2, width: 16, height: 16, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.4)" }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 14 }}>›</span>
+                  )}
                 </button>
-              ))}
+                );
+              })}
             </div>
 
             {/* Footer */}

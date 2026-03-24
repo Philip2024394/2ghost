@@ -330,6 +330,7 @@ export default function GhostModePage() {
   const [quickExit, setQuickExit] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
+  const [showBreakfastPicker, setShowBreakfastPicker] = useState(false);
 
   // House rules gate — shows 5s after first arrival, blocks interaction until agreed
   const [houseRulesAgreed, setHouseRulesAgreed] = useState(() => {
@@ -659,12 +660,57 @@ export default function GhostModePage() {
     setRevealedIds((prev) => new Set([...prev, id]));
   };
 
+  // ── Breakfast Lounge country picker ──────────────────────────────────────────
+  const LOUNGE_COUNTRIES = [
+    { name: "Indonesia",    flag: "🇮🇩", utcOffset: 7,    poolCount: 8 },
+    { name: "UAE",          flag: "🇦🇪", utcOffset: 4,    poolCount: 2 },
+    { name: "Japan",        flag: "🇯🇵", utcOffset: 9,    poolCount: 2 },
+    { name: "Singapore",    flag: "🇸🇬", utcOffset: 8,    poolCount: 2 },
+    { name: "India",        flag: "🇮🇳", utcOffset: 5.5,  poolCount: 2 },
+    { name: "Italy",        flag: "🇮🇹", utcOffset: 1,    poolCount: 2 },
+    { name: "France",       flag: "🇫🇷", utcOffset: 1,    poolCount: 2 },
+    { name: "Saudi Arabia", flag: "🇸🇦", utcOffset: 3,    poolCount: 2 },
+    { name: "Turkey",       flag: "🇹🇷", utcOffset: 3,    poolCount: 1 },
+    { name: "Lebanon",      flag: "🇱🇧", utcOffset: 2,    poolCount: 1 },
+    { name: "Greece",       flag: "🇬🇷", utcOffset: 2,    poolCount: 1 },
+    { name: "Germany",      flag: "🇩🇪", utcOffset: 1,    poolCount: 1 },
+    { name: "Spain",        flag: "🇪🇸", utcOffset: 1,    poolCount: 2 },
+    { name: "UK",           flag: "🇬🇧", utcOffset: 0,    poolCount: 1 },
+    { name: "Ireland",      flag: "🇮🇪", utcOffset: 0,    poolCount: 1 },
+    { name: "Egypt",        flag: "🇪🇬", utcOffset: 2,    poolCount: 1 },
+    { name: "Nigeria",      flag: "🇳🇬", utcOffset: 1,    poolCount: 1 },
+    { name: "Kenya",        flag: "🇰🇪", utcOffset: 3,    poolCount: 1 },
+    { name: "Korea",        flag: "🇰🇷", utcOffset: 9,    poolCount: 1 },
+    { name: "USA",          flag: "🇺🇸", utcOffset: -5,   poolCount: 1 },
+    { name: "Colombia",     flag: "🇨🇴", utcOffset: -5,   poolCount: 1 },
+    { name: "Argentina",    flag: "🇦🇷", utcOffset: -3,   poolCount: 1 },
+  ] as const;
+
+  const loungeGuestCount = useMemo(() => {
+    const utcH = new Date().getUTCHours() + new Date().getUTCMinutes() / 60;
+    return LOUNGE_COUNTRIES.reduce((sum, c) => {
+      const localH = ((utcH + c.utcOffset) % 24 + 24) % 24;
+      return sum + (localH >= 7 && localH < 23 ? c.poolCount : 0);
+    }, 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [loungeEnabled, setLoungeEnabled] = useState<boolean>(() => {
+    try { return localStorage.getItem("breakfast_lounge_enabled") !== "false"; } catch { return true; }
+  });
+  const handleToggleLounge = () => {
+    const next = !loungeEnabled;
+    setLoungeEnabled(next);
+    try { localStorage.setItem("breakfast_lounge_enabled", next ? "true" : "false"); } catch {}
+  };
+
   const handleSettingsAction = (action: SettingsAction) => {
     if (action === "rooms") { setShowHouseModal(true); return; }
     if (action === "ghostClock") { setWindowActive(hasActiveWindowMode()); setShowGhostClock(true); return; }
     if (action === "floorWars") { setShowFloorWars(true); return; }
     if (action === "games") { navigate("/ghost/games"); return; }
     if (action === "video") { setShowVideoUpload(true); return; }
+    if (action === "breakfastLounge") { if (loungeEnabled) setShowBreakfastPicker(true); return; }
   };
 
   // Passed (refused) profiles — persisted so they never reappear
@@ -2377,7 +2423,104 @@ export default function GhostModePage() {
         show={showSettingsSheet}
         onClose={() => setShowSettingsSheet(false)}
         onAction={handleSettingsAction}
+        loungeGuestCount={loungeGuestCount}
+        loungeEnabled={loungeEnabled}
+        onToggleLounge={handleToggleLounge}
       />
+
+      {/* ── Breakfast Lounge Country Picker ── */}
+      <AnimatePresence>
+        {showBreakfastPicker && (() => {
+          const userCountry = (() => { try { return localStorage.getItem("ghost_country") ?? "Indonesia"; } catch { return "Indonesia"; } })();
+          const utcH = new Date().getUTCHours() + new Date().getUTCMinutes() / 60;
+          const sorted = [...LOUNGE_COUNTRIES].sort((a, b) =>
+            a.name === userCountry ? -1 : b.name === userCountry ? 1 : 0
+          );
+          return (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setShowBreakfastPicker(false)}
+                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 9100, backdropFilter: "blur(4px)" }}
+              />
+              <motion.div
+                initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 32, stiffness: 340 }}
+                style={{
+                  position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9101,
+                  background: "rgba(8,10,14,0.99)",
+                  borderTop: "1px solid rgba(212,175,55,0.25)",
+                  borderRadius: "20px 20px 0 0",
+                  maxHeight: "82vh", display: "flex", flexDirection: "column",
+                  paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))",
+                }}
+              >
+                {/* Gold top rim */}
+                <div style={{ height: 3, borderRadius: "20px 20px 0 0", background: "linear-gradient(90deg, transparent, #d4af37, rgba(212,175,55,0.4), transparent)" }} />
+                {/* Handle */}
+                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)", margin: "12px auto 0" }} />
+                {/* Header */}
+                <div style={{ padding: "16px 20px 12px" }}>
+                  <p style={{ fontSize: 16, fontWeight: 900, color: "#d4af37", margin: 0 }}>Breakfast Lounges</p>
+                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>
+                    {loungeGuestCount} guests online worldwide · select a country
+                  </p>
+                </div>
+                <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent)", margin: "0 20px 8px" }} />
+                {/* Country list */}
+                <div style={{ overflowY: "auto", flex: 1, padding: "0 14px" }}>
+                  {sorted.map((c) => {
+                    const localH = ((utcH + c.utcOffset) % 24 + 24) % 24;
+                    const isOnline = localH >= 7 && localH < 23;
+                    const isBreakfast = localH >= 7 && localH < 11;
+                    const hh = Math.floor(localH);
+                    const mm = Math.floor((localH - hh) * 60);
+                    const localTime = `${hh.toString().padStart(2, "0")}:${mm.toString().padStart(2, "0")}`;
+                    const isHome = c.name === userCountry;
+                    return (
+                      <button key={c.name}
+                        onClick={() => {
+                          try { sessionStorage.setItem("breakfast_country", c.name); } catch {}
+                          setShowBreakfastPicker(false);
+                          navigate("/ghost/breakfast-lounge");
+                        }}
+                        style={{
+                          width: "100%", display: "flex", alignItems: "center", gap: 14,
+                          background: isHome ? "rgba(212,175,55,0.06)" : "rgba(255,255,255,0.02)",
+                          border: isHome ? "1px solid rgba(212,175,55,0.2)" : "1px solid rgba(255,255,255,0.05)",
+                          borderRadius: 14, padding: "12px 14px", marginBottom: 8,
+                          cursor: "pointer", textAlign: "left",
+                        }}
+                      >
+                        <span style={{ fontSize: 24 }}>{c.flag}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <p style={{ fontSize: 13, fontWeight: 800, color: isHome ? "#d4af37" : "#fff", margin: 0 }}>{c.name}</p>
+                            {isHome && <span style={{ fontSize: 9, fontWeight: 700, color: "#d4af37", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 5, padding: "1px 5px" }}>YOUR COUNTRY</span>}
+                          </div>
+                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: "2px 0 0" }}>Local time {localTime}</p>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+                          <span style={{
+                            fontSize: 10, fontWeight: 700,
+                            color: isBreakfast ? "#d4af37" : isOnline ? "#22c55e" : "rgba(255,255,255,0.3)",
+                            background: isBreakfast ? "rgba(212,175,55,0.1)" : isOnline ? "rgba(34,197,94,0.1)" : "rgba(255,255,255,0.04)",
+                            border: `1px solid ${isBreakfast ? "rgba(212,175,55,0.3)" : isOnline ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.08)"}`,
+                            borderRadius: 6, padding: "2px 7px",
+                          }}>
+                            {isBreakfast ? "🍳 Breakfast" : isOnline ? "Active" : "Quiet"}
+                          </span>
+                          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{isOnline ? c.poolCount : 0} guests</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            </>
+          );
+        })()}
+      </AnimatePresence>
 
       {/* ── Flag / Report sheet ── */}
       <GhostFlagSheet
