@@ -1,6 +1,6 @@
 // ── Breakfast Lounge ─────────────────────────────────────────────────────────
-// Auto-presence social dining room. Guests auto-join for a limited window,
-// browse profiles, send/receive table invites via the butler, then chat at-table.
+// Auto-presence social dining room. Guests auto-join, browse live profiles,
+// invite immediately — no time slots. Accept via butler popup or quietly leave.
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,22 +8,20 @@ import { useNavigate } from "react-router-dom";
 import { useCoins } from "../hooks/useCoins";
 import CoinBalanceChip from "../components/CoinBalanceChip";
 
-const LOUNGE_IMG    = "https://ik.imagekit.io/7grri5v7d/mmmmmdfgdsfgdfg.png";
-const BUTLER_IMG    = "https://ik.imagekit.io/7grri5v7d/mmmmm.png";
-const INVITE_COST   = 15;
-const CHAT_COST     = 2;
-const TIP_COST      = 5;
-const ROTATE_MIN    = 5 * 60 * 1000;
-const ROTATE_MAX    = 10 * 60 * 1000;
+const LOUNGE_IMG  = "https://ik.imagekit.io/7grri5v7d/mmmmmdfgdsfgdfg.png";
+const BUTLER_IMG  = "https://ik.imagekit.io/7grri5v7d/mmmmm.png";
+const INVITE_COST = 15;
+const CHAT_COST   = 2;
+const TIP_COST    = 5;
+const ROTATE_MIN  = 5 * 60 * 1000;
+const ROTATE_MAX  = 10 * 60 * 1000;
 
-// ── Avatar colours ────────────────────────────────────────────────────────────
 const AV_COLS = [
   "#e879f9","#a78bfa","#60a5fa","#34d399","#fbbf24",
   "#f87171","#fb923c","#4ade80","#38bdf8","#c084fc","#f472b6","#a3e635",
 ];
 const avCol = (seed: number) => AV_COLS[seed % AV_COLS.length];
 
-// ── Types ─────────────────────────────────────────────────────────────────────
 interface LoungeProfile {
   id: string; seed: number; ghostId: string;
   city: string; floor: string; floorColor: string;
@@ -31,10 +29,8 @@ interface LoungeProfile {
 }
 
 type Phase = "browsing" | "invite-pending" | "refused" | "at-table";
-
 interface ChatMsg { id: number; from: "me" | "them" | "butler"; text: string; }
 
-// ── Profile pool ──────────────────────────────────────────────────────────────
 const POOL: LoungeProfile[] = [
   { id:"bl1",  seed:3,  ghostId:"Ghost-4821", city:"Dubai",     floor:"Penthouse", floorColor:"#e8e4d0", mood:"Early riser ☀️",          gender:"f", age:28, about:"Loves mornings, strong coffee and the quiet before the city wakes." },
   { id:"bl2",  seed:7,  ghostId:"Ghost-7734", city:"Milan",     floor:"Casino",    floorColor:"#d4af37", mood:"Coffee first, talk later", gender:"m", age:33, about:"Fashion week regular. Prefers his espresso black and his mornings slow." },
@@ -53,23 +49,21 @@ const POOL: LoungeProfile[] = [
   { id:"bl15", seed:41, ghostId:"Ghost-2287", city:"Berlin",    floor:"Casino",    floorColor:"#d4af37", mood:"People watching 👀",        gender:"m", age:36, about:"Prefers observing. Will surprise you with exactly the right thing to say." },
 ];
 
-// ── Random content ────────────────────────────────────────────────────────────
-const REFUSE_EXCUSES = [
-  "stepped away — there's a surprise event gathering in the lobby.",
-  "had to rush off to an early hotel checkout.",
-  "was called up to a floor meeting.",
-  "got caught with another guest at the buffet.",
-  "slipped out to take an urgent call.",
-  "was already spoken for at another table.",
-  "had a room service delivery arrive at the wrong moment.",
-  "dashed off to catch an early morning flight.",
-  "was pulled away by a friend from their floor.",
+const SOFT_DECLINES = [
+  "has quietly slipped away from the lounge.",
+  "has stepped out — something came up in the lobby.",
+  "has left for a floor gathering.",
+  "has moved on — another commitment called.",
+  "has stepped out to take a call and hasn't returned.",
+  "has already joined another table.",
+  "has checked out of the lounge this morning.",
+  "drifted away — happens in the lounge sometimes.",
 ];
 
 const PARTNER_REPLIES = [
   "Good morning! ☀️ I'll be right down.",
   "Already grabbed the window seat — croissants are fresh 🥐",
-  "Perfect. I just ordered the eggs benedict, highly recommend it.",
+  "Perfect. Just ordered the eggs benedict, highly recommend it.",
   "On my way. Can you grab me a coffee? ☕",
   "So glad you reached out, I was sitting alone.",
   "Coming down from the penthouse now 😊",
@@ -81,12 +75,11 @@ const PARTNER_REPLIES = [
 const BUTLER_SURPRISE_MSGS = [
   "Mr. Butla has arranged fresh orange juice for your table. 🍊 Compliments of the house.",
   "A warm basket of pastries has been sent to your table. 🥐 Enjoy.",
-  "Mr. Butla has noted your table and reserved it for another 30 minutes. 🕐",
+  "Mr. Butla has reserved your table for another 30 minutes. 🕐",
   "A fresh pot of coffee is on its way. ☕ Mr. Butla's compliments.",
   "Mr. Butla has upgraded your table to the window view. 🌅",
 ];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function buildVisible() {
   const shuffled = [...POOL].sort(() => Math.random() - 0.5).slice(0, 9);
   return shuffled.map((p, i) => ({
@@ -102,7 +95,6 @@ function getMorningTime() {
 
 const rnd = (min: number, max: number) => min + Math.random() * (max - min);
 
-// ── Avatar ────────────────────────────────────────────────────────────────────
 function Avatar({ p, size = 48, border }: { p: LoungeProfile; size?: number; border?: string }) {
   const c = avCol(p.seed);
   return (
@@ -118,34 +110,27 @@ function Avatar({ p, size = 48, border }: { p: LoungeProfile; size?: number; bor
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function BreakfastLoungePage() {
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
   const { deductCoins, canAfford } = useCoins();
 
-  // ── Core UI state
   const [clock, setClock]         = useState(getMorningTime);
   const [visible, setVisible]     = useState(buildVisible);
   const [countdown, setCountdown] = useState(() => rnd(ROTATE_MIN, ROTATE_MAX));
 
-  // ── Invite / table flow
-  const [phase, setPhase]           = useState<Phase>("browsing");
-  const [partner, setPartner]       = useState<LoungeProfile | null>(null);
+  const [phase, setPhase]                     = useState<Phase>("browsing");
+  const [partner, setPartner]                 = useState<LoungeProfile | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<LoungeProfile | null>(null);
-  const [selectedSlot, setSelectedSlot]       = useState("9:00 am");
-  const [note, setNote]             = useState("");
-  const [refuseExcuse, setRefuseExcuse] = useState("");
+  const [inviteNote, setInviteNote]           = useState("");
+  const [refuseMsg, setRefuseMsg]             = useState("");
 
-  // ── Incoming invite (simulated "User B" path)
   const [incomingInvite, setIncomingInvite] = useState<LoungeProfile | null>(null);
   const incomingFired = useRef(false);
 
-  // ── Chat at-table
-  const [chatMsgs, setChatMsgs]   = useState<ChatMsg[]>([]);
-  const [chatInput, setChatInput] = useState("");
-  const [msgId, setMsgId]         = useState(1);
+  const [chatMsgs, setChatMsgs]         = useState<ChatMsg[]>([]);
+  const [chatInput, setChatInput]       = useState("");
+  const [msgId, setMsgId]               = useState(1);
   const [butlerTipped, setButlerTipped] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
-
-  const TIME_SLOTS = ["8:00 am","8:30 am","9:00 am","9:30 am","10:00 am","10:30 am","11:00 am"];
 
   // Clock
   useEffect(() => {
@@ -153,7 +138,7 @@ export default function BreakfastLoungePage() {
     return () => clearInterval(t);
   }, []);
 
-  // Profile rotation countdown
+  // Guest rotation countdown
   useEffect(() => {
     const tick = setInterval(() => {
       setCountdown(prev => {
@@ -167,16 +152,15 @@ export default function BreakfastLoungePage() {
     return () => clearInterval(tick);
   }, []);
 
-  // Simulate incoming invite after ~30s (only once, only while browsing)
+  // Simulated incoming invite from a stranger (~30s after arrival)
   useEffect(() => {
     if (incomingFired.current) return;
-    const delay = rnd(28_000, 40_000);
     const t = setTimeout(() => {
       if (phase !== "browsing") return;
       const stranger = POOL.find(p => !visible.some(v => v.profile.id === p.id)) ?? POOL[14];
       setIncomingInvite(stranger);
       incomingFired.current = true;
-    }, delay);
+    }, rnd(28_000, 40_000));
     return () => clearTimeout(t);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -188,50 +172,46 @@ export default function BreakfastLoungePage() {
   // ── Send invite ─────────────────────────────────────────────────────────────
   const handleSendInvite = useCallback(() => {
     if (!selectedProfile || !canAfford(INVITE_COST)) return;
-    deductCoins(INVITE_COST, `Breakfast invite to ${selectedProfile.ghostId}`);
-    setPartner(selectedProfile);
+    const invited = selectedProfile;
+    deductCoins(INVITE_COST, `Breakfast invite to ${invited.ghostId}`);
+    setPartner(invited);
     setSelectedProfile(null);
+    setInviteNote("");
     setPhase("invite-pending");
 
-    // Simulate User B response after 4–9s
-    const delay = rnd(4_000, 9_000);
-    const accept = Math.random() < 0.70; // 70% accept rate
+    const accept = Math.random() < 0.70;
     setTimeout(() => {
       if (accept) {
         setPhase("at-table");
-        setChatMsgs([{
-          id: 1, from: "butler",
-          text: `Your table is set. ${selectedProfile.ghostId} is on their way down. 🍳`,
-        }]);
+        setChatMsgs([{ id: 1, from: "butler", text: `Your table is set. ${invited.ghostId} is on their way. 🍳` }]);
         setMsgId(2);
-        // Partner says hello after 3s
         setTimeout(() => {
           const reply = PARTNER_REPLIES[Math.floor(Math.random() * PARTNER_REPLIES.length)];
           setChatMsgs(prev => [...prev, { id: Date.now(), from: "them", text: reply }]);
         }, 3_000);
       } else {
-        const excuse = REFUSE_EXCUSES[Math.floor(Math.random() * REFUSE_EXCUSES.length)];
-        setRefuseExcuse(excuse);
+        // Profile disappears from visible list
+        setVisible(prev => prev.filter(v => v.profile.id !== invited.id));
+        const decline = SOFT_DECLINES[Math.floor(Math.random() * SOFT_DECLINES.length)];
+        setRefuseMsg(`${invited.ghostId} ${decline}`);
         setPhase("refused");
         setTimeout(() => {
           setPhase("browsing");
           setPartner(null);
-          setRefuseExcuse("");
-        }, 6_000);
+          setRefuseMsg("");
+        }, 4_000);
       }
-    }, delay);
+    }, rnd(4_000, 8_000));
   }, [selectedProfile, canAfford, deductCoins]);
 
   // ── Accept incoming invite ───────────────────────────────────────────────────
   const acceptIncoming = useCallback(() => {
     if (!incomingInvite) return;
-    setPartner(incomingInvite);
+    const p = incomingInvite;
+    setPartner(p);
     setIncomingInvite(null);
     setPhase("at-table");
-    setChatMsgs([{
-      id: 1, from: "butler",
-      text: `Welcome to your table. ${incomingInvite.ghostId} is already waiting. 🍳`,
-    }]);
+    setChatMsgs([{ id: 1, from: "butler", text: `Welcome to your table. ${p.ghostId} is already seated. 🍳` }]);
     setMsgId(2);
     setTimeout(() => {
       const reply = PARTNER_REPLIES[Math.floor(Math.random() * PARTNER_REPLIES.length)];
@@ -239,7 +219,14 @@ export default function BreakfastLoungePage() {
     }, 2_000);
   }, [incomingInvite]);
 
-  // ── Send chat message ────────────────────────────────────────────────────────
+  // ── Decline incoming — profile silently leaves ───────────────────────────────
+  const declineIncoming = useCallback(() => {
+    if (!incomingInvite) return;
+    setVisible(prev => prev.filter(v => v.profile.id !== incomingInvite.id));
+    setIncomingInvite(null);
+  }, [incomingInvite]);
+
+  // ── Chat ─────────────────────────────────────────────────────────────────────
   const sendChat = useCallback(() => {
     const text = chatInput.trim();
     if (!text || !canAfford(CHAT_COST)) return;
@@ -247,16 +234,13 @@ export default function BreakfastLoungePage() {
     setChatMsgs(prev => [...prev, { id: msgId, from: "me", text }]);
     setMsgId(n => n + 1);
     setChatInput("");
-
-    // Partner reply after 2–5s
-    const delay = rnd(2_000, 5_000);
     setTimeout(() => {
       const reply = PARTNER_REPLIES[Math.floor(Math.random() * PARTNER_REPLIES.length)];
       setChatMsgs(prev => [...prev, { id: Date.now(), from: "them", text: reply }]);
-    }, delay);
+    }, rnd(2_000, 5_000));
   }, [chatInput, canAfford, deductCoins, msgId]);
 
-  // ── Tip butler ────────────────────────────────────────────────────────────────
+  // ── Butler tip ────────────────────────────────────────────────────────────────
   const tipButler = useCallback(() => {
     if (!canAfford(TIP_COST) || butlerTipped) return;
     deductCoins(TIP_COST, "Butler tip at breakfast table");
@@ -265,13 +249,9 @@ export default function BreakfastLoungePage() {
     setChatMsgs(prev => [...prev, { id: Date.now(), from: "butler", text: msg }]);
   }, [canAfford, deductCoins, butlerTipped]);
 
-  // ── Leave table ───────────────────────────────────────────────────────────────
   const leaveTable = () => {
-    setPhase("browsing");
-    setPartner(null);
-    setChatMsgs([]);
-    setChatInput("");
-    setButlerTipped(false);
+    setPhase("browsing"); setPartner(null);
+    setChatMsgs([]); setChatInput(""); setButlerTipped(false);
   };
 
   const fmtCountdown = () => {
@@ -290,14 +270,13 @@ export default function BreakfastLoungePage() {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100dvh", background: "#08080e", fontFamily: "system-ui, sans-serif", color: "#fff" }}>
 
-        {/* ── Fixed Table Header ── */}
+        {/* Fixed header */}
         <div style={{
           flexShrink: 0, background: "rgba(8,8,14,0.97)",
           borderBottom: "1px solid rgba(255,255,255,0.07)",
           paddingTop: "calc(env(safe-area-inset-top,0px) + 12px)",
           paddingBottom: 14, paddingLeft: 16, paddingRight: 16,
         }}>
-          {/* Top row: back + coin */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
             <motion.button whileTap={{ scale: 0.92 }} onClick={leaveTable}
               style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -311,125 +290,74 @@ export default function BreakfastLoungePage() {
 
           {/* Dual avatars */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0 }}>
-            {/* Me */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
-              <div style={{
-                width: 56, height: 56, borderRadius: "50%", flexShrink: 0,
-                background: "radial-gradient(circle at 35% 35%, #4ade8055, #4ade8022)",
-                border: "2.5px solid #4ade8080",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 26,
-              }}>👤</div>
+              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "radial-gradient(circle at 35% 35%, #4ade8055, #4ade8022)", border: "2.5px solid #4ade8080", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>👤</div>
               <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "#4ade80", letterSpacing: "0.08em" }}>YOU</p>
             </div>
-
-            {/* Link */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, margin: "0 10px" }}>
-              <div style={{ width: 36, height: 2, borderRadius: 1, background: "linear-gradient(90deg, #4ade8040, #d4af3780)" }} />
-              <span style={{ fontSize: 14 }}>🍽️</span>
-              <div style={{ width: 36, height: 2, borderRadius: 1, background: "linear-gradient(90deg, #d4af3780, #4ade8040)" }} />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, margin: "0 12px" }}>
+              <div style={{ width: 38, height: 2, borderRadius: 1, background: "linear-gradient(90deg, #4ade8040, #d4af3780)" }} />
+              <span style={{ fontSize: 16 }}>🍽️</span>
+              <div style={{ width: 38, height: 2, borderRadius: 1, background: "linear-gradient(90deg, #d4af3780, #4ade8040)" }} />
             </div>
-
-            {/* Partner */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
               <Avatar p={partner} size={56} border={`2.5px solid ${avCol(partner.seed)}80`} />
-              <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: avCol(partner.seed), letterSpacing: "0.08em" }}>
-                {partner.ghostId}
-              </p>
+              <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: avCol(partner.seed), letterSpacing: "0.08em" }}>{partner.ghostId}</p>
             </div>
           </div>
-
-          {/* Floor + city */}
-          <p style={{ margin: "10px 0 0", textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.3)" }}>
+          <p style={{ margin: "10px 0 0", textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.28)" }}>
             {partner.city} · {partner.floor} Floor · "{partner.mood}"
           </p>
         </div>
 
-        {/* ── Chat messages ── */}
+        {/* Messages */}
         <div ref={chatRef} style={{ flex: 1, overflowY: "auto", padding: "14px 14px 0" }}>
           {chatMsgs.map(msg => (
-            <div key={msg.id} style={{
-              display: "flex",
-              justifyContent: msg.from === "me" ? "flex-end" : "flex-start",
-              marginBottom: 10,
-            }}>
+            <div key={msg.id} style={{ display: "flex", justifyContent: msg.from === "me" ? "flex-end" : "flex-start", marginBottom: 10 }}>
               {msg.from === "butler" ? (
-                <div style={{
-                  maxWidth: "82%", background: "rgba(212,175,55,0.08)",
-                  border: "1px solid rgba(212,175,55,0.2)", borderRadius: 14,
-                  padding: "9px 14px",
-                  display: "flex", alignItems: "flex-start", gap: 8,
-                }}>
+                <div style={{ maxWidth: "82%", background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 14, padding: "9px 14px", display: "flex", alignItems: "flex-start", gap: 8 }}>
                   <img src={BUTLER_IMG} alt="" style={{ width: 20, height: 20, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-                  <p style={{ margin: 0, fontSize: 12, color: "rgba(212,175,55,0.85)", lineHeight: 1.5 }}>
-                    {msg.text}
-                  </p>
+                  <p style={{ margin: 0, fontSize: 12, color: "rgba(212,175,55,0.85)", lineHeight: 1.5 }}>{msg.text}</p>
                 </div>
               ) : (
                 <div style={{
                   maxWidth: "75%",
-                  background: msg.from === "me"
-                    ? "linear-gradient(135deg, #16a34a, #22c55e)"
-                    : "rgba(255,255,255,0.07)",
+                  background: msg.from === "me" ? "linear-gradient(135deg, #16a34a, #22c55e)" : "rgba(255,255,255,0.07)",
                   borderRadius: msg.from === "me" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
                   padding: "10px 14px",
                   border: msg.from === "me" ? "none" : "1px solid rgba(255,255,255,0.08)",
                 }}>
-                  <p style={{ margin: 0, fontSize: 13, color: msg.from === "me" ? "#fff" : "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>
-                    {msg.text}
-                  </p>
+                  <p style={{ margin: 0, fontSize: 13, color: msg.from === "me" ? "#fff" : "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>{msg.text}</p>
                 </div>
               )}
             </div>
           ))}
         </div>
 
-        {/* ── Chat input bar ── */}
-        <div style={{
-          flexShrink: 0, padding: "10px 14px",
-          paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 10px)",
-          borderTop: "1px solid rgba(255,255,255,0.07)",
-          background: "rgba(8,8,14,0.97)",
-        }}>
-          {/* Butler tip row */}
+        {/* Input bar */}
+        <div style={{ flexShrink: 0, padding: "10px 14px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 10px)", borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(8,8,14,0.97)" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
-            <motion.button whileTap={{ scale: 0.95 }}
-              onClick={tipButler}
+            <motion.button whileTap={{ scale: 0.95 }} onClick={tipButler}
               disabled={butlerTipped || !canAfford(TIP_COST)}
               style={{
                 padding: "6px 18px", borderRadius: 20, cursor: butlerTipped || !canAfford(TIP_COST) ? "default" : "pointer",
                 background: butlerTipped ? "rgba(255,255,255,0.03)" : "rgba(212,175,55,0.08)",
                 border: `1px solid ${butlerTipped ? "rgba(255,255,255,0.05)" : "rgba(212,175,55,0.25)"}`,
-                fontSize: 11, fontWeight: 700,
-                color: butlerTipped ? "rgba(255,255,255,0.2)" : "#d4af37",
+                fontSize: 11, fontWeight: 700, color: butlerTipped ? "rgba(255,255,255,0.2)" : "#d4af37",
                 display: "flex", alignItems: "center", gap: 6,
               }}>
               {butlerTipped ? "🍾 Tip sent to Mr. Butla" : `🎩 Tip the Butler · 🪙${TIP_COST}`}
             </motion.button>
           </div>
-
-          {/* Input row */}
           <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-            <input
-              value={chatInput}
-              onChange={e => setChatInput(e.target.value)}
+            <input value={chatInput} onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); }}}
-              placeholder="Type a message…"
-              maxLength={200}
-              style={{
-                flex: 1, height: 44, borderRadius: 22, boxSizing: "border-box",
-                background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
-                color: "#fff", fontSize: 14, padding: "0 16px", outline: "none",
-              }}
-            />
-            <motion.button whileTap={{ scale: 0.93 }}
-              onClick={sendChat}
+              placeholder="Type a message…" maxLength={200}
+              style={{ flex: 1, height: 44, borderRadius: 22, boxSizing: "border-box", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", fontSize: 14, padding: "0 16px", outline: "none" }} />
+            <motion.button whileTap={{ scale: 0.93 }} onClick={sendChat}
               disabled={!chatInput.trim() || !canAfford(CHAT_COST)}
               style={{
                 height: 44, padding: "0 16px", borderRadius: 22, flexShrink: 0,
-                background: chatInput.trim() && canAfford(CHAT_COST)
-                  ? "linear-gradient(135deg, #16a34a, #22c55e)"
-                  : "rgba(255,255,255,0.05)",
+                background: chatInput.trim() && canAfford(CHAT_COST) ? "linear-gradient(135deg, #16a34a, #22c55e)" : "rgba(255,255,255,0.05)",
                 border: "none", cursor: chatInput.trim() && canAfford(CHAT_COST) ? "pointer" : "default",
                 fontSize: 12, fontWeight: 800,
                 color: chatInput.trim() && canAfford(CHAT_COST) ? "#fff" : "rgba(255,255,255,0.25)",
@@ -444,21 +372,16 @@ export default function BreakfastLoungePage() {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // BROWSING VIEW (with overlays)
+  // BROWSING VIEW
   // ════════════════════════════════════════════════════════════════════════════
   return (
     <div style={{ minHeight: "100dvh", background: "#08080e", color: "#fff", fontFamily: "system-ui, sans-serif", overflowX: "hidden" }}>
 
-      {/* ── HERO BANNER ── */}
+      {/* Hero banner */}
       <div style={{ position: "relative", height: 210, overflow: "hidden" }}>
-        <img src={LOUNGE_IMG} alt="Breakfast Lounge"
-          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%" }} />
+        <img src={LOUNGE_IMG} alt="Breakfast Lounge" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%" }} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(8,8,14,0.25) 0%, rgba(8,8,14,0.88) 100%)" }} />
-        <div style={{
-          position: "absolute", top: 0, left: 0, right: 0,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "calc(env(safe-area-inset-top,16px) + 10px) 16px 0",
-        }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(env(safe-area-inset-top,16px) + 10px) 16px 0" }}>
           <motion.button whileTap={{ scale: 0.92 }} onClick={() => navigate(-1)}
             style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.7)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             ←
@@ -474,35 +397,23 @@ export default function BreakfastLoungePage() {
         </div>
       </div>
 
-      {/* ── CONTENT ── */}
       <div style={{ padding: "14px 13px calc(env(safe-area-inset-bottom,0px) + 32px)" }}>
 
-        {/* ── You're in the lounge banner ── */}
-        <div style={{
-          display: "flex", alignItems: "center", gap: 10,
-          background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.18)",
-          borderRadius: 14, padding: "11px 14px", marginBottom: 14,
-        }}>
+        {/* You're live in the lounge */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.18)", borderRadius: 14, padding: "11px 14px", marginBottom: 14 }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px #4ade80" }} />
           <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
-            <span style={{ color: "#4ade80", fontWeight: 800 }}>You're in the lounge</span> — guests can see your presence
+            <span style={{ color: "#4ade80", fontWeight: 800 }}>You're in the lounge</span> — other guests can see your presence
           </p>
         </div>
 
-        {/* ── Pending invite status ── */}
+        {/* Invite pending / refused banners */}
         <AnimatePresence>
           {phase === "invite-pending" && partner && (
-            <motion.div
-              key="pending"
+            <motion.div key="pending"
               initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              style={{
-                display: "flex", alignItems: "center", gap: 12,
-                background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.22)",
-                borderRadius: 14, padding: "12px 14px", marginBottom: 14,
-              }}
-            >
-              <motion.div
-                animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.4, repeat: Infinity }}
+              style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.22)", borderRadius: 14, padding: "12px 14px", marginBottom: 14 }}>
+              <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.4, repeat: Infinity }}
                 style={{ width: 8, height: 8, borderRadius: "50%", background: "#fbbf24", flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#fbbf24" }}>Invite pending</p>
@@ -514,52 +425,42 @@ export default function BreakfastLoungePage() {
             </motion.div>
           )}
 
-          {phase === "refused" && refuseExcuse && (
-            <motion.div
-              key="refused"
-              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-              style={{
-                background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.22)",
-                borderRadius: 14, padding: "12px 14px", marginBottom: 14,
-                display: "flex", gap: 12, alignItems: "flex-start",
-              }}
-            >
-              <img src={BUTLER_IMG} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+          {phase === "refused" && refuseMsg && (
+            <motion.div key="refused"
+              initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+              style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "12px 14px", marginBottom: 14 }}>
+              <img src={BUTLER_IMG} alt="" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
               <div>
-                <p style={{ margin: "0 0 3px", fontSize: 12, fontWeight: 800, color: "#f87171" }}>
-                  Mr. Butla has a message
-                </p>
-                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
-                  My apologies — {partner?.ghostId} has {refuseExcuse}
-                </p>
+                <p style={{ margin: "0 0 3px", fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Mr. Butla</p>
+                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.55 }}>{refuseMsg}</p>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ── Countdown ── */}
+        {/* Countdown */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 11 }}>
           <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.28)", letterSpacing: "0.14em", textTransform: "uppercase" }}>
-            Available Now
+            Live Guests
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20, padding: "3px 10px" }}>
             <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#4ade80" }} />
             <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>
-              Guests refresh in {fmtCountdown()}
+              Refreshes in {fmtCountdown()}
             </p>
           </div>
         </div>
 
-        {/* ── Available profiles ── */}
+        {/* Available guests */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
           {available.map(({ profile: p }) => {
             const locked = phase === "invite-pending" || phase === "at-table";
             return (
               <motion.div key={p.id} whileTap={{ scale: locked ? 1 : 0.98 }}
-                onClick={() => { if (!locked) { setSelectedProfile(p); setSelectedSlot("9:00 am"); setNote(""); }}}
+                onClick={() => { if (!locked) { setSelectedProfile(p); setInviteNote(""); } }}
                 style={{
-                  display: "flex", alignItems: "center", gap: 13,
-                  padding: "12px 14px", borderRadius: 16, cursor: locked ? "default" : "pointer",
+                  display: "flex", alignItems: "center", gap: 13, padding: "12px 14px", borderRadius: 16,
+                  cursor: locked ? "default" : "pointer",
                   background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
                   opacity: locked ? 0.45 : 1,
                 }}
@@ -567,47 +468,32 @@ export default function BreakfastLoungePage() {
                 <Avatar p={p} size={46} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>{p.ghostId}</p>
-                  <p style={{ margin: "2px 0", fontSize: 10, color: "rgba(255,255,255,0.32)" }}>
-                    {p.city} · {p.floor}
-                  </p>
-                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>
-                    "{p.mood}"
-                  </p>
+                  <p style={{ margin: "2px 0", fontSize: 10, color: "rgba(255,255,255,0.32)" }}>{p.city} · {p.floor}</p>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>"{p.mood}"</p>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.22)", borderRadius: 20, padding: "2px 8px" }}>
                     <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#4ade80" }} />
                     <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "#4ade80" }}>Available</p>
                   </div>
-                  {!locked && <span style={{ fontSize: 9, color: "rgba(255,255,255,0.18)" }}>tap to invite</span>}
+                  {!locked && <span style={{ fontSize: 9, color: "rgba(255,255,255,0.18)" }}>tap to view</span>}
                 </div>
               </motion.div>
             );
           })}
         </div>
 
-        {/* ── At a Table ── */}
+        {/* At a Table */}
         {atTable.length > 0 && (
           <>
-            <p style={{ margin: "0 0 9px", fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.25)", letterSpacing: "0.14em", textTransform: "uppercase" }}>
-              At a Table
-            </p>
+            <p style={{ margin: "0 0 9px", fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.25)", letterSpacing: "0.14em", textTransform: "uppercase" }}>At a Table</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
               {atTable.map(({ profile: p, tableWith }) => (
-                <div key={p.id} style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  padding: "10px 14px", borderRadius: 14,
-                  background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)",
-                  opacity: 0.45,
-                }}>
+                <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", opacity: 0.45 }}>
                   <Avatar p={p} size={38} />
                   <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.45)" }}>
-                      {p.ghostId}
-                    </p>
-                    <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.22)" }}>
-                      Sitting with {tableWith}
-                    </p>
+                    <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.45)" }}>{p.ghostId}</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.22)" }}>Sitting with {tableWith}</p>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.15)", borderRadius: 20, padding: "2px 8px" }}>
                     <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#f87171" }} />
@@ -620,91 +506,60 @@ export default function BreakfastLoungePage() {
         )}
       </div>
 
-      {/* ════════════════════════════════════════════════════════════════════════
-          PROFILE POPUP SHEET
-      ════════════════════════════════════════════════════════════════════════ */}
+      {/* ════ PROFILE POPUP SHEET ════ */}
       <AnimatePresence>
         {selectedProfile && (
           <>
             <motion.div key="pp-bg"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setSelectedProfile(null)}
-              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 200, backdropFilter: "blur(6px)" }}
-            />
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.72)", zIndex: 200, backdropFilter: "blur(7px)" }} />
             <motion.div key="pp-sheet"
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              style={{
-                position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 201,
-                background: "#0e0e18", borderRadius: "22px 22px 0 0",
-                border: "1px solid rgba(255,255,255,0.08)", borderBottom: "none",
-                paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 24px)",
-              }}
-            >
+              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 201, background: "#0e0e18", borderRadius: "22px 22px 0 0", border: "1px solid rgba(255,255,255,0.08)", borderBottom: "none", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 26px)" }}>
               <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)", margin: "12px auto 0" }} />
               <div style={{ padding: "18px 18px 0" }}>
 
                 {/* Profile header */}
-                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-                  <Avatar p={selectedProfile} size={60} />
+                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
+                  <Avatar p={selectedProfile} size={62} />
                   <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#fff" }}>{selectedProfile.ghostId}</p>
-                    <p style={{ margin: "3px 0 0", fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+                    <p style={{ margin: 0, fontSize: 19, fontWeight: 900, color: "#fff" }}>{selectedProfile.ghostId}</p>
+                    <p style={{ margin: "3px 0 1px", fontSize: 11, color: "rgba(255,255,255,0.38)" }}>
                       {selectedProfile.city} · {selectedProfile.floor} Floor · Age {selectedProfile.age}
                     </p>
-                    <p style={{ margin: "3px 0 0", fontSize: 11, color: avCol(selectedProfile.seed), fontStyle: "italic" }}>
+                    <p style={{ margin: 0, fontSize: 11, color: avCol(selectedProfile.seed), fontStyle: "italic" }}>
                       "{selectedProfile.mood}"
                     </p>
                   </div>
                 </div>
 
                 {/* About */}
-                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "11px 14px", marginBottom: 16 }}>
-                  <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
+                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
+                  <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.65 }}>
                     {selectedProfile.about}
                   </p>
                 </div>
 
-                {/* Time slot */}
-                <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.28)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                  Choose a time
-                </p>
-                <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 14 }}>
-                  {TIME_SLOTS.map(slot => (
-                    <motion.button key={slot} whileTap={{ scale: 0.95 }}
-                      onClick={() => setSelectedSlot(slot)}
-                      style={{
-                        flexShrink: 0, padding: "7px 13px", borderRadius: 20, cursor: "pointer",
-                        background: selectedSlot === slot ? "rgba(212,175,55,0.14)" : "rgba(255,255,255,0.04)",
-                        border: `1px solid ${selectedSlot === slot ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.07)"}`,
-                        color: selectedSlot === slot ? "#d4af37" : "rgba(255,255,255,0.4)",
-                        fontSize: 12, fontWeight: 700,
-                      }}>{slot}</motion.button>
-                  ))}
-                </div>
-
                 {/* Optional note */}
                 <p style={{ margin: "0 0 7px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.28)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                  Note <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, color: "rgba(255,255,255,0.2)" }}>optional</span>
+                  Add a note <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, color: "rgba(255,255,255,0.18)" }}>— optional</span>
                 </p>
                 <input
-                  value={note}
-                  onChange={e => setNote(e.target.value)}
+                  value={inviteNote}
+                  onChange={e => setInviteNote(e.target.value)}
                   placeholder="e.g. I'll be by the window…"
                   maxLength={80}
-                  style={{
-                    width: "100%", height: 42, borderRadius: 11, boxSizing: "border-box",
-                    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
-                    color: "#fff", fontSize: 13, padding: "0 14px", outline: "none", marginBottom: 16,
-                  }}
+                  style={{ width: "100%", height: 42, borderRadius: 11, boxSizing: "border-box", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#fff", fontSize: 13, padding: "0 14px", outline: "none", marginBottom: 16 }}
                 />
 
-                {/* CTA */}
+                {/* Invite CTA */}
                 <motion.button whileTap={{ scale: 0.97 }}
                   onClick={handleSendInvite}
                   disabled={!canAfford(INVITE_COST)}
                   style={{
-                    width: "100%", padding: "15px",
+                    width: "100%", padding: "16px",
                     background: canAfford(INVITE_COST)
                       ? "linear-gradient(135deg, #78350f, #d97706, #fbbf24)"
                       : "rgba(255,255,255,0.04)",
@@ -713,10 +568,9 @@ export default function BreakfastLoungePage() {
                     fontSize: 14, fontWeight: 900,
                     color: canAfford(INVITE_COST) ? "#0a0500" : "rgba(255,255,255,0.2)",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  }}
-                >
+                  }}>
                   <span>🍳</span>
-                  <span>Invite to Breakfast · {selectedSlot}</span>
+                  <span>Invite to join me</span>
                   <span style={{ fontSize: 11, opacity: 0.65 }}>· 🪙{INVITE_COST}</span>
                 </motion.button>
               </div>
@@ -725,39 +579,24 @@ export default function BreakfastLoungePage() {
         )}
       </AnimatePresence>
 
-      {/* ════════════════════════════════════════════════════════════════════════
-          INCOMING INVITE — Butler popup (User B experience)
-      ════════════════════════════════════════════════════════════════════════ */}
+      {/* ════ INCOMING BUTLER INVITE POPUP ════ */}
       <AnimatePresence>
         {incomingInvite && phase === "browsing" && (
           <>
             <motion.div key="ii-bg"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 300, backdropFilter: "blur(8px)" }}
-            />
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 300, backdropFilter: "blur(9px)" }} />
             <motion.div key="ii-popup"
-              initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              transition={{ type: "spring", damping: 25, stiffness: 280 }}
-              style={{
-                position: "fixed", bottom: 0, left: 12, right: 12, zIndex: 301,
-                background: "#0e0e18",
-                borderRadius: "22px 22px 0 0",
-                border: "1px solid rgba(212,175,55,0.25)", borderBottom: "none",
-                padding: "20px 20px",
-                paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)",
-              }}
-            >
+              initial={{ opacity: 0, y: 40, scale: 0.94 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.94 }}
+              transition={{ type: "spring", damping: 26, stiffness: 280 }}
+              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 301, background: "#0e0e18", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.22)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)" }}>
+
               {/* Butler header */}
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
                 <div style={{ position: "relative" }}>
-                  <img src={BUTLER_IMG} alt="Butler"
-                    style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" }} />
-                  <div style={{
-                    position: "absolute", bottom: -2, right: -2,
-                    width: 16, height: 16, borderRadius: "50%",
-                    background: "#d4af37", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9,
-                  }}>🔔</div>
+                  <img src={BUTLER_IMG} alt="Butler" style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" }} />
+                  <div style={{ position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: "50%", background: "#d4af37", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 }}>🔔</div>
                 </div>
                 <div>
                   <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase" }}>Mr. Butla</p>
@@ -765,45 +604,33 @@ export default function BreakfastLoungePage() {
                 </div>
               </div>
 
-              {/* Invite message */}
+              {/* Invite card */}
               <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "14px", marginBottom: 18 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 10 }}>
-                  <Avatar p={incomingInvite} size={42} />
+                  <Avatar p={incomingInvite} size={44} />
                   <div>
-                    <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#fff" }}>{incomingInvite.ghostId}</p>
+                    <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff" }}>{incomingInvite.ghostId}</p>
                     <p style={{ margin: "3px 0 0", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
                       {incomingInvite.city} · {incomingInvite.floor} Floor
                     </p>
                   </div>
                 </div>
-                <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.55 }}>
-                  has invited you to join them for breakfast this morning.
+                <p style={{ margin: "0 0 6px", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.55 }}>
+                  has invited you to join them at their breakfast table.
                 </p>
-                <p style={{ margin: "8px 0 0", fontSize: 11, fontStyle: "italic", color: "rgba(255,255,255,0.3)" }}>
+                <p style={{ margin: 0, fontSize: 11, fontStyle: "italic", color: "rgba(255,255,255,0.28)" }}>
                   "{incomingInvite.mood}"
                 </p>
               </div>
 
-              {/* Accept / Decline */}
+              {/* Buttons */}
               <div style={{ display: "flex", gap: 10 }}>
-                <motion.button whileTap={{ scale: 0.95 }}
-                  onClick={() => setIncomingInvite(null)}
-                  style={{
-                    flex: 1, padding: "14px",
-                    background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 14, cursor: "pointer", fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.35)",
-                  }}>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={declineIncoming}
+                  style={{ flex: 1, padding: "14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, cursor: "pointer", fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.35)" }}>
                   Decline
                 </motion.button>
-                <motion.button whileTap={{ scale: 0.95 }}
-                  onClick={acceptIncoming}
-                  style={{
-                    flex: 2, padding: "14px",
-                    background: "linear-gradient(135deg, #78350f, #d97706, #fbbf24)",
-                    border: "none", borderRadius: 14, cursor: "pointer",
-                    fontSize: 14, fontWeight: 900, color: "#0a0500",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                  }}>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={acceptIncoming}
+                  style={{ flex: 2, padding: "14px", background: "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", border: "none", borderRadius: 14, cursor: "pointer", fontSize: 14, fontWeight: 900, color: "#0a0500", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
                   <span>🍳</span> Accept Invitation
                 </motion.button>
               </div>
