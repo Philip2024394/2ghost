@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
 import type { GhostProfile } from "../types/ghostTypes";
 import { filterContent, addStrike, getStrikes, isAccountDeactivated } from "../utils/contentFilter";
-import { sendVideoRequest, getVideoRequestStatus, profileHasVideo, readCoins } from "../utils/featureGating";
+import { sendVideoRequest, getVideoRequestStatus, profileHasVideo, readCoins, spendCoins } from "../utils/featureGating";
 import {
   toGhostId,
   fmtKm,
@@ -206,8 +206,24 @@ export function ProfileWhisperModal({
   const ageMin = Math.max(18, profile.age - 4 - (ph % 5));
   const ageMax = Math.min(65, profile.age + 6 + (ph % 8));
 
+  // ── Preferred first contact (seeded for mock profiles) ───────────────────
+  const fcH = idHash(profile.id + "fc");
+  const FC_OPTS  = ["chat", "video", "outside"] as const;
+  const FC_W     = [5, 3, 2]; // 50% chat, 30% video, 20% outside
+  let fcAcc = 0; let fcSeeded: "chat" | "video" | "outside" = "chat";
+  const fcPick = Math.abs(fcH) % FC_W.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < FC_OPTS.length; i++) { fcAcc += FC_W[i]; if (fcPick < fcAcc) { fcSeeded = FC_OPTS[i]; break; } }
+  const resolvedContactPref = (profile.contactPref as "chat" | "video" | "outside" | null | undefined) ?? fcSeeded;
+
+  const FC_META = {
+    chat:    { emoji: "💬", label: "Ghost Chat First",   sub: "Anonymous in-app chat",          coinCost: 0,  color: "#4ade80" },
+    video:   { emoji: "🎬", label: "Video Intro First",  sub: "Short personal video first",      coinCost: 5,  color: "#a78bfa" },
+    outside: { emoji: "📱", label: "Meet Outside First", sub: "WhatsApp + book a real date",     coinCost: 50, color: "#f59e0b" },
+  } as const;
+
   // ── Photo thumbnail state ─────────────────────────────────────────────────
   const [activeThumb, setActiveThumb] = useState(0);
+  const [outsideStatus, setOutsideStatus] = useState<"idle" | "pending" | "done">("idle");
   const [showReport, setShowReport]       = useState(false);
   const [reportReason, setReportReason]   = useState("");
   const [reporterId, setReporterId]       = useState("");
@@ -489,6 +505,94 @@ export function ProfileWhisperModal({
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* ══════════ PREFERRED FIRST MOVE ════════════════════════════════ */}
+          <Divider />
+          <div style={{ padding: "16px 16px 18px" }}>
+            <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)", margin: "0 0 12px", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+              👋 Preferred First Move
+            </p>
+
+            {/* All 3 options — their pick highlighted */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 14 }}>
+              {(["chat", "video", "outside"] as const).map(key => {
+                const m = FC_META[key];
+                const active = resolvedContactPref === key;
+                return (
+                  <div key={key} style={{
+                    display: "flex", alignItems: "center", gap: 12,
+                    padding: "10px 13px", borderRadius: 12,
+                    background: active ? `${m.color}10` : "rgba(255,255,255,0.02)",
+                    border: `1px solid ${active ? `${m.color}38` : "rgba(255,255,255,0.06)"}`,
+                  }}>
+                    <span style={{ fontSize: 17, opacity: active ? 1 : 0.28 }}>{m.emoji}</span>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: active ? m.color : "rgba(255,255,255,0.28)" }}>
+                        {m.label}
+                      </p>
+                      <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.22)" }}>{m.sub}</p>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+                      <span style={{ fontSize: 9, fontWeight: 800, color: m.coinCost === 0 ? "#4ade80" : "#d4af37" }}>
+                        {m.coinCost === 0 ? "Free" : `🪙${m.coinCost}`}
+                      </span>
+                      {active && (
+                        <span style={{ fontSize: 9, fontWeight: 900, color: m.color }}>Their pick ✓</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Action button for their preferred method */}
+            {resolvedContactPref === "chat" && (
+              <motion.button whileTap={{ scale: 0.97 }}
+                style={{ width: "100%", height: 46, borderRadius: 14, border: "1px solid rgba(74,222,128,0.3)", background: "rgba(74,222,128,0.08)", color: "#4ade80", fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <span>💬</span><span>Start Chat in Vault</span><span style={{ fontSize: 11, opacity: 0.5 }}>· Free</span>
+              </motion.button>
+            )}
+            {resolvedContactPref === "video" && (
+              <motion.button whileTap={{ scale: 0.97 }} onClick={handleVideoRequest} disabled={videoRequesting || readCoins() < 5}
+                style={{ width: "100%", height: 46, borderRadius: 14, border: `1px solid ${a.glow(readCoins() >= 5 ? 0.35 : 0.1)}`, background: readCoins() >= 5 ? "rgba(167,139,250,0.08)" : "rgba(255,255,255,0.03)", color: readCoins() >= 5 ? "#a78bfa" : "rgba(255,255,255,0.2)", fontSize: 13, fontWeight: 800, cursor: readCoins() >= 5 ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                {videoRequesting
+                  ? <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 0.8, repeat: Infinity }}>Sending request…</motion.span>
+                  : <><span>🎬</span><span>Request Video Introduction</span><span style={{ fontSize: 11, opacity: 0.6 }}>· 🪙5</span></>}
+              </motion.button>
+            )}
+            {resolvedContactPref === "outside" && (
+              outsideStatus === "idle" ? (
+                <motion.button whileTap={{ scale: 0.97 }}
+                  disabled={readCoins() < 50}
+                  onClick={() => {
+                    if (!spendCoins(50)) return;
+                    setOutsideStatus("pending");
+                    setTimeout(() => {
+                      setOutsideStatus(idHash(profile.id) % 2 === 0 ? "done" : "pending");
+                    }, 2200);
+                  }}
+                  style={{ width: "100%", height: 46, borderRadius: 14, border: `1px solid ${readCoins() >= 50 ? "rgba(245,158,11,0.35)" : "rgba(255,255,255,0.08)"}`, background: readCoins() >= 50 ? "rgba(245,158,11,0.08)" : "rgba(255,255,255,0.03)", color: readCoins() >= 50 ? "#f59e0b" : "rgba(255,255,255,0.2)", fontSize: 13, fontWeight: 800, cursor: readCoins() >= 50 ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  <span>📱</span><span>Request WhatsApp + Book Date</span><span style={{ fontSize: 11, opacity: 0.6 }}>· 🪙50</span>
+                </motion.button>
+              ) : outsideStatus === "pending" ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "rgba(245,158,11,0.06)", borderRadius: 12, border: "1px solid rgba(245,158,11,0.2)" }}>
+                  <span style={{ fontSize: 20 }}>📬</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#fff" }}>Request sent</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>You'll receive their WhatsApp number in your Vault if they accept.</p>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "rgba(245,158,11,0.08)", borderRadius: 12, border: "1px solid rgba(245,158,11,0.3)" }}>
+                  <span style={{ fontSize: 20 }}>✅</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#f59e0b" }}>Accepted — check your Vault</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Their WhatsApp number is waiting in your private Vault room.</p>
+                  </div>
+                </div>
+              )
+            )}
           </div>
 
           {/* ══════════ INTRODUCTION VIDEO ══════════════════════════════════ */}

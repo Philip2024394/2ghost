@@ -26,6 +26,12 @@ const LOOKING_FOR = [
   { key: "exploring",  icon: "🌀", label: "Still Exploring" },
 ];
 
+const FIRST_CONTACT_OPTIONS = [
+  { key: "chat",    emoji: "💬", label: "Ghost Chat First",   sub: "Anonymous in-app chat — private & safe",  coinCost: 0,  color: "#4ade80" },
+  { key: "video",   emoji: "🎬", label: "Video Intro First",  sub: "Short personal video before meeting",      coinCost: 5,  color: "#a78bfa" },
+  { key: "outside", emoji: "📱", label: "Meet Outside First", sub: "Share WhatsApp & book a real date",        coinCost: 50, color: "#f59e0b" },
+] as const;
+
 const label: React.CSSProperties = {
   fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)",
   letterSpacing: "0.1em", textTransform: "uppercase",
@@ -69,6 +75,7 @@ export default function GhostSetupPage() {
   const [profileBadge, setProfileBadge] = useState("");
   const [religion, setReligion] = useState("");
   const [lookingFor, setLookingFor] = useState("");
+  const [firstContact, setFirstContact] = useState<"chat" | "video" | "outside">("chat");
   const [saving, setSaving] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [gpsCoords, setGpsCoords] = useState<{ lat: number; lon: number } | null>(null);
@@ -194,6 +201,7 @@ export default function GhostSetupPage() {
       badge: profileBadge || null,
       religion: religion || null,
       lookingFor: lookingFor || null,
+      contactPref: firstContact,
       connectPhone: connectPhone.trim() || null,
       voiceNote: voiceBlob,
       connectAlt: null,
@@ -861,6 +869,63 @@ export default function GhostSetupPage() {
               <option key={r} value={r}>{r}</option>
             ))}
           </select>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: "rgba(255,255,255,0.06)", marginBottom: 28 }} />
+
+        {/* ── First Move ── */}
+        <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.25)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 6px" }}>
+          Your preferred first move
+        </p>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", margin: "0 0 16px", lineHeight: 1.5 }}>
+          How would you like your first connection with a match to happen?
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 28 }}>
+          {FIRST_CONTACT_OPTIONS.map(opt => {
+            const active = firstContact === opt.key;
+            return (
+              <motion.div
+                key={opt.key}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setFirstContact(opt.key)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 14,
+                  padding: "14px 16px", borderRadius: 16, cursor: "pointer",
+                  background: active ? `${opt.color}0d` : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${active ? `${opt.color}45` : "rgba(255,255,255,0.08)"}`,
+                  transition: "border-color 0.15s, background 0.15s",
+                }}
+              >
+                <span style={{ fontSize: 26, flexShrink: 0 }}>{opt.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: active ? opt.color : "#fff" }}>
+                    {opt.label}
+                  </p>
+                  <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
+                    {opt.sub}
+                  </p>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
+                  <span style={{
+                    fontSize: 11, fontWeight: 800,
+                    color: opt.coinCost === 0 ? "#4ade80" : "#d4af37",
+                  }}>
+                    {opt.coinCost === 0 ? "Free" : `🪙${opt.coinCost}`}
+                  </span>
+                  {active && (
+                    <div style={{
+                      width: 18, height: 18, borderRadius: "50%",
+                      background: opt.color,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <span style={{ fontSize: 9, color: "#000", fontWeight: 900 }}>✓</span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* Divider */}

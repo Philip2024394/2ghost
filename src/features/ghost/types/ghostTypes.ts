@@ -25,7 +25,7 @@ export type GhostProfile = {
   isNewGuest?: boolean;    // joined within last 48h
   badge?: string | null;
   faceVerified?: boolean;  // passed face verification check
-  contactPref?: "video" | "connect" | null;
+  contactPref?: "chat" | "video" | "outside" | null;
   invitedBy?: string | null;   // Ghost ID of referrer
   weeksSinceJoin?: number;     // for floor reputation
 };
