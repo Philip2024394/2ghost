@@ -32,6 +32,7 @@ export interface LoungeProfile {
 
 export type Phase = "browsing" | "invite-pending" | "refused" | "at-table";
 export interface ChatMsg { id: number; from: "me" | "them" | "them2" | "butler"; text: string; showTip?: boolean; }
+export interface VisibleEntry { profile: LoungeProfile; status: "available" | "at-table"; tableWith?: string; }
 
 // ── Timezone data ──────────────────────────────────────────────────────────────
 export const UTC_OFFSETS: Record<string, number> = {
