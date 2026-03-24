@@ -13,6 +13,9 @@ import {
   type CasinoProfile, type CasinoTable,
 } from "./casinoData";
 
+// Profiles seated at any table are "busy" (orange dot). Static from data.
+const BUSY_IDS = new Set(TABLES.flatMap(t => t.playerIds));
+
 // ── Avatar colours ────────────────────────────────────────────────────────────
 const AV_COLS = [
   "#e879f9","#a78bfa","#60a5fa","#34d399","#fbbf24",
@@ -22,9 +25,10 @@ const avCol = (seed: number) => AV_COLS[seed % AV_COLS.length];
 
 // ── Ghost Avatar ──────────────────────────────────────────────────────────────
 function GhostAvatar({
-  profile, size = 44, onClick,
-}: { profile: CasinoProfile; size?: number; onClick?: () => void }) {
+  profile, size = 44, onClick, busy = false,
+}: { profile: CasinoProfile; size?: number; onClick?: () => void; busy?: boolean }) {
   const c = avCol(profile.seed);
+  const dotSize = Math.max(8, size * 0.18);
   return (
     <motion.div
       whileTap={onClick ? { scale: 0.93 } : undefined}
@@ -40,12 +44,17 @@ function GhostAvatar({
     >
       👻
       {profile.online && (
-        <div style={{
-          position: "absolute", bottom: 1, right: 1,
-          width: Math.max(8, size * 0.18), height: Math.max(8, size * 0.18),
-          borderRadius: "50%", background: "#22c55e",
-          border: `${Math.max(1.5, size * 0.03)}px solid #06060a`,
-        }} />
+        <motion.div
+          animate={{ opacity: [1, 0.25, 1], scale: [1, 1.2, 1] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            position: "absolute", bottom: 1, right: 1,
+            width: dotSize, height: dotSize,
+            borderRadius: "50%",
+            background: busy ? "#f97316" : "#22c55e",
+            border: `${Math.max(1.5, size * 0.03)}px solid #06060a`,
+          }}
+        />
       )}
     </motion.div>
   );
@@ -72,7 +81,7 @@ function HighRollerBoard({ profiles }: { profiles: CasinoProfile[] }) {
         {top3.map((p, i) => (
           <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 16, width: 22, textAlign: "center", flexShrink: 0 }}>{medals[i]}</span>
-            <GhostAvatar profile={p} size={34} />
+            <GhostAvatar profile={p} size={34} busy={BUSY_IDS.has(p.id)} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#fff" }}>{p.ghostId}</p>
               <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.35)" }}>
@@ -204,7 +213,7 @@ function SeatedRow({
           <div key={p.id} style={{
             display: "flex", flexDirection: "column", alignItems: "center", gap: 5, flexShrink: 0,
           }}>
-            <GhostAvatar profile={p} size={46} onClick={() => onTap(p)} />
+            <GhostAvatar profile={p} size={46} onClick={() => onTap(p)} busy={true} />
             <p style={{
               margin: 0, fontSize: 9, color: "rgba(255,255,255,0.4)",
               maxWidth: 50, textAlign: "center", overflow: "hidden",
@@ -342,6 +351,7 @@ export default function CasinoFloorPage() {
   const seatedNow = activeTable
     ? profiles.filter(p => activeTable.playerIds.includes(p.id))
     : [];
+
 
   return (
     <div style={{
@@ -742,7 +752,7 @@ export default function CasinoFloorPage() {
                     <div key={p.id} style={{
                       display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flexShrink: 0,
                     }}>
-                      <GhostAvatar profile={p} size={50} />
+                      <GhostAvatar profile={p} size={50} busy={BUSY_IDS.has(p.id)} />
                       <p style={{
                         margin: 0, fontSize: 10, color: "rgba(255,255,255,0.45)",
                         maxWidth: 54, textAlign: "center",
@@ -811,7 +821,7 @@ export default function CasinoFloorPage() {
               <div style={{ padding: "20px 20px 8px" }}>
                 {/* Profile info */}
                 <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-                  <GhostAvatar profile={selectedProfile} size={66} />
+                  <GhostAvatar profile={selectedProfile} size={66} busy={BUSY_IDS.has(selectedProfile.id)} />
                   <div style={{ flex: 1 }}>
                     <p style={{ margin: 0, fontSize: 19, fontWeight: 900, color: "#fff" }}>
                       {selectedProfile.ghostId}
@@ -1014,7 +1024,7 @@ export default function CasinoFloorPage() {
                 </div>
                 <span style={{ fontSize: 32 }}>💜</span>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                  <GhostAvatar profile={matchBanner} size={58} />
+                  <GhostAvatar profile={matchBanner} size={58} busy={BUSY_IDS.has(matchBanner.id)} />
                   <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
                     {matchBanner.ghostId.replace("Ghost-", "#")}
                   </p>

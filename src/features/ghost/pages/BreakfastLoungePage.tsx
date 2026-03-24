@@ -95,16 +95,32 @@ function getMorningTime() {
 
 const rnd = (min: number, max: number) => min + Math.random() * (max - min);
 
-function Avatar({ p, size = 48, border }: { p: LoungeProfile; size?: number; border?: string }) {
+function Avatar({ p, size = 48, border, status }: { p: LoungeProfile; size?: number; border?: string; status?: "available" | "at-table" }) {
   const c = avCol(p.seed);
+  const dotSize = Math.max(8, size * 0.18);
+  const dotColor = status === "at-table" ? "#f97316" : "#22c55e";
   return (
     <div style={{
       width: size, height: size, borderRadius: "50%", flexShrink: 0,
       background: `radial-gradient(circle at 35% 35%, ${c}55, ${c}22)`,
       border: border ?? `2px solid ${c}80`,
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.42,
-    }}>👻</div>
+      fontSize: size * 0.42, position: "relative",
+    }}>
+      👻
+      {status && (
+        <motion.div
+          animate={{ opacity: [1, 0.25, 1], scale: [1, 1.2, 1] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            position: "absolute", bottom: 1, right: 1,
+            width: dotSize, height: dotSize,
+            borderRadius: "50%", background: dotColor,
+            border: `${Math.max(1.5, size * 0.03)}px solid #08080e`,
+          }}
+        />
+      )}
+    </div>
   );
 }
 
@@ -465,7 +481,7 @@ export default function BreakfastLoungePage() {
                   opacity: locked ? 0.45 : 1,
                 }}
               >
-                <Avatar p={p} size={46} />
+                <Avatar p={p} size={46} status="available" />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>{p.ghostId}</p>
                   <p style={{ margin: "2px 0", fontSize: 10, color: "rgba(255,255,255,0.32)" }}>{p.city} · {p.floor}</p>
@@ -490,7 +506,7 @@ export default function BreakfastLoungePage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
               {atTable.map(({ profile: p, tableWith }) => (
                 <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", opacity: 0.45 }}>
-                  <Avatar p={p} size={38} />
+                  <Avatar p={p} size={38} status="at-table" />
                   <div style={{ flex: 1 }}>
                     <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.45)" }}>{p.ghostId}</p>
                     <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.22)" }}>Sitting with {tableWith}</p>
@@ -607,7 +623,7 @@ export default function BreakfastLoungePage() {
               {/* Invite card */}
               <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "14px", marginBottom: 18 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 10 }}>
-                  <Avatar p={incomingInvite} size={44} />
+                  <Avatar p={incomingInvite} size={44} status="available" />
                   <div>
                     <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff" }}>{incomingInvite.ghostId}</p>
                     <p style={{ margin: "3px 0 0", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
