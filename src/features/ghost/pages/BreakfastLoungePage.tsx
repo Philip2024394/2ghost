@@ -778,36 +778,63 @@ export default function BreakfastLoungePage() {
 
         {/* Available guests */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
-          {available.map(({ profile: p }) => (
-            <motion.div key={p.id} whileTap={{ scale: locked ? 1 : 0.98 }}
-              onClick={() => { if (!locked) { setSelectedProfile(p); setInviteNote(""); }}}
-              style={{ display: "flex", alignItems: "center", gap: 13, padding: "11px 13px", borderRadius: 16, cursor: locked ? "default" : "pointer", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", opacity: locked ? 0.45 : 1 }}>
-              <Avatar p={p} size={46} status="available" />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>{p.ghostId}</p>
-                  {p.international && <span style={{ fontSize: 9, background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.3)", borderRadius: 8, padding: "1px 6px", color: "#a78bfa", fontWeight: 700 }}>✈️ Intl</span>}
+          {available.map(({ profile: p }) => {
+            const c = avCol(p.seed);
+            return (
+              <motion.div key={p.id}
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                style={{ borderRadius: 16, background: "rgba(74,222,128,0.04)", border: "1px solid rgba(74,222,128,0.16)", overflow: "hidden", opacity: locked ? 0.45 : 1 }}>
+
+                {/* Main row */}
+                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 12px", cursor: locked ? "default" : "pointer" }}
+                  onClick={() => { if (!locked) { setSelectedProfile(p); setInviteNote(""); }}}>
+
+                  {/* Avatar */}
+                  <div style={{ position: "relative", flexShrink: 0 }}>
+                    <div style={{ width: 54, height: 54, borderRadius: "50%", background: `radial-gradient(circle at 35% 35%, ${c}55, ${c}22)`, border: `2px solid ${c}80`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>👻</div>
+                    <motion.div animate={{ opacity: [1, 0.25, 1], scale: [1, 1.2, 1] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                      style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", background: "#22c55e", border: "2px solid #08080e" }} />
+                  </div>
+
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3, flexWrap: "wrap" }}>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {p.ghostId}, {p.age}
+                      </p>
+                      <span style={{ fontSize: 9, fontWeight: 800, color: "#4ade80", background: "rgba(74,222,128,0.12)", borderRadius: 20, padding: "2px 8px", whiteSpace: "nowrap", flexShrink: 0 }}>
+                        🟢 Available
+                      </span>
+                      {p.international && <span style={{ fontSize: 9, fontWeight: 800, color: "#a78bfa", background: "rgba(167,139,250,0.12)", borderRadius: 20, padding: "2px 7px" }}>✈️ Intl</span>}
+                    </div>
+                    <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>📍 {p.flag} {p.city}, {p.country}</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 9, color: "rgba(255,255,255,0.25)" }}>{p.floor} Floor</p>
+                    <p style={{ margin: "3px 0 0", fontSize: 10, color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>"{p.mood}"</p>
+                  </div>
+
+                  {/* Right buttons */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                    <motion.button whileTap={{ scale: 0.92 }}
+                      onClick={e => sendCoffee(p.id, p.ghostId, e)}
+                      disabled={coffeesSent.has(p.id) || !canAfford(COFFEE_COST) || locked}
+                      style={{ width: 36, height: 36, borderRadius: 10, border: "none", background: coffeesSent.has(p.id) ? "rgba(255,255,255,0.04)" : "rgba(251,191,36,0.12)", display: "flex", alignItems: "center", justifyContent: "center", cursor: coffeesSent.has(p.id) || locked ? "default" : "pointer", fontSize: 16 }}>
+                      {coffeesSent.has(p.id) ? "✓" : "☕"}
+                    </motion.button>
+                  </div>
                 </div>
-                <p style={{ margin: "2px 0", fontSize: 10, color: "rgba(255,255,255,0.32)" }}>{p.flag} {p.city} · {p.floor}</p>
-                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>"{p.mood}"</p>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.22)", borderRadius: 20, padding: "2px 8px" }}>
-                  <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#4ade80" }} />
-                  <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "#4ade80" }}>Available</p>
-                </div>
-                {/* Coffee button */}
-                {!locked && (
-                  <motion.button whileTap={{ scale: 0.88 }}
-                    onClick={e => sendCoffee(p.id, p.ghostId, e)}
-                    disabled={coffeesSent.has(p.id) || !canAfford(COFFEE_COST)}
-                    style={{ padding: "3px 9px", borderRadius: 20, cursor: coffeesSent.has(p.id) || !canAfford(COFFEE_COST) ? "default" : "pointer", background: coffeesSent.has(p.id) ? "rgba(255,255,255,0.03)" : "rgba(251,191,36,0.08)", border: `1px solid ${coffeesSent.has(p.id) ? "rgba(255,255,255,0.06)" : "rgba(251,191,36,0.2)"}`, fontSize: 10, fontWeight: 700, color: coffeesSent.has(p.id) ? "rgba(255,255,255,0.18)" : "#fbbf24" }}>
-                    {coffeesSent.has(p.id) ? "☕ Sent" : `☕ 🪙${COFFEE_COST}`}
+
+                {/* Invite strip */}
+                <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", padding: "8px 12px" }}>
+                  <motion.button whileTap={{ scale: 0.97 }}
+                    onClick={() => { if (!locked) { setSelectedProfile(p); setInviteNote(""); }}}
+                    disabled={locked}
+                    style={{ width: "100%", height: 34, borderRadius: 10, border: "none", background: locked ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, rgba(212,175,55,0.22), rgba(212,175,55,0.1))", color: locked ? "rgba(255,255,255,0.2)" : "#d4af37", fontSize: 11, fontWeight: 800, cursor: locked ? "default" : "pointer" }}>
+                    🍳 Invite to Breakfast · <span style={{ opacity: 0.7 }}>🪙{INVITE_COST}</span>
                   </motion.button>
-                )}
-              </div>
-            </motion.div>
-          ))}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* At a Table */}
@@ -815,19 +842,28 @@ export default function BreakfastLoungePage() {
           <>
             <p style={{ margin: "0 0 9px", fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.25)", letterSpacing: "0.14em", textTransform: "uppercase" }}>At a Table</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-              {atTable.map(({ profile: p, tableWith }) => (
-                <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 13px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", opacity: 0.45 }}>
-                  <Avatar p={p} size={38} status="at-table" />
-                  <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.45)" }}>{p.ghostId}</p>
-                    <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.22)" }}>{p.flag} {p.city} · Sitting with {tableWith}</p>
+              {atTable.map(({ profile: p, tableWith }) => {
+                const c = avCol(p.seed);
+                return (
+                  <div key={p.id} style={{ borderRadius: 16, background: "rgba(249,115,22,0.03)", border: "1px solid rgba(249,115,22,0.12)", overflow: "hidden", opacity: 0.5 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 12px" }}>
+                      <div style={{ position: "relative", flexShrink: 0 }}>
+                        <div style={{ width: 54, height: 54, borderRadius: "50%", background: `radial-gradient(circle at 35% 35%, ${c}44, ${c}18)`, border: `2px solid ${c}55`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>👻</div>
+                        <motion.div animate={{ opacity: [1, 0.25, 1], scale: [1, 1.2, 1] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                          style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", background: "#f97316", border: "2px solid #08080e" }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3 }}>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.5)" }}>{p.ghostId}, {p.age}</p>
+                          <span style={{ fontSize: 9, fontWeight: 800, color: "#f97316", background: "rgba(249,115,22,0.1)", borderRadius: 20, padding: "2px 8px" }}>🍽️ At a table</span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.28)" }}>📍 {p.flag} {p.city}, {p.country}</p>
+                        <p style={{ margin: "2px 0 0", fontSize: 9, color: "rgba(255,255,255,0.2)" }}>Sitting with {tableWith}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(249,115,22,0.07)", border: "1px solid rgba(249,115,22,0.18)", borderRadius: 20, padding: "2px 8px" }}>
-                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#f97316" }} />
-                    <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "#f97316" }}>At a table</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </>
         )}
