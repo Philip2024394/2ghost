@@ -16,12 +16,63 @@ const TIP_COST        = 5;
 const COFFEE_COST     = 3;
 const INTL_COST       = 20;
 const EXTRA_REC_COST  = 10;
-const ROTATE_MIN      = 5 * 60 * 1000;
-const ROTATE_MAX      = 10 * 60 * 1000;
-const LOUNGE_OPEN_H   = 7;   // 7am
-const LOUNGE_CLOSE_H  = 11;  // 11am
-// DEV: set true to bypass time gate during development
+const ROTATE_MIN      = 3 * 60 * 1000;
+const ROTATE_MAX      = 6 * 60 * 1000;
+const LOUNGE_OPEN_H   = 7;
+const LOUNGE_CLOSE_H  = 11;
 const DEV_OVERRIDE    = true;
+const SWAP_PER_TICK   = 3; // profiles swapped per rotation
+
+// ── Timezone data ──────────────────────────────────────────────────────────────
+const UTC_OFFSETS: Record<string, number> = {
+  "UAE":12, "Italy":1, "Japan":9, "Spain":1, "UK":0, "France":1,
+  "Saudi Arabia":3, "Greece":2, "USA":-5, "Lebanon":2, "Colombia":-5,
+  "Egypt":2, "Ireland":0, "Singapore":8, "Germany":1, "Indonesia":7,
+  "Nigeria":1, "India":5.5, "Argentina":-3, "Turkey":3, "Kenya":3, "Korea":9,
+};
+const REGIONS = [
+  { name: "Asia Pacific",  flag: "🌏", countries: ["Japan","Singapore","Korea","Indonesia"] },
+  { name: "Middle East",   flag: "🌍", countries: ["UAE","Saudi Arabia","Lebanon","Turkey"] },
+  { name: "Europe",        flag: "🇪🇺", countries: ["UK","France","Italy","Spain","Germany","Greece","Ireland"] },
+  { name: "Africa",        flag: "🌍", countries: ["Egypt","Nigeria","Kenya"] },
+  { name: "Americas",      flag: "🌎", countries: ["USA","Colombia","Argentina"] },
+  { name: "South Asia",    flag: "🌏", countries: ["India"] },
+];
+
+function getLocalHour(country: string): number {
+  const offset = UTC_OFFSETS[country] ?? 0;
+  const utcH = new Date().getUTCHours() + new Date().getUTCMinutes() / 60;
+  return ((utcH + offset) % 24 + 24) % 24;
+}
+function isOnlineHours(country: string): boolean {
+  if (DEV_OVERRIDE) return true;
+  const h = getLocalHour(country);
+  return h >= 7 && h < 23;
+}
+function isBreakfastHours(country: string): boolean {
+  if (DEV_OVERRIDE) return false; // handled by seed in dev
+  const h = getLocalHour(country);
+  return h >= 7 && h < 11;
+}
+function breakfastPriority(p: LoungeProfile): number {
+  if (DEV_OVERRIDE) return (p.seed % 10) / 10; // stable pseudo-random in dev
+  const h = getLocalHour(p.country);
+  if (h >= 7 && h < 9)   return 1.0;
+  if (h >= 9 && h < 11)  return 0.8;
+  if (h >= 11 && h < 13) return 0.4;
+  return 0.1;
+}
+function getBusiestBreakfastRegion(): { name: string; flag: string; count: number; example: string } | null {
+  const scored = REGIONS.map(r => {
+    const profiles = POOL.filter(p => r.countries.includes(p.country));
+    const count = DEV_OVERRIDE
+      ? profiles.length
+      : profiles.filter(p => isBreakfastHours(p.country)).length;
+    const example = profiles[0]?.city ?? "";
+    return { ...r, count, example };
+  }).sort((a, b) => b.count - a.count);
+  return scored[0]?.count > 0 ? scored[0] : null;
+}
 
 const AV_COLS = [
   "#e879f9","#a78bfa","#60a5fa","#34d399","#fbbf24",
@@ -139,13 +190,31 @@ function getOpenCountdown(): string {
   return `${hrs}h ${mins}m`;
 }
 
-function buildVisible(intl: boolean, dismissed: Set<string> = new Set()) {
-  const pool = (intl ? POOL : POOL.filter(p => !p.international)).filter(p => !dismissed.has(p.id));
-  const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, intl ? 12 : 9);
-  return shuffled.map((p, i) => ({
+function buildVisible(
+  intl: boolean,
+  dismissed: Set<string> = new Set(),
+  shown: Set<string> = new Set(),
+) {
+  const pool = POOL.filter(p =>
+    !dismissed.has(p.id) &&
+    (intl || !p.international) &&
+    isOnlineHours(p.country),
+  );
+  // Sort: unseen + high breakfast priority first, then seen + lower priority
+  const sorted = [...pool].sort((a, b) => {
+    const unseenA = shown.has(a.id) ? 0 : 1;
+    const unseenB = shown.has(b.id) ? 0 : 1;
+    return (unseenB + breakfastPriority(b)) - (unseenA + breakfastPriority(a));
+  });
+  const take   = intl ? 12 : 9;
+  const avCut  = intl ? 8  : 6;
+  // Add slight shuffle among tied candidates so rotation feels organic
+  const top    = sorted.slice(0, take + 4).sort(() => Math.random() - 0.5 * 0.4);
+  const picked = top.slice(0, take);
+  return picked.map((p, i) => ({
     profile: p,
-    status: (i < (intl ? 8 : 6) ? "available" : "at-table") as "available" | "at-table",
-    tableWith: i >= (intl ? 8 : 6) ? (pool.find(q => q.id !== p.id) ?? pool[0]).ghostId : undefined,
+    status: (i < avCut ? "available" : "at-table") as "available" | "at-table",
+    tableWith: i >= avCut ? (pool.find(q => q.id !== p.id) ?? pool[0]).ghostId : undefined,
   }));
 }
 
@@ -195,7 +264,7 @@ export default function BreakfastLoungePage() {
   const [clock, setClock]         = useState(getMorningTime);
   const [intlUnlocked, setIntlUnlocked] = useState(false);
   const [intlActive, setIntlActive]     = useState(false);
-  const [visible, setVisible]     = useState(() => buildVisible(false));
+  const [visible, setVisible]     = useState(() => buildVisible(false, new Set(), new Set()));
   const [countdown, setCountdown] = useState(() => rnd(ROTATE_MIN, ROTATE_MAX));
 
   // ── Phase / invite
@@ -235,6 +304,10 @@ export default function BreakfastLoungePage() {
   const [dismissedIds, setDismissedIds]     = useState<Set<string>>(new Set());
   const [declineMsg, setDeclineMsg]         = useState<string | null>(null);
 
+  // ── Fair rotation tracking
+  const [shownIds, setShownIds]             = useState<Set<string>>(new Set());
+  const [showRedirect, setShowRedirect]     = useState(false);
+
   // ── Chat
   const [chatMsgs, setChatMsgs]         = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput]       = useState("");
@@ -248,16 +321,38 @@ export default function BreakfastLoungePage() {
     return () => clearInterval(t);
   }, []);
 
-  // Rotation
+  // Rotation — partial swap so every online guest gets fair exposure
   useEffect(() => {
     const tick = setInterval(() => {
       setCountdown(prev => {
-        if (prev <= 1000) { setVisible(buildVisible(intlActive, dismissedIds)); return rnd(ROTATE_MIN, ROTATE_MAX); }
-        return prev - 1000;
+        if (prev > 1000) return prev - 1000;
+        // Time to rotate: mark current visible as shown, swap in fresh faces
+        setVisible(current => {
+          const nowShown = new Set([...shownIds, ...current.map(v => v.profile.id)]);
+          const totalPool = POOL.filter(p =>
+            !dismissedIds.has(p.id) &&
+            (intlActive || !p.international) &&
+            isOnlineHours(p.country),
+          );
+          // Reset cycle when everyone has been shown
+          const nextShown = nowShown.size >= totalPool.length ? new Set<string>() : nowShown;
+          setShownIds(nextShown);
+
+          // Keep (take - SWAP_PER_TICK) existing profiles, swap rest for new ones
+          const keep = current
+            .filter(v => !dismissedIds.has(v.profile.id))
+            .slice(0, Math.max(0, current.length - SWAP_PER_TICK));
+          const keepIds = new Set(keep.map(v => v.profile.id));
+          const fresh = buildVisible(intlActive, new Set([...dismissedIds, ...keepIds]), nextShown)
+            .filter(v => !keepIds.has(v.profile.id))
+            .slice(0, SWAP_PER_TICK);
+          return [...keep, ...fresh];
+        });
+        return rnd(ROTATE_MIN, ROTATE_MAX);
       });
     }, 1000);
     return () => clearInterval(tick);
-  }, [intlActive]);
+  }, [intlActive, dismissedIds, shownIds]);
 
   // Butler recommendation on load
   useEffect(() => {
@@ -312,7 +407,7 @@ export default function BreakfastLoungePage() {
     deductCoins(INTL_COST, "International breakfast guests");
     setIntlUnlocked(true);
     setIntlActive(true);
-    setVisible(buildVisible(true, dismissedIds));
+    setVisible(buildVisible(true, dismissedIds, shownIds));
     setShowCheckin(false);
   }, [canAfford, deductCoins]);
 
@@ -792,7 +887,7 @@ export default function BreakfastLoungePage() {
             )}
             {intlUnlocked && (
               <motion.button whileTap={{ scale: 0.92 }}
-                onClick={() => { setIntlActive(!intlActive); setVisible(buildVisible(!intlActive, dismissedIds)); }}
+                onClick={() => { setIntlActive(!intlActive); setVisible(buildVisible(!intlActive, dismissedIds, shownIds)); }}
                 style={{ padding: "2px 8px", borderRadius: 10, background: intlActive ? "rgba(167,139,250,0.15)" : "rgba(255,255,255,0.04)", border: `1px solid ${intlActive ? "rgba(167,139,250,0.35)" : "rgba(255,255,255,0.1)"}`, color: intlActive ? "#a78bfa" : "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 800, cursor: "pointer" }}>
                 {intlActive ? "🌍 ON" : "🌍"}
               </motion.button>
@@ -803,6 +898,53 @@ export default function BreakfastLoungePage() {
             <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>Refreshes {fmtCountdown()}</p>
           </div>
         </div>
+
+        {/* Active region / redirect card */}
+        {(() => {
+          const region = getBusiestBreakfastRegion();
+          if (!region) return null;
+          const regionDef = REGIONS.find(r => r.name === region.name);
+          const onlineCount = POOL.filter(p =>
+            regionDef?.countries.includes(p.country) && !dismissedIds.has(p.id)
+          ).length;
+          const localBreakfast = available.length >= 3;
+          if (localBreakfast && !showRedirect) return (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(212,175,55,0.04)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 12, padding: "9px 13px", marginBottom: 12 }}>
+              <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e", flexShrink: 0 }} />
+              <p style={{ margin: 0, flex: 1, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                <span style={{ color: "#d4af37", fontWeight: 800 }}>{region.flag} {region.name}</span> breakfast is live now · {onlineCount} guests online
+              </p>
+            </div>
+          );
+          if (!localBreakfast) return (
+            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+              style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 14, padding: "13px 14px", marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <img src={BUTLER_IMG} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
+                <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase", flex: 1 }}>Mr. Butla</p>
+                <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.6, repeat: Infinity }}
+                  style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e" }} />
+              </div>
+              <p style={{ margin: "0 0 12px", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
+                The lounge is quiet here right now. <span style={{ color: "#fbbf24", fontWeight: 800 }}>{region.flag} {region.name}</span> is buzzing — {onlineCount} guests are at breakfast there this morning.
+              </p>
+              <div style={{ display: "flex", gap: 8 }}>
+                <motion.button whileTap={{ scale: 0.97 }}
+                  onClick={() => { setIntlUnlocked(true); setIntlActive(true); setVisible(buildVisible(true, dismissedIds, shownIds)); setShowRedirect(true); }}
+                  style={{ flex: 2, padding: "11px", background: "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", border: "none", borderRadius: 12, cursor: "pointer", fontSize: 13, fontWeight: 900, color: "#0a0500" }}>
+                  Take me there
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.97 }}
+                  onClick={() => setShowRedirect(true)}
+                  style={{ flex: 1, padding: "11px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, cursor: "pointer", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.35)" }}>
+                  Stay here
+                </motion.button>
+              </div>
+            </motion.div>
+          );
+          return null;
+        })()}
 
         {/* Available guests */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
