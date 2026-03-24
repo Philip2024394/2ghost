@@ -490,7 +490,7 @@ const ROOM_TIERS: Record<RoomTier, {
     ],
   },
   suite: {
-    label: "Ghost Suite", hotelName: "Ghost Suite", hotelType: "Double · City View",
+    label: "Ghost Ensuite", hotelName: "Ghost Ensuite", hotelType: "Double · City View",
     hotelDesc: "The full experience — send, share, connect",
     price: "$4.99/mo", priceNote: "billed monthly · cancel anytime",
     images: 10, videos: 3,
@@ -713,7 +713,7 @@ function SendMediaPanel({
           <span style={{ fontSize: 20 }}>🔒</span>
           <div>
             <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: 0 }}>Send to Room Vault</p>
-            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>Ghost Suite & Gold Penthouse</p>
+            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>Ghost Ensuite & Gold Penthouse</p>
           </div>
         </div>
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 14px", lineHeight: 1.6 }}>

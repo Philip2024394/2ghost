@@ -19,8 +19,8 @@ const ROOM_ROUTES: Record<string, string> = {
 
 const TIER_META: Record<string, { label: string; icon: string; color: string; gradient: string; floor: string; welcome: string }> = {
   standard:  { label: "Standard",      icon: "🏠", color: "#4ade80",  gradient: "linear-gradient(135deg,#16a34a,#4ade80)",     floor: "Standard Floor",   welcome: "Your room is ready on the Standard Floor." },
-  suite:     { label: "Ghost Suite",   icon: "🏨", color: "#4ade80",  gradient: "linear-gradient(135deg,#16a34a,#22c55e)",     floor: "Suite Floor",      welcome: "Your suite has been prepared. The finest standard of comfort awaits." },
-  kings:     { label: "Kings Room",    icon: "👑", color: "#f59e0b",  gradient: "linear-gradient(135deg,#b45309,#f59e0b)",     floor: "Kings Floor",      welcome: "The Kings Floor recognises your arrival. Your crown has been noted." },
+  suite:     { label: "Ghost Ensuite", icon: "🏨", color: "#4ade80",  gradient: "linear-gradient(135deg,#16a34a,#22c55e)",     floor: "Ensuite Floor",    welcome: "Your ensuite has been prepared. The finest standard of comfort awaits." },
+  kings:     { label: "The Casino",    icon: "🎰", color: "#f59e0b",  gradient: "linear-gradient(135deg,#b45309,#f59e0b)",     floor: "Casino Floor",      welcome: "The Casino Floor recognises your arrival. Your crown has been noted." },
   penthouse: { label: "Penthouse",     icon: "🌙", color: "#c084fc",  gradient: "linear-gradient(135deg,#7e22ce,#c084fc)",     floor: "Penthouse",        welcome: "The Penthouse is yours. Very few reach this floor." },
   cellar:    { label: "The Cellar",    icon: "🕯️", color: "#f87171",  gradient: "linear-gradient(135deg,#991b1b,#f87171)",     floor: "The Cellar",       welcome: "The Cellar doors open for you. What lies below is known only to the bold." },
   garden:    { label: "Garden Lodge",  icon: "🌿", color: "#86efac",  gradient: "linear-gradient(135deg,#14532d,#86efac)",     floor: "Garden Lodge",     welcome: "The Private Terrace is yours. Quiet, exclusive, unhurried." },

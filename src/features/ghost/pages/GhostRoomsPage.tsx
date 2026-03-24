@@ -14,7 +14,7 @@ const LOFT_BG      = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrew
 const SUITE_BG     = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsds.png";
 const STANDARD_BG  = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsdsterte.png";
 
-type RoomTier = "standard" | "suite" | "kings" | "penthouse" | "cellar" | "garden";
+type RoomTier = "standard" | "suite" | "kings" | "penthouse" | "cellar" | "garden" | "loft";
 
 const GARDEN_BG = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdfvcxcvzxcvasfdfasd.png";
 
@@ -25,6 +25,7 @@ const ROOM_BG_IMAGES: Record<RoomTier, string> = {
   penthouse: PENTHOUSE_BG,
   cellar:    LOFT_BG,
   garden:    GARDEN_BG,
+  loft:      LOFT_BG,
 };
 
 // ── Stored review helpers ────────────────────────────────────────────────────
@@ -250,6 +251,10 @@ const ROOM_REVIEWS: Record<RoomTier, RoomReview[]> = {
     { id: "GH-3355", city: "Amsterdam", stars: 5, ago: "4 days ago",  text: "Different energy entirely. The anonymity goes deeper here. Real conversations." },
     { id: "GH-7744", city: "Berlin",    stars: 5, ago: "1 week ago",  text: "Came for the curiosity. Stayed for the actual connections. Not for everyone — that's the point." },
   ],
+  loft: [
+    { id: "GH-6622", city: "Amsterdam", stars: 5, ago: "2 days ago",  text: "The Loft is the first floor on any app that felt genuinely inclusive. Safe, warm, real." },
+    { id: "GH-4490", city: "London",    stars: 5, ago: "5 days ago",  text: "As a bi woman I've never felt so seen. Both sections work. The Mix is brilliant." },
+  ],
   garden: [
     { id: "GH-5201", city: "Cape Town", stars: 5, ago: "3 days ago",  text: "Finally — an app that respects where I am in life. The pace here is different. Real conversations." },
     { id: "GH-8847", city: "Edinburgh", stars: 5, ago: "1 week ago",  text: "At 52 I've done the noise. Garden Lodge is the only floor I'd recommend to someone who actually knows what they want." },
@@ -274,16 +279,43 @@ const ROOM_ACTIVITY: Record<RoomTier, { members: number; tonight: number; avatar
   penthouse: { members: 47,   tonight: 12,  avatarSeeds: [2,6,11,17,24]   },
   cellar:    { members: 83,   tonight: 18,  avatarSeeds: [35,38,42,56,63] },
   garden:    { members: 214,  tonight: 38,  avatarSeeds: [4,9,16,23,31]  },
+  loft:      { members: 312,  tonight: 27,  avatarSeeds: [5,14,20,26,39]  },
 };
 
 const ROOMS = [
   {
+    key: "cellar" as RoomTier,
+    floorLevel: "B1",
+    rank: -1,
+    icon: "🍷",
+    iconImg: undefined as string | undefined,
+    name: "The Cellar",
+    tagline: "Bold connections · Adults only",
+    price: "Free (women) · 150 coins (men)",
+    color: "#9b6b9b",
+    border: "rgba(155,107,155,0.4)",
+    bg: "rgba(155,107,155,0.06)",
+    glow: "rgba(155,107,155,0.35)",
+    gradient: "linear-gradient(135deg, #5a1e5a, #9b6b9b, #c49fc4)",
+    giftCoins: 25,
+    features: [
+      "Free entry for verified women",
+      "150 coins entry for men (24hr access)",
+      "Bold, anonymous deep conversations",
+      "Cellar badge — discreet but recognised",
+      "Private group room — The Vault Below",
+      "Bold starter prompts — no small talk",
+    ],
+  },
+  {
     key: "standard" as RoomTier,
+    floorLevel: "G",
+    rank: 0,
     icon: "🛏️",
-    iconImg: "https://ik.imagekit.io/7grri5v7d/sdfsdfsdf-removebg-preview.png",
+    iconImg: "https://ik.imagekit.io/7grri5v7d/sdfsdfsdf-removebg-preview.png" as string | undefined,
     name: "Standard Room",
-    tagline: "Your first key to the Ghost House",
-    price: "$4.99/mo",
+    tagline: "Free entry — your key to the Ghost House",
+    price: "Free",
     color: "#c0c0c0",
     border: "rgba(192,192,192,0.4)",
     bg: "rgba(192,192,192,0.06)",
@@ -291,20 +323,48 @@ const ROOMS = [
     gradient: "linear-gradient(135deg, #707070, #c0c0c0, #e8e8e8)",
     giftCoins: 15,
     features: [
-      "2 match unlocks / month",
+      "Free to join — no card needed",
+      "Send gifts to connect · costs coins",
+      "Unlock matches with coins",
       "Ghost Vault: 5 photos",
-      "Ghost Flash: 1 session / month",
-      "Standard Room badge on profile",
       "Floor group chat access",
-      "Access to Ghost Butler (view only)",
+      "Coins available to buy anytime",
+    ],
+  },
+  {
+    key: "garden" as RoomTier,
+    floorLevel: "G+",
+    rank: 0,
+    icon: "🌿",
+    iconImg: "https://ik.imagekit.io/7grri5v7d/DSFASDFASDWE-removebg-preview.png" as string | undefined,
+    name: "Garden Lodge",
+    tagline: "Free entry · 40+ guests · for those who know exactly what they want",
+    price: "Free",
+    color: "#7a9e7e",
+    border: "rgba(122,158,126,0.45)",
+    bg: "rgba(122,158,126,0.07)",
+    glow: "rgba(122,158,126,0.45)",
+    gradient: "linear-gradient(135deg, #3a5c3e, #7a9e7e, #a0c8a4)",
+    giftCoins: 40,
+    features: [
+      "Unlimited connections — no monthly cap",
+      "Ghost Vault: 30 photos · 5 videos",
+      "Private Terrace chat — intimate floor lounge",
+      "Garden Lodge 🌿 badge on your profile",
+      "Ghost Butler — all services included",
+      "Morning coffee prompt — daily conversation starter",
+      "Profiles presented one at a time — no swipe grid",
+      "Privacy upgrade available — remove from main browse",
     ],
   },
   {
     key: "suite" as RoomTier,
+    floorLevel: "1F",
+    rank: 1,
     icon: "🛎️",
-    iconImg: "https://ik.imagekit.io/7grri5v7d/Untitledsdfasdfasdf-removebg-preview.png",
-    name: "Suite",
-    tagline: "More space, more power, more matches",
+    iconImg: "https://ik.imagekit.io/7grri5v7d/Untitledsdfasdfasdf-removebg-preview.png" as string | undefined,
+    name: "Ensuite",
+    tagline: "Earned by completing your profile",
     price: "$9.99/mo",
     color: "#cd7f32",
     border: "rgba(205,127,50,0.4)",
@@ -325,9 +385,11 @@ const ROOMS = [
   },
   {
     key: "kings" as RoomTier,
-    icon: "👑",
-    iconImg: "https://ik.imagekit.io/7grri5v7d/SADFASDFASDFASDFS-removebg-preview.png",
-    name: "Kings Room",
+    floorLevel: "2F",
+    rank: 2,
+    icon: "🎰",
+    iconImg: "https://ik.imagekit.io/7grri5v7d/SADFASDFASDFASDFS-removebg-preview.png" as string | undefined,
+    name: "The Casino",
     tagline: "The room where serious matches happen",
     price: "$14.99/mo",
     color: "#d4af37",
@@ -341,7 +403,7 @@ const ROOMS = [
       "Ghost Vault: 50 photos · 10 videos",
       "Ghost Flash: unlimited sessions",
       "3 profile boosts per week",
-      "Kings Room badge — top of every stack",
+      "The Casino badge — top of every stack",
       "Ghost Butler — all 7 service numbers visible",
       "Tonight Mode always on",
       "See who liked you",
@@ -349,9 +411,36 @@ const ROOMS = [
     ],
   },
   {
+    key: "loft" as RoomTier,
+    floorLevel: "3F",
+    rank: 1,
+    icon: "🎨",
+    iconImg: undefined as string | undefined,
+    name: "The Loft",
+    tagline: "LGBTQ+ · Free entry · Your space, your rules",
+    price: "Free",
+    color: "#a78bfa",
+    border: "rgba(167,139,250,0.4)",
+    bg: "rgba(167,139,250,0.06)",
+    glow: "rgba(167,139,250,0.35)",
+    gradient: "linear-gradient(135deg, #4c1d95, #7c3aed, #a78bfa)",
+    giftCoins: 20,
+    features: [
+      "Free entry for LGBTQ+ members",
+      "Three spaces — Men's Section, Women's Suite, The Mix",
+      "Loft badge on your profile card",
+      "Full Vault access — photos & videos",
+      "Private Loft group chat",
+      "Matching based on your orientation preferences",
+      "Safe, inclusive space — zero tolerance policy",
+    ],
+  },
+  {
     key: "penthouse" as RoomTier,
+    floorLevel: "PH",
+    rank: 3,
     icon: "🏙️",
-    iconImg: "https://ik.imagekit.io/7grri5v7d/UntitledaSFASDFASDF-removebg-preview.png",
+    iconImg: "https://ik.imagekit.io/7grri5v7d/UntitledaSFASDFASDF-removebg-preview.png" as string | undefined,
     name: "Penthouse",
     tagline: "The highest floor. Reserved for the elite.",
     price: "$24.99/mo",
@@ -362,7 +451,7 @@ const ROOMS = [
     gradient: "linear-gradient(135deg, #8a8070, #c8c0a8, #e8e4d0)",
     giftCoins: 80,
     features: [
-      "Everything in Kings Room",
+      "Everything in The Casino",
       "Penthouse profile badge — globally visible",
       "Unlimited Ghost Butler real-world deliveries",
       "Featured on Ghost Pulse — all countries",
@@ -372,31 +461,7 @@ const ROOMS = [
       "Custom Ghost ID display name",
     ],
   },
-  {
-    key: "garden" as RoomTier,
-    icon: "🌿",
-    iconImg: "https://ik.imagekit.io/7grri5v7d/DSFASDFASDWE-removebg-preview.png",
-    name: "Garden Lodge",
-    tagline: "For those who've lived enough to know exactly what they're looking for",
-    price: "$14.99/mo",
-    color: "#7a9e7e",
-    border: "rgba(122,158,126,0.45)",
-    bg: "rgba(122,158,126,0.07)",
-    glow: "rgba(122,158,126,0.45)",
-    gradient: "linear-gradient(135deg, #3a5c3e, #7a9e7e, #a0c8a4)",
-    giftCoins: 40,
-    features: [
-      "Unlimited connections — no monthly cap",
-      "Ghost Vault: 30 photos · 5 videos",
-      "Private Terrace chat — intimate floor lounge",
-      "Garden Lodge 🌿 badge on your profile",
-      "Ghost Butler — all services included",
-      "Morning coffee prompt — daily conversation starter",
-      "Profiles presented one at a time — no swipe grid",
-      "Privacy upgrade available — remove from main browse",
-    ],
-  },
-] as const;
+];
 
 // ── Penthouse Check Out popup ──────────────────────────────────────────────────
 type COProfile = { id: string; seed: number; name: string; age: number; city: string; bio: string; willMatch: boolean };
@@ -415,8 +480,8 @@ const GOLD_GRAD = "linear-gradient(135deg, #92400e, #d4af37, #f0d060)";
 
 
 const FLOOR_CHECKOUT_META: Record<string, { label: string; icon: string; color: string }> = {
-  suite:     { label: "The Suite",       icon: "🛎️", color: "#b8a4e8" },
-  kings:     { label: "The Kings Room",  icon: "👑", color: "#d4af6a" },
+  suite:     { label: "The Ensuite",     icon: "🛎️", color: "#b8a4e8" },
+  kings:     { label: "The Casino",  icon: "🎰", color: "#d4af6a" },
   penthouse: { label: "The Penthouse",   icon: "🏙️", color: "#c8a84b" },
   loft:      { label: "The Loft",        icon: "🎨", color: "#a8c5a0" },
   cellar:    { label: "The Cellar",      icon: "🍷", color: "#9b6b9b" },
@@ -553,8 +618,8 @@ export default function GhostRoomsPage() {
     }, 1400);
   };
 
-  const tierRank: Record<RoomTier, number> = { standard: 0, suite: 1, kings: 2, penthouse: 3, cellar: 2, garden: 0 };
-  const ownedRank = currentTier ? tierRank[currentTier] : -1;
+  const tierRank: Record<RoomTier, number> = { cellar: -1, standard: 0, garden: 0, suite: 1, kings: 2, loft: 1, penthouse: 3 };
+  const ownedRank = currentTier ? tierRank[currentTier] : -2;
 
   // Auto-redirect first-time visitors to the how-it-works explainer
   useEffect(() => {
@@ -634,7 +699,8 @@ export default function GhostRoomsPage() {
         {/* Room cards */}
         <div style={{ padding: "8px 14px calc(env(safe-area-inset-bottom, 0px) + 24px)", display: "flex", flexDirection: "column", gap: 12 }}>
           {ROOMS.map((room, idx) => {
-            const owned   = room.key === "garden" ? currentTier === "garden" : currentTier !== "garden" && ownedRank >= idx;
+            const isSpecialFloor = room.key === "garden" || room.key === "cellar" || room.key === "loft";
+            const owned   = isSpecialFloor ? currentTier === room.key : ownedRank >= room.rank;
             const active  = buying === room.key;
             const bought  = justBought === room.key;
 
@@ -653,7 +719,7 @@ export default function GhostRoomsPage() {
                   position: "relative",
                 }}
               >
-                {/* Kings Room background image */}
+                {/* The Casino background image */}
                 {room.key === "kings" && <>
                   <div style={{
                     position: "absolute", inset: 0,
@@ -733,6 +799,38 @@ export default function GhostRoomsPage() {
                   }} />
                 </>}
 
+                {/* Cellar background overlay */}
+                {room.key === "cellar" && <>
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    backgroundImage: `url(${LOFT_BG})`,
+                    backgroundSize: "cover", backgroundPosition: "center",
+                    opacity: 0.4,
+                    pointerEvents: "none",
+                  }} />
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: "linear-gradient(to right, rgba(8,2,8,0.82), rgba(8,2,8,0.55))",
+                    pointerEvents: "none",
+                  }} />
+                </>}
+
+                {/* Loft background overlay */}
+                {room.key === "loft" && <>
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    backgroundImage: `url(${LOFT_BG})`,
+                    backgroundSize: "cover", backgroundPosition: "center",
+                    opacity: 0.4,
+                    pointerEvents: "none",
+                  }} />
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: "linear-gradient(to right, rgba(4,2,12,0.82), rgba(4,2,12,0.55))",
+                    pointerEvents: "none",
+                  }} />
+                </>}
+
                 {/* Top stripe */}
                 <div style={{ height: 3, background: owned ? room.gradient : "rgba(255,255,255,0.06)", position: "relative", zIndex: 1 }} />
 
@@ -745,6 +843,11 @@ export default function GhostRoomsPage() {
                     }
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{
+                          fontSize: 8, fontWeight: 900, padding: "2px 6px", borderRadius: 5,
+                          background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)",
+                          color: "rgba(255,255,255,0.45)", letterSpacing: "0.1em", flexShrink: 0,
+                        }}>{room.floorLevel}</span>
                         <span style={{ fontSize: 16, fontWeight: 900, color: owned ? room.color : "#fff" }}>{room.name}</span>
                         {owned && (
                           <span style={{
@@ -1007,8 +1110,10 @@ export default function GhostRoomsPage() {
                       >
                         {active ? (
                           <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 0.8, repeat: Infinity }}>
-                            Unlocking…
+                            {room.key === "standard" ? "Checking in…" : "Unlocking…"}
                           </motion.span>
+                        ) : room.key === "standard" ? (
+                          "Check In Free →"
                         ) : (
                           `Enter ${room.name} — ${room.price}`
                         )}
@@ -1020,246 +1125,6 @@ export default function GhostRoomsPage() {
             );
           })}
 
-          {/* ── The Loft floor card ── */}
-          {(() => {
-            const VIOLET  = "#d4af37";
-            const VBORDER = "rgba(212,175,55,0.4)";
-            const VBG     = "rgba(212,175,55,0.06)";
-            const VGLOW   = "rgba(212,175,55,0.45)";
-            const VGRAD   = "linear-gradient(135deg, #92660a, #d4af37, #f5e88a, #e8e0c8)";
-            const loftReviews = [
-              { id: "GH-3341", city: "Berlin",  stars: 5, ago: "1 week ago",  text: "Finally a space that actually feels safe. Met someone real in week one." },
-              { id: "GH-7712", city: "London",  stars: 5, ago: "2 weeks ago", text: "The Men's Lounge is exactly what was missing. Quality people, no noise." },
-            ];
-            return (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.28, type: "spring", stiffness: 280, damping: 24 }}
-                style={{
-                  borderRadius: 18, background: VBG,
-                  border: `1px solid ${VBORDER}`,
-                  overflow: "hidden", position: "relative",
-                  boxShadow: `0 0 24px ${VGLOW}`,
-                }}
-              >
-                {/* Background image */}
-                {LOFT_BG && <>
-                  <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${LOFT_BG})`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.5, pointerEvents: "none" }} />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(8,4,18,0.78), rgba(8,4,18,0.5))", pointerEvents: "none" }} />
-                </>}
-                {!LOFT_BG && (
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(92,66,10,0.3), rgba(212,175,55,0.1))", pointerEvents: "none" }} />
-                )}
-
-                {/* Top stripe */}
-                <div style={{ height: 3, background: VGRAD, position: "relative", zIndex: 1 }} />
-
-                <div style={{ padding: "14px 16px 16px", position: "relative", zIndex: 1 }}>
-                  {/* Title row */}
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
-                    <img src="https://ik.imagekit.io/7grri5v7d/UntitledSSSSSSSSS-removebg-preview.png" alt="Loft" style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 16, fontWeight: 900, color: VIOLET }}>The Loft</span>
-                        <span style={{ fontSize: 9, fontWeight: 800, padding: "2px 8px", borderRadius: 20, background: `${VIOLET}22`, border: `1px solid ${VIOLET}55`, color: VIOLET, letterSpacing: "0.08em" }}>
-                          EXCLUSIVE FLOOR
-                        </span>
-                      </div>
-                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Gay · Lesbian · The Mix — curated & safe</p>
-                    </div>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>$11.99 one-time</span>
-                  </div>
-
-                  {/* Room image thumbnail */}
-                  {LOFT_BG && (
-                    <div
-                      onClick={() => setPreviewImg(LOFT_BG)}
-                      style={{ width: "100%", height: 80, borderRadius: 10, overflow: "hidden", marginBottom: 12, cursor: "pointer", position: "relative", border: `1px solid rgba(212,175,55,0.22)` }}
-                    >
-                      <img src={LOFT_BG} alt="The Loft" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />
-                      <span style={{ position: "absolute", bottom: 6, right: 8, fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em" }}>TAP TO VIEW ↗</span>
-                    </div>
-                  )}
-
-                  {/* Features */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 12 }}>
-                    {[
-                      "Three curated sections — Men's Lounge · Women's Suite · The Mix",
-                      "Admin-verified guests only — max 30 per city floor",
-                      "Send gifts with a personal opener note",
-                      "2 free gifts daily — coins for more",
-                      "Mutual like → private Vault chat opens",
-                      "Browse other city Lofts for +$4.99/city",
-                      "Safe, respectful, anonymous — always",
-                    ].map(f => (
-                      <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                        <Check size={11} color={VIOLET} style={{ flexShrink: 0, marginTop: 2 }} />
-                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.45 }}>{f}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Reviews */}
-                  <div style={{ marginBottom: 14 }}>
-                    <p style={{ fontSize: 8, fontWeight: 800, color: `${VIOLET}66`, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>What members say</p>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                      {loftReviews.map(r => (
-                        <div key={r.id} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 10, border: `1px solid ${VIOLET}18`, padding: "8px 10px" }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                              <span style={{ fontSize: 9, fontWeight: 800, color: VIOLET }}>#{r.id}</span>
-                              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{r.city}</span>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                              {"★".repeat(r.stars).split("").map((_, i) => <span key={i} style={{ fontSize: 9, color: VIOLET }}>★</span>)}
-                              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", marginLeft: 4 }}>{r.ago}</span>
-                            </div>
-                          </div>
-                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>"{r.text}"</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* CTA */}
-                  <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => navigate("/ghost/floor/loft-floor")}
-                    style={{
-                      width: "100%", height: 44, borderRadius: 12, border: "none",
-                      background: VGRAD, color: "#fff",
-                      fontSize: 13, fontWeight: 800, cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                      boxShadow: `0 3px 16px ${VGLOW}`,
-                    }}
-                  >
-                    🪟 Enter The Loft — $11.99 →
-                  </motion.button>
-                </div>
-              </motion.div>
-            );
-          })()}
-
-          {/* ── The Cellar floor card ── */}
-          {(() => {
-            const CELLAR_BG_CARD = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsdstertefsdfsddsd.png";
-            const CRIM   = "#c0392b";
-            const CGRAD  = "linear-gradient(135deg, #6b0f0f, #c0392b, #e8553f)";
-            const CGLOW  = "rgba(192,57,43,0.45)";
-            const CBORDER = "rgba(192,57,43,0.4)";
-            const CBG     = "rgba(192,57,43,0.06)";
-            const cellarReviews = [
-              { id: "GH-5521", city: "Berlin", stars: 5, ago: "3 days ago",  text: "Finally a place for people who are upfront. No games, just real energy. Met someone on night one." },
-              { id: "GH-8803", city: "Miami",  stars: 5, ago: "1 week ago",  text: "The Wild section is exactly what it sounds like. Bold people, no judgement. Love it." },
-            ];
-            return (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.32, type: "spring", stiffness: 280, damping: 24 }}
-                style={{
-                  borderRadius: 18, background: CBG,
-                  border: `1px solid ${CBORDER}`,
-                  overflow: "hidden", position: "relative",
-                  boxShadow: `0 0 24px ${CGLOW}`,
-                }}
-              >
-                {/* Background image */}
-                {CELLAR_BG_CARD && <>
-                  <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${CELLAR_BG_CARD})`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.5, pointerEvents: "none" }} />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(14,3,3,0.78), rgba(14,3,3,0.5))", pointerEvents: "none" }} />
-                </>}
-                {!CELLAR_BG_CARD && (
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(107,15,15,0.3), rgba(192,57,43,0.1))", pointerEvents: "none" }} />
-                )}
-
-                {/* Top stripe */}
-                <div style={{ height: 3, background: CGRAD, position: "relative", zIndex: 1 }} />
-
-                <div style={{ padding: "14px 16px 16px", position: "relative", zIndex: 1 }}>
-                  {/* Title row */}
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
-                    <img src="https://ik.imagekit.io/7grri5v7d/UntitledSDFSDFASDFDSF-removebg-preview.png" alt="Cellar" style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 16, fontWeight: 900, color: CRIM }}>The Cellar</span>
-                        <span style={{ fontSize: 9, fontWeight: 800, padding: "2px 8px", borderRadius: 20, background: `${CRIM}22`, border: `1px solid ${CRIM}55`, color: CRIM, letterSpacing: "0.08em" }}>
-                          18+ ADULTS ONLY
-                        </span>
-                      </div>
-                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>Flirty · Naughty · Wild — bold & no judgement</p>
-                    </div>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.55)", flexShrink: 0 }}>$11.99 one-time</span>
-                  </div>
-
-                  {/* Room image thumbnail */}
-                  <div
-                    onClick={() => setPreviewImg(CELLAR_BG_CARD)}
-                    style={{ width: "100%", height: 80, borderRadius: 10, overflow: "hidden", marginBottom: 12, cursor: "pointer", position: "relative", border: `1px solid rgba(192,57,43,0.22)` }}
-                  >
-                    <img src={CELLAR_BG_CARD} alt="The Cellar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />
-                    <span style={{ position: "absolute", bottom: 6, right: 8, fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em" }}>TAP TO VIEW ↗</span>
-                  </div>
-
-                  {/* Features */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 12 }}>
-                    {[
-                      "Three sections — Flirty · Naughty · Wild",
-                      "Age-verified adults only — max 30 per city floor",
-                      "Send gifts with a personal opener note",
-                      "2 free daily gifts — coins for more",
-                      "Mutual like → private Vault chat opens",
-                      "Browse other city Cellars for +$4.99/city",
-                      "Anonymous · safe · no explicit content",
-                    ].map(f => (
-                      <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                        <Check size={11} color={CRIM} style={{ flexShrink: 0, marginTop: 2 }} />
-                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.45 }}>{f}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Reviews */}
-                  <div style={{ marginBottom: 14 }}>
-                    <p style={{ fontSize: 8, fontWeight: 800, color: `${CRIM}66`, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>What members say</p>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                      {cellarReviews.map(r => (
-                        <div key={r.id} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 10, border: `1px solid ${CRIM}18`, padding: "8px 10px" }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                              <span style={{ fontSize: 9, fontWeight: 800, color: CRIM }}>#{r.id}</span>
-                              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{r.city}</span>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                              {"★".repeat(r.stars).split("").map((_, i) => <span key={i} style={{ fontSize: 9, color: CRIM }}>★</span>)}
-                              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", marginLeft: 4 }}>{r.ago}</span>
-                            </div>
-                          </div>
-                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>"{r.text}"</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* CTA */}
-                  <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => navigate("/ghost/floor/cellar-floor")}
-                    style={{
-                      width: "100%", height: 44, borderRadius: 12, border: "none",
-                      background: CGRAD, color: "#fff",
-                      fontSize: 13, fontWeight: 800, cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                      boxShadow: `0 3px 16px ${CGLOW}`,
-                    }}
-                  >
-                    🔥 Enter The Cellar — $11.99 →
-                  </motion.button>
-                </div>
-              </motion.div>
-            );
-          })()}
         </div>
       </div>
 

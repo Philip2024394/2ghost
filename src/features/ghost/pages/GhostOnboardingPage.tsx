@@ -27,7 +27,7 @@ const SLIDES = [
     accent: "#d4af37",
     title: "Six Floors. One Hotel.",
     subtitle: "Choose the floor that fits you",
-    body: "Standard, Suite, Kings Room, Penthouse, Garden Lodge, The Cellar. Each floor is a different world — different energy, different people, different pace. Your floor badge tells your story before you say a word.",
+    body: "Standard, Ensuite, The Casino, Penthouse, Garden Lodge, The Cellar. Each floor is a different world — different energy, different people, different pace. Your floor badge tells your story before you say a word.",
     detail: [
       "🏆 Exclusive floor access per tier",
       "💬 Live floor chat with real guests",

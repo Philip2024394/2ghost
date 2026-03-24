@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   MOCK_CELLAR_PROFILES, CELLAR_GIFTS, CELLAR_CITIES,
-  CELLAR_SUB_PRICE, CELLAR_EXTRA_CITY_PRICE,
+  CELLAR_EXTRA_CITY_PRICE,
   CELLAR_DAILY_FREE_GIFTS, CELLAR_OPENER_MAX_CHARS,
   type CellarProfile, type CellarSection,
 } from "../types/cellarTypes";
 import {
-  isCellarSubscribed, activateCellarSub, getCellarDailyGiftsUsed, incrementCellarDailyGifts,
+  getCellarDailyGiftsUsed, incrementCellarDailyGifts,
   addCellarGift, getCellarLikedIds, addCellarLike, getCellarExtraCities,
   isCellarAgeVerified, setCellarAgeVerified,
 } from "../utils/cellarHelpers";
@@ -21,9 +21,28 @@ const CRIMSON      = "#c0392b";
 const CRIMSON_GRAD = "linear-gradient(135deg, #6b0f0f, #c0392b, #e8553f)";
 const CRIMSON_DARK = "rgba(14,3,3,0.98)";
 
+const CELLAR_ENTRY_COST = 150; // coins for men
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function readCoins(): number  { try { return Number(localStorage.getItem("ghost_coins") || "0"); } catch { return 0; } }
 function writeCoins(n: number): void { try { localStorage.setItem("ghost_coins", String(n)); } catch {} }
+
+function getCellarAccess(): boolean {
+  try {
+    const profile = JSON.parse(localStorage.getItem("ghost_profile") || "{}");
+    // Women — free if age verified
+    if (profile.gender === "Female" && isCellarAgeVerified()) return true;
+    // Men — check paid access window
+    const until = Number(localStorage.getItem("ghost_cellar_access_until") || "0");
+    return Date.now() < until;
+  } catch { return false; }
+}
+
+function grantCellarAccess(): void {
+  try {
+    localStorage.setItem("ghost_cellar_access_until", String(Date.now() + 24 * 60 * 60 * 1000));
+  } catch {}
+}
 
 // ── Gift Tray ─────────────────────────────────────────────────────────────────
 function CellarGiftTray({ profile, coinBalance, dailyUsed, onClose, onSent }: {
@@ -377,6 +396,7 @@ function CellarTeaser({ onSubscribe }: { onSubscribe: () => void }) {
         ))}
       </div>
 
+      {/* Men coin gate */}
       <motion.button
         whileTap={{ scale: 0.97 }}
         onClick={onSubscribe}
@@ -385,10 +405,24 @@ function CellarTeaser({ onSubscribe }: { onSubscribe: () => void }) {
           background: CRIMSON_GRAD, color: "#fff",
           fontSize: 15, fontWeight: 900, cursor: "pointer",
           boxShadow: "0 4px 24px rgba(192,57,43,0.5)",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
         }}
       >
-        🔥 Enter The Cellar — {CELLAR_SUB_PRICE} one-time
+        <span>🪙</span>
+        <span>Enter The Cellar — {CELLAR_ENTRY_COST} coins · 24hrs</span>
       </motion.button>
+
+      {/* Women free strip */}
+      <div style={{
+        marginTop: 12, background: "rgba(192,57,43,0.05)", border: "1px solid rgba(192,57,43,0.15)",
+        borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10,
+      }}>
+        <span style={{ fontSize: 18, flexShrink: 0 }}>👩</span>
+        <div>
+          <p style={{ fontSize: 11, fontWeight: 800, color: CRIMSON, margin: "0 0 1px" }}>Women enter free</p>
+          <p style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", margin: 0 }}>Age verification required · earn coins from gifts</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -417,8 +451,7 @@ export default function CellarFloorPage() {
     if (dobAgeCheck() === "over18") { setCellarAgeVerified(); return true; }
     return false;
   });
-  // If age already verified, treat as subscribed so they don't hit a second paywall
-  const [subscribed, setSubscribed] = useState(() => isCellarSubscribed() || isCellarAgeVerified());
+  const [subscribed, setSubscribed] = useState(getCellarAccess);
   const [section,       setSection]       = useState<CellarSection>("flirty");
   const [activeCity,    setActiveCity]    = useState("LON");
   const [likedIds,      setLikedIds]      = useState<string[]>(getCellarLikedIds);
@@ -512,7 +545,7 @@ export default function CellarFloorPage() {
     }
     return (
       <CellarAgeGate
-        onConfirm={() => { setCellarAgeVerified(); activateCellarSub(); setAgeVerified(true); setSubscribed(true); }}
+        onConfirm={() => { setCellarAgeVerified(); setAgeVerified(true); setSubscribed(getCellarAccess); }}
         onBack={() => navigate(-1)}
       />
     );
@@ -542,7 +575,17 @@ export default function CellarFloorPage() {
         </div>
 
         {!subscribed ? (
-          <CellarTeaser onSubscribe={() => { activateCellarSub(); setSubscribed(true); }} />
+          <CellarTeaser onSubscribe={() => {
+            if (coinBalance < CELLAR_ENTRY_COST) {
+              alert(`You need ${CELLAR_ENTRY_COST} coins to enter. You have ${coinBalance}.`);
+              return;
+            }
+            const next = coinBalance - CELLAR_ENTRY_COST;
+            writeCoins(next);
+            setCoinBalance(next);
+            grantCellarAccess();
+            setSubscribed(true);
+          }} />
         ) : (
           <div style={{ padding: "0 20px 40px" }}>
 

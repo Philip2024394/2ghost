@@ -34,14 +34,14 @@ export function markNudgeSent(profileId: string) {
 
 // ── Floor config ───────────────────────────────────────────────────────────────
 export const FLOOR_LABELS: Record<string, string> = {
-  standard: "Standard Room", suite: "Ghost Suite", kings: "Kings Room",
+  standard: "Standard Room", suite: "Ghost Suite", kings: "The Casino",
   penthouse: "Penthouse", cellar: "The Cellar", garden: "Garden Lodge",
 };
 export const FLOOR_FEES: Record<string, string> = {
-  standard: "4.99", suite: "8.99", kings: "11.99", penthouse: "19.99", cellar: "14.99", garden: "14.99",
+  standard: "4.99", suite: "8.99", kings: "11.99", penthouse: "19.99", cellar: "14.99", garden: "0",
 };
 const FLOOR_EMOJI: Record<string, string> = {
-  standard: "🏠", suite: "🏨", kings: "👑", penthouse: "🌆", cellar: "🍷", garden: "🌿",
+  standard: "🏠", suite: "🏨", kings: "🎰", penthouse: "🌆", cellar: "🍷", garden: "🌿",
 };
 
 // ── Deterministic floor for fake profiles ─────────────────────────────────────

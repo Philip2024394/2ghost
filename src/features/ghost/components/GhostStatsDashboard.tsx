@@ -15,8 +15,8 @@ function getGhostId(): string {
 
 const ROOM_MAP: Record<string, { label: string; icon: string; color: string; members: number; active: number }> = {
   standard:  { label: "Standard Room",  icon: "🛏️",  color: "#a8a8b0", members: 1247, active: 89  },
-  suite:     { label: "Suite",          icon: "🛎️",  color: "#cd7f32", members: 428,  active: 34  },
-  kings:     { label: "Kings Room",     icon: "👑",  color: "#d4af37", members: 156,  active: 21  },
+  suite:     { label: "Ensuite",         icon: "🛎️",  color: "#cd7f32", members: 428,  active: 34  },
+  kings:     { label: "The Casino",     icon: "🎰",  color: "#d4af37", members: 156,  active: 21  },
   penthouse: { label: "Penthouse",      icon: "🏙️", color: "#e0ddd8", members: 47,   active: 12  },
   cellar:    { label: "The Cellar",     icon: "🕯️",  color: "#9b1c1c", members: 83,   active: 18  },
 };

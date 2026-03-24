@@ -61,6 +61,8 @@ export default function GhostSetupPage() {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [gender, setGender] = useState<"Female" | "Male" | "">("");
   const [interest, setInterest] = useState<"Women" | "Men" | "Both" | "">("");
+  const [orientation, setOrientation] = useState<"straight" | "gay" | "lesbian" | "bisexual" | "">("");
+  const [floorPreference, setFloorPreference] = useState<"standard" | "garden" | "penthouse" | "">("");
   const [connectPhone, setConnectPhone] = useState("");
   const [bio, setBio] = useState("");
   const [firstDateIdea, setFirstDateIdea] = useState("");
@@ -141,8 +143,17 @@ export default function GhostSetupPage() {
     city: city.trim().length === 0,
     country: country.length === 0,
     gender: gender === "",
-    interest: interest === "",
+    orientation: orientation === "",
   };
+
+  // Derive interest from orientation automatically
+  const derivedInterest: "Women" | "Men" | "Both" | "" = (() => {
+    if (orientation === "gay") return "Men";
+    if (orientation === "lesbian") return "Women";
+    if (orientation === "bisexual") return "Both";
+    if (orientation === "straight") return gender === "Male" ? "Women" : gender === "Female" ? "Men" : "";
+    return interest;
+  })();
   const isValid = !Object.values(errors).some(Boolean);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,7 +187,8 @@ export default function GhostSetupPage() {
       countryFlag: selectedCountryObj?.flag ?? "🌍",
       countryCode: selectedCountryObj?.code ?? "",
       gender,
-      interest,
+      interest: derivedInterest,
+      orientation,
       bio: bio.trim() || null,
       firstDateIdea: firstDateIdea || null,
       badge: profileBadge || null,
@@ -196,7 +208,16 @@ export default function GhostSetupPage() {
     // Save to localStorage immediately (always works, instant)
     try {
       localStorage.setItem(GHOST_PROFILE_KEY, JSON.stringify(profileData));
-      localStorage.setItem("ghost_interest", interest);
+      localStorage.setItem("ghost_interest", derivedInterest);
+      localStorage.setItem("ghost_orientation", orientation);
+      if (orientation === "gay") localStorage.setItem("ghost_loft_section", "mens_lounge");
+      else if (orientation === "lesbian") localStorage.setItem("ghost_loft_section", "womens_suite");
+      else if (orientation === "bisexual") localStorage.setItem("ghost_loft_section", "the_mix");
+      else localStorage.removeItem("ghost_loft_section");
+      if (floorPreference) localStorage.setItem("ghost_floor_preference", floorPreference);
+      else localStorage.removeItem("ghost_floor_preference");
+      if (floorPreference === "penthouse") localStorage.setItem("ghost_penthouse_member", "1");
+      else localStorage.removeItem("ghost_penthouse_member");
       // Stamp join time so we can apply a new-account notification grace period
       if (!localStorage.getItem("ghost_joined_at")) {
         localStorage.setItem("ghost_joined_at", String(Date.now()));
@@ -213,7 +234,11 @@ export default function GhostSetupPage() {
       }
     }
 
-    navigate("/ghost/mode", { replace: true });
+    const isLoftGuest = orientation === "gay" || orientation === "lesbian" || orientation === "bisexual";
+    const isGardenGuest = orientation === "straight" && floorPreference === "garden" && ageNum >= 40;
+    const isPenthouseWoman = floorPreference === "penthouse" && gender === "Female";
+    const dest = isLoftGuest ? "/ghost/loft" : isPenthouseWoman ? "/ghost/penthouse" : isGardenGuest ? "/ghost/rooms" : "/ghost/mode";
+    navigate(dest, { replace: true });
   };
 
   return (
@@ -583,36 +608,89 @@ export default function GhostSetupPage() {
           )}
         </div>
 
-        {/* Interested In */}
+        {/* Orientation */}
         <div style={{ marginBottom: 32 }}>
-          <label style={label}>Interested In</label>
-          <div style={{ display: "flex", gap: 10 }}>
+          <label style={label}>My Orientation</label>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {([
-              { value: "Women", label: "👩 Women" },
-              { value: "Men",   label: "👨 Men" },
-              { value: "Both",  label: "🌈 Both" },
+              { value: "straight",  icon: "💑", label: "Straight",       desc: "Standard floors" },
+              { value: "gay",       icon: "🧔", label: "Gay Man",         desc: "Men's Lounge · Loft" },
+              { value: "lesbian",   icon: "👩", label: "Lesbian",         desc: "Women's Suite · Loft" },
+              { value: "bisexual",  icon: "🌈", label: "Bisexual",        desc: "The Mix · Loft" },
             ] as const).map((opt) => (
               <button
                 key={opt.value}
-                onClick={() => setInterest(opt.value)}
+                onClick={() => setOrientation(opt.value)}
                 style={{
-                  flex: 1, height: 50, borderRadius: 12, cursor: "pointer",
-                  background: interest === opt.value ? a.glow(0.12) : "rgba(255,255,255,0.04)",
-                  border: submitAttempted && errors.interest
+                  height: 64, borderRadius: 14, cursor: "pointer",
+                  background: orientation === opt.value ? "rgba(139,92,246,0.14)" : "rgba(255,255,255,0.04)",
+                  border: submitAttempted && errors.orientation
                     ? "1px solid rgba(239,68,68,0.4)"
-                    : interest === opt.value ? `1px solid ${a.glow(0.4)}` : "1px solid rgba(255,255,255,0.08)",
-                  color: interest === opt.value ? a.glow(0.95) : "rgba(255,255,255,0.5)",
-                  fontSize: 13, fontWeight: 700, transition: "all 0.15s",
+                    : orientation === opt.value ? "1px solid rgba(139,92,246,0.5)" : "1px solid rgba(255,255,255,0.08)",
+                  color: orientation === opt.value ? "#c4b5fd" : "rgba(255,255,255,0.5)",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+                  transition: "all 0.15s",
                 }}
               >
-                {opt.label}
+                <span style={{ fontSize: 18 }}>{opt.icon}</span>
+                <span style={{ fontSize: 12, fontWeight: 800 }}>{opt.label}</span>
+                <span style={{ fontSize: 9, opacity: 0.6, fontWeight: 600 }}>{opt.desc}</span>
               </button>
             ))}
           </div>
-          {submitAttempted && errors.interest && (
-            <p style={{ fontSize: 11, color: "rgba(239,68,68,0.7)", margin: "5px 0 0" }}>Select who you're interested in</p>
+          {submitAttempted && errors.orientation && (
+            <p style={{ fontSize: 11, color: "rgba(239,68,68,0.7)", margin: "5px 0 0" }}>Please select your orientation</p>
           )}
         </div>
+
+        {/* Floor preference — only for straight guests */}
+        {orientation === "straight" && (
+          <div style={{ marginBottom: 32 }}>
+            <label style={label}>Your Floor</label>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {([
+                { value: "standard",   icon: "🛏️", label: "Standard Floor",  desc: "All ages · main floor",          womenOnly: false, minAge: 0    },
+                { value: "garden",     icon: "🌿", label: "Garden Lodge",     desc: "40+ guests · free entry",        womenOnly: false, minAge: 40   },
+                { value: "penthouse",  icon: "🏙️", label: "Penthouse",        desc: "Always available tonight · free", womenOnly: true,  minAge: 0   },
+              ] as const).map((opt) => {
+                const lockedAge    = ageNum < opt.minAge;
+                const lockedGender = opt.womenOnly && gender !== "Female";
+                const locked       = lockedAge || lockedGender;
+                const selected     = floorPreference === opt.value;
+                const isPH         = opt.value === "penthouse";
+                const selBg        = isPH ? "rgba(212,175,55,0.14)"        : "rgba(122,158,126,0.14)";
+                const selBorder    = isPH ? "1px solid rgba(212,175,55,0.5)" : "1px solid rgba(122,158,126,0.5)";
+                const selColor     = isPH ? "#f0d060"                       : "#a0c8a4";
+                const lockDesc     = lockedAge ? "40+ only" : lockedGender ? "Women only" : opt.desc;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => { if (!locked) setFloorPreference(opt.value); }}
+                    style={{
+                      flex: "1 1 calc(50% - 5px)", height: 68, borderRadius: 14,
+                      cursor: locked ? "not-allowed" : "pointer",
+                      background: selected ? selBg : "rgba(255,255,255,0.04)",
+                      border: selected ? selBorder : "1px solid rgba(255,255,255,0.08)",
+                      color: locked ? "rgba(255,255,255,0.2)" : selected ? selColor : "rgba(255,255,255,0.5)",
+                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+                      opacity: locked ? 0.4 : 1,
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>{opt.icon}</span>
+                    <span style={{ fontSize: 12, fontWeight: 800 }}>{opt.label}</span>
+                    <span style={{ fontSize: 9, opacity: 0.6, fontWeight: 600 }}>{locked ? lockDesc : opt.desc}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {floorPreference === "penthouse" && (
+              <p style={{ fontSize: 10, color: "rgba(212,175,55,0.7)", margin: "8px 0 0", lineHeight: 1.5 }}>
+                🏙️ Your profile will always appear in the Penthouse Tonight pool — no toggle needed.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Divider */}
         <div style={{ height: 1, background: "rgba(255,255,255,0.06)", marginBottom: 28 }} />
@@ -844,7 +922,7 @@ export default function GhostSetupPage() {
                 {errors.city     && <li>City</li>}
                 {errors.country  && <li>Country</li>}
                 {errors.gender   && <li>Gender</li>}
-                {errors.interest && <li>Who you're interested in</li>}
+                {errors.orientation && <li>Orientation</li>}
               </ul>
             </motion.div>
           )}

@@ -10,7 +10,7 @@ const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.pn
 
 export type SettingsAction =
   | "dashboard" | "shield" | "rooms" | "roomVault"
-  | "ghostClock" | "floorWars" | "video" | "terms" | "checkout";
+  | "ghostClock" | "floorWars" | "video" | "terms" | "checkout" | "games";
 
 type Props = {
   show: boolean;
@@ -36,6 +36,7 @@ export default function GhostSettingsDrawer({ show, onClose, onAction }: Props) 
     { icon: "🏨", label: "Rooms", desc: "Ghost Hotel floor", action: "rooms" },
     { icon: null, label: "Room Vault", desc: "Your private ghost room", isRoom: true, action: "roomVault" },
     { icon: "🕐", label: "Ghost Clock", desc: "Open your 2-hour availability window", action: "ghostClock" },
+    { icon: "🎮", label: "Games", desc: "Rooms", action: "games" },
     { icon: "⚔️", label: "Floor Wars", desc: "Weekly floor gift leaderboard", action: "floorWars" },
     { icon: "🎬", label: "Video Introduction", desc: "Upload & manage your video intro", action: "video" },
     { icon: "📄", label: "Terms & Conditions", desc: "Privacy & usage policy", action: "terms" },

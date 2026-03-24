@@ -9,8 +9,8 @@ import { loadFloorGiftsThisWeek } from "../ghostDataService";
 
 const FLOORS = [
   { key: "penthouse", label: "Penthouse",    icon: "🏙️", color: "#e8e4d0", glow: "rgba(232,228,208,0.45)" },
-  { key: "kings",     label: "Kings Room",   icon: "👑", color: "#d4af37", glow: "rgba(212,175,55,0.45)"  },
-  { key: "suite",     label: "Suite",        icon: "🛎️", color: "#cd7f32", glow: "rgba(205,127,50,0.4)"   },
+  { key: "kings",     label: "The Casino",   icon: "🎰", color: "#d4af37", glow: "rgba(212,175,55,0.45)"  },
+  { key: "suite",     label: "Ensuite",      icon: "🛎️", color: "#cd7f32", glow: "rgba(205,127,50,0.4)"   },
   { key: "garden",    label: "Garden Lodge", icon: "🌿", color: "#7a9e7e", glow: "rgba(122,158,126,0.4)"  },
   { key: "cellar",    label: "The Cellar",   icon: "🍷", color: "#9b1c1c", glow: "rgba(155,28,28,0.4)"    },
   { key: "standard",  label: "Standard",     icon: "🛏️", color: "#a8a8b0", glow: "rgba(168,168,176,0.3)"  },

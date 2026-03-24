@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   MOCK_PENTHOUSE_PROFILES, PENTHOUSE_GIFTS, PENTHOUSE_CITIES,
-  PENTHOUSE_SUB_PRICE, PENTHOUSE_EXTRA_CITY_PRICE,
+  PENTHOUSE_EXTRA_CITY_PRICE,
   PENTHOUSE_DAILY_FREE_GIFTS, PENTHOUSE_NOTE_COST, PENTHOUSE_OPENER_MAX_CHARS,
   type PenthouseProfile,
 } from "../types/penthouseTypes";
 import {
-  isPenthouseSubscribed, activatePenthouseSub, getDailyGiftsUsed, incrementDailyGifts,
+  isPenthouseSubscribed, getDailyGiftsUsed, incrementDailyGifts,
   addPenthouseGift, getPenthouseLikedIds, addPenthouseLike,
   getPenthouseExtraCities,
 } from "../utils/penthouseHelpers";
@@ -329,68 +329,74 @@ function PenthouseTeaser({ onSubscribe }: { onSubscribe: () => void }) {
         ))}
       </div>
 
-      {/* Subscribe CTA */}
-      <motion.button
-        whileTap={{ scale: 0.97 }}
-        onClick={onSubscribe}
-        style={{
-          width: "100%", height: 54, borderRadius: 16, border: "none",
-          background: "linear-gradient(135deg, #92660a, #d4af37, #f0d060)",
-          color: "#000", fontSize: 16, fontWeight: 900, cursor: "pointer",
-          boxShadow: "0 6px 32px rgba(212,175,55,0.4)",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-        }}
-      >
-        <span>🗝️</span>
-        <span>Enter the Penthouse — {PENTHOUSE_SUB_PRICE} one-time</span>
-      </motion.button>
-      <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 10 }}>
-        Cancel anytime · Exclusive floor access · No public signup
-      </p>
-
-      {/* Divider */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "24px 0 16px" }}>
-        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.15)", fontWeight: 600 }}>for women</span>
-        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-      </div>
-
-      {/* Women apply CTA */}
-      <div style={{
-        background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.15)",
-        borderRadius: 14, padding: "14px 16px",
-        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-      }}>
-        <div>
-          <p style={{ fontSize: 12, fontWeight: 800, color: "#d4af37", margin: "0 0 3px" }}>
-            Are you a woman? Apply for the floor
-          </p>
-          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0, lineHeight: 1.5 }}>
-            Completely free · Earn coins from gifts · Admin-curated only
-          </p>
-        </div>
+      {/* Men — coin gate */}
+      <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 16, padding: 16, marginBottom: 14 }}>
+        <p style={{ fontSize: 13, fontWeight: 900, color: "#d4af37", margin: "0 0 4px" }}>🧔 Entry for Men</p>
+        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: "0 0 14px", lineHeight: 1.5 }}>
+          Access the Tonight pool for 24 hours. Only verified women appear here — always available tonight.
+        </p>
         <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => window.location.href = "/ghost/penthouse/apply"}
+          whileTap={{ scale: 0.97 }}
+          onClick={onSubscribe}
           style={{
-            flexShrink: 0, height: 34, borderRadius: 9, border: "1px solid rgba(212,175,55,0.35)",
-            background: "rgba(212,175,55,0.1)", color: "#d4af37",
-            fontSize: 11, fontWeight: 800, cursor: "pointer", padding: "0 14px",
-            whiteSpace: "nowrap",
+            width: "100%", height: 50, borderRadius: 14, border: "none",
+            background: "linear-gradient(135deg, #92660a, #d4af37, #f0d060)",
+            color: "#000", fontSize: 15, fontWeight: 900, cursor: "pointer",
+            boxShadow: "0 4px 24px rgba(212,175,55,0.35)",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
           }}
         >
-          Apply →
+          <span>🪙</span>
+          <span>Enter Tonight — {PENTHOUSE_ENTRY_COST} coins · 24hrs</span>
         </motion.button>
+      </div>
+
+      {/* Women — free entry info */}
+      <div style={{
+        background: "rgba(212,175,55,0.04)", border: "1px solid rgba(212,175,55,0.12)",
+        borderRadius: 14, padding: "14px 16px",
+        display: "flex", alignItems: "center", gap: 12,
+      }}>
+        <span style={{ fontSize: 22, flexShrink: 0 }}>👩</span>
+        <div>
+          <p style={{ fontSize: 12, fontWeight: 800, color: "#d4af37", margin: "0 0 2px" }}>
+            Women enter free — always
+          </p>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0, lineHeight: 1.5 }}>
+            Select Penthouse in your profile setup · face verification required · earn coins from gifts
+          </p>
+        </div>
       </div>
     </div>
   );
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
+const PENTHOUSE_ENTRY_COST = 100; // coins for men
+
+function getPenthouseAccess(): boolean {
+  try {
+    const profile = JSON.parse(localStorage.getItem("ghost_profile") || "{}");
+    // Women who selected penthouse in setup — always in
+    if (localStorage.getItem("ghost_penthouse_member") === "1" && profile.gender === "Female") return true;
+    // Men — check nightly access window
+    const until = Number(localStorage.getItem("ghost_penthouse_access_until") || "0");
+    return Date.now() < until;
+  } catch { return false; }
+}
+
+function grantPenthouseAccess(): void {
+  try {
+    const until = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    localStorage.setItem("ghost_penthouse_access_until", String(until));
+  } catch {}
+}
+
 export default function PenthouseFloorPage() {
   const navigate     = useNavigate();
-  const [subscribed, setSubscribed]   = useState(isPenthouseSubscribed);
+  const [subscribed, setSubscribed]   = useState(getPenthouseAccess);
   const [coinBalance, setCoinBalance] = useState(readCoins);
+  const isMember = (() => { try { return localStorage.getItem("ghost_penthouse_member") === "1"; } catch { return false; } })();
   const [likedIds, setLikedIds]       = useState<string[]>(getPenthouseLikedIds);
   const [dailyUsed, setDailyUsed]     = useState(getDailyGiftsUsed);
   const [giftTarget, setGiftTarget]   = useState<PenthouseProfile | null>(null);
@@ -486,7 +492,7 @@ export default function PenthouseFloorPage() {
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               }}>Penthouse</p>
               <p style={{ fontSize: 9, color: "rgba(212,175,55,0.45)", margin: 0, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                Top floor · Curated guests
+                Tonight Only · Always Available
               </p>
             </div>
           </div>
@@ -506,7 +512,17 @@ export default function PenthouseFloorPage() {
 
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
         {!subscribed ? (
-          <PenthouseTeaser onSubscribe={() => { activatePenthouseSub(); setSubscribed(true); }} />
+          <PenthouseTeaser onSubscribe={() => {
+            if (coinBalance < PENTHOUSE_ENTRY_COST) {
+              alert(`You need ${PENTHOUSE_ENTRY_COST} coins to enter. You have ${coinBalance}.`);
+              return;
+            }
+            const next = coinBalance - PENTHOUSE_ENTRY_COST;
+            writeCoins(next);
+            setCoinBalance(next);
+            grantPenthouseAccess();
+            setSubscribed(true);
+          }} />
         ) : (
           <>
             {/* ── I Like / Liked Me container ── */}

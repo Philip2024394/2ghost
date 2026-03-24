@@ -23,7 +23,7 @@ const ROOM_GIFTS: Record<string, { gifts: Gift[]; color: string; label: string; 
     ],
   },
   suite: {
-    label: "Suite", icon: "🛎️", color: "#cd7f32",
+    label: "Ensuite", icon: "🛎️", color: "#cd7f32",
     gifts: [
       { emoji: "🍷", name: "House Red Wine",         coins: 12 },
       { emoji: "🍎", name: "Seasonal Fruit Bowl",    coins: 8  },
@@ -31,7 +31,7 @@ const ROOM_GIFTS: Record<string, { gifts: Gift[]; color: string; label: string; 
     ],
   },
   kings: {
-    label: "Kings Room", icon: "👑", color: "#d4af37",
+    label: "The Casino", icon: "🎰", color: "#d4af37",
     gifts: [
       { emoji: "🥂", name: "Champagne on Arrival",  coins: 20 },
       { emoji: "🍷", name: "Premium Wine Selection", coins: 15 },

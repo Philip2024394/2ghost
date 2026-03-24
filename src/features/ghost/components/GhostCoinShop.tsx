@@ -48,7 +48,7 @@ const WHAT_COINS_UNLOCK = [
   { emoji: "🥂", label: "Virtual drink for a lobby guest",    coins: 8    },
   { emoji: "🎁", label: "Send a surprise gift",               coins: 25   },
   { emoji: "🔓", label: "Connect with a match",               coins: 300  },
-  { emoji: "🏨", label: "Ghost Suite room upgrade",           coins: 500  },
+  { emoji: "🏨", label: "Ghost Ensuite room upgrade",         coins: 500  },
   { emoji: "🌍", label: "List in other countries",            coins: 800  },
   { emoji: "🎩", label: "Butler real-world gift pack",        coins: 800  },
   { emoji: "⚡", label: "24-hour profile boost",              coins: 30   },

@@ -24,10 +24,10 @@ const FLOOR_CONFIG: Record<string, FloorConfig> = {
     avatarSeeds: [3,7,12,15,22,29,36,40,48,55,58,64,70,77,83],
   },
   suite: {
-    label: "Suite", icon: "🛎️",
+    label: "Ensuite", icon: "🛎️",
     color: "#cd7f32", gradient: "linear-gradient(135deg, #7a3b10, #cd7f32, #e8a050)",
     bg: SUITE_BG,
-    tagline: "More space, more power. The Suite floor is a step above.",
+    tagline: "More space, more privacy. The Ensuite floor is a step above.",
     memberCount: 428, activeCount: 34,
     avatarSeeds: [28,31,45,49,52,5,9,13,18,23,27,32,37,41,46],
   },

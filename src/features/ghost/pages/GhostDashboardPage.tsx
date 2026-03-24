@@ -470,8 +470,8 @@ export default function GhostDashboardPage() {
             const tier = (() => { try { return localStorage.getItem("ghost_house_tier") || "standard"; } catch { return "standard"; } })();
             const ROOM_MAP: Record<string, { label: string; icon: string; color: string; members: number; active: number }> = {
               standard:  { label: "Standard Room", icon: "🛏️", color: "#a8a8b0", members: 1247, active: 89 },
-              suite:     { label: "Suite",          icon: "🛎️", color: "#cd7f32", members: 428,  active: 34 },
-              kings:     { label: "Kings Room",     icon: "👑", color: "#d4af37", members: 156,  active: 21 },
+              suite:     { label: "Ensuite",         icon: "🛎️", color: "#cd7f32", members: 428,  active: 34 },
+              kings:     { label: "The Casino",     icon: "🎰", color: "#d4af37", members: 156,  active: 21 },
               penthouse: { label: "Penthouse",       icon: "🏙️", color: "#e0ddd8", members: 47,   active: 12 },
               cellar:    { label: "The Cellar",      icon: "🕯️", color: "#9b1c1c", members: 83,   active: 18 },
             };
@@ -960,7 +960,7 @@ export default function GhostDashboardPage() {
             const currentTier = localStorage.getItem("ghost_house_tier") as RoomTier | null;
             if (!currentTier && reviews.length === 0) return null;
             const tierColor: Record<RoomTier, string> = { standard: "#c0c0c0", suite: "#cd7f32", kings: "#d4af37", penthouse: "#e8e4d0" };
-            const tierName:  Record<RoomTier, string> = { standard: "Standard Room", suite: "Suite Room", kings: "Kings Room", penthouse: "Penthouse" };
+            const tierName:  Record<RoomTier, string> = { standard: "Standard Room", suite: "Ensuite", kings: "The Casino", penthouse: "Penthouse" };
             return (
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }} style={{ marginBottom: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
@@ -1107,7 +1107,7 @@ export default function GhostDashboardPage() {
                 category: "Rooms & Access",
                 emoji: "🚪",
                 items: [
-                  { q: "What are Ghost Rooms?", a: "Rooms are themed spaces — Standard, Suite, Kings, Penthouse, and The Cellar. Each has a different crowd and entry level. You can visit any room but some require a membership tier to interact." },
+                  { q: "What are Ghost Rooms?", a: "Rooms are themed spaces — Standard, Ensuite, Kings, Penthouse, and The Cellar. Each has a different crowd and entry level. You can visit any room but some require a membership tier to interact." },
                   { q: "What is The Vault?", a: "The Vault is your private space. Every mutual match opens a 48-hour Vault chat. You can share images, send gifts, and request video intros — all vault-protected and not visible to anyone else." },
                   { q: "What happens after 48 hours in the Vault?", a: "The connection fades unless you act — send a gift, exchange contact details, or both agree to extend. It's designed to keep things intentional." },
                   { q: "What is The Cellar?", a: "The Cellar is an age-verified room for mature members. Entry requires a one-time age check. Content and conversation in the Cellar is more adult in nature." },
@@ -1138,7 +1138,7 @@ export default function GhostDashboardPage() {
                 emoji: "🪙",
                 items: [
                   { q: "What are coins used for?", a: "Coins unlock extras — requesting a video intro (5 coins), sending premium gifts in the Vault, and unlocking certain room features. You earn coins through activity and can buy more in the coin shop." },
-                  { q: "What does membership unlock?", a: "Membership tiers (Standard → Suite → Kings → Penthouse) give you access to higher rooms, more visibility, and exclusive features. Some tiers are one-time entry; others are ongoing." },
+                  { q: "What does membership unlock?", a: "Membership tiers (Standard → Ensuite → Kings → Penthouse) give you access to higher rooms, more visibility, and exclusive features. Some tiers are one-time entry; others are ongoing." },
                   { q: "Is there a free option?", a: "Yes. Standard Room and some features are free. The Loft and Rooms Guide are also free to browse. Paid tiers unlock deeper access and priority matching." },
                 ],
               },

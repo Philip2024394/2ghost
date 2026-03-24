@@ -29,7 +29,7 @@ const LoftFloorPage            = lazyWithRetry(() => import("./features/ghost/pa
 const CellarFloorPage          = lazyWithRetry(() => import("./features/ghost/pages/CellarFloorPage"));
 const FloorHomePage            = lazyWithRetry(() => import("./features/ghost/pages/FloorHomePage"));
 const SuiteRoomPage            = lazyWithRetry(() => import("./features/ghost/pages/SuiteRoomPage"));
-const KingsRoomPage            = lazyWithRetry(() => import("./features/ghost/pages/KingsRoomPage"));
+const CasinoFloorPage          = lazyWithRetry(() => import("./features/ghost/components/casino/CasinoFloorPage"));
 const PenthouseRoomPage        = lazyWithRetry(() => import("./features/ghost/pages/PenthouseRoomPage"));
 const LoftRoomPage             = lazyWithRetry(() => import("./features/ghost/pages/LoftRoomPage"));
 const CellarRoomPage           = lazyWithRetry(() => import("./features/ghost/pages/CellarRoomPage"));
@@ -118,7 +118,7 @@ export default function App() {
           <Route path="/ghost/loft"                   element={<LoftFloorPage />} />
           <Route path="/ghost/cellar"                 element={<CellarFloorPage />} />
           <Route path="/ghost/floor/suite"             element={<SuiteRoomPage />} />
-          <Route path="/ghost/floor/kings"            element={<KingsRoomPage />} />
+          <Route path="/ghost/floor/kings"            element={<CasinoFloorPage />} />
           <Route path="/ghost/floor/penthouse-floor"  element={<PenthouseRoomPage />} />
           <Route path="/ghost/floor/loft-floor"       element={<LoftRoomPage />} />
           <Route path="/ghost/floor/cellar-floor"     element={<CellarRoomPage />} />

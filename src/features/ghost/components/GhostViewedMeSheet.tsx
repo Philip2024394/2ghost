@@ -3,26 +3,79 @@
 // Extracted from GhostModePage to reduce file size.
 
 import { motion, AnimatePresence } from "framer-motion";
+import { useState, useCallback } from "react";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
 import type { GhostProfile } from "../types/ghostTypes";
-import { getProfileFloor, floorRank, FLOOR_LABELS, isProfileInvited } from "./FloorInviteSheet";
+import { getProfileFloor, FLOOR_LABELS, isProfileInvited } from "./FloorInviteSheet";
+
+// ── Chat Invite helpers ──────────────────────────────────────────────────────
+const INVITES_KEY = "ghost_chat_invites";
+
+export type ChatInvite = {
+  id: string;
+  fromProfileId: string;
+  toProfileId: string;
+  status: "pending" | "accepted" | "refused";
+  sentAt: number;
+};
+
+export function getInvites(): ChatInvite[] {
+  try { return JSON.parse(localStorage.getItem(INVITES_KEY) || "[]"); } catch { return []; }
+}
+export function saveInvite(fromProfileId: string, toProfileId: string): void {
+  const invites = getInvites().filter(i => !(i.fromProfileId === fromProfileId && i.toProfileId === toProfileId));
+  invites.push({ id: `${fromProfileId}_${toProfileId}`, fromProfileId, toProfileId, status: "pending", sentAt: Date.now() });
+  try { localStorage.setItem(INVITES_KEY, JSON.stringify(invites)); } catch {}
+}
+export function respondToInvite(fromProfileId: string, toProfileId: string, status: "accepted" | "refused"): void {
+  const invites = getInvites().map(i =>
+    i.fromProfileId === fromProfileId && i.toProfileId === toProfileId ? { ...i, status } : i
+  );
+  try { localStorage.setItem(INVITES_KEY, JSON.stringify(invites)); } catch {}
+}
+export function getInvite(fromProfileId: string, toProfileId: string): ChatInvite | null {
+  return getInvites().find(i => i.fromProfileId === fromProfileId && i.toProfileId === toProfileId) ?? null;
+}
 
 export type ViewedProfile = GhostProfile & { viewCount: number };
 
 type Props = {
   show: boolean;
   viewedMeList: ViewedProfile[];
+  myProfileId: string | null;
   userRoomTier: string | null;
   likedIds: Set<string>;
   onClose: () => void;
   onLike: (p: GhostProfile) => void;
   onMatchAction: (p: GhostProfile) => void;
   onFloorInvite: (p: GhostProfile, mode: "invite" | "request", target: string) => void;
+  onStartChat: (p: GhostProfile) => void;
 };
 
-export default function GhostViewedMeSheet({ show, viewedMeList, userRoomTier, likedIds, onClose, onLike, onMatchAction, onFloorInvite }: Props) {
+export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, userRoomTier: _userRoomTier, likedIds, onClose, onLike, onMatchAction, onFloorInvite: _onFloorInvite, onStartChat }: Props) {
   const a = useGenderAccent();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
+  const refresh = useCallback(() => setRefreshKey(k => k + 1), []);
+
+  const handleAccept = (p: GhostProfile) => {
+    if (!myProfileId) return;
+    respondToInvite(p.id, myProfileId, "accepted");
+    refresh();
+  };
+
+  const handleRefuse = (p: GhostProfile) => {
+    if (!myProfileId) return;
+    respondToInvite(p.id, myProfileId, "refused");
+    setRemovingIds(prev => new Set([...prev, p.id]));
+    setTimeout(() => {
+      setRemovingIds(prev => { const n = new Set(prev); n.delete(p.id); return n; });
+      refresh();
+    }, 1800);
+  };
+
+  void refreshKey; // triggers re-read of localStorage on state change
 
   return (
     <AnimatePresence>
@@ -78,17 +131,20 @@ export default function GhostViewedMeSheet({ show, viewedMeList, userRoomTier, l
                 const badgeCol  = isKeen ? "#f87171" : isWarm ? a.accent : "rgba(255,255,255,0.35)";
                 const badgeTxt  = isKeen ? `🔥 Viewed ${p.viewCount}×` : isWarm ? `👀 Viewed twice` : "Viewed once";
                 const pFloor    = getProfileFloor(p.id);
-                const myFloor   = userRoomTier ?? "standard";
-                const diffFloor = pFloor !== myFloor;
-                const theirHigher = floorRank(pFloor) > floorRank(myFloor);
                 const invited   = isProfileInvited(p.id);
+
+                const sentInvite     = myProfileId ? getInvite(myProfileId, p.id) : null;
+                const receivedInvite = myProfileId ? getInvite(p.id, myProfileId) : null;
+                const isRemoving     = removingIds.has(p.id);
+
+                if (sentInvite?.status === "refused" || (receivedInvite?.status === "refused" && !isRemoving)) return null;
 
                 return (
                   <motion.div
                     key={p.id}
                     initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04 }}
+                    animate={{ opacity: isRemoving ? 0 : 1, y: 0 }}
+                    transition={{ delay: i * 0.04, duration: isRemoving ? 0.4 : 0.3 }}
                     style={{ marginBottom: 8, borderRadius: 16, background: cardBg, border: cardBdr, overflow: "hidden" }}
                   >
                     {/* Main row */}
@@ -148,27 +204,48 @@ export default function GhostViewedMeSheet({ show, viewedMeList, userRoomTier, l
                       </div>
                     </div>
 
-                    {/* Floor invite strip */}
-                    {diffFloor && !invited && userRoomTier && (
-                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", padding: "8px 12px", display: "flex", gap: 8 }}>
-                        <motion.button
-                          whileTap={{ scale: 0.97 }}
-                          onClick={e => { e.stopPropagation(); onFloorInvite(p, "invite", myFloor); }}
-                          style={{ flex: 1, height: 32, borderRadius: 10, border: "none", background: a.glow(0.14), color: a.accent, fontSize: 10, fontWeight: 800, cursor: "pointer" }}
-                        >
-                          ✉️ Invite to My Floor
+                    {/* Chat invite strip */}
+                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", padding: "8px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
+
+                      {/* User A sent invite — show status */}
+                      {sentInvite ? (
+                        <div style={{ height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                          background: sentInvite.status === "accepted" ? "rgba(74,222,128,0.12)" : "rgba(212,175,55,0.07)",
+                          border: `1px solid ${sentInvite.status === "accepted" ? "rgba(74,222,128,0.35)" : "rgba(212,175,55,0.2)"}`,
+                        }}>
+                          <span style={{ fontSize: 14 }}>{sentInvite.status === "accepted" ? "✓" : "✉️"}</span>
+                          <span style={{ fontSize: 10, fontWeight: 800, color: sentInvite.status === "accepted" ? "#4ade80" : "rgba(212,175,55,0.8)" }}>
+                            {sentInvite.status === "accepted" ? "Invitation Accepted" : "Chat Invitation Sent"}
+                          </span>
+                        </div>
+                      ) : receivedInvite?.status === "pending" ? (
+                        /* User B — received invite, show Accept/Refuse */
+                        <>
+                          <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.45)", textAlign: "center" }}>
+                            This guest has sent you a chat invitation
+                          </p>
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <motion.button whileTap={{ scale: 0.97 }} onClick={e => { e.stopPropagation(); handleAccept(p); }}
+                              style={{ flex: 1, height: 34, borderRadius: 10, border: "none", background: "rgba(74,222,128,0.15)", color: "#4ade80", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
+                              ✓ Accept
+                            </motion.button>
+                            <motion.button whileTap={{ scale: 0.97 }} onClick={e => { e.stopPropagation(); handleRefuse(p); }}
+                              style={{ flex: 1, height: 34, borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "#f87171", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
+                              ✕ Decline
+                            </motion.button>
+                          </div>
+                          <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.25)", textAlign: "center", lineHeight: 1.5 }}>
+                            Declining will remove this guest from future contact.
+                          </p>
+                        </>
+                      ) : (
+                        /* Default — no invite yet */
+                        <motion.button whileTap={{ scale: 0.97 }} onClick={e => { e.stopPropagation(); onStartChat(p); }}
+                          style={{ width: "100%", height: 34, borderRadius: 10, border: "none", background: isKeen ? "linear-gradient(135deg, rgba(212,175,55,0.22), rgba(212,175,55,0.1))" : a.glow(0.14), color: isKeen ? "#d4af37" : a.accent, fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
+                          🎩 Let's Start a Chat
                         </motion.button>
-                        {theirHigher && (
-                          <motion.button
-                            whileTap={{ scale: 0.97 }}
-                            onClick={e => { e.stopPropagation(); onFloorInvite(p, "request", pFloor); }}
-                            style={{ flex: 1, height: 32, borderRadius: 10, border: `1px solid ${a.glow(0.25)}`, background: "transparent", color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: 800, cursor: "pointer" }}
-                          >
-                            ⬆️ Invite Me Up
-                          </motion.button>
-                        )}
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </motion.div>
                 );
               })}

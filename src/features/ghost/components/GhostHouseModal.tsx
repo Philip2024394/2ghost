@@ -228,7 +228,7 @@ export default function GhostHouseModal({
     {
       key: "suite" as const,
       icon: "🏨",
-      name: "Ghost Suite",
+      name: "Ghost Ensuite",
       price: "🪙 500/mo",
       period: "coins per month",
       border: a.glow(0.35),
@@ -243,7 +243,7 @@ export default function GhostHouseModal({
         "Videos max 100 MB · 2 min · MP4 MOV WEBM",
         "Ghost Flash: 4 sessions/month",
         "1 weekly profile boost (1hr top of stack)",
-        "Suite badge on profile card",
+        "Ensuite badge on profile card",
         "Ghost Butler access — service numbers visible",
         "Priority in browse stack over free users",
       ],

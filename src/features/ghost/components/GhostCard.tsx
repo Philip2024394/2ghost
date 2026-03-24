@@ -159,7 +159,7 @@ function Divider() {
 // ── Combined Profile + Whisper Modal ─────────────────────────────────────────
 type WhisperScreen = "main" | "sent" | "strike1" | "deactivated";
 
-function ProfileWhisperModal({
+export function ProfileWhisperModal({
   profile, liked, onLike, onClose, accentColor,
 }: {
   profile: GhostProfile; liked: boolean; onLike: () => void; onClose: () => void;
@@ -785,7 +785,7 @@ function ProfileWhisperModal({
 // ── Main Card ─────────────────────────────────────────────────────────────────
 export default function GhostCard({
   profile, liked, onClick, onLike, isRevealed: _isRevealed, onReveal: _onReveal, canReveal: _canReveal, isTonight, houseTier: _houseTier,
-  flaggedReason, onFlagOpen: _onFlagOpen, isFoundBoo, accentColor, onGameInvite,
+  flaggedReason, onFlagOpen: _onFlagOpen, isFoundBoo, accentColor, onGameInvite, startExpanded, onModalClose,
 }: {
   profile: GhostProfile; liked: boolean; onClick: () => void; onLike?: () => void;
   isRevealed: boolean; onReveal: () => void; canReveal: boolean;
@@ -794,6 +794,8 @@ export default function GhostCard({
   isFoundBoo?: boolean;
   accentColor?: string;
   onGameInvite?: (profile: GhostProfile) => void;
+  startExpanded?: boolean;
+  onModalClose?: () => void;
 }) {
   const _a = useGenderAccent();
   // When a room accent is provided, override the gender accent throughout the card
@@ -812,7 +814,7 @@ export default function GhostCard({
   } : _a;
   const online    = isOnline(profile.last_seen_at);
   const ghostId   = toGhostId(profile.id);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(startExpanded ?? false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const isVerified  = profile.isVerified || profile.faceVerified || isFaceVerifiedSeeded(profile.id);
@@ -863,7 +865,7 @@ export default function GhostCard({
         {/* Card face */}
         <motion.div
           whileTap={{ scale: 0.98 }}
-          onClick={e => { e.stopPropagation(); onClick(); }}
+          onClick={e => { e.stopPropagation(); setExpanded(true); }}
           style={{
             position: "absolute", inset: 0, borderRadius: 18, overflow: "hidden", cursor: "pointer",
             border: liked ? `1.5px solid ${heartColor}55` : "1px solid rgba(255,255,255,0.09)",
@@ -1007,7 +1009,7 @@ export default function GhostCard({
             profile={profile}
             liked={liked}
             onLike={() => { onLike?.(); }}
-            onClose={() => setExpanded(false)}
+            onClose={() => { setExpanded(false); onModalClose?.(); }}
             accentColor={accentColor}
           />
         )}

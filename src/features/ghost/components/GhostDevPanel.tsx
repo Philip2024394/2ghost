@@ -15,6 +15,7 @@ export type DevPanelProps = {
   activate: (p: "ghost" | "bundle") => void; deactivate: () => void;
   onTriggerFlashMatch: () => void; onTriggerMatch: () => void; onTriggerInbound: () => void;
   onTriggerButler: (key: ButlerMessageKey) => void;
+  onSimulateChatInvite: () => void;
 };
 
 export default function GhostDevPanel({
@@ -23,7 +24,7 @@ export default function GhostDevPanel({
   houseTier, setHouseTier,
   activate, deactivate,
   onTriggerFlashMatch, onTriggerMatch, onTriggerInbound,
-  onTriggerButler,
+  onTriggerButler, onSimulateChatInvite,
 }: DevPanelProps) {
   const [open, setOpen] = useState(false);
 
@@ -193,7 +194,7 @@ export default function GhostDevPanel({
               <div>
                 <span style={label}>Ghost Vaults Badge</span>
                 <div style={{ display: "flex", gap: 5 }}>
-                  <button style={btn(houseTier === "suite")} onClick={() => setHouseAndPersist("suite")}>🏨 Suite</button>
+                  <button style={btn(houseTier === "suite")} onClick={() => setHouseAndPersist("suite")}>🏨 Ensuite</button>
                   <button style={btn(houseTier === "gold")} onClick={() => setHouseAndPersist("gold")}>🔑 Gold</button>
                   <button style={btn(!houseTier)} onClick={() => setHouseAndPersist(null)}>None</button>
                 </div>
@@ -205,6 +206,7 @@ export default function GhostDevPanel({
                   <button style={actionBtn} onClick={onTriggerFlashMatch}>⚡ Flash Match</button>
                   <button style={actionBtn} onClick={onTriggerMatch}>💚 Match</button>
                   <button style={actionBtn} onClick={onTriggerInbound}>👋 Inbound Like</button>
+                  <button style={{ ...actionBtn, color: "#d4af37", border: "1px solid rgba(212,175,55,0.3)" }} onClick={onSimulateChatInvite}>📨 Chat Invite (B)</button>
                 </div>
               </div>
 

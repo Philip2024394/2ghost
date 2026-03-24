@@ -42,7 +42,7 @@ function senderSeed(name: string): number {
 }
 
 // Which other floors this sender is deterministically "active in"
-const ALL_FLOORS = ["Standard", "Suite", "Kings Room", "Penthouse", "Garden Lodge", "The Cellar"];
+const ALL_FLOORS = ["Standard", "Ensuite", "The Casino", "Penthouse", "Garden Lodge", "The Cellar"];
 function senderOtherFloors(name: string, currentTierLabel: string): string[] {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = Math.imul(53, h) + name.charCodeAt(i) | 0;
@@ -1021,7 +1021,7 @@ export default function FloorChatPopup({
                 <span style={{ fontSize: 17 }}>📎</span>
               </motion.button>
               <motion.button whileTap={{ scale: 0.88 }}
-                onClick={() => { if (isKingsPlus()) setShowRadio(true); else showToast("Ghost Radio is Kings Room and above 👑"); }}
+                onClick={() => { if (isKingsPlus()) setShowRadio(true); else showToast("Ghost Radio is The Casino and above 👑"); }}
                 style={{ flexShrink: 0, width: 36, height: 36, borderRadius: 10, border: `1px solid ${isKingsPlus() ? a.glow(0.3) : "rgba(255,255,255,0.08)"}`, background: isKingsPlus() ? a.glow(0.08) : "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
                 <span style={{ fontSize: 17 }}>🎤</span>
               </motion.button>

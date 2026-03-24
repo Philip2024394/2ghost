@@ -19,8 +19,8 @@ export function markButlerGreeted(): void {
 // ── Room data ─────────────────────────────────────────────────────────────────
 const ROOM_MAP: Record<string, { label: string; icon: string; color: string }> = {
   standard:  { label: "Standard Room",  icon: "🛏️",  color: "#a8a8b0" },
-  suite:     { label: "Suite",          icon: "🛎️",  color: "#cd7f32" },
-  kings:     { label: "Kings Room",     icon: "👑",  color: "#d4af37" },
+  suite:     { label: "Ensuite",         icon: "🛎️",  color: "#cd7f32" },
+  kings:     { label: "The Casino",     icon: "🎰",  color: "#d4af37" },
   penthouse: { label: "Penthouse",      icon: "🏙️", color: "#e0ddd8" },
 };
 

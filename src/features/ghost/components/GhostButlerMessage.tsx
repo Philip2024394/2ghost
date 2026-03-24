@@ -3,6 +3,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export type ButlerMessageKey =
   | "match_interest"
@@ -18,7 +20,10 @@ export type ButlerMessageKey =
   | "late_reply"
   | "spam_warning"
   | "content_warning"
-  | "floor_upgrade";
+  | "floor_upgrade"
+  | "room_ready"
+  | "repeated_view"
+  | "chat_invite_viewed";
 
 export type ButlerMessage = {
   key: ButlerMessageKey;
@@ -26,6 +31,8 @@ export type ButlerMessage = {
   title: string;
   body: string;
   tone: "strict" | "funny" | "warning" | "gold";
+  buttonLabel?: string;
+  headerLabel?: string;
 };
 
 export const BUTLER_MESSAGES: Record<ButlerMessageKey, ButlerMessage> = {
@@ -127,6 +134,29 @@ export const BUTLER_MESSAGES: Record<ButlerMessageKey, ButlerMessage> = {
     body: "The Butler has prepared a higher floor for you. Each level of this hotel reflects your intentions. Choose wisely — the guests you meet above are not here by accident. Neither are you.",
     tone: "gold",
   },
+  chat_invite_viewed: {
+    key: "chat_invite_viewed",
+    icon: "🎩",
+    title: "The Signals Are There — This Is The Right Move.",
+    body: "This guest has visited your profile more than once. That is not something people do without reason. Whether the attraction is curiosity, connection, or something more — only a conversation will confirm it.\n\nThe direction of their interest is unknown until words are exchanged. But what is clear is this — they have already looked twice. The hesitation is on their side. One well-placed invitation cuts through that entirely.\n\nThe Butler considers this the correct first move. A simple, direct chat invitation. No pressure, no commitment — just an open door. The signals are strong. Let us see if they walk through it.",
+    tone: "gold",
+    buttonLabel: "Send Chat Invite",
+    headerLabel: "Let's Start a Chat",
+  },
+  repeated_view: {
+    key: "repeated_view",
+    icon: "🎩",
+    title: "A Guest Has Returned To Your Profile — More Than Once.",
+    body: "The Butler has observed that a particular guest has visited your profile three times or more. This is not coincidence — within these walls, nobody lingers without reason.\n\nNow, before we draw conclusions, I must be measured. It could be a friend. A sibling. Someone simply curious. The hotel sees many types of visitors. However — when the guest in question is of the kind that captures romantic interest, three visits carries a clear signal. They are drawn to you. They have looked once, returned, and looked again. That is not casual browsing. That is someone gathering the courage to act.\n\nThe question is not whether they are interested. The question is who moves first.\n\nThe Butler's counsel is this — do not wait indefinitely. A single, well-placed gesture tends to resolve all hesitation. Consider sending a small gift with a personal message. Keep it warm, keep it simple, keep it genuine. Something that says you noticed them too — without pressure, without urgency.\n\nThey have already done the hard part. They came back. Now it is your move.",
+    tone: "gold",
+  },
+  room_ready: {
+    key: "room_ready",
+    icon: "🎩",
+    title: "Your Room Is Ready, Guest",
+    body: "Your luggage has been carefully placed in your room, and all is prepared for your stay. However, there is one matter that now requires your immediate attention — your profile.\n\nFor the safety and comfort of all esteemed guests, and to properly acknowledge your identity within the Hotel, it is required that you complete your registration. Only once this has been attended to may you enjoy full access to the Hotel's facilities.\n\nI trust you will see to this without delay.",
+    tone: "gold",
+  },
 };
 
 const TONE_STYLE: Record<ButlerMessage["tone"], { border: string; glow: string; titleColor: string }> = {
@@ -139,29 +169,61 @@ const TONE_STYLE: Record<ButlerMessage["tone"], { border: string; glow: string; 
 type Props = {
   message: ButlerMessage | null;
   onClose: () => void;
+  onCreateProfile?: () => void;
+  onAction?: () => void;
 };
 
-export default function GhostButlerMessage({ message, onClose }: Props) {
-  const a = useGenderAccent();
+export default function GhostButlerMessage({ message, onClose, onCreateProfile, onAction }: Props) {
+  useGenderAccent();
   const ts = message ? TONE_STYLE[message.tone] : TONE_STYLE.strict;
+  const navigate = useNavigate();
+
+  const isRoomReady = message?.key === "room_ready";
+
+  const [countdown, setCountdown] = useState(59);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (!isRoomReady || !message) return;
+    setCountdown(59);
+    timerRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          onClose();
+          navigate("/ghost");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [message?.key]);
 
   return (
     <AnimatePresence>
       {message && (
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          onClick={onClose}
+          onClick={isRoomReady ? undefined : onClose}
           style={{
             position: "fixed", inset: 0, zIndex: 800,
-            background: "rgba(0,0,0,0.82)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+            ...(isRoomReady
+              ? { backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsdsterte.png?updatedAt=1774134188482)", backgroundSize: "cover", backgroundPosition: "center top" }
+              : { background: "rgba(0,0,0,0.82)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }
+            ),
             display: "flex", alignItems: "flex-end", justifyContent: "center",
           }}
         >
+          {isRoomReady && (
+            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 0 }} />
+          )}
           <motion.div
             initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             onClick={e => e.stopPropagation()}
             style={{
+              position: "relative", zIndex: 1,
               width: "100%", maxWidth: 480,
               background: "rgba(4,4,8,0.99)",
               borderRadius: "22px 22px 0 0",
@@ -176,22 +238,28 @@ export default function GhostButlerMessage({ message, onClose }: Props) {
             <div style={{ padding: "22px 20px max(32px,env(safe-area-inset-bottom,32px))" }}>
               {/* Butler header */}
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-                <div style={{
-                  width: 46, height: 46, borderRadius: "50%", flexShrink: 0,
-                  background: `radial-gradient(circle, rgba(212,175,55,0.2), rgba(212,175,55,0.05))`,
-                  border: "1.5px solid rgba(212,175,55,0.4)",
-                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22,
-                }}>
-                  🎩
-                </div>
+                <img src="https://ik.imagekit.io/7grri5v7d/ewrwerwerwer-removebg-preview.png?updatedAt=1774288645920" alt="Butler" style={{ width: 92, height: 92, objectFit: "contain", flexShrink: 0 }} />
                 <div>
-                  <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: "#d4af37", letterSpacing: "0.08em", textTransform: "uppercase" }}>The Butler</p>
-                  <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>2Ghost Hotel · Management</p>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: "#d4af37", letterSpacing: "0.08em", textTransform: "uppercase" }}>{message?.headerLabel ?? "Create Profile"}</p>
+                  <p style={{ margin: "3px 0 8px", fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>Today's 2Ghost Guests</p>
+                  <div style={{ display: "flex", gap: 5 }}>
+                    {[
+                      "https://ik.imagekit.io/7grri5v7d/5q.png?updatedAt=1774013004908",
+                      "https://ik.imagekit.io/7grri5v7d/4q.png?updatedAt=1774012953710",
+                      "https://ik.imagekit.io/7grri5v7d/4i.png?updatedAt=1774012879924",
+                      "https://ik.imagekit.io/7grri5v7d/1a.png?updatedAt=1774012891284",
+                      "https://ik.imagekit.io/7grri5v7d/2q.png?updatedAt=1774012847860",
+                    ].map((src, i) => (
+                      <img key={i} src={src} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover", border: "1.5px solid rgba(212,175,55,0.3)", flexShrink: 0 }} />
+                    ))}
+                  </div>
                 </div>
-                <button
-                  onClick={onClose}
-                  style={{ marginLeft: "auto", width: 30, height: 30, borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.4)", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
-                >✕</button>
+                {!isRoomReady && (
+                  <button
+                    onClick={onClose}
+                    style={{ marginLeft: "auto", width: 30, height: 30, borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.4)", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+                  >✕</button>
+                )}
               </div>
 
               {/* Divider */}
@@ -201,21 +269,49 @@ export default function GhostButlerMessage({ message, onClose }: Props) {
               <p style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 900, color: ts.titleColor, lineHeight: 1.3, letterSpacing: "-0.01em" }}>
                 {message.title}
               </p>
-              <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.75 }}>
-                {message.body}
-              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {message.body.split("\n\n").map((para, i) => (
+                  <p key={i} style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.75 }}>{para}</p>
+                ))}
+              </div>
 
-              {/* Dismiss */}
+              {/* Countdown */}
+              {isRoomReady && (
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 18, padding: "10px 14px", borderRadius: 12, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                  <div style={{ position: "relative", width: 36, height: 36, flexShrink: 0 }}>
+                    <svg width="36" height="36" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
+                      <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(239,68,68,0.15)" strokeWidth="2.5" />
+                      <circle cx="18" cy="18" r="15" fill="none" stroke="#ef4444" strokeWidth="2.5"
+                        strokeDasharray={`${2 * Math.PI * 15}`}
+                        strokeDashoffset={`${2 * Math.PI * 15 * (1 - countdown / 59)}`}
+                        style={{ transition: "stroke-dashoffset 1s linear" }}
+                      />
+                    </svg>
+                    <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, color: "#ef4444" }}>{countdown}</span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
+                    You will be returned to the entrance in <span style={{ color: "#f87171", fontWeight: 700 }}>{countdown}s</span> if you do not proceed.
+                  </p>
+                </div>
+              )}
+
+              {/* CTA */}
               <motion.button
                 whileTap={{ scale: 0.97 }}
-                onClick={onClose}
+                onClick={() => {
+                  if (timerRef.current) clearInterval(timerRef.current);
+                  if (onAction) { onAction(); onClose(); }
+                  else if (onCreateProfile) onCreateProfile();
+                  else onClose();
+                }}
                 style={{
-                  width: "100%", height: 48, marginTop: 22, borderRadius: 14, border: `1px solid ${ts.border}`,
-                  background: ts.glow, color: ts.titleColor,
+                  width: "100%", height: 48, marginTop: 14, borderRadius: 14, border: `1px solid ${ts.border}`,
+                  background: isRoomReady ? "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.08))" : ts.glow,
+                  color: ts.titleColor,
                   fontSize: 13, fontWeight: 800, cursor: "pointer", letterSpacing: "0.02em",
                 }}
               >
-                Understood
+                {message?.buttonLabel ?? (isRoomReady ? "Create Profile" : "Understood")}
               </motion.button>
             </div>
           </motion.div>

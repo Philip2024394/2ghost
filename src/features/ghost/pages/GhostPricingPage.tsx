@@ -34,7 +34,7 @@ const PLANS = [
   {
     key: "suite",
     icon: "🏨",
-    name: "Ghost Suite",
+    name: "Ghost Ensuite",
     price: "$4.99",
     period: "per month",
     sub: "5 match unlocks included — save $15/mo",
@@ -49,16 +49,16 @@ const PLANS = [
       "Images: JPG · PNG · WEBP (max 10 MB)",
       "Ghost Flash: 4 sessions per month",
       "1 weekly boost — top of stack for 1 hour",
-      "Suite badge on your profile card",
+      "Ensuite badge on your profile card",
       "Ghost Butler access — service numbers visible",
       "Priority placement over free users",
     ],
-    cta: "Join Ghost Suite",
+    cta: "Join Ghost Ensuite",
   },
   {
     key: "gold",
     icon: null,
-    name: "Kings Room",
+    name: "The Casino",
     price: "$9.99",
     period: "per month",
     sub: "Unlimited everything · highest visibility",
@@ -79,7 +79,7 @@ const PLANS = [
       "See who liked you",
       "Profile featured in Ghost Pulse row",
     ],
-    cta: "Unlock Kings Room",
+    cta: "Unlock The Casino",
   },
 ];
 
@@ -91,7 +91,7 @@ const COMPARE = [
   { label: "Ghost Vault videos",             vals: ["1",   "3",  "10"]  },
   { label: "Max video length",               vals: ["30s", "2m", "5m"]  },
   { label: "Profile boosts",                 vals: [false, "1/wk","3/wk"]},
-  { label: "Suite / Gold badge on card",     vals: [false, "🏨", "🔑"] },
+  { label: "Ensuite / Gold badge on card",   vals: [false, "🏨", "🔑"] },
   { label: "Ghost Butler access",            vals: [false, true,  true]  },
   { label: "Priority in browse stack",       vals: [false, true,  true]  },
   { label: "See who liked you",              vals: [false, false, true]  },
@@ -279,7 +279,7 @@ export default function GhostPricingPage() {
             {p.key === "gold"
               ? <img src={GOLD_KEY} alt="" style={{ width: 20, height: 20, objectFit: "contain" }} />
               : <span style={{ fontSize: 16 }}>{p.icon}</span>}
-            <span style={{ fontSize: 9, letterSpacing: "0.04em" }}>{p.key === "free" ? "Free" : p.key === "suite" ? "Suite" : "Kings"}</span>
+            <span style={{ fontSize: 9, letterSpacing: "0.04em" }}>{p.key === "free" ? "Free" : p.key === "suite" ? "Ensuite" : "Casino"}</span>
           </button>
         ))}
       </div>
@@ -372,7 +372,7 @@ export default function GhostPricingPage() {
           {/* Column headers */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 54px 54px 54px", padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", fontWeight: 700, textTransform: "uppercase" }}>Feature</span>
-            {[{ label: "Free", color: "rgba(255,255,255,0.4)" }, { label: "Suite", color: a.accent }, { label: "Gold", color: "#d4af37" }].map((h) => (
+            {[{ label: "Free", color: "rgba(255,255,255,0.4)" }, { label: "Ensuite", color: a.accent }, { label: "Gold", color: "#d4af37" }].map((h) => (
               <span key={h.label} style={{ fontSize: 9, color: h.color, fontWeight: 800, textAlign: "center", textTransform: "uppercase" }}>{h.label}</span>
             ))}
           </div>

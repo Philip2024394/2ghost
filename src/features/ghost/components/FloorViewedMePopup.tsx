@@ -8,7 +8,7 @@ import type { GhostProfile } from "../types/ghostTypes";
 import { getProfileFloor, FLOOR_LABELS } from "./FloorInviteSheet";
 
 const FLOOR_ICONS: Record<string, string> = {
-  standard: "🏠", suite: "🛎️", kings: "👑", penthouse: "🏙️", cellar: "🍷", garden: "🌿",
+  standard: "🏠", suite: "🛎️", kings: "🎰", penthouse: "🏙️", cellar: "🍷", garden: "🌿",
 };
 
 const VIEW_COUNTS = [4, 3, 2, 2, 2, 1, 3, 1, 2, 1, 1, 2, 1, 1, 1];

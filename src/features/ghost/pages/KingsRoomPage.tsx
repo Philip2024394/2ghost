@@ -82,7 +82,7 @@ export default function KingsRoomPage() {
     [likedIds],
   );
 
-  const tabLabel = memberTab === "ilike" ? "I Like" : memberTab === "liked" ? "Liked Me" : "The Kings Room";
+  const tabLabel = memberTab === "ilike" ? "I Like" : memberTab === "liked" ? "Liked Me" : "The Casino";
   const tabCount = memberTab === "ilike" ? iLikeProfiles.length
     : memberTab === "liked" ? likedMeProfiles.length
     : KINGS_PROFILES.length;
@@ -205,7 +205,7 @@ export default function KingsRoomPage() {
                 <span style={{ color: C, fontWeight: 900 }}>2</span>Ghost
               </h1>
               <p style={{ margin: 0, fontSize: 9, fontWeight: 700, color: C, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                The Kings Room 👑
+                The Casino 👑
               </p>
             </div>
           </div>
@@ -537,7 +537,7 @@ export default function KingsRoomPage() {
       {/* ── Floor Chat popup ── */}
       <AnimatePresence>
         {showChat && (
-          <FloorChatPopup tier="kings" tierColor={C} tierLabel="The Kings Room" tierIcon="👑" onClose={() => setShowChat(false)} />
+          <FloorChatPopup tier="kings" tierColor={C} tierLabel="The Casino" tierIcon="🎰" onClose={() => setShowChat(false)} />
         )}
       </AnimatePresence>
 
@@ -552,7 +552,7 @@ export default function KingsRoomPage() {
       <AnimatePresence>
         {showButlerArrival && (
           <ButlerArrivalPopup
-            floor="kings" floorLabel="The Kings Room" floorColor={C} floorIcon="👑"
+            floor="kings" floorLabel="The Casino" floorColor={C} floorIcon="🎰"
             butlerImg="https://ik.imagekit.io/7grri5v7d/Untitledasdasdasww-removebg-preview.png"
             onClose={() => setShowButlerArrival(false)}
             onInvite={() => { setShowButlerArrival(false); setShowGuestPicker(true); }}
@@ -586,7 +586,7 @@ export default function KingsRoomPage() {
       <AnimatePresence>
         {showLoungeSplash && (
           <LoungeSplashScreen
-            floorLabel="The Kings Room" floorColor={C} floorIcon="👑"
+            floorLabel="The Casino" floorColor={C} floorIcon="🎰"
             guestName={loungeGuestName}
             onDone={() => { setShowLoungeSplash(false); setShowChat(true); }}
           />
@@ -597,7 +597,7 @@ export default function KingsRoomPage() {
       <AnimatePresence>
         {showViewedMe && (
           <FloorViewedMePopup
-            floorKey="kings" floorLabel="The Kings Room" floorColor={C}
+            floorKey="kings" floorLabel="The Casino" floorColor={C}
             profiles={KINGS_PROFILES}
             onClose={() => setShowViewedMe(false)}
           />

@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   MOCK_LOFT_PROFILES, LOFT_GIFTS, LOFT_CITIES,
-  LOFT_SUB_PRICE, LOFT_EXTRA_CITY_PRICE,
+  LOFT_EXTRA_CITY_PRICE,
   LOFT_DAILY_FREE_GIFTS, LOFT_NOTE_COST, LOFT_OPENER_MAX_CHARS,
   type LoftProfile, type LoftSection,
 } from "../types/loftTypes";
 import {
-  isLoftSubscribed, activateLoftSub, getLoftDailyGiftsUsed, incrementLoftDailyGifts,
+  getLoftDailyGiftsUsed, incrementLoftDailyGifts,
   addLoftGift, getLoftLikedIds, addLoftLike, getLoftExtraCities,
 } from "../utils/loftHelpers";
 import LoftLandscapeCard from "../components/LoftLandscapeCard";
@@ -247,125 +247,24 @@ function LoftNewArrival({ profile, onDismiss }: { profile: LoftProfile; onDismis
   );
 }
 
-// ── Teaser ────────────────────────────────────────────────────────────────────
-function LoftTeaser({ onSubscribe }: { onSubscribe: () => void }) {
-  const preview = MOCK_LOFT_PROFILES.slice(0, 3);
-  return (
-    <div style={{ padding: "0 16px 40px" }}>
-      {/* Stats */}
-      <div style={{
-        display: "flex", gap: 0, marginBottom: 24,
-        background: `${VIOLET}0d`, border: `1px solid ${VIOLET}2a`, borderRadius: 14,
-      }}>
-        {[
-          { value: MOCK_LOFT_PROFILES.length, label: "in the Loft" },
-          { value: MOCK_LOFT_PROFILES.filter(p => p.isNewArrival).length, label: "new arrivals" },
-          { value: 3, label: "sections" },
-        ].map((s, i) => (
-          <div key={i} style={{
-            flex: 1, textAlign: "center", padding: "14px 8px",
-            borderRight: i < 2 ? `1px solid ${VIOLET}18` : "none",
-          }}>
-            <p style={{ fontSize: 22, fontWeight: 900, color: VIOLET, margin: 0 }}>{s.value}</p>
-            <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: 0, fontWeight: 600 }}>{s.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Section badges */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, justifyContent: "center" }}>
-        {[
-          { icon: "🧔", label: "Men's Lounge",    desc: "Gay men · curated" },
-          { icon: "👩", label: "Women's Suite",   desc: "Lesbian women · curated" },
-          { icon: "✨", label: "The Mix",          desc: "Fluid · open · free" },
-        ].map(s => (
-          <div key={s.label} style={{
-            flex: 1, borderRadius: 12, padding: "10px 8px", textAlign: "center",
-            background: `${VIOLET}0a`, border: `1px solid ${VIOLET}22`,
-          }}>
-            <div style={{ fontSize: 20, marginBottom: 4 }}>{s.icon}</div>
-            <p style={{ fontSize: 9, fontWeight: 900, color: VIOLET, margin: "0 0 2px" }}>{s.label}</p>
-            <p style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", margin: 0 }}>{s.desc}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Blurred preview */}
-      <p style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.2)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 12px" }}>
-        Preview — members only
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28, filter: "blur(6px)", pointerEvents: "none", opacity: 0.6 }}>
-        {preview.map(p => (
-          <div key={p.id} style={{
-            width: "100%", borderRadius: 16, overflow: "hidden",
-            border: `1px solid ${VIOLET}22`, display: "flex", minHeight: 120,
-          }}>
-            <img src={p.photo} alt="" style={{ width: "40%", objectFit: "cover" }} onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
-            <div style={{ flex: 1, padding: 12, background: VIOLET_DARK }}>
-              <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: "0 0 3px" }}>{p.name}, {p.age}</p>
-              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: "0 0 8px" }}>{p.countryFlag} {p.city}</p>
-              <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                {p.tags.slice(0, 2).map(t => (
-                  <span key={t} style={{ fontSize: 8, background: `${VIOLET}18`, color: `${VIOLET}cc`, borderRadius: 4, padding: "2px 6px", fontWeight: 700 }}>{t}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* What's included */}
-      <div style={{ background: `${VIOLET}08`, border: `1px solid ${VIOLET}25`, borderRadius: 16, padding: 16, marginBottom: 20 }}>
-        <p style={{ fontSize: 12, fontWeight: 900, color: VIOLET, margin: "0 0 12px" }}>🪟 What The Loft includes</p>
-        {[
-          "Three curated sections — Men, Women, The Mix",
-          "Admin-verified guests only — max 30 per city",
-          "Send gifts with a personal opener note",
-          "2 free gifts daily — coins for more",
-          "Mutual like → private Vault chat opens",
-          "Browse other city Lofts for +$14.99/city",
-          "Safe, respectful, anonymous — always",
-        ].map(item => (
-          <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
-            <span style={{ fontSize: 10, color: VIOLET, flexShrink: 0, marginTop: 1 }}>◆</span>
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>{item}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Subscribe CTA */}
-      <motion.button
-        whileTap={{ scale: 0.97 }} onClick={onSubscribe}
-        style={{
-          width: "100%", height: 54, borderRadius: 16, border: "none",
-          background: VIOLET_GRAD,
-          color: "#fff", fontSize: 16, fontWeight: 900, cursor: "pointer",
-          boxShadow: `0 6px 32px ${VIOLET}55`,
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-        }}
-      >
-        <span>🪟</span>
-        <span>Enter The Loft — {LOFT_SUB_PRICE} one-time</span>
-      </motion.button>
-      <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 10 }}>
-        Cancel anytime · Curated guests · Safe & anonymous
-      </p>
-    </div>
-  );
-}
-
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function LoftFloorPage() {
   const navigate = useNavigate();
 
-  const [subscribed,   setSubscribed]   = useState(isLoftSubscribed);
   const [coinBalance,  setCoinBalance]  = useState(readCoins);
   const [likedIds,     setLikedIds]     = useState<string[]>(getLoftLikedIds);
   const [dailyUsed,    setDailyUsed]    = useState(getLoftDailyGiftsUsed);
   const [giftTarget,   setGiftTarget]   = useState<LoftProfile | null>(null);
   const [newArrival,   setNewArrival]   = useState<LoftProfile | null>(null);
   const [activeCity,   setActiveCity]   = useState("LON");
-  const [section,      setSection]      = useState<LoftSection>("men");
+  const [section,      setSection]      = useState<LoftSection>(() => {
+    try {
+      const s = localStorage.getItem("ghost_loft_section");
+      if (s === "womens_suite") return "women";
+      if (s === "the_mix") return "mix";
+      return "men";
+    } catch { return "men"; }
+  });
   const [justLiked,    setJustLiked]    = useState<string | null>(null);
   const [loftTab,      setLoftTab]      = useState<"ilike" | "liked">("ilike");
   const loftRevertRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -399,14 +298,14 @@ export default function LoftFloorPage() {
 
   // New arrival — fires once per session
   useEffect(() => {
-    if (!subscribed || shownArrival.current) return;
+    if (shownArrival.current) return;
     const arrival = MOCK_LOFT_PROFILES.find(p => p.isNewArrival);
     if (arrival) {
       shownArrival.current = true;
       const t = setTimeout(() => setNewArrival(arrival), 600);
       return () => clearTimeout(t);
     }
-  }, [subscribed]);
+  }, []);
 
   const handleLike = (p: LoftProfile) => {
     addLoftLike(p.id);
@@ -470,25 +369,17 @@ export default function LoftFloorPage() {
               </p>
             </div>
           </div>
-          {subscribed && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 4, background: `${VIOLET}12`, border: `1px solid ${VIOLET}30`, borderRadius: 8, padding: "4px 8px" }}>
                 <span style={{ fontSize: 12 }}>🪙</span>
                 <span style={{ fontSize: 11, fontWeight: 900, color: VIOLET, fontVariantNumeric: "tabular-nums" }}>{coinBalance}</span>
               </div>
-              <div style={{ background: `${VIOLET}18`, border: `1px solid ${VIOLET}44`, borderRadius: 6, padding: "3px 8px" }}>
-                <span style={{ fontSize: 9, fontWeight: 900, color: VIOLET, letterSpacing: "0.08em" }}>MEMBER</span>
-              </div>
             </div>
-          )}
         </div>
       </div>
 
       <div style={{ maxWidth: 480, margin: "0 auto", position: "relative", zIndex: 2 }}>
-        {!subscribed ? (
-          <LoftTeaser onSubscribe={() => { activateLoftSub(); setSubscribed(true); }} />
-        ) : (
-          <>
+        <>
             {/* ── I Like / Liked Me container ── */}
             {(() => {
               const avatarW = "calc((100vw - 108px) / 3)";
@@ -683,8 +574,7 @@ export default function LoftFloorPage() {
             <p style={{ fontSize: 10, color: "rgba(255,255,255,0.15)", textAlign: "center", padding: "20px 16px 8px", lineHeight: 1.6 }}>
               Reply notes cost 🪙{LOFT_NOTE_COST} · Vault messages 🪙2 · They earn 60% of every gift
             </p>
-          </>
-        )}
+        </>
       </div>
 
       {/* ── Modals ── */}

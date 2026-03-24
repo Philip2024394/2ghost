@@ -30,7 +30,7 @@ import HouseRulesModal from "../components/HouseRulesModal";
 import GhostFlashPaywallSheet from "../components/GhostFlashPaywallSheet";
 import GhostAuthGateSheet from "../components/GhostAuthGateSheet";
 import GhostLobbySheet from "../components/GhostLobbySheet";
-import GhostViewedMeSheet from "../components/GhostViewedMeSheet";
+import GhostViewedMeSheet, { saveInvite, getInvite } from "../components/GhostViewedMeSheet";
 import GhostLeaderboardSheet from "../components/GhostLeaderboardSheet";
 import GhostTonightSheet from "../components/GhostTonightSheet";
 import GhostLobbyWelcomePopup from "../components/GhostLobbyWelcomePopup";
@@ -40,11 +40,10 @@ import GhostButlerConnectPrompt from "../components/GhostButlerConnectPrompt";
 import GhostButlerUnavailablePopup from "../components/GhostButlerUnavailablePopup";
 import GhostSettingsDrawer, { type SettingsAction } from "../components/GhostSettingsDrawer";
 import FilterBar from "../components/FilterBar";
-import GhostProfilePopup from "../components/GhostProfilePopup";
 import GhostMatchPopup from "../components/GhostMatchPopup";
 import ConnectNowPopup from "../components/ConnectNowPopup";
 import InboundLikePopup from "../components/InboundLikePopup";
-import GhostCard from "../components/GhostCard";
+import GhostCard, { ProfileWhisperModal } from "../components/GhostCard";
 import MatchPaywallModal from "../components/MatchPaywallModal";
 import GhostHouseModal from "../components/GhostHouseModal";
 import { GhostFlashMatchPopup } from "../components/GhostFlashSection";
@@ -356,6 +355,7 @@ export default function GhostModePage() {
     } catch {}
     setHouseRulesAgreed(true);
     setShowHouseRules(false);
+    setTimeout(() => setButlerMessage(BUTLER_MESSAGES["room_ready"]), 5000);
   };
 
   // Filter button randomly cycling glow
@@ -410,6 +410,9 @@ export default function GhostModePage() {
   const [showReferral,       setShowReferral]       = useState(false);
   const [showLobbyPopup,     setShowLobbyPopup]     = useState(false);
   const [showViewedMe,       setShowViewedMe]       = useState(false);
+  const [expandedLikedProfile, setExpandedLikedProfile] = useState<GhostProfile | null>(null);
+  const myProfileId = useMemo(() => { try { return JSON.parse(localStorage.getItem("ghost_profile") || "{}").id ?? null; } catch { return null; } }, []);
+  const [pendingChatInviteProfileId, setPendingChatInviteProfileId] = useState<string | null>(null);
   const [showFloorInvite,    setShowFloorInvite]    = useState(false);
   const [floorInviteProfile, setFloorInviteProfile] = useState<import("../types/ghostTypes").GhostProfile | null>(null);
   const [floorInviteMode,    setFloorInviteMode]    = useState<"invite" | "request">("invite");
@@ -660,6 +663,7 @@ export default function GhostModePage() {
     if (action === "rooms") { setShowHouseModal(true); return; }
     if (action === "ghostClock") { setWindowActive(hasActiveWindowMode()); setShowGhostClock(true); return; }
     if (action === "floorWars") { setShowFloorWars(true); return; }
+    if (action === "games") { navigate("/ghost/games"); return; }
     if (action === "video") { setShowVideoUpload(true); return; }
   };
 
@@ -914,8 +918,8 @@ export default function GhostModePage() {
 
   // Room members — profiles "assigned" to the same tier as the user (seeded by profile ID hash)
   const TIER_COLORS: Record<string, string> = { standard: "#a8a8b0", suite: "#cd7f32", kings: "#d4af37", penthouse: "#e0ddd8", cellar: "#9b1c1c", garden: "#7a9e7e" };
-  const TIER_LABELS: Record<string, string> = { standard: "Standard Room", suite: "Suite", kings: "Kings Room", penthouse: "Penthouse", cellar: "The Cellar", garden: "Garden Lodge" };
-  const TIER_ICONS: Record<string, string>  = { standard: "🛏️", suite: "🛎️", kings: "👑", penthouse: "🏙️", cellar: "🕯️", garden: "🌿" };
+  const TIER_LABELS: Record<string, string> = { standard: "Standard Room", suite: "Ensuite", kings: "The Casino", penthouse: "Penthouse", cellar: "The Cellar", garden: "Garden Lodge" };
+  const TIER_ICONS: Record<string, string>  = { standard: "🛏️", suite: "🛎️", kings: "🎰", penthouse: "🏙️", cellar: "🕯️", garden: "🌿" };
   const tierColor = userRoomTier ? (TIER_COLORS[userRoomTier] ?? a.accent) : a.accent;
   const tierLabel = userRoomTier ? (TIER_LABELS[userRoomTier] ?? "My Room") : "My Room";
   const tierIcon  = userRoomTier ? (TIER_ICONS[userRoomTier] ?? "🏠") : "🏠";
@@ -1202,11 +1206,12 @@ export default function GhostModePage() {
                   return (
                     <div key={p.id}
                       onClick={() => {
-                        if (revealed) { openMatchAction(p, "liked"); return; }
+                        if (revealed) { setExpandedLikedProfile(p); return; }
                         const current = coinBalance;
                         if (current < 20) { setShowCoinShop(true); return; }
                         updateCoins(current - 20);
                         setRevealedInbound(prev => new Set([...prev, p.id]));
+                        setExpandedLikedProfile(p);
                       }}
                       style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
                     >
@@ -1467,7 +1472,7 @@ export default function GhostModePage() {
           <Lock size={20} style={{ color: "#fff", flexShrink: 0 }} />
           <div style={{ textAlign: "left" }}>
             <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Vault</p>
-            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Your matches</p>
+            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Private</p>
           </div>
         </motion.button>
 
@@ -1482,9 +1487,7 @@ export default function GhostModePage() {
           <Moon size={20} style={{ color: "#fff", flexShrink: 0 }} />
           <div style={{ textAlign: "left" }}>
             <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#f472b6" }}>Tonight</p>
-            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>
-              {lobbyList.length > 0 ? `${lobbyList.length} available` : "Meet tonight"}
-            </p>
+            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Available</p>
           </div>
         </motion.button>
 
@@ -1495,7 +1498,7 @@ export default function GhostModePage() {
           <KeyRound size={20} style={{ color: "#fff", flexShrink: 0 }} />
           <div style={{ textAlign: "left" }}>
             <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Rooms</p>
-            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Ghost Hotel</p>
+            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Upgrade</p>
           </div>
         </motion.button>
       </div>
@@ -1516,7 +1519,7 @@ export default function GhostModePage() {
         >
           <span style={{ fontSize: 18, flexShrink: 0 }}>💬</span>
           <div style={{ textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Floor Chat</p>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Chat</p>
             <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Members live</p>
           </div>
           {chatUnread > 0 && (
@@ -1526,24 +1529,13 @@ export default function GhostModePage() {
           )}
         </motion.button>
 
-        {/* Floor Wars */}
-        <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => setShowEvents(true))}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "rgba(244,114,182,0.1)", border: "1px solid rgba(244,114,182,0.35)", borderRadius: 14, cursor: "pointer" }}
-        >
-          <Swords size={20} style={{ color: "#fff", flexShrink: 0 }} />
-          <div style={{ textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#f472b6" }}>Floor Wars</p>
-            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Today</p>
-          </div>
-        </motion.button>
-
         {/* Viewed Me */}
         <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => setShowViewedMe(true))}
           style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
         >
           <span style={{ fontSize: 18, flexShrink: 0 }}>👁️</span>
           <div style={{ textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Viewed Me</p>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Viewed</p>
             <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>{viewedMeList.length} profiles</p>
           </div>
           {viewedMeList.some(p => p.viewCount >= 2) && (
@@ -2030,22 +2022,6 @@ export default function GhostModePage() {
           </div>{/* close gender-accent container */}
         </div>
       )}
-
-      <AnimatePresence>
-        {selectedProfile && (
-          <GhostProfilePopup
-            profile={selectedProfile}
-            liked={likedIds.has(selectedProfile.id)}
-            onLike={() => handleLike(selectedProfile)}
-            onClose={() => setSelectedProfile(null)}
-            onPass={() => handlePass(selectedProfile.id)}
-            onWhisper={() => { setWhisperProfile(selectedProfile); setSelectedProfile(null); setShowWhisper(true); }}
-            onVideoIntro={profileHasVideo(selectedProfile.id) ? () => { setVideoProfile(selectedProfile); setSelectedProfile(null); setShowVideoPlayer(true); } : undefined}
-            onSeance={likedIds.has(selectedProfile.id) ? () => { setSeanceProfile(selectedProfile); setSelectedProfile(null); setShowSeance(true); } : undefined}
-            onGameInvite={isOnline(selectedProfile.last_seen_at) ? () => handleGameInvite(selectedProfile) : undefined}
-          />
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {pendingGameInvite && (
@@ -2557,6 +2533,7 @@ export default function GhostModePage() {
       <GhostViewedMeSheet
         show={showViewedMe}
         viewedMeList={viewedMeList}
+        myProfileId={myProfileId}
         userRoomTier={userRoomTier}
         likedIds={likedIds}
         onClose={() => setShowViewedMe(false)}
@@ -2568,6 +2545,11 @@ export default function GhostModePage() {
           setFloorInviteTarget(target);
           setShowViewedMe(false);
           setShowFloorInvite(true);
+        }}
+        onStartChat={(p) => {
+          setShowViewedMe(false);
+          setPendingChatInviteProfileId(p.id);
+          setButlerMessage({ ...BUTLER_MESSAGES["chat_invite_viewed"] });
         }}
       />
 
@@ -2624,8 +2606,8 @@ export default function GhostModePage() {
       <AnimatePresence>
         {showFloorChat && (floorChatTier ?? userRoomTier) && (() => {
           const TIER_COLORS_ALL: Record<string, string> = { standard: "#a8a8b0", suite: "#cd7f32", kings: "#d4af37", penthouse: "#e0ddd8", cellar: "#9b1c1c", garden: "#7a9e7e" };
-          const TIER_LABELS_ALL: Record<string, string> = { standard: "Standard Room", suite: "Suite", kings: "Kings Room", penthouse: "Penthouse", cellar: "The Cellar", garden: "Garden Lodge" };
-          const TIER_ICONS_ALL:  Record<string, string> = { standard: "🛏️", suite: "🛎️", kings: "👑", penthouse: "🏙️", cellar: "🕯️", garden: "🌿" };
+          const TIER_LABELS_ALL: Record<string, string> = { standard: "Standard Room", suite: "Ensuite", kings: "The Casino", penthouse: "Penthouse", cellar: "The Cellar", garden: "Garden Lodge" };
+          const TIER_ICONS_ALL:  Record<string, string> = { standard: "🛏️", suite: "🛎️", kings: "🎰", penthouse: "🏙️", cellar: "🕯️", garden: "🌿" };
           const activeTier  = (floorChatTier ?? userRoomTier)!;
           const activeColor = TIER_COLORS_ALL[activeTier] ?? tierColor;
           const activeLabel = TIER_LABELS_ALL[activeTier] ?? tierLabel;
@@ -2676,10 +2658,41 @@ export default function GhostModePage() {
           setInboundLike(pick);
         }}
         onTriggerButler={(key: ButlerMessageKey) => setButlerMessage(BUTLER_MESSAGES[key])}
+        onSimulateChatInvite={() => {
+          // Simulate User B receiving an invite from a random profile
+          const fakeFromId = allProfiles[0]?.id ?? "demo-profile-id";
+          const myId = myProfileId ?? "demo-my-id";
+          saveInvite(fakeFromId, myId);
+          setShowViewedMe(true);
+        }}
       />
 
       {/* ── Butler Message ── */}
-      <GhostButlerMessage message={butlerMessage} onClose={() => setButlerMessage(null)} />
+      {/* Liked-me profile modal — same component as fingerprint view */}
+      <AnimatePresence>
+        {expandedLikedProfile && (
+          <ProfileWhisperModal
+            profile={expandedLikedProfile}
+            liked={likedIds.has(expandedLikedProfile.id)}
+            onLike={() => handleLike(expandedLikedProfile)}
+            onClose={() => setExpandedLikedProfile(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {butlerMessage?.key === "room_ready" && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 799, cursor: "not-allowed" }} onClickCapture={e => e.stopPropagation()} />
+      )}
+      <GhostButlerMessage
+        message={butlerMessage}
+        onClose={() => { setButlerMessage(null); setPendingChatInviteProfileId(null); }}
+        onCreateProfile={() => { setButlerMessage(null); navigate("/ghost/setup"); }}
+        onAction={pendingChatInviteProfileId ? () => {
+          if (myProfileId) saveInvite(myProfileId, pendingChatInviteProfileId);
+          setPendingChatInviteProfileId(null);
+          setShowViewedMe(true);
+        } : undefined}
+      />
 
       {/* ── Hearts cascade on inbound like ── */}
       <AnimatePresence>

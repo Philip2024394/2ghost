@@ -101,7 +101,7 @@ export default function SuiteRoomPage() {
     [likedIds],
   );
 
-  const tabLabel = memberTab === "ilike" ? "I Like" : memberTab === "liked" ? "Liked Me" : "Suite Members";
+  const tabLabel = memberTab === "ilike" ? "I Like" : memberTab === "liked" ? "Liked Me" : "Ensuite Members";
   const tabCount = memberTab === "ilike" ? iLikeProfiles.length
     : memberTab === "liked" ? likedMeProfiles.length
     : SUITE_PROFILES.length;
@@ -224,7 +224,7 @@ export default function SuiteRoomPage() {
                 <span style={{ color: C, fontWeight: 900 }}>2</span>Ghost
               </h1>
               <p style={{ margin: 0, fontSize: 9, fontWeight: 700, color: C, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                The Suite 🛎️
+                The Ensuite 🛎️
               </p>
             </div>
           </div>
@@ -557,7 +557,7 @@ export default function SuiteRoomPage() {
       <AnimatePresence>
         {showChat && (
           <FloorChatPopup
-            tier="suite" tierColor={C} tierLabel="The Suite" tierIcon="🛎️"
+            tier="suite" tierColor={C} tierLabel="The Ensuite" tierIcon="🛎️"
             isBreakfast={isBreakfastChat}
             breakfastGuestName={loungeGuestName}
             breakfastGifts={breakfastInviteRef?.selectedGifts ?? []}
@@ -582,7 +582,7 @@ export default function SuiteRoomPage() {
       <AnimatePresence>
         {showButlerArrival && (
           <ButlerArrivalPopup
-            floor="suite" floorLabel="The Suite" floorColor={C} floorIcon="🛎️"
+            floor="suite" floorLabel="The Ensuite" floorColor={C} floorIcon="🛎️"
             onClose={() => setShowButlerArrival(false)}
             onInvite={() => { setShowButlerArrival(false); setShowGuestPicker(true); }}
           />
