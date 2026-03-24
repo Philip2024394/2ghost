@@ -164,13 +164,12 @@ const rnd = (min: number, max: number) => min + Math.random() * (max - min);
 function Avatar({ p, size = 48, border, status }: {
   p: LoungeProfile; size?: number; border?: string; status?: "available" | "at-table";
 }) {
-  const c = avCol(p.seed);
-  const dotSize  = Math.max(8, size * 0.18);
-  const dotColor = status === "at-table" ? "#f97316" : "#22c55e";
+  const ringColor = status === "at-table" ? "#f97316" : status === "available" ? "#22c55e" : avCol(p.seed);
+  const dotSize   = Math.max(8, size * 0.18);
   return (
     <div style={{ width: size, height: size, flexShrink: 0, position: "relative" }}>
       <div style={{ width: size, height: size, borderRadius: "50%", overflow: "hidden",
-        border: border ?? `2px solid ${c}80`, boxSizing: "border-box" }}>
+        border: border ?? `2px solid ${ringColor}`, boxSizing: "border-box" }}>
         <img src={p.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
       </div>
       {status && (
@@ -178,7 +177,7 @@ function Avatar({ p, size = 48, border, status }: {
           animate={{ opacity: [1, 0.25, 1], scale: [1, 1.2, 1] }}
           transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
           style={{ position: "absolute", bottom: 1, right: 1, width: dotSize, height: dotSize,
-            borderRadius: "50%", background: dotColor,
+            borderRadius: "50%", background: ringColor,
             border: `${Math.max(1.5, size * 0.03)}px solid #08080e` }}
         />
       )}
@@ -687,15 +686,18 @@ export default function BreakfastLoungePage() {
               key="coffee-recv"
               initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               onClick={() => setShowCoffeeReply(true)}
-              style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.25)", borderRadius: 14, padding: "11px 14px", marginBottom: 10, cursor: "pointer" }}>
-              <motion.div animate={{ rotate: [0, -8, 8, 0] }} transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 2 }} style={{ fontSize: 22 }}>☕</motion.div>
-              <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#fbbf24" }}>Someone left you a coffee</p>
-                <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
-                  {coffeeReplySent ? `You replied: "${coffeeReplySent}"` : "Tap to see who — and reply"}
-                </p>
+              style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 14, overflow: "hidden", marginBottom: 10, cursor: "pointer", position: "relative" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #d4af37, rgba(212,175,55,0.4))", borderRadius: "14px 14px 0 0" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 14px 11px", width: "100%" }}>
+                <motion.div animate={{ rotate: [0, -8, 8, 0] }} transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 2 }} style={{ fontSize: 22 }}>☕</motion.div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#fbbf24" }}>Someone left you a coffee</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
+                    {coffeeReplySent ? `You replied: "${coffeeReplySent}"` : "Tap to see who — and reply"}
+                  </p>
+                </div>
+                <span style={{ fontSize: 14, color: "rgba(255,255,255,0.25)" }}>›</span>
               </div>
-              <span style={{ fontSize: 14, color: "rgba(255,255,255,0.25)" }}>›</span>
             </motion.div>
           )}
         </AnimatePresence>
