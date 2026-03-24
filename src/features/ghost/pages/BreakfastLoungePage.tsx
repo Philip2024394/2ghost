@@ -222,9 +222,12 @@ export default function BreakfastLoungePage() {
   const [showSeatingPicker, setShowSeatingPicker] = useState(false);
 
   // ── Leave a coffee
-  const [coffeesSent, setCoffeesSent]     = useState<Set<string>>(new Set());
-  const [coffeeToast, setCoffeeToast]     = useState<string | null>(null);
+  const [coffeesSent, setCoffeesSent]       = useState<Set<string>>(new Set());
+  const [coffeeToast, setCoffeeToast]       = useState<string | null>(null);
   const [receivedCoffee, setReceivedCoffee] = useState(false);
+  const [coffeeFrom, setCoffeeFrom]         = useState<LoungeProfile | null>(null);
+  const [showCoffeeReply, setShowCoffeeReply] = useState(false);
+  const [coffeeReplySent, setCoffeeReplySent] = useState<string | null>(null);
 
   // ── Incoming invite
   const [incomingInvite, setIncomingInvite] = useState<LoungeProfile | null>(null);
@@ -285,10 +288,14 @@ export default function BreakfastLoungePage() {
     return () => clearTimeout(t);
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Simulated received coffee after ~45s
+  // Simulated received coffee after ~45s — pick a random sender
   useEffect(() => {
     if (!open) return;
-    const t = setTimeout(() => setReceivedCoffee(true), rnd(40_000, 60_000));
+    const t = setTimeout(() => {
+      const sender = POOL[Math.floor(Math.random() * POOL.length)];
+      setCoffeeFrom(sender);
+      setReceivedCoffee(true);
+    }, rnd(40_000, 60_000));
     return () => clearTimeout(t);
   }, []);
 
@@ -665,38 +672,22 @@ export default function BreakfastLoungePage() {
 
       <div style={{ padding: "14px 13px calc(env(safe-area-inset-bottom,0px) + 32px)" }}>
 
-        {/* Live presence */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.18)", borderRadius: 14, padding: "10px 14px", marginBottom: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, flex: 1 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px #4ade80" }} />
-            <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
-              <span style={{ color: "#4ade80", fontWeight: 800 }}>You're in the lounge</span>
-              {seatingTime && <span style={{ color: "#d4af37" }}> · Reserved {seatingTime}</span>}
-              {intlActive && <span style={{ color: "#a78bfa" }}> · 🌍 International</span>}
-            </p>
-          </div>
-          {intlUnlocked && (
-            <motion.button whileTap={{ scale: 0.95 }}
-              onClick={() => { setIntlActive(!intlActive); setVisible(buildVisible(!intlActive)); }}
-              style={{ padding: "4px 10px", borderRadius: 20, background: intlActive ? "rgba(167,139,250,0.15)" : "rgba(255,255,255,0.04)", border: `1px solid ${intlActive ? "rgba(167,139,250,0.35)" : "rgba(255,255,255,0.1)"}`, color: intlActive ? "#a78bfa" : "rgba(255,255,255,0.3)", fontSize: 10, fontWeight: 800, cursor: "pointer" }}>
-              {intlActive ? "🌍 Intl ON" : "🌍 Intl"}
-            </motion.button>
-          )}
-        </div>
-
         {/* Received coffee toast */}
         <AnimatePresence>
           {receivedCoffee && (
             <motion.div
               key="coffee-recv"
               initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.2)", borderRadius: 14, padding: "11px 14px", marginBottom: 10 }}>
-              <span style={{ fontSize: 20 }}>☕</span>
+              onClick={() => setShowCoffeeReply(true)}
+              style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.25)", borderRadius: 14, padding: "11px 14px", marginBottom: 10, cursor: "pointer" }}>
+              <motion.div animate={{ rotate: [0, -8, 8, 0] }} transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 2 }} style={{ fontSize: 22 }}>☕</motion.div>
               <div style={{ flex: 1 }}>
                 <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#fbbf24" }}>Someone left you a coffee</p>
-                <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>An anonymous guest — Mr. Butla won't say who ☕</p>
+                <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
+                  {coffeeReplySent ? `You replied: "${coffeeReplySent}"` : "Tap to see who — and reply"}
+                </p>
               </div>
-              <button onClick={() => setReceivedCoffee(false)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.2)", cursor: "pointer", fontSize: 14 }}>✕</button>
+              <span style={{ fontSize: 14, color: "rgba(255,255,255,0.25)" }}>›</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -760,14 +751,28 @@ export default function BreakfastLoungePage() {
           </div>
         )}
 
-        {/* Countdown + filter toggle */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 11 }}>
-          <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.28)", letterSpacing: "0.14em", textTransform: "uppercase" }}>
-            {intlActive ? "🌍 International Guests" : "Live Guests"}
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20, padding: "3px 10px" }}>
+        {/* Status strip + countdown */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 11, gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.28)", letterSpacing: "0.14em", textTransform: "uppercase" }}>
+              {intlActive ? "🌍 International" : "Live Guests"}
+            </p>
+            {seatingTime && (
+              <span style={{ fontSize: 9, fontWeight: 700, color: "#d4af37", background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 10, padding: "1px 7px" }}>
+                🕐 {seatingTime}
+              </span>
+            )}
+            {intlUnlocked && (
+              <motion.button whileTap={{ scale: 0.92 }}
+                onClick={() => { setIntlActive(!intlActive); setVisible(buildVisible(!intlActive)); }}
+                style={{ padding: "2px 8px", borderRadius: 10, background: intlActive ? "rgba(167,139,250,0.15)" : "rgba(255,255,255,0.04)", border: `1px solid ${intlActive ? "rgba(167,139,250,0.35)" : "rgba(255,255,255,0.1)"}`, color: intlActive ? "#a78bfa" : "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 800, cursor: "pointer" }}>
+                {intlActive ? "🌍 ON" : "🌍"}
+              </motion.button>
+            )}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20, padding: "3px 10px", flexShrink: 0 }}>
             <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#4ade80" }} />
-            <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>Refreshes in {fmtCountdown()}</p>
+            <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>Refreshes {fmtCountdown()}</p>
           </div>
         </div>
 
@@ -987,6 +992,86 @@ export default function BreakfastLoungePage() {
                   style={{ flex: 2, padding: "14px", background: "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", border: "none", borderRadius: 14, cursor: "pointer", fontSize: 14, fontWeight: 900, color: "#0a0500", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
                   <span>🍳</span> Accept Invitation
                 </motion.button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ════ COFFEE REPLY SHEET ════ */}
+      <AnimatePresence>
+        {showCoffeeReply && coffeeFrom && (
+          <>
+            <motion.div key="cr-bg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowCoffeeReply(false)}
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 400, backdropFilter: "blur(8px)" }} />
+            <motion.div key="cr-sheet" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 401, background: "#0e0e18", borderRadius: "22px 22px 0 0", border: "1px solid rgba(251,191,36,0.18)", borderBottom: "none", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)" }}>
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)", margin: "12px auto 0" }} />
+              <div style={{ padding: "16px 18px 0" }}>
+
+                {/* Butler reveal */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                  <img src={BUTLER_IMG} alt="" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: "1.5px solid rgba(212,175,55,0.35)", flexShrink: 0 }} />
+                  <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.4)", fontStyle: "italic", lineHeight: 1.5 }}>
+                    "A little bird told me. I shouldn't say… but here we are."
+                  </p>
+                </div>
+
+                {/* Sender profile */}
+                <div style={{ display: "flex", alignItems: "center", gap: 14, background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.15)", borderRadius: 16, padding: "14px", marginBottom: 18 }}>
+                  <Avatar p={coffeeFrom} size={56} status="available" />
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#fff" }}>{coffeeFrom.ghostId}</p>
+                    <p style={{ margin: "3px 0 2px", fontSize: 11, color: "rgba(255,255,255,0.38)" }}>
+                      {coffeeFrom.flag} {coffeeFrom.city}, {coffeeFrom.country} · {coffeeFrom.floor} Floor · Age {coffeeFrom.age}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 11, color: avCol(coffeeFrom.seed), fontStyle: "italic" }}>"{coffeeFrom.mood}"</p>
+                  </div>
+                </div>
+
+                {/* About */}
+                <p style={{ margin: "0 0 14px", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, fontStyle: "italic" }}>
+                  "{coffeeFrom.about}"
+                </p>
+
+                {/* Quick replies */}
+                {coffeeReplySent ? (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "16px", background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", borderRadius: 16 }}>
+                    <span style={{ fontSize: 18 }}>☕</span>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#4ade80" }}>
+                      Mr. Butla delivered your reply
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <p style={{ margin: "0 0 10px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.28)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                      Send a reply
+                    </p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {[
+                        { text: "Thank you ☕",            sub: "Warm and simple" },
+                        { text: "So sweet 🥰",             sub: "Made my morning" },
+                        { text: "I like your style 😏",    sub: "Bold opener" },
+                        { text: "Hey, free for dinner? 🍷", sub: "Go straight to it" },
+                      ].map(({ text, sub }) => (
+                        <motion.button key={text} whileTap={{ scale: 0.97 }}
+                          onClick={() => {
+                            setCoffeeReplySent(text);
+                            setTimeout(() => setShowCoffeeReply(false), 1_800);
+                          }}
+                          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 14, cursor: "pointer", textAlign: "left" }}>
+                          <div>
+                            <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "#fff" }}>{text}</p>
+                            <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.28)" }}>{sub}</p>
+                          </div>
+                          <span style={{ fontSize: 16, color: "rgba(255,255,255,0.2)" }}>›</span>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </motion.div>
           </>
