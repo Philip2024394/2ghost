@@ -555,7 +555,7 @@ export default function GhostBlockPage() {
               {[
                 { icon: "🚪", text: "Turn away any guest by WhatsApp number — no room for them" },
                 { icon: "👻", text: "Turned-away guests see No Vacancy — never know it's aimed at them" },
-                { icon: "🔒", text: "Active while your Ghost membership is active" },
+                { icon: "🔒", text: "Active while your membership is active" },
                 { icon: "📅", text: "1 month No Vacancy included with every pay-per-connection" },
                 { icon: "🌍", text: "Works globally — any country code" },
               ].map(({ icon, text }) => (

@@ -2516,7 +2516,7 @@ export default function GhostModePage() {
         {showVideoPlayer && videoProfile && (
           <VideoIntroPlayer
             profile={videoProfile}
-            myGhostId={(() => { try { return `Ghost-${Math.abs(Array.from(localStorage.getItem("ghost_phone") ?? "").reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0)) % 9000 + 1000}`; } catch { return "Ghost-0000"; } })()}
+            myGhostId={(() => { try { return `Guest-${Math.abs(Array.from(localStorage.getItem("ghost_phone") ?? "").reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0)) % 9000 + 1000}`; } catch { return "Guest-0000"; } })()}
             onClose={() => { setShowVideoPlayer(false); setVideoProfile(null); }}
           />
         )}

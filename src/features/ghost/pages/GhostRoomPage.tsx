@@ -399,7 +399,7 @@ function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RoomRequest = {
-  ghostId: string;   // Ghost-XXXX of requesting user
+  ghostId: string;   // Guest-XXXX of requesting user
   name: string;      // display name (ghost alias)
   requestedAt: number;
   status: "pending" | "granted" | "denied";
@@ -408,7 +408,7 @@ type RoomRequest = {
 type ShareAccessType = "image" | "video" | "both";
 
 type AccessedRoom = {
-  ghostId: string;        // Ghost-XXXX of room owner
+  ghostId: string;        // Guest-XXXX of room owner
   roomCode: string;       // code used to access
   accessType: ShareAccessType;
   grantedAt: number;
@@ -590,10 +590,10 @@ function getMyGhostId(): string {
       let h = 0;
       const id = p.name + p.age + p.city;
       for (let i = 0; i < id.length; i++) { h = Math.imul(31, h) + id.charCodeAt(i) | 0; }
-      return `Ghost-${1000 + Math.abs(h) % 9000}`;
+      return `Guest-${1000 + Math.abs(h) % 9000}`;
     }
   } catch {}
-  return "Ghost-????";
+  return "Guest-????";
 }
 
 function loadJson<T>(key: string, fallback: T): T {
@@ -668,7 +668,7 @@ function SendMediaPanel({
 
   const handleSend = () => {
     const target = targetId.trim();
-    if (!target.startsWith("Ghost-")) { setError("Enter a valid Ghost ID (e.g. Ghost-4821)"); return; }
+    if (!target.startsWith("Guest-")) { setError("Enter a valid Guest ID (e.g. Guest-4821)"); return; }
     if (target === myGhostId) { setError("You can't send to yourself"); return; }
 
     let content = "";
@@ -754,13 +754,13 @@ function SendMediaPanel({
           >
             <div style={{ paddingTop: 14 }}>
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "0 0 12px" }}>
-                Enter the recipient's Ghost ID — they'll receive a notification in their Inbox tab to accept or decline.
+                Enter the recipient's Guest ID — they'll receive a notification in their Inbox tab to accept or decline.
               </p>
 
-              {/* Target Ghost ID */}
+              {/* Target Guest ID */}
               <input
                 style={{ ...inputStyle, marginBottom: 10 }}
-                placeholder="Ghost-XXXX (recipient's ID)"
+                placeholder="Guest-XXXX (recipient's ID)"
                 value={targetId}
                 onChange={(e) => { setTargetId(e.target.value.toUpperCase()); setError(""); }}
               />
@@ -889,7 +889,7 @@ function SendMediaPanel({
                   <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff" }} />
                 ) : (
-                  <>📤 Send to {targetId || "Ghost-XXXX"}</>
+                  <>📤 Send to {targetId || "Guest-XXXX"}</>
                 )}
               </motion.button>
             </div>
@@ -996,8 +996,8 @@ function RoomWelcomePopup({ onClose }: { onClose: () => void }) {
           {/* Body */}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
-              { icon: "🔐", title: "Your private vault", body: "Store photos and videos securely — only you and chosen Ghosts can access your room." },
-              { icon: "📤", title: "Share with any Ghost instantly", body: "Send media to another 2Ghost user in seconds — just enter their Ghost ID and hit Send." },
+              { icon: "🔐", title: "Your private vault", body: "Store photos and videos securely — only you and chosen guests can access your room." },
+              { icon: "📤", title: "Share with any guest instantly", body: "Send media to another 2Ghost user in seconds — just enter their Guest ID and hit Send." },
               { icon: "🔒", title: "One touch. Total lockdown.", body: "Need to go? One tap locks your room and clears all files from view — nothing visible, nothing exposed." },
             ].map(item => (
               <div key={item.icon} style={{ display: "flex", gap: 13, alignItems: "flex-start", background: "rgba(255,255,255,0.06)", border: `1px solid ${a.glow(0.1)}`, borderRadius: 14, padding: "12px 14px" }}>
@@ -1159,7 +1159,7 @@ export default function GhostRoomPage() {
     return () => clearInterval(t);
   }, [myGhostId, roomTier]);
 
-  // Pull in requests written for my Ghost ID
+  // Pull in requests written for my Guest ID
   useEffect(() => {
     try {
       const reqKey = `ghost_room_requests_for_${myGhostId}`;
@@ -1370,12 +1370,12 @@ export default function GhostRoomPage() {
     setEnterError("");
     setEnterSuccess("");
 
-    if (!val) { setEnterError("Enter a room code or Ghost ID"); return; }
+    if (!val) { setEnterError("Enter a room code or Guest ID"); return; }
 
-    // If it's a Ghost-XXXX ID → send access request
+    // If it's a Guest-XXXX ID → send access request
     if (val.startsWith("GHOST-")) {
-      const normalized = val.replace("GHOST-", "Ghost-");
-      if (normalized === myGhostId) { setEnterError("That's your own Ghost ID"); return; }
+      const normalized = val.replace("GHOST-", "Guest-");
+      if (normalized === myGhostId) { setEnterError("That's your own Guest ID"); return; }
       if (requestSent.includes(normalized)) { setEnterError("Request already sent"); return; }
 
       // Write request into that user's request list (shared localStorage key)
@@ -1882,7 +1882,7 @@ export default function GhostRoomPage() {
                   {matches.length === 0 && accessedRooms.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "60px 0" }}>
                       <img src={GHOST_LOGO} alt="ghost" style={{ width: 156, height: 156, objectFit: "contain" }} />
-                      <p style={{ fontSize: 14, color: "rgba(255,255,255,0.25)", marginTop: 14 }}>No ghost connections yet</p>
+                      <p style={{ fontSize: 14, color: "rgba(255,255,255,0.25)", marginTop: 14 }}>No guest connections yet</p>
                       <p style={{ fontSize: 11, color: "rgba(255,255,255,0.18)" }}>Match with ghosts to see them here</p>
                     </div>
                   ) : (
@@ -2581,7 +2581,7 @@ export default function GhostRoomPage() {
 
               {requests.length === 0 && (
                 <p style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", margin: 0, textAlign: "center", padding: "10px 0" }}>
-                  No requests yet — share your Ghost ID so others can request access
+                  No requests yet — share your Guest ID so others can request access
                 </p>
               )}
 
@@ -2652,7 +2652,7 @@ export default function GhostRoomPage() {
             <div style={{ ...S.card, borderColor: "rgba(239,68,68,0.15)" }}>
               <p style={{ fontSize: 13, fontWeight: 800, color: "#f87171", margin: "0 0 4px" }}>Deactivate Account</p>
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "0 0 10px" }}>
-                Wipes your Ghost profile, all matches, your room, and removes your content from everyone who had access.
+                Wipes your guest profile, all matches, your room, and removes your content from everyone who had access.
               </p>
               <button
                 onClick={deactivateAccount}
@@ -2670,12 +2670,12 @@ export default function GhostRoomPage() {
             <div style={S.greenCard}>
               <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 4px" }}>Enter a Room Vault</p>
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "0 0 14px" }}>
-                Paste a 6-character room code to view their private room — or enter someone's Ghost ID (Ghost-XXXX) to request access.
+                Paste a 6-character room code to view their private room — or enter someone's Guest ID (Guest-XXXX) to request access.
               </p>
               <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
                 <input
                   style={S.input}
-                  placeholder="ROOM CODE or Ghost-XXXX"
+                  placeholder="ROOM CODE or Guest-XXXX"
                   value={enterInput}
                   onChange={(e) => { setEnterInput(e.target.value.toUpperCase()); setEnterError(""); setEnterSuccess(""); }}
                   onKeyDown={(e) => { if (e.key === "Enter") handleEnterRoom(); }}
@@ -2696,9 +2696,9 @@ export default function GhostRoomPage() {
               )}
             </div>
 
-            {/* My Ghost ID (to share so others can request) */}
+            {/* My Guest ID (to share so others can request) */}
             <div style={S.card}>
-              <p style={S.label}>Your Ghost ID — share this so others can request your room</p>
+              <p style={S.label}>Your Guest ID — share this so others can request your room</p>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ flex: 1, height: 44, borderRadius: 10, background: a.glow(0.06), border: `1px solid ${a.glow(0.2)}`, display: "flex", alignItems: "center", paddingLeft: 14 }}>
                   <span style={{ fontSize: 15, fontWeight: 800, color: a.glow(0.9) }}>{myGhostId}</span>
@@ -2966,7 +2966,7 @@ export default function GhostRoomPage() {
                 const ghostId = (() => {
                   let h = 0;
                   for (let i = 0; i < profile.id.length; i++) { h = Math.imul(31, h) + profile.id.charCodeAt(i) | 0; }
-                  return `Ghost-${1000 + Math.abs(h) % 9000}`;
+                  return `Guest-${1000 + Math.abs(h) % 9000}`;
                 })();
                 const isGranted = granted.includes(ghostId);
                 const timeLeft = Math.max(0, m.matchedAt + 48 * 60 * 60 * 1000 - Date.now());

@@ -49,7 +49,7 @@ function getMyGhostId(): string {
     // deterministic hash — same phone always yields same Ghost ID
     let h = 0;
     for (let i = 0; i < phone.length; i++) { h = Math.imul(31, h) + phone.charCodeAt(i) | 0; }
-    return `Ghost-${1000 + Math.abs(h) % 9000}`;
+    return `Guest-${1000 + Math.abs(h) % 9000}`;
   } catch { return ""; }
 }
 function isLoggedIn(): boolean {
@@ -130,7 +130,7 @@ function ReviewSheet({ tier, color, gradient, onClose, onSubmit }: {
               <div style={{ fontSize: 36, marginBottom: 12 }}>🔒</div>
               <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: "0 0 8px" }}>Sign in to leave a review</p>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "0 0 20px", lineHeight: 1.6 }}>
-                Only verified Ghost members who have stayed in a room can leave a review.
+                Only verified guests who have stayed in a room can leave a review.
               </p>
               <button onClick={onClose} style={{ height: 44, borderRadius: 12, border: `1px solid ${color}33`, background: `${color}15`, color, fontSize: 13, fontWeight: 800, cursor: "pointer", padding: "0 24px" }}>
                 Got it
@@ -458,7 +458,7 @@ const ROOMS = [
       "Dedicated concierge priority queue",
       "Early access to all new features",
       "Penthouse Floor — exclusive member lounge",
-      "Custom Ghost ID display name",
+      "Custom Guest ID display name",
     ],
   },
 ];

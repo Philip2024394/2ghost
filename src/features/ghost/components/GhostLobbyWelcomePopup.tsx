@@ -52,14 +52,14 @@ export default function GhostLobbyWelcomePopup({ show, onDismiss }: Props) {
                     The Lobby is Open — <span style={{ color: a.accent }}>Right Now</span>
                   </p>
                   <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, fontWeight: 600 }}>
-                    Real Ghost members. Live. Tonight.
+                    Real guests. Live. Tonight.
                   </p>
                 </div>
               </div>
 
               {/* Body copy */}
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", margin: 0, lineHeight: 1.65 }}>
-                Ghost members are in the Lobby <strong style={{ color: a.accent }}>at this very moment</strong> — anonymous, available, and searching for exactly what you are. No bios, no small talk. <strong style={{ color: "#fff" }}>Lobby Guests Are Ready Right Now To Date.</strong>
+                Guests are in the Lobby <strong style={{ color: a.accent }}>at this very moment</strong> — anonymous, available, and searching for exactly what you are. No bios, no small talk. <strong style={{ color: "#fff" }}>Lobby Guests Are Ready Right Now To Date.</strong>
               </p>
 
               {/* 3 action tiles */}

@@ -15,18 +15,18 @@ export interface CasinoProfile {
 }
 
 export const CASINO_PROFILES: CasinoProfile[] = [
-  { id:"cp1",  seed:2,  ghostId:"Ghost-4821", city:"Dubai",     floor:"Penthouse", floorColor:"#e8e4d0", chips:3200, streak:3, online:true,  status:"On a roll 🔥",         gender:"f" },
-  { id:"cp2",  seed:6,  ghostId:"Ghost-7734", city:"Milan",     floor:"Casino",    floorColor:"#d4af37", chips:1850, streak:1, online:true,  status:"Playing…",             gender:"m" },
-  { id:"cp3",  seed:11, ghostId:"Ghost-2093", city:"Tokyo",     floor:"Ensuite",   floorColor:"#cd7f32", chips:620,  streak:0, online:true,  status:"Watching",             gender:"f" },
-  { id:"cp4",  seed:17, ghostId:"Ghost-9901", city:"Barcelona", floor:"Casino",    floorColor:"#d4af37", chips:4100, streak:5, online:true,  status:"High roller 👑",       gender:"f" },
-  { id:"cp5",  seed:24, ghostId:"Ghost-5588", city:"London",    floor:"Standard",  floorColor:"#c0c0c0", chips:340,  streak:0, online:true,  status:"Just joined",          gender:"m" },
-  { id:"cp6",  seed:34, ghostId:"Ghost-3312", city:"Paris",     floor:"Penthouse", floorColor:"#e8e4d0", chips:2750, streak:2, online:true,  status:"Playing…",             gender:"f" },
-  { id:"cp7",  seed:47, ghostId:"Ghost-8847", city:"Riyadh",    floor:"Casino",    floorColor:"#d4af37", chips:5200, streak:4, online:true,  status:"King of the floor 🎰", gender:"m" },
-  { id:"cp8",  seed:53, ghostId:"Ghost-1199", city:"Athens",    floor:"Ensuite",   floorColor:"#cd7f32", chips:980,  streak:1, online:false, status:"Away",                 gender:"f" },
-  { id:"cp9",  seed:63, ghostId:"Ghost-6622", city:"New York",  floor:"Casino",    floorColor:"#d4af37", chips:7800, streak:6, online:true,  status:"Unstoppable 🔥🔥",    gender:"m" },
-  { id:"cp10", seed:71, ghostId:"Ghost-4490", city:"Beirut",    floor:"Loft",      floorColor:"#a78bfa", chips:1200, streak:0, online:true,  status:"Playing…",             gender:"f" },
-  { id:"cp11", seed:82, ghostId:"Ghost-0011", city:"Bogotá",    floor:"Standard",  floorColor:"#c0c0c0", chips:150,  streak:0, online:true,  status:"Learning the game",    gender:"m" },
-  { id:"cp12", seed:91, ghostId:"Ghost-7712", city:"Cairo",     floor:"Ensuite",   floorColor:"#cd7f32", chips:1640, streak:2, online:true,  status:"On a streak!",         gender:"f" },
+  { id:"cp1",  seed:2,  ghostId:"Guest-4821", city:"Dubai",     floor:"Penthouse", floorColor:"#e8e4d0", chips:3200, streak:3, online:true,  status:"On a roll 🔥",         gender:"f" },
+  { id:"cp2",  seed:6,  ghostId:"Guest-7734", city:"Milan",     floor:"Casino",    floorColor:"#d4af37", chips:1850, streak:1, online:true,  status:"Playing…",             gender:"m" },
+  { id:"cp3",  seed:11, ghostId:"Guest-2093", city:"Tokyo",     floor:"Ensuite",   floorColor:"#cd7f32", chips:620,  streak:0, online:true,  status:"Watching",             gender:"f" },
+  { id:"cp4",  seed:17, ghostId:"Guest-9901", city:"Barcelona", floor:"Casino",    floorColor:"#d4af37", chips:4100, streak:5, online:true,  status:"High roller 👑",       gender:"f" },
+  { id:"cp5",  seed:24, ghostId:"Guest-5588", city:"London",    floor:"Standard",  floorColor:"#c0c0c0", chips:340,  streak:0, online:true,  status:"Just joined",          gender:"m" },
+  { id:"cp6",  seed:34, ghostId:"Guest-3312", city:"Paris",     floor:"Penthouse", floorColor:"#e8e4d0", chips:2750, streak:2, online:true,  status:"Playing…",             gender:"f" },
+  { id:"cp7",  seed:47, ghostId:"Guest-8847", city:"Riyadh",    floor:"Casino",    floorColor:"#d4af37", chips:5200, streak:4, online:true,  status:"King of the floor 🎰", gender:"m" },
+  { id:"cp8",  seed:53, ghostId:"Guest-1199", city:"Athens",    floor:"Ensuite",   floorColor:"#cd7f32", chips:980,  streak:1, online:false, status:"Away",                 gender:"f" },
+  { id:"cp9",  seed:63, ghostId:"Guest-6622", city:"New York",  floor:"Casino",    floorColor:"#d4af37", chips:7800, streak:6, online:true,  status:"Unstoppable 🔥🔥",    gender:"m" },
+  { id:"cp10", seed:71, ghostId:"Guest-4490", city:"Beirut",    floor:"Loft",      floorColor:"#a78bfa", chips:1200, streak:0, online:true,  status:"Playing…",             gender:"f" },
+  { id:"cp11", seed:82, ghostId:"Guest-0011", city:"Bogotá",    floor:"Standard",  floorColor:"#c0c0c0", chips:150,  streak:0, online:true,  status:"Learning the game",    gender:"m" },
+  { id:"cp12", seed:91, ghostId:"Guest-7712", city:"Cairo",     floor:"Ensuite",   floorColor:"#cd7f32", chips:1640, streak:2, online:true,  status:"On a streak!",         gender:"f" },
 ];
 
 export type GameType   = "blackjack" | "slots" | "highlow";
@@ -108,15 +108,15 @@ export const TABLES: CasinoTable[] = [
 ];
 
 export const LIVE_WIN_FEED = [
-  "Ghost-9901 won 🪙7,800 at The Royal Table — Blackjack!",
-  "Ghost-4821 hit the 👻 JACKPOT — 🪙32,000 on Ghost Slots!",
-  "Ghost-7734 on a ×6 streak at High Stakes Deck 🔥",
-  "Ghost-5588 doubled down and won 🪙1,000 — Shadow Table",
-  "Ghost-0011 just won their first hand 🎉",
-  "Ghost-6622 hit 💎 Diamond on Gold Reels — 🪙3,200",
-  "Ghost-3312 sends a drink to Ghost-4821 🍸",
-  "Ghost-8847 and Ghost-7712 matched at The Royal Table 💬",
-  "Ghost-4490 won 🪙2,400 at Quick Draw — ×8 payout",
+  "Guest-9901 won 🪙7,800 at The Royal Table — Blackjack!",
+  "Guest-4821 hit the 👻 JACKPOT — 🪙32,000 on Ghost Slots!",
+  "Guest-7734 on a ×6 streak at High Stakes Deck 🔥",
+  "Guest-5588 doubled down and won 🪙1,000 — Shadow Table",
+  "Guest-0011 just won their first hand 🎉",
+  "Guest-6622 hit 💎 Diamond on Gold Reels — 🪙3,200",
+  "Guest-3312 sends a drink to Guest-4821 🍸",
+  "Guest-8847 and Guest-7712 matched at The Royal Table 💬",
+  "Guest-4490 won 🪙2,400 at Quick Draw — ×8 payout",
 ];
 
 export const STAKE_META: Record<StakeLevel, { label: string; color: string; bg: string }> = {

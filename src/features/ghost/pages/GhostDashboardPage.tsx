@@ -52,7 +52,7 @@ const FEATURES = [
   {
     icon: "👻",
     title: "Ghost Identity",
-    desc: "You are invisible by default. Others only see your Ghost ID, photo, age, and city — nothing personal until you both choose to connect. Zero data exposure.",
+    desc: "You are invisible by default. Others only see your Guest ID, photo, age, and city — nothing personal until you both choose to connect. Zero data exposure.",
     badge: "ACTIVE",
   },
   {
@@ -117,7 +117,7 @@ function getStreak(): number {
 function toGhostIdDash(id: string): string {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = Math.imul(31, h) + id.charCodeAt(i) | 0;
-  return `Ghost-${1000 + Math.abs(h) % 9000}`;
+  return `Guest-${1000 + Math.abs(h) % 9000}`;
 }
 
 function BlockedProfilesSection() {
@@ -279,7 +279,7 @@ export default function GhostDashboardPage() {
     const data: FoundBooData = {
       matchProfileId: "manual",
       matchProfileImage: "https://i.pravatar.cc/200?img=1",
-      matchName: "Ghost-Manual",
+      matchName: "Guest-Manual",
       connectedAt: Date.now(),
       pausedUntil: Date.now() + 72 * 60 * 60 * 1000,
       canReactivateAt: Date.now() + 60 * 60 * 1000,
@@ -464,8 +464,8 @@ export default function GhostDashboardPage() {
                 const id = p.id || "anon";
                 let h = 0;
                 for (let i = 0; i < id.length; i++) { h = Math.imul(31, h) + id.charCodeAt(i) | 0; }
-                return `Ghost-${1000 + Math.abs(h) % 9000}`;
-              } catch { return "Ghost-0000"; }
+                return `Guest-${1000 + Math.abs(h) % 9000}`;
+              } catch { return "Guest-0000"; }
             })();
             const tier = (() => { try { return localStorage.getItem("ghost_house_tier") || "standard"; } catch { return "standard"; } })();
             const ROOM_MAP: Record<string, { label: string; icon: string; color: string; members: number; active: number }> = {
@@ -1100,7 +1100,7 @@ export default function GhostDashboardPage() {
                 items: [
                   { q: "What is 2Ghost?", a: "2Ghost is an anonymous connection platform. You appear as a Ghost — no real name, no photo shown to the public. You connect through rooms, whispers, and vault chats once there's mutual interest." },
                   { q: "Is my real identity ever shown?", a: "Never automatically. Your real name, phone, and social links stay hidden until both people agree to exchange contact details inside a private Vault chat." },
-                  { q: "How do I get started?", a: "Complete your Ghost profile in Setup, choose a room that matches your vibe, browse members, and send a Whisper to someone you're interested in." },
+                  { q: "How do I get started?", a: "Complete your profile in Setup, choose a room that matches your vibe, browse members, and send a Whisper to someone you're interested in." },
                 ],
               },
               {
@@ -1127,7 +1127,7 @@ export default function GhostDashboardPage() {
                 category: "Privacy & Safety",
                 emoji: "🔒",
                 items: [
-                  { q: "Can someone screenshot my profile or Vault?", a: "Technically possible on any device, but the platform never stores your real identity. Ghost IDs are the only visible identifier. We encourage reporting anyone who misuses shared content." },
+                  { q: "Can someone screenshot my profile or Vault?", a: "Technically possible on any device, but the platform never stores your real identity. Guest IDs are the only visible identifier. We encourage reporting anyone who misuses shared content." },
                   { q: "How do I report a profile?", a: "Open any profile card and tap the ⚠️ button in the bottom-right of the popup. Reports are reviewed by the team. A verified complaint affects that member's Ghost Star progress." },
                   { q: "Can I block someone?", a: "Yes. Blocked profiles are hidden from your feed and cannot contact you. Manage your blocked list from the dashboard." },
                   { q: "Is my location shared?", a: "Only your city and country flag are shown — never GPS coordinates. Distance shown (e.g. 4 km) is approximate and based on your general area." },
@@ -1324,7 +1324,7 @@ export default function GhostDashboardPage() {
                 style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}
               >
                 {[
-                  { icon: "👻", text: "Ghost Identity — your anonymous card, your Ghost ID, your presence" },
+                  { icon: "👻", text: "Guest Identity — your anonymous card, your Guest ID, your presence" },
                   { icon: "❤️", text: "Like & Match — browse free, pay only when you genuinely connect" },
                   { icon: "🚪", text: "Found Boo — when you connect, your profile auto-pauses so the relationship has space" },
                   { icon: "🌙", text: "Tonight Mode — tell the house you're available right now, resets at midnight" },

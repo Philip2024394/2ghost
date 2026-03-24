@@ -580,8 +580,8 @@ export default function CasinoFloorPage() {
               </p>
               <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)" }}>
                 {view === "at-table"
-                  ? "Tap a ghost to send a drink or note"
-                  : "Live casino · Win coins · Meet ghosts"}
+                  ? "Tap a guest to send a drink or note"
+                  : "Live casino · Win coins · Meet guests"}
               </p>
             </div>
           </div>

@@ -47,11 +47,11 @@ const GAMES = [
 
 // Simulated live feed
 const LIVE_WINS = [
-  "Ghost-4821 won 🪙 2,500 on Blackjack",
-  "Ghost-7734 hit the Ghost Jackpot 👻 🪙 32,000!",
-  "Ghost-2093 won 🪙 800 on High/Low × 5 streak",
-  "Ghost-9901 doubled down — won 🪙 1,000",
-  "Ghost-5588 won 🪙 500 on Slots 💎",
+  "Guest-4821 won 🪙 2,500 on Blackjack",
+  "Guest-7734 hit the Ghost Jackpot 👻 🪙 32,000!",
+  "Guest-2093 won 🪙 800 on High/Low × 5 streak",
+  "Guest-9901 doubled down — won 🪙 1,000",
+  "Guest-5588 won 🪙 500 on Slots 💎",
 ];
 
 export default function CasinoLobby() {

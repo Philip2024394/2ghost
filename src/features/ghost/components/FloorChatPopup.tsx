@@ -167,50 +167,50 @@ function buildFloorMembers(tier: string): FloorMember[] {
 // ── Seed messages per tier ────────────────────────────────────────────────────
 const SEED: Record<string, Array<{ name: string; text: string; minsAgo: number }>> = {
   standard: [
-    { name: "Ghost-2341", text: "Hey everyone — just checked in to Standard. Anyone from Jakarta? 👋", minsAgo: 52 },
-    { name: "Ghost-8821", text: "Jakarta here! welcome to the floor", minsAgo: 50 },
-    { name: "Ghost-3302", text: "How does the matching work here vs the main page?", minsAgo: 44 },
-    { name: "Ghost-5544", text: "You browse, you like, they like back — it opens. Simple. The room badge helps a lot", minsAgo: 41 },
-    { name: "Ghost-1129", text: "Has anyone actually got a match through the floor chat?", minsAgo: 28 },
-    { name: "Ghost-8821", text: "Twice 😅 the second one is still going", minsAgo: 25 },
-    { name: "Ghost-7701", text: "The vibe here is genuinely different. Less noise than the usual apps", minsAgo: 9 },
+    { name: "Guest-2341", text: "Hey everyone — just checked in to Standard. Anyone from Jakarta? 👋", minsAgo: 52 },
+    { name: "Guest-8821", text: "Jakarta here! welcome to the floor", minsAgo: 50 },
+    { name: "Guest-3302", text: "How does the matching work here vs the main page?", minsAgo: 44 },
+    { name: "Guest-5544", text: "You browse, you like, they like back — it opens. Simple. The room badge helps a lot", minsAgo: 41 },
+    { name: "Guest-1129", text: "Has anyone actually got a match through the floor chat?", minsAgo: 28 },
+    { name: "Guest-8821", text: "Twice 😅 the second one is still going", minsAgo: 25 },
+    { name: "Guest-7701", text: "The vibe here is genuinely different. Less noise than the usual apps", minsAgo: 9 },
   ],
   suite: [
-    { name: "Ghost-4490", text: "Suite floor feels different — people actually read before liking", minsAgo: 65 },
-    { name: "Ghost-7723", text: "Agreed. Less volume, more quality. Worth the upgrade from Standard", minsAgo: 60 },
-    { name: "Ghost-2211", text: "Anyone from Singapore or KL?", minsAgo: 45 },
-    { name: "Ghost-9934", text: "KL here 🇲🇾 — welcome to the floor", minsAgo: 42 },
-    { name: "Ghost-4490", text: "What pushed you all to Suite? Genuinely curious", minsAgo: 30 },
-    { name: "Ghost-7723", text: "The weekly boost. My profile went top of stack Monday morning. Noticed it immediately", minsAgo: 26 },
-    { name: "Ghost-1108", text: "This chat is underrated honestly. More real conversations here than anywhere", minsAgo: 6 },
+    { name: "Guest-4490", text: "Suite floor feels different — people actually read before liking", minsAgo: 65 },
+    { name: "Guest-7723", text: "Agreed. Less volume, more quality. Worth the upgrade from Standard", minsAgo: 60 },
+    { name: "Guest-2211", text: "Anyone from Singapore or KL?", minsAgo: 45 },
+    { name: "Guest-9934", text: "KL here 🇲🇾 — welcome to the floor", minsAgo: 42 },
+    { name: "Guest-4490", text: "What pushed you all to Suite? Genuinely curious", minsAgo: 30 },
+    { name: "Guest-7723", text: "The weekly boost. My profile went top of stack Monday morning. Noticed it immediately", minsAgo: 26 },
+    { name: "Guest-1108", text: "This chat is underrated honestly. More real conversations here than anywhere", minsAgo: 6 },
   ],
   kings: [
-    { name: "Ghost-9901", text: "Kings floor is quieter than I expected. I like it", minsAgo: 95 },
-    { name: "Ghost-5588", text: "Quality filter does its job. No noise here at all", minsAgo: 90 },
-    { name: "Ghost-0032", text: "Who else is running unlimited unlocks? Changed how I use this completely", minsAgo: 72 },
-    { name: "Ghost-9901", text: "Night and day from Standard honestly. Not going back", minsAgo: 68 },
-    { name: "Ghost-3341", text: "The see-who-liked-you feature is what sold me. Cut straight to the signal", minsAgo: 35 },
-    { name: "Ghost-5588", text: "Real talk — met someone last week through this floor. Kings chat is where it started 👑", minsAgo: 20 },
-    { name: "Ghost-7712", text: "That's exactly the point of this chat. It works", minsAgo: 11 },
+    { name: "Guest-9901", text: "Kings floor is quieter than I expected. I like it", minsAgo: 95 },
+    { name: "Guest-5588", text: "Quality filter does its job. No noise here at all", minsAgo: 90 },
+    { name: "Guest-0032", text: "Who else is running unlimited unlocks? Changed how I use this completely", minsAgo: 72 },
+    { name: "Guest-9901", text: "Night and day from Standard honestly. Not going back", minsAgo: 68 },
+    { name: "Guest-3341", text: "The see-who-liked-you feature is what sold me. Cut straight to the signal", minsAgo: 35 },
+    { name: "Guest-5588", text: "Real talk — met someone last week through this floor. Kings chat is where it started 👑", minsAgo: 20 },
+    { name: "Guest-7712", text: "That's exactly the point of this chat. It works", minsAgo: 11 },
   ],
   penthouse: [
-    { name: "Ghost-0011", text: "Good morning from Monaco 🎰", minsAgo: 130 },
-    { name: "Ghost-1199", text: "Tokyo here — late night but this floor is worth the timezone", minsAgo: 125 },
-    { name: "Ghost-0044", text: "Penthouse attracts a genuinely different type of person. You notice it immediately", minsAgo: 100 },
-    { name: "Ghost-0011", text: "No noise. Everyone here made a deliberate choice to be here", minsAgo: 95 },
-    { name: "Ghost-5501", text: "The Masquerade gift I received earlier was something else 😌", minsAgo: 50 },
-    { name: "Ghost-1199", text: "Who sent it 👀", minsAgo: 47 },
-    { name: "Ghost-5501", text: "Ghost ID stays anonymous until I decide otherwise 😉", minsAgo: 44 },
-    { name: "Ghost-0044", text: "Floor chat is the best feature they've added. Feels like a private club", minsAgo: 14 },
+    { name: "Guest-0011", text: "Good morning from Monaco 🎰", minsAgo: 130 },
+    { name: "Guest-1199", text: "Tokyo here — late night but this floor is worth the timezone", minsAgo: 125 },
+    { name: "Guest-0044", text: "Penthouse attracts a genuinely different type of person. You notice it immediately", minsAgo: 100 },
+    { name: "Guest-0011", text: "No noise. Everyone here made a deliberate choice to be here", minsAgo: 95 },
+    { name: "Guest-5501", text: "The Masquerade gift I received earlier was something else 😌", minsAgo: 50 },
+    { name: "Guest-1199", text: "Who sent it 👀", minsAgo: 47 },
+    { name: "Guest-5501", text: "Guest ID stays anonymous until I decide otherwise 😉", minsAgo: 44 },
+    { name: "Guest-0044", text: "Floor chat is the best feature they've added. Feels like a private club", minsAgo: 14 },
   ],
   garden: [
-    { name: "Ghost-5201", text: "Good morning from Cape Town ☕ — what a peaceful way to start the day here", minsAgo: 110 },
-    { name: "Ghost-8847", text: "Edinburgh checking in 🌧️ — Garden Lodge is the first floor that actually feels grown up", minsAgo: 100 },
-    { name: "Ghost-3307", text: "Anyone else appreciate how slow the pace is here? No rush, no noise", minsAgo: 80 },
-    { name: "Ghost-5201", text: "That's exactly why I'm here. I'm not interested in volume, I'm interested in the right one", minsAgo: 74 },
-    { name: "Ghost-6612", text: "Had the most genuine conversation I've had in years through this terrace last week 🌿", minsAgo: 45 },
-    { name: "Ghost-8847", text: "No games, no performance — just two people being honest. It's rare.", minsAgo: 38 },
-    { name: "Ghost-3307", text: "The morning coffee prompt earlier got me. Some questions deserve more than a swipe", minsAgo: 12 },
+    { name: "Guest-5201", text: "Good morning from Cape Town ☕ — what a peaceful way to start the day here", minsAgo: 110 },
+    { name: "Guest-8847", text: "Edinburgh checking in 🌧️ — Garden Lodge is the first floor that actually feels grown up", minsAgo: 100 },
+    { name: "Guest-3307", text: "Anyone else appreciate how slow the pace is here? No rush, no noise", minsAgo: 80 },
+    { name: "Guest-5201", text: "That's exactly why I'm here. I'm not interested in volume, I'm interested in the right one", minsAgo: 74 },
+    { name: "Guest-6612", text: "Had the most genuine conversation I've had in years through this terrace last week 🌿", minsAgo: 45 },
+    { name: "Guest-8847", text: "No games, no performance — just two people being honest. It's rare.", minsAgo: 38 },
+    { name: "Guest-3307", text: "The morning coffee prompt earlier got me. Some questions deserve more than a swipe", minsAgo: 12 },
   ],
 };
 
@@ -222,7 +222,7 @@ function timeLabel(ts: number): string {
   return h < 24 ? `${h}h` : `${Math.floor(h / 24)}d`;
 }
 function idColor(name: string): string {
-  const n = parseInt(name.replace("Ghost-", "")) || 0;
+  const n = parseInt(name.replace("Guest-", "")) || 0;
   const hues = [320, 200, 160, 45, 280, 15, 190, 350, 100, 240];
   return `hsl(${hues[n % 10]}, 65%, 58%)`;
 }
@@ -465,7 +465,7 @@ export default function FloorChatPopup({
     const myId = getMyGhostId();
     if (myId) {
       sendFloorMessage({
-        floor: tier, senderId: myId, senderName: `Ghost-${myId.slice(-4)}`,
+        floor: tier, senderId: myId, senderName: `Guest-${myId.slice(-4)}`,
         text, isDirected, directedTo,
       });
     }
@@ -559,7 +559,7 @@ export default function FloorChatPopup({
 
   // Open gift picker from message tap
   function openGiftFromTap(ghostName: string) {
-    const num = parseInt(ghostName.replace("Ghost-", "")) || 1;
+    const num = parseInt(ghostName.replace("Guest-", "")) || 1;
     const synthetic: FloorMember = { id: ghostName, name: ghostName, seed: num % 70, online: true, city: "" };
     setDrawerMember(synthetic);
     setDrawerAction("gift");
@@ -1083,7 +1083,7 @@ export default function FloorChatPopup({
             >
               <div style={{ textAlign: "center", padding: "0 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
                 <div style={{ width: 44, height: 44, borderRadius: "50%", background: `${idColor(tappedMsg.senderName)}20`, border: `2px solid ${idColor(tappedMsg.senderName)}55`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
-                  <span style={{ fontSize: 20, fontWeight: 900, color: idColor(tappedMsg.senderName) }}>{tappedMsg.senderName.replace("Ghost-","").charAt(0)}</span>
+                  <span style={{ fontSize: 20, fontWeight: 900, color: idColor(tappedMsg.senderName) }}>{tappedMsg.senderName.replace("Guest-","").charAt(0)}</span>
                 </div>
                 <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>{tappedMsg.senderName}</p>
                 <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{tierLabel} member</p>

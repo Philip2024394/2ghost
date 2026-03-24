@@ -13,7 +13,7 @@ export const translations = {
   "nav.filters":        { en: "Filters",                    id: "Filter",                           th: "ตัวกรอง",                       vi: "Bộ lọc",                       ms: "Penapis",                          fr: "Filtres" },
 
   // ── Feed ──────────────────────────────────────────────────────────────────────
-  "feed.activeNear":    { en: "Ghost members active near you", id: "Anggota Ghost aktif di dekat Anda", th: "สมาชิก Ghost ที่ใช้งานอยู่ใกล้คุณ", vi: "Thành viên Ghost đang hoạt động gần bạn", ms: "Ahli Ghost aktif berhampiran anda", fr: "Membres Ghost actifs près de vous" },
+  "feed.activeNear":    { en: "Guests active near you", id: "Anggota Ghost aktif di dekat Anda", th: "สมาชิก Ghost ที่ใช้งานอยู่ใกล้คุณ", vi: "Thành viên Ghost đang hoạt động gần bạn", ms: "Ahli Ghost aktif berhampiran anda", fr: "Membres Ghost actifs près de vous" },
   "feed.profiles":      { en: "Profiles",                   id: "Profil",                           th: "โปรไฟล์",                       vi: "Hồ sơ",                        ms: "Profil",                           fr: "Profils" },
   "feed.onlineNow":     { en: "Online now",                 id: "Online sekarang",                  th: "ออนไลน์อยู่",                   vi: "Đang trực tuyến",              ms: "Dalam talian sekarang",            fr: "En ligne maintenant" },
   "feed.countries":     { en: "Countries",                  id: "Negara",                           th: "ประเทศ",                        vi: "Quốc gia",                     ms: "Negara",                           fr: "Pays" },

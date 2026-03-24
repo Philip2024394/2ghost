@@ -37,8 +37,8 @@ function getGhostId(): string {
     const id = p.id || "anon";
     let h = 0;
     for (let i = 0; i < id.length; i++) { h = Math.imul(31, h) + id.charCodeAt(i) | 0; }
-    return `Ghost-${1000 + Math.abs(h) % 9000}`;
-  } catch { return "Ghost-0000"; }
+    return `Guest-${1000 + Math.abs(h) % 9000}`;
+  } catch { return "Guest-0000"; }
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
