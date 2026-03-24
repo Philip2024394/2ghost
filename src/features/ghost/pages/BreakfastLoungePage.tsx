@@ -136,8 +136,8 @@ function getOpenCountdown(): string {
   return `${hrs}h ${mins}m`;
 }
 
-function buildVisible(intl: boolean) {
-  const pool = intl ? POOL : POOL.filter(p => !p.international);
+function buildVisible(intl: boolean, dismissed: Set<string> = new Set()) {
+  const pool = (intl ? POOL : POOL.filter(p => !p.international)).filter(p => !dismissed.has(p.id));
   const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, intl ? 12 : 9);
   return shuffled.map((p, i) => ({
     profile: p,
@@ -232,6 +232,8 @@ export default function BreakfastLoungePage() {
   // ── Incoming invite
   const [incomingInvite, setIncomingInvite] = useState<LoungeProfile | null>(null);
   const incomingFired = useRef(false);
+  const [dismissedIds, setDismissedIds]     = useState<Set<string>>(new Set());
+  const [declineMsg, setDeclineMsg]         = useState<string | null>(null);
 
   // ── Chat
   const [chatMsgs, setChatMsgs]         = useState<ChatMsg[]>([]);
@@ -250,7 +252,7 @@ export default function BreakfastLoungePage() {
   useEffect(() => {
     const tick = setInterval(() => {
       setCountdown(prev => {
-        if (prev <= 1000) { setVisible(buildVisible(intlActive)); return rnd(ROTATE_MIN, ROTATE_MAX); }
+        if (prev <= 1000) { setVisible(buildVisible(intlActive, dismissedIds)); return rnd(ROTATE_MIN, ROTATE_MAX); }
         return prev - 1000;
       });
     }, 1000);
@@ -310,7 +312,7 @@ export default function BreakfastLoungePage() {
     deductCoins(INTL_COST, "International breakfast guests");
     setIntlUnlocked(true);
     setIntlActive(true);
-    setVisible(buildVisible(true));
+    setVisible(buildVisible(true, dismissedIds));
     setShowCheckin(false);
   }, [canAfford, deductCoins]);
 
@@ -348,6 +350,7 @@ export default function BreakfastLoungePage() {
           setChatMsgs(prev => [...prev, { id: Date.now(), from: "them", text: reply }]);
         }, 3_000);
       } else {
+        setDismissedIds(prev => new Set([...prev, invited.id]));
         setVisible(prev => prev.filter(v => v.profile.id !== invited.id));
         const decline = SOFT_DECLINES[Math.floor(Math.random() * SOFT_DECLINES.length)];
         setRefuseMsg(`${invited.ghostId} ${decline}`);
@@ -374,8 +377,12 @@ export default function BreakfastLoungePage() {
 
   const declineIncoming = useCallback(() => {
     if (!incomingInvite) return;
-    setVisible(prev => prev.filter(v => v.profile.id !== incomingInvite.id));
+    const declined = incomingInvite;
+    setDismissedIds(prev => new Set([...prev, declined.id]));
+    setVisible(prev => prev.filter(v => v.profile.id !== declined.id));
     setIncomingInvite(null);
+    setDeclineMsg(`Thank you for your time. We've let ${declined.ghostId} know you won't be joining them this morning. Enjoy your breakfast.`);
+    setTimeout(() => setDeclineMsg(null), 5_000);
   }, [incomingInvite]);
 
   // ── Invite 3rd guest ─────────────────────────────────────────────────────────
@@ -692,6 +699,17 @@ export default function BreakfastLoungePage() {
           )}
         </AnimatePresence>
 
+        {/* Decline confirmation message */}
+        <AnimatePresence>
+          {declineMsg && (
+            <motion.div key="decline-msg" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 14, padding: "12px 14px", marginBottom: 10 }}>
+              <img src={BUTLER_IMG} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0, marginTop: 1 }} />
+              <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>{declineMsg}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Invite pending / refused */}
         <AnimatePresence>
           {phase === "invite-pending" && partner && (
@@ -764,7 +782,7 @@ export default function BreakfastLoungePage() {
             )}
             {intlUnlocked && (
               <motion.button whileTap={{ scale: 0.92 }}
-                onClick={() => { setIntlActive(!intlActive); setVisible(buildVisible(!intlActive)); }}
+                onClick={() => { setIntlActive(!intlActive); setVisible(buildVisible(!intlActive, dismissedIds)); }}
                 style={{ padding: "2px 8px", borderRadius: 10, background: intlActive ? "rgba(167,139,250,0.15)" : "rgba(255,255,255,0.04)", border: `1px solid ${intlActive ? "rgba(167,139,250,0.35)" : "rgba(255,255,255,0.1)"}`, color: intlActive ? "#a78bfa" : "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 800, cursor: "pointer" }}>
                 {intlActive ? "🌍 ON" : "🌍"}
               </motion.button>
@@ -1019,7 +1037,7 @@ export default function BreakfastLoungePage() {
                   </div>
                 </div>
                 <p style={{ margin: "0 0 5px", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
-                  Guest {incomingInvite.ghostId}, age {incomingInvite.age} from {incomingInvite.country} would like to invite you for breakfast at their table. Chat will open for breakfast.
+                  Guest {incomingInvite.ghostId}, age {incomingInvite.age} from {incomingInvite.country} would like to invite you for breakfast at their table. Breakfast is a golden opportunity to get acquainted.
                 </p>
                 <p style={{ margin: 0, fontSize: 11, fontStyle: "italic", color: "rgba(255,255,255,0.28)" }}>"{incomingInvite.mood}"</p>
               </div>
