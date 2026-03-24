@@ -629,7 +629,7 @@ export default function BreakfastLoungePage() {
                 style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 400, backdropFilter: "blur(6px)" }} />
               <motion.div key="gp-sheet" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 28, stiffness: 300 }}
-                style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 401, background: "#0e0e18", borderRadius: "22px 22px 0 0", border: "1px solid rgba(255,255,255,0.08)", borderBottom: "none", padding: "16px 16px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 24px)" }}>
+                style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 401, background: "rgba(212,175,55,0.06)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", padding: "16px 16px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 24px)" }}>
                 <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)", margin: "0 auto 14px" }} />
                 <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 900, color: "#fff" }}>Invite a third guest · <span style={{ color: "#d4af37" }}>🪙{INVITE_COST}</span></p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 300, overflowY: "auto" }}>
@@ -670,7 +670,7 @@ export default function BreakfastLoungePage() {
           <CoinBalanceChip size="md" />
         </div>
         <div style={{ position: "absolute", bottom: 14, left: 16 }}>
-          <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.45)", letterSpacing: "0.16em", textTransform: "uppercase" }}>Mr. Butla</p>
+          <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 700, color: "#d4af37", letterSpacing: "0.16em", textTransform: "uppercase" }}>Mr. Butla</p>
           <p style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>Breakfast Lounge</p>
         </div>
         <div style={{ position: "absolute", bottom: 18, right: 14, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "4px 12px" }}>
@@ -890,7 +890,7 @@ export default function BreakfastLoungePage() {
               style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.72)", zIndex: 200, backdropFilter: "blur(7px)" }} />
             <motion.div key="pp-sheet" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 201, background: "#0e0e18", borderRadius: "22px 22px 0 0", border: "1px solid rgba(255,255,255,0.08)", borderBottom: "none", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 26px)" }}>
+              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 201, background: "rgba(212,175,55,0.06)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 26px)" }}>
               <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)", margin: "12px auto 0" }} />
               <div style={{ padding: "16px 18px 0" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 13 }}>
@@ -931,7 +931,7 @@ export default function BreakfastLoungePage() {
               style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 350, backdropFilter: "blur(10px)" }} />
             <motion.div key="ci-popup" initial={{ opacity: 0, y: 40, scale: 0.94 }} animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.96 }} transition={{ type: "spring", damping: 26, stiffness: 280 }}
-              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 351, background: "#0d0d15", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.25)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)" }}>
+              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 351, background: "rgba(212,175,55,0.06)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)" }}>
 
               {/* Butler */}
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
@@ -1011,7 +1011,7 @@ export default function BreakfastLoungePage() {
               style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 300, backdropFilter: "blur(9px)" }} />
             <motion.div key="ii-popup" initial={{ opacity: 0, y: 40, scale: 0.94 }} animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 30 }} transition={{ type: "spring", damping: 26, stiffness: 280 }}
-              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 301, background: "#0e0e18", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.22)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)" }}>
+              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 301, background: "rgba(212,175,55,0.06)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                 <div style={{ position: "relative" }}>
                   <img src={BUTLER_IMG} alt="" style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" }} />
@@ -1057,7 +1057,7 @@ export default function BreakfastLoungePage() {
               style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 400, backdropFilter: "blur(8px)" }} />
             <motion.div key="cr-sheet" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 401, background: "#0e0e18", borderRadius: "22px 22px 0 0", border: "1px solid rgba(251,191,36,0.18)", borderBottom: "none", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)" }}>
+              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 401, background: "rgba(212,175,55,0.06)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)" }}>
               <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)", margin: "12px auto 0" }} />
               <div style={{ padding: "16px 18px 0" }}>
 
