@@ -34,6 +34,7 @@ interface LoungeProfile {
   city: string; country: string; flag: string;
   floor: string; floorColor: string;
   mood: string; gender: "m" | "f"; age: number; about: string;
+  photo: string;
   international?: boolean;
 }
 
@@ -41,39 +42,41 @@ type Phase = "browsing" | "invite-pending" | "refused" | "at-table";
 interface ChatMsg { id: number; from: "me" | "them" | "them2" | "butler"; text: string; }
 
 // ── Profile pool (local + international) ──────────────────────────────────────
+const PH = (n: number) => `https://i.pravatar.cc/300?img=${n}`;
+
 const POOL: LoungeProfile[] = [
-  { id:"bl1",  seed:3,  ghostId:"Guest-4821", city:"Dubai",     country:"UAE",         flag:"🇦🇪", floor:"Penthouse", floorColor:"#e8e4d0", mood:"Early riser ☀️",          gender:"f", age:28, about:"Loves mornings, strong coffee and the quiet before the city wakes." },
-  { id:"bl2",  seed:7,  ghostId:"Guest-7734", city:"Milan",     country:"Italy",        flag:"🇮🇹", floor:"Casino",    floorColor:"#d4af37", mood:"Coffee first, talk later", gender:"m", age:33, about:"Fashion week regular. Prefers his espresso black and his mornings slow." },
-  { id:"bl3",  seed:12, ghostId:"Guest-2093", city:"Tokyo",     country:"Japan",        flag:"🇯🇵", floor:"Ensuite",   floorColor:"#cd7f32", mood:"Croissant hunter 🥐",      gender:"f", age:26, about:"Pastry enthusiast. Will absolutely judge your breakfast order." },
-  { id:"bl4",  seed:18, ghostId:"Guest-9901", city:"Barcelona", country:"Spain",        flag:"🇪🇸", floor:"Casino",    floorColor:"#d4af37", mood:"Morning person 🌅",        gender:"f", age:30, about:"Up with the sun. Runs before breakfast. Annoyingly cheerful about it." },
-  { id:"bl5",  seed:25, ghostId:"Guest-5588", city:"London",    country:"UK",           flag:"🇬🇧", floor:"Standard",  floorColor:"#c0c0c0", mood:"Just arrived ✈️",          gender:"m", age:29, about:"Landed at 6am. In desperate need of a full English and a good chat." },
-  { id:"bl6",  seed:35, ghostId:"Guest-3312", city:"Paris",     country:"France",       flag:"🇫🇷", floor:"Penthouse", floorColor:"#e8e4d0", mood:"Reading the paper 📰",     gender:"f", age:35, about:"Morning ritual: croissant, Le Monde, eavesdrop on strangers." },
-  { id:"bl7",  seed:48, ghostId:"Guest-8847", city:"Riyadh",    country:"Saudi Arabia", flag:"🇸🇦", floor:"Casino",    floorColor:"#d4af37", mood:"Espresso, no sugar",       gender:"m", age:31, about:"Business is done at breakfast. The rest of the day is just follow-up." },
-  { id:"bl8",  seed:54, ghostId:"Guest-1199", city:"Athens",    country:"Greece",       flag:"🇬🇷", floor:"Ensuite",   floorColor:"#cd7f32", mood:"Watching the sunrise 🌄",  gender:"f", age:27, about:"Philosophy student. Mornings feel like a fresh page." },
-  { id:"bl9",  seed:64, ghostId:"Guest-6622", city:"New York",  country:"USA",          flag:"🇺🇸", floor:"Casino",    floorColor:"#d4af37", mood:"Catching up on emails",    gender:"m", age:38, about:"Never fully off. But buys the best coffee for the table." },
-  { id:"bl10", seed:72, ghostId:"Guest-4490", city:"Beirut",    country:"Lebanon",      flag:"🇱🇧", floor:"Loft",      floorColor:"#a78bfa", mood:"Pancakes or bust 🥞",      gender:"f", age:24, about:"Came for the food. Stayed for the conversation." },
-  { id:"bl11", seed:83, ghostId:"Guest-0011", city:"Bogotá",    country:"Colombia",     flag:"🇨🇴", floor:"Standard",  floorColor:"#c0c0c0", mood:"First morning here 🏨",    gender:"m", age:22, about:"Solo trip. Open to meeting anyone interesting." },
-  { id:"bl12", seed:92, ghostId:"Guest-7712", city:"Cairo",     country:"Egypt",        flag:"🇪🇬", floor:"Ensuite",   floorColor:"#cd7f32", mood:"Loves the quiet hours",    gender:"f", age:32, about:"Dawn swimmer. Breakfast is the reward." },
-  { id:"bl13", seed:15, ghostId:"Guest-3390", city:"Dublin",    country:"Ireland",      flag:"🇮🇪", floor:"Loft",      floorColor:"#a78bfa", mood:"Full Irish please 🍳",      gender:"m", age:34, about:"Can't be reasoned with before the first cup. After it — great craic." },
-  { id:"bl14", seed:29, ghostId:"Guest-5501", city:"Singapore", country:"Singapore",    flag:"🇸🇬", floor:"Penthouse", floorColor:"#e8e4d0", mood:"Green tea & silence 🍵",   gender:"f", age:29, about:"Minimalist. The silence is intentional and she loves your company anyway." },
-  { id:"bl15", seed:41, ghostId:"Guest-2287", city:"Berlin",    country:"Germany",      flag:"🇩🇪", floor:"Casino",    floorColor:"#d4af37", mood:"People watching 👀",        gender:"m", age:36, about:"Prefers observing. Will surprise you with exactly the right thing to say." },
+  { id:"bl1",  seed:3,  ghostId:"Guest-4821", city:"Dubai",        country:"UAE",          flag:"🇦🇪", floor:"Penthouse", floorColor:"#e8e4d0", mood:"Early riser ☀️",               gender:"f", age:28, photo:PH(5),  about:"Loves mornings, strong coffee and the quiet before the city wakes." },
+  { id:"bl2",  seed:7,  ghostId:"Guest-7734", city:"Milan",        country:"Italy",         flag:"🇮🇹", floor:"Casino",    floorColor:"#d4af37", mood:"Coffee first, talk later",      gender:"m", age:33, photo:PH(33), about:"Fashion week regular. Prefers his espresso black and his mornings slow." },
+  { id:"bl3",  seed:12, ghostId:"Guest-2093", city:"Tokyo",        country:"Japan",         flag:"🇯🇵", floor:"Ensuite",   floorColor:"#cd7f32", mood:"Croissant hunter 🥐",           gender:"f", age:26, photo:PH(9),  about:"Pastry enthusiast. Will absolutely judge your breakfast order." },
+  { id:"bl4",  seed:18, ghostId:"Guest-9901", city:"Barcelona",    country:"Spain",         flag:"🇪🇸", floor:"Casino",    floorColor:"#d4af37", mood:"Morning person 🌅",             gender:"f", age:30, photo:PH(3),  about:"Up with the sun. Runs before breakfast. Annoyingly cheerful about it." },
+  { id:"bl5",  seed:25, ghostId:"Guest-5588", city:"London",       country:"UK",            flag:"🇬🇧", floor:"Standard",  floorColor:"#c0c0c0", mood:"Just arrived ✈️",               gender:"m", age:29, photo:PH(26), about:"Landed at 6am. In desperate need of a full English and a good chat." },
+  { id:"bl6",  seed:35, ghostId:"Guest-3312", city:"Paris",        country:"France",        flag:"🇫🇷", floor:"Penthouse", floorColor:"#e8e4d0", mood:"Reading the paper 📰",          gender:"f", age:35, photo:PH(7),  about:"Morning ritual: croissant, Le Monde, eavesdrop on strangers." },
+  { id:"bl7",  seed:48, ghostId:"Guest-8847", city:"Riyadh",       country:"Saudi Arabia",  flag:"🇸🇦", floor:"Casino",    floorColor:"#d4af37", mood:"Espresso, no sugar",            gender:"m", age:31, photo:PH(39), about:"Business is done at breakfast. The rest of the day is just follow-up." },
+  { id:"bl8",  seed:54, ghostId:"Guest-1199", city:"Athens",       country:"Greece",        flag:"🇬🇷", floor:"Ensuite",   floorColor:"#cd7f32", mood:"Watching the sunrise 🌄",       gender:"f", age:27, photo:PH(11), about:"Philosophy student. Mornings feel like a fresh page." },
+  { id:"bl9",  seed:64, ghostId:"Guest-6622", city:"New York",     country:"USA",           flag:"🇺🇸", floor:"Casino",    floorColor:"#d4af37", mood:"Catching up on emails",         gender:"m", age:38, photo:PH(29), about:"Never fully off. But buys the best coffee for the table." },
+  { id:"bl10", seed:72, ghostId:"Guest-4490", city:"Beirut",       country:"Lebanon",       flag:"🇱🇧", floor:"Loft",      floorColor:"#a78bfa", mood:"Pancakes or bust 🥞",           gender:"f", age:24, photo:PH(4),  about:"Came for the food. Stayed for the conversation." },
+  { id:"bl11", seed:83, ghostId:"Guest-0011", city:"Bogotá",       country:"Colombia",      flag:"🇨🇴", floor:"Standard",  floorColor:"#c0c0c0", mood:"First morning here 🏨",         gender:"m", age:22, photo:PH(43), about:"Solo trip. Open to meeting anyone interesting." },
+  { id:"bl12", seed:92, ghostId:"Guest-7712", city:"Cairo",        country:"Egypt",         flag:"🇪🇬", floor:"Ensuite",   floorColor:"#cd7f32", mood:"Loves the quiet hours",         gender:"f", age:32, photo:PH(1),  about:"Dawn swimmer. Breakfast is the reward." },
+  { id:"bl13", seed:15, ghostId:"Guest-3390", city:"Dublin",       country:"Ireland",       flag:"🇮🇪", floor:"Loft",      floorColor:"#a78bfa", mood:"Full Irish please 🍳",           gender:"m", age:34, photo:PH(31), about:"Can't be reasoned with before the first cup. After it — great craic." },
+  { id:"bl14", seed:29, ghostId:"Guest-5501", city:"Singapore",    country:"Singapore",     flag:"🇸🇬", floor:"Penthouse", floorColor:"#e8e4d0", mood:"Green tea & silence 🍵",        gender:"f", age:29, photo:PH(6),  about:"Minimalist. The silence is intentional and she loves your company anyway." },
+  { id:"bl15", seed:41, ghostId:"Guest-2287", city:"Berlin",       country:"Germany",       flag:"🇩🇪", floor:"Casino",    floorColor:"#d4af37", mood:"People watching 👀",            gender:"m", age:36, photo:PH(35), about:"Prefers observing. Will surprise you with exactly the right thing to say." },
   // 🇮🇩 Indonesian guests — always visible in the lounge
-  { id:"id1",  seed:97,  ghostId:"Guest-2241", city:"Jakarta",    country:"Indonesia", flag:"🇮🇩", floor:"Penthouse", floorColor:"#e8e4d0", mood:"Meeting-free morning ☀️",       gender:"m", age:32, about:"Startup founder from South Jakarta. Up early before the city traffic hits. Loves a strong kopi and a conversation that actually goes somewhere." },
-  { id:"id2",  seed:103, ghostId:"Guest-7753", city:"Bali",       country:"Indonesia", flag:"🇮🇩", floor:"Ensuite",   floorColor:"#cd7f32", mood:"Sunrise swim done ✓",            gender:"f", age:27, about:"Graphic designer based in Canggu. Splits time between client work and the ocean. Mornings are the only quiet part of the day." },
-  { id:"id3",  seed:108, ghostId:"Guest-3318", city:"Surabaya",   country:"Indonesia", flag:"🇮🇩", floor:"Casino",    floorColor:"#d4af37", mood:"Here for the nasi goreng 🍳",    gender:"m", age:35, about:"Logistics director, always travelling. Judges every hotel by the quality of its breakfast. This one passes." },
-  { id:"id4",  seed:115, ghostId:"Guest-9982", city:"Yogyakarta", country:"Indonesia", flag:"🇮🇩", floor:"Loft",      floorColor:"#a78bfa", mood:"Batik and black coffee ☕",       gender:"f", age:29, about:"Textile artist and occasional tour guide. Soft-spoken but has stories that'll hold the table for an hour." },
-  { id:"id5",  seed:122, ghostId:"Guest-5534", city:"Bandung",    country:"Indonesia", flag:"🇮🇩", floor:"Standard",  floorColor:"#c0c0c0", mood:"Indie playlist, window seat 🎧", gender:"m", age:24, about:"Music producer visiting for a collab session. Carries headphones everywhere but always has one ear out for good conversation." },
-  { id:"id6",  seed:128, ghostId:"Guest-1167", city:"Medan",      country:"Indonesia", flag:"🇮🇩", floor:"Ensuite",   floorColor:"#cd7f32", mood:"Will talk about food for hours", gender:"f", age:31, about:"Food journalist on assignment. Has eaten at 300 warungs and counting. Breakfast is research, not just a meal." },
-  { id:"id7",  seed:134, ghostId:"Guest-6645", city:"Jakarta",    country:"Indonesia", flag:"🇮🇩", floor:"Casino",    floorColor:"#d4af37", mood:"First coffee, then decisions",    gender:"f", age:26, about:"Corporate lawyer, works too hard. Travelling alone for the first time in three years and quietly enjoying every minute of it." },
-  { id:"id8",  seed:141, ghostId:"Guest-4423", city:"Lombok",     country:"Indonesia", flag:"🇮🇩", floor:"Loft",      floorColor:"#a78bfa", mood:"Surfer schedule, boardroom mind", gender:"m", age:30, about:"Marine conservation researcher. Spends half the year on the water. Has strong opinions on reef policy and even stronger ones about coffee." },
+  { id:"id1",  seed:97,  ghostId:"Guest-2241", city:"Jakarta",    country:"Indonesia", flag:"🇮🇩", floor:"Penthouse", floorColor:"#e8e4d0", mood:"Meeting-free morning ☀️",        gender:"m", age:32, photo:PH(27), about:"Startup founder from South Jakarta. Up early before the city traffic hits. Loves a strong kopi and a conversation that actually goes somewhere." },
+  { id:"id2",  seed:103, ghostId:"Guest-7753", city:"Bali",       country:"Indonesia", flag:"🇮🇩", floor:"Ensuite",   floorColor:"#cd7f32", mood:"Sunrise swim done ✓",             gender:"f", age:27, photo:PH(18), about:"Graphic designer based in Canggu. Splits time between client work and the ocean. Mornings are the only quiet part of the day." },
+  { id:"id3",  seed:108, ghostId:"Guest-3318", city:"Surabaya",   country:"Indonesia", flag:"🇮🇩", floor:"Casino",    floorColor:"#d4af37", mood:"Here for the nasi goreng 🍳",     gender:"m", age:35, photo:PH(41), about:"Logistics director, always travelling. Judges every hotel by the quality of its breakfast. This one passes." },
+  { id:"id4",  seed:115, ghostId:"Guest-9982", city:"Yogyakarta", country:"Indonesia", flag:"🇮🇩", floor:"Loft",      floorColor:"#a78bfa", mood:"Batik and black coffee ☕",        gender:"f", age:29, photo:PH(14), about:"Textile artist and occasional tour guide. Soft-spoken but has stories that'll hold the table for an hour." },
+  { id:"id5",  seed:122, ghostId:"Guest-5534", city:"Bandung",    country:"Indonesia", flag:"🇮🇩", floor:"Standard",  floorColor:"#c0c0c0", mood:"Indie playlist, window seat 🎧",  gender:"m", age:24, photo:PH(36), about:"Music producer visiting for a collab session. Carries headphones everywhere but always has one ear out for good conversation." },
+  { id:"id6",  seed:128, ghostId:"Guest-1167", city:"Medan",      country:"Indonesia", flag:"🇮🇩", floor:"Ensuite",   floorColor:"#cd7f32", mood:"Will talk about food for hours",  gender:"f", age:31, photo:PH(21), about:"Food journalist on assignment. Has eaten at 300 warungs and counting. Breakfast is research, not just a meal." },
+  { id:"id7",  seed:134, ghostId:"Guest-6645", city:"Jakarta",    country:"Indonesia", flag:"🇮🇩", floor:"Casino",    floorColor:"#d4af37", mood:"First coffee, then decisions",     gender:"f", age:26, photo:PH(16), about:"Corporate lawyer, works too hard. Travelling alone for the first time in three years and quietly enjoying every minute of it." },
+  { id:"id8",  seed:141, ghostId:"Guest-4423", city:"Lombok",     country:"Indonesia", flag:"🇮🇩", floor:"Loft",      floorColor:"#a78bfa", mood:"Surfer schedule, boardroom mind",  gender:"m", age:30, photo:PH(44), about:"Marine conservation researcher. Spends half the year on the water. Has strong opinions on reef policy and even stronger ones about coffee." },
   // International-only guests (unlocked via butler)
-  { id:"bl16", seed:55, ghostId:"Guest-8812", city:"Kyoto",     country:"Japan",        flag:"🇯🇵", floor:"Penthouse", floorColor:"#e8e4d0", mood:"Temple walks & matcha 🍵",  gender:"f", age:31, international:true, about:"Travels for silence and aesthetics. Mornings are sacred." },
-  { id:"bl17", seed:61, ghostId:"Guest-3341", city:"Lagos",     country:"Nigeria",      flag:"🇳🇬", floor:"Ensuite",   floorColor:"#cd7f32", mood:"Energy before 8am ⚡",       gender:"m", age:27, international:true, about:"Music producer. Best ideas come at breakfast, apparently." },
-  { id:"bl18", seed:73, ghostId:"Guest-9934", city:"Mumbai",    country:"India",        flag:"🇮🇳", floor:"Casino",    floorColor:"#d4af37", mood:"Chai, not coffee ☕",          gender:"f", age:29, international:true, about:"Filmmaker on location. Loves a good story over eggs." },
-  { id:"bl19", seed:85, ghostId:"Guest-1102", city:"Buenos Aires", country:"Argentina", flag:"🇦🇷", floor:"Loft",   floorColor:"#a78bfa", mood:"Tango last night 💃",          gender:"f", age:26, international:true, about:"Late nights, early mornings. Doesn't question it anymore." },
-  { id:"bl20", seed:94, ghostId:"Guest-6677", city:"Istanbul",  country:"Turkey",       flag:"🇹🇷", floor:"Casino",    floorColor:"#d4af37", mood:"Between two continents 🌉",  gender:"m", age:34, international:true, about:"Architect. Sees every hotel as a brief. Always studying the light." },
-  { id:"bl21", seed:17, ghostId:"Guest-4456", city:"Nairobi",   country:"Kenya",        flag:"🇰🇪", floor:"Standard",  floorColor:"#c0c0c0", mood:"Safari sunrise person 🌅",   gender:"f", age:25, international:true, about:"Wildlife photographer. Up before everyone, always." },
-  { id:"bl22", seed:33, ghostId:"Guest-2298", city:"Seoul",     country:"Korea",        flag:"🇰🇷", floor:"Ensuite",   floorColor:"#cd7f32", mood:"K-drama night, soju morning", gender:"m", age:30, international:true, about:"Tech founder. Running on determination and very strong coffee." },
+  { id:"bl16", seed:55, ghostId:"Guest-8812", city:"Kyoto",        country:"Japan",     flag:"🇯🇵", floor:"Penthouse", floorColor:"#e8e4d0", mood:"Temple walks & matcha 🍵",  gender:"f", age:31, photo:PH(8),  international:true, about:"Travels for silence and aesthetics. Mornings are sacred." },
+  { id:"bl17", seed:61, ghostId:"Guest-3341", city:"Lagos",        country:"Nigeria",   flag:"🇳🇬", floor:"Ensuite",   floorColor:"#cd7f32", mood:"Energy before 8am ⚡",       gender:"m", age:27, photo:PH(37), international:true, about:"Music producer. Best ideas come at breakfast, apparently." },
+  { id:"bl18", seed:73, ghostId:"Guest-9934", city:"Mumbai",       country:"India",     flag:"🇮🇳", floor:"Casino",    floorColor:"#d4af37", mood:"Chai, not coffee ☕",          gender:"f", age:29, photo:PH(20), international:true, about:"Filmmaker on location. Loves a good story over eggs." },
+  { id:"bl19", seed:85, ghostId:"Guest-1102", city:"Buenos Aires", country:"Argentina", flag:"🇦🇷", floor:"Loft",      floorColor:"#a78bfa", mood:"Tango last night 💃",          gender:"f", age:26, photo:PH(13), international:true, about:"Late nights, early mornings. Doesn't question it anymore." },
+  { id:"bl20", seed:94, ghostId:"Guest-6677", city:"Istanbul",     country:"Turkey",    flag:"🇹🇷", floor:"Casino",    floorColor:"#d4af37", mood:"Between two continents 🌉",  gender:"m", age:34, photo:PH(32), international:true, about:"Architect. Sees every hotel as a brief. Always studying the light." },
+  { id:"bl21", seed:17, ghostId:"Guest-4456", city:"Nairobi",      country:"Kenya",     flag:"🇰🇪", floor:"Standard",  floorColor:"#c0c0c0", mood:"Safari sunrise person 🌅",   gender:"f", age:25, photo:PH(22), international:true, about:"Wildlife photographer. Up before everyone, always." },
+  { id:"bl22", seed:33, ghostId:"Guest-2298", city:"Seoul",        country:"Korea",     flag:"🇰🇷", floor:"Ensuite",   floorColor:"#cd7f32", mood:"K-drama night, soju morning", gender:"m", age:30, photo:PH(28), international:true, about:"Tech founder. Running on determination and very strong coffee." },
 ];
 
 const SEATING_TIMES = ["8:00 AM","8:30 AM","9:00 AM","9:30 AM","10:00 AM","10:30 AM"];
@@ -165,13 +168,11 @@ function Avatar({ p, size = 48, border, status }: {
   const dotSize  = Math.max(8, size * 0.18);
   const dotColor = status === "at-table" ? "#f97316" : "#22c55e";
   return (
-    <div style={{ width: size, height: size, borderRadius: "50%", flexShrink: 0, position: "relative",
-      background: `radial-gradient(circle at 35% 35%, ${c}55, ${c}22)`,
-      border: border ?? `2px solid ${c}80`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.42,
-    }}>
-      👻
+    <div style={{ width: size, height: size, flexShrink: 0, position: "relative" }}>
+      <div style={{ width: size, height: size, borderRadius: "50%", overflow: "hidden",
+        border: border ?? `2px solid ${c}80`, boxSizing: "border-box" }}>
+        <img src={p.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+      </div>
       {status && (
         <motion.div
           animate={{ opacity: [1, 0.25, 1], scale: [1, 1.2, 1] }}
@@ -797,7 +798,6 @@ export default function BreakfastLoungePage() {
         {/* Available guests */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
           {available.map(({ profile: p }) => {
-            const c = avCol(p.seed);
             return (
               <motion.div key={p.id}
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -808,11 +808,7 @@ export default function BreakfastLoungePage() {
                   onClick={() => { if (!locked) { setSelectedProfile(p); setInviteNote(""); }}}>
 
                   {/* Avatar */}
-                  <div style={{ position: "relative", flexShrink: 0 }}>
-                    <div style={{ width: 54, height: 54, borderRadius: "50%", background: `radial-gradient(circle at 35% 35%, ${c}55, ${c}22)`, border: `2px solid ${c}80`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>👻</div>
-                    <motion.div animate={{ opacity: [1, 0.25, 1], scale: [1, 1.2, 1] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                      style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", background: "#22c55e", border: "2px solid #08080e" }} />
-                  </div>
+                  <Avatar p={p} size={54} status="available" />
 
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -861,15 +857,10 @@ export default function BreakfastLoungePage() {
             <p style={{ margin: "0 0 9px", fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.25)", letterSpacing: "0.14em", textTransform: "uppercase" }}>At a Table</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
               {atTable.map(({ profile: p, tableWith }) => {
-                const c = avCol(p.seed);
                 return (
                   <div key={p.id} style={{ borderRadius: 16, background: "rgba(249,115,22,0.03)", border: "1px solid rgba(249,115,22,0.12)", overflow: "hidden", opacity: 0.5 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 12px" }}>
-                      <div style={{ position: "relative", flexShrink: 0 }}>
-                        <div style={{ width: 54, height: 54, borderRadius: "50%", background: `radial-gradient(circle at 35% 35%, ${c}44, ${c}18)`, border: `2px solid ${c}55`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>👻</div>
-                        <motion.div animate={{ opacity: [1, 0.25, 1], scale: [1, 1.2, 1] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                          style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", background: "#f97316", border: "2px solid #08080e" }} />
-                      </div>
+                      <Avatar p={p} size={54} status="at-table" />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3 }}>
                           <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.5)" }}>{p.ghostId}, {p.age}</p>
