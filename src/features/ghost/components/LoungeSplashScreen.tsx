@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-const LOUNGE_IMG = "https://ik.imagekit.io/7grri5v7d/SADFASDFASDFASDFSdsfasdfsssswefwe.png";
+const LOUNGE_IMG = "https://ik.imagekit.io/7grri5v7d/mmmmmdfgdsfgdfg.png";
 
 type Props = {
   floorLabel: string;

@@ -348,19 +348,7 @@ export default function CasinoFloorPage() {
       minHeight: "100dvh", background: "#06060a", color: "#fff",
       fontFamily: "system-ui, sans-serif", position: "relative", overflowX: "hidden",
     }}>
-      {/* Lounge background image */}
-      <div style={{
-        position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
-        backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/mmmmmdfgdsfgdfg.png)",
-        backgroundSize: "cover", backgroundPosition: "center",
-        opacity: 0.18,
-      }} />
-      {/* Dark overlay to keep content readable */}
-      <div style={{
-        position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
-        background: "linear-gradient(to bottom, rgba(6,6,10,0.55) 0%, rgba(6,6,10,0.7) 60%, rgba(6,6,10,0.92) 100%)",
-      }} />
-      {/* Ambient gold glow */}
+      {/* Ambient glow */}
       <div style={{
         position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
         background: "radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.07) 0%, transparent 60%)",
