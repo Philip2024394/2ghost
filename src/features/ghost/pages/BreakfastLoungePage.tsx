@@ -844,7 +844,7 @@ export default function BreakfastLoungePage() {
                   <motion.button whileTap={{ scale: 0.97 }}
                     onClick={() => { if (!locked) { setSelectedProfile(p); setInviteNote(""); }}}
                     disabled={locked}
-                    style={{ width: "100%", height: 34, borderRadius: 10, border: "none", background: locked ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, rgba(212,175,55,0.22), rgba(212,175,55,0.1))", color: locked ? "rgba(255,255,255,0.2)" : "#d4af37", fontSize: 11, fontWeight: 800, cursor: locked ? "default" : "pointer" }}>
+                    style={{ width: "100%", padding: "11px", borderRadius: 12, border: "none", background: locked ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", color: locked ? "rgba(255,255,255,0.2)" : "#0a0500", fontSize: 13, fontWeight: 900, cursor: locked ? "default" : "pointer" }}>
                     Invite to Breakfast · <span style={{ opacity: 0.7 }}>🪙{INVITE_COST}</span>
                   </motion.button>
                 </div>
