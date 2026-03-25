@@ -42,10 +42,10 @@ export default function GhostLeaderboardSheet({ show, profiles, userCity, homeFl
             initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             onClick={e => e.stopPropagation()}
-            style={{ width: "100%", maxWidth: 480, background: "rgba(5,5,10,0.99)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.25)", borderBottom: "none", maxHeight: "88dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}
+            style={{ width: "100%", maxWidth: 480, background: "rgba(5,5,10,0.99)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(220,20,20,0.25)", borderBottom: "none", maxHeight: "88dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
             {/* Gold top stripe */}
-            <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #d4af37, #fbbf24, #d4af37, transparent)", flexShrink: 0 }} />
+            <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #e01010, #ff3333, #e01010, transparent)", flexShrink: 0 }} />
 
             {/* Header */}
             <div style={{ flexShrink: 0, padding: "14px 18px 10px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -78,7 +78,7 @@ export default function GhostLeaderboardSheet({ show, profiles, userCity, homeFl
 
                   {/* Avatar */}
                   <div style={{ position: "relative", flexShrink: 0 }}>
-                    <img src={p.image} alt="" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: i < 3 ? "2px solid #d4af37" : "2px solid rgba(255,255,255,0.12)", display: "block" }}
+                    <img src={p.image} alt="" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: i < 3 ? "2px solid #e01010" : "2px solid rgba(255,255,255,0.12)", display: "block" }}
                       onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
                     {isOnline(p.last_seen_at) && (
                       <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
