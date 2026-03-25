@@ -8,6 +8,7 @@ import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
 import type { GhostProfile } from "../types/ghostTypes";
 import { getProfileFloor, FLOOR_LABELS, isProfileInvited } from "./FloorInviteSheet";
+import MrButlasReportSheet from "./MrButlasReportSheet";
 
 // ── Chat Invite helpers ──────────────────────────────────────────────────────
 const INVITES_KEY = "ghost_chat_invites";
@@ -57,6 +58,7 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
   const a = useGenderAccent();
   const [refreshKey, setRefreshKey] = useState(0);
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
+  const [reportProfile, setReportProfile] = useState<GhostProfile | null>(null);
   const refresh = useCallback(() => setRefreshKey(k => k + 1), []);
 
   const handleAccept = (p: GhostProfile) => {
@@ -78,18 +80,16 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
   void refreshKey; // triggers re-read of localStorage on state change
 
   return (
+    <>
     <AnimatePresence>
       {show && (
         <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          onClick={onClose}
-          style={{ position: "fixed", inset: 0, zIndex: 520, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+          initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+          transition={{ type: "spring", stiffness: 320, damping: 32 }}
+          style={{ position: "fixed", inset: 0, zIndex: 520, background: "rgba(6,6,10,0.99)", display: "flex", flexDirection: "column", overflow: "hidden" }}
         >
           <motion.div
-            initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            onClick={e => e.stopPropagation()}
-            style={{ width: "100%", maxWidth: 480, height: "88dvh", background: "rgba(6,6,10,0.99)", borderRadius: "22px 22px 0 0", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none", display: "flex", flexDirection: "column", overflow: "hidden" }}
+            style={{ width: "100%", flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
             {/* Top stripe */}
             <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)`, flexShrink: 0 }} />
@@ -210,8 +210,8 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
                       {/* User A sent invite — show status */}
                       {sentInvite ? (
                         <div style={{ height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                          background: sentInvite.status === "accepted" ? "rgba(74,222,128,0.12)" : "rgba(212,175,55,0.07)",
-                          border: `1px solid ${sentInvite.status === "accepted" ? "rgba(74,222,128,0.35)" : "rgba(212,175,55,0.2)"}`,
+                          background: sentInvite.status === "accepted" ? "rgba(74,222,128,0.12)" : "rgba(220,20,20,0.08)",
+                          border: `1px solid ${sentInvite.status === "accepted" ? "rgba(74,222,128,0.35)" : "rgba(220,20,20,0.5)"}`,
                         }}>
                           <span style={{ fontSize: 14 }}>{sentInvite.status === "accepted" ? "✓" : "✉️"}</span>
                           <span style={{ fontSize: 10, fontWeight: 800, color: sentInvite.status === "accepted" ? "#4ade80" : "rgba(212,175,55,0.8)" }}>
@@ -239,11 +239,17 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
                           </p>
                         </>
                       ) : (
-                        /* Default — no invite yet */
-                        <motion.button whileTap={{ scale: 0.97 }} onClick={e => { e.stopPropagation(); onStartChat(p); }}
-                          style={{ width: "100%", height: 34, borderRadius: 10, border: "none", background: isKeen ? "linear-gradient(135deg, rgba(212,175,55,0.22), rgba(212,175,55,0.1))" : a.glow(0.14), color: isKeen ? "#d4af37" : a.accent, fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
-                          🎩 Let's Start a Chat
-                        </motion.button>
+                        /* Default — no invite yet: both buttons side by side */
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <motion.button whileTap={{ scale: 0.97 }} onClick={e => { e.stopPropagation(); onStartChat(p); }}
+                            style={{ flex: 1, height: 34, borderRadius: 10, border: "none", background: "linear-gradient(135deg, #b8922a, #d4af37)", color: "#000", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>
+                            🎩 Send Chat Invite
+                          </motion.button>
+                          <motion.button whileTap={{ scale: 0.97 }} onClick={e => { e.stopPropagation(); setReportProfile(p); }}
+                            style={{ flex: 1, height: 34, borderRadius: 10, border: "none", background: "linear-gradient(135deg, #b8922a, #d4af37)", color: "#000", fontSize: 10, fontWeight: 900, cursor: "pointer" }}>
+                            🕵️ Check Profile · 🪙 20
+                          </motion.button>
+                        </div>
                       )}
                     </div>
                   </motion.div>
@@ -254,5 +260,12 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
         </motion.div>
       )}
     </AnimatePresence>
+
+    <MrButlasReportSheet
+      show={reportProfile !== null}
+      profile={reportProfile}
+      onClose={() => setReportProfile(null)}
+    />
+    </>
   );
 }

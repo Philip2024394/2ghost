@@ -1,5 +1,6 @@
 // ── Breakfast Invite Service ───────────────────────────────────────────────────
 import type { BreakfastGift } from "./breakfastGiftService";
+import { ghostSupabase } from "../ghostSupabase";
 
 export type InviteStatus = "pending" | "accepted" | "declined" | "expired";
 
@@ -222,4 +223,96 @@ export function timeRemainingLabel(expiresAt: number): string {
   const m = Math.floor((ms % 3600000) / 60000);
   if (h > 0) return `${h}h ${m}m remaining`;
   return `${m}m remaining`;
+}
+
+// ── Supabase sync ─────────────────────────────────────────────────────────────
+
+function inviteToRow(inv: BreakfastInvite) {
+  return {
+    id:                inv.id,
+    from_ghost_id:     inv.fromUserId,
+    from_user_name:    inv.fromUserName,
+    from_floor:        inv.fromFloor,
+    to_ghost_id:       inv.toUserId,
+    to_user_name:      inv.toUserName,
+    to_avatar:         inv.toAvatar,
+    sent_at:           inv.sentAt,
+    expires_at:        inv.expiresAt,
+    status:            inv.status,
+    selected_gifts:    inv.selectedGifts ?? null,
+    decline_reason:    inv.declineReason ?? null,
+    from_avatar:       inv.fromAvatar ?? null,
+    from_photo:        inv.fromPhoto ?? null,
+    from_age:          inv.fromAge ?? null,
+    from_city:         inv.fromCity ?? null,
+    from_country_flag: inv.fromCountryFlag ?? null,
+    proposed_time:     inv.proposedTime ?? null,
+    sender_timezone:   inv.senderTimezone ?? null,
+    missed_at:         inv.missedAt ?? null,
+    updated_at:        new Date().toISOString(),
+  };
+}
+
+async function upsertInviteDB(inv: BreakfastInvite): Promise<void> {
+  try {
+    await ghostSupabase
+      .from("ghost_breakfast_invites")
+      .upsert(inviteToRow(inv), { onConflict: "id" });
+  } catch {}
+}
+
+/** Fetch the latest invite for a user (as sender or receiver) from Supabase */
+export async function loadInviteFromDB(myGhostId: string): Promise<{ sent: BreakfastInvite | null; received: BreakfastInvite | null }> {
+  try {
+    const now = Date.now();
+    const { data } = await ghostSupabase
+      .from("ghost_breakfast_invites")
+      .select("*")
+      .or(`from_ghost_id.eq.${myGhostId},to_ghost_id.eq.${myGhostId}`)
+      .gt("expires_at", now)
+      .order("sent_at", { ascending: false })
+      .limit(10);
+
+    if (!data?.length) return { sent: null, received: null };
+
+    const toRow = (row: Record<string, unknown>): BreakfastInvite => ({
+      id:              row.id as string,
+      fromUserId:      row.from_ghost_id as string,
+      fromUserName:    row.from_user_name as string,
+      fromFloor:       row.from_floor as string,
+      toUserId:        row.to_ghost_id as string,
+      toUserName:      row.to_user_name as string,
+      toAvatar:        row.to_avatar as string,
+      sentAt:          row.sent_at as number,
+      expiresAt:       row.expires_at as number,
+      status:          row.status as InviteStatus,
+      selectedGifts:   (row.selected_gifts as BreakfastGift[]) ?? [],
+      declineReason:   row.decline_reason as string | undefined,
+      fromAvatar:      row.from_avatar as string | undefined,
+      fromPhoto:       row.from_photo as string | undefined,
+      fromAge:         row.from_age as number | undefined,
+      fromCity:        row.from_city as string | undefined,
+      fromCountryFlag: row.from_country_flag as string | undefined,
+      proposedTime:    row.proposed_time as number | undefined,
+      senderTimezone:  row.sender_timezone as string | undefined,
+      missedAt:        row.missed_at as number | undefined,
+    });
+
+    const sent     = data.find(r => r.from_ghost_id === myGhostId) ?? null;
+    const received = data.find(r => r.to_ghost_id   === myGhostId) ?? null;
+    return { sent: sent ? toRow(sent) : null, received: received ? toRow(received) : null };
+  } catch { return { sent: null, received: null }; }
+}
+
+// Patch the existing functions to also sync to Supabase (non-blocking)
+const _origSendInvite = sendInvite;
+// Re-export with Supabase side-effect — call the original then sync
+export function sendInviteDB(invite: Parameters<typeof sendInvite>[0]): BreakfastInvite {
+  const full = _origSendInvite(invite);
+  upsertInviteDB(full).catch(() => {});
+  return full;
+}
+
+export async function updateInviteStatusDB(inv: BreakfastInvite): Promise<void> {
+  upsertInviteDB(inv).catch(() => {});
 }

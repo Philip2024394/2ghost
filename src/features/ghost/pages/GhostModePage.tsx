@@ -19,7 +19,7 @@ import {
   loadMatches, persistMatches, activeHoursAgo,
   profileHouseTier, tonightMidnight, isProfileTonight, isFlashProfile,
   getFlaggedProfiles, saveFlaggedProfiles, hasIntlGhost, getIntlCountries,
-  haversineKm, profileIsVerified, toGhostId,
+  haversineKm, profileIsVerified, toGhostId, getWantedGender,
 } from "../utils/ghostHelpers";
 
 // Components
@@ -28,7 +28,6 @@ import GhostDevPanel from "../components/GhostDevPanel";
 import GhostButlerMessage, { BUTLER_MESSAGES, type ButlerMessageKey, type ButlerMessage } from "../components/GhostButlerMessage";
 import HouseRulesModal from "../components/HouseRulesModal";
 import GhostFlashPaywallSheet from "../components/GhostFlashPaywallSheet";
-import GhostAuthGateSheet from "../components/GhostAuthGateSheet";
 import GhostLobbySheet from "../components/GhostLobbySheet";
 import GhostViewedMeSheet, { saveInvite, getInvite } from "../components/GhostViewedMeSheet";
 import GhostLeaderboardSheet from "../components/GhostLeaderboardSheet";
@@ -56,6 +55,8 @@ import { isCitySupported } from "../data/butlerProviders";
 import MatchActionPopup, { type MatchActionContext } from "../components/MatchActionPopup";
 import GhostCoinShop from "../components/GhostCoinShop";
 import FloorChatPopup, { getChatUnread, setChatUnread } from "../components/FloorChatPopup";
+import GhostModePopups from "../components/GhostModePopups";
+import GhostModeMatchBar from "../components/GhostModeMatchBar";
 import CheckoutReminderPopup, { shouldShowCheckout, markCheckoutShown } from "../components/CheckoutReminderPopup";
 import ButlerWelcomePopup, { shouldShowButlerWelcome, markButlerGreeted } from "../components/ButlerWelcomePopup";
 import PushPermissionPrompt, { shouldShowPushPrompt } from "../components/PushPermissionPrompt";
@@ -70,11 +71,14 @@ import WhisperSheet from "../components/WhisperSheet";
 import FloorWarsBoard from "../components/FloorWarsBoard";
 import GhostConciergeSheet from "../components/GhostConciergeSheet";
 import SeancePopup from "../components/SeancePopup";
+import MrButlasStaffPopup from "../components/MrButlasStaffPopup";
+import { useMrButlasCountdown, incrementRequestCount } from "../hooks/useMrButlasCountdown";
 import VideoIntroPlayer from "../components/VideoIntroPlayer";
 import VideoIntroUploader from "../components/VideoIntroUploader";
 import GhostStreakBanner from "../components/GhostStreakBanner";
 import DevPopupLauncher from "@/shared/components/DevPopupLauncher";
 import GameInvitePopup from "../components/GameInvitePopup";
+import TonightGiftSheet from "../components/TonightGiftSheet";
 import { sendGameInvite, subscribeToGameInvites, respondToInvite, type GameInvite } from "../utils/gameInviteService";
 import { hasActiveWindowMode, getDaysConnected, getConciergeShown, whisperWillConvert, profileHasVideo, isProfileInWindow } from "../utils/featureGating";
 import { recordLike, loadMyMatches, getMyGhostId, syncTierToSupabase, loadTierFromSupabase, syncCoinsToSupabase, loadCoinsFromSupabase, loadGhostProfiles, type RealProfileRow } from "../ghostDataService";
@@ -120,9 +124,11 @@ export default function GhostModePage() {
     try { return !!localStorage.getItem("ghost_profile"); } catch { return false; }
   })();
 
-  const isAuthed = hasGhostProfile || !!localStorage.getItem("ghost_phone");
-  const [showAuthGate, setShowAuthGate] = useState(false);
-  const requireAuth = (fn: () => void) => { if (isAuthed) { fn(); } else { setShowAuthGate(true); } };
+  const isAuthed = hasGhostProfile
+    || !!localStorage.getItem("ghost_phone")
+    || !!localStorage.getItem("ghost_email")
+    || !!localStorage.getItem("ghost_auth_uid");
+  const requireAuth = (fn: () => void) => { fn(); };
 
   const userCity = (() => {
     try { const p = JSON.parse(localStorage.getItem("ghost_profile") || "{}"); return p.city ?? "Jakarta"; } catch { return "Jakarta"; }
@@ -436,11 +442,21 @@ export default function GhostModePage() {
   const [conciergeDays,    setConciergeDays]     = useState(0);
   const [showSeance,       setShowSeance]        = useState(false);
   const [seanceProfile,    setSeanceProfile]     = useState<GhostProfile | null>(null);
+  const [staffPopupProfile, setStaffPopupProfile] = useState<GhostProfile | null>(null);
+
+  // Mr. Butlas staff enforcement
+  const { stage: butlasStage } = useMrButlasCountdown();
+  const ownIsStaff = butlasStage !== "guest";
+  // Redirect if portrait deadline expired
+  useEffect(() => {
+    if (butlasStage === "expired") navigate("/ghost/escorted-out", { replace: true });
+  }, [butlasStage, navigate]);
   const [showVideoPlayer,  setShowVideoPlayer]   = useState(false);
   const [videoProfile,     setVideoProfile]      = useState<GhostProfile | null>(null);
   const [showVideoUpload,  setShowVideoUpload]   = useState(false);
   const [showLeaderboard,  setShowLeaderboard]   = useState(false);
   const [showTonightSheet, setShowTonightSheet]  = useState(false);
+  const [tonightGiftProfile, setTonightGiftProfile] = useState<GhostProfile | null>(null);
   // Revealed "liked me" avatars in hero tab
   const [revealedInbound,  setRevealedInbound]   = useState<Set<string>>(new Set());
   const [windowActive,     setWindowActive]      = useState(hasActiveWindowMode);
@@ -911,15 +927,21 @@ export default function GhostModePage() {
     const realIds = new Set(real.map(r => r.id));
     const merged = [...real, ...sea.filter(p => !realIds.has(p.id)), ...intl];
 
+    // ── Interest filter — only show genders the user is looking for ──────────
+    const wantedGender = getWantedGender();
+    const interestFiltered = wantedGender
+      ? merged.filter(p => p.gender === wantedGender)
+      : merged;
+
     if (ipCountry?.countryCode) {
       const userCC = ipCountry.countryCode;
-      merged.sort((a, b) => {
+      interestFiltered.sort((a, b) => {
         const aCC = a.countryFlag ? Object.entries({ ID:"🇮🇩",PH:"🇵🇭",TH:"🇹🇭",SG:"🇸🇬",MY:"🇲🇾",VN:"🇻🇳" }).find(([,f])=>f===a.countryFlag)?.[0] ?? "ZZ" : "ZZ";
         const bCC = b.countryFlag ? Object.entries({ ID:"🇮🇩",PH:"🇵🇭",TH:"🇹🇭",SG:"🇸🇬",MY:"🇲🇾",VN:"🇻🇳" }).find(([,f])=>f===b.countryFlag)?.[0] ?? "ZZ" : "ZZ";
         return getCountryProximity(userCC, aCC) - getCountryProximity(userCC, bCC);
       });
     }
-    return merged;
+    return interestFiltered;
   }, [userLat, userLon, ipCountry, realProfiles]);
 
   // New guest profiles subset (for popup + lobby mode)
@@ -1030,7 +1052,6 @@ export default function GhostModePage() {
   };
 
   const handleLike = (profile: GhostProfile) => {
-    if (!isAuthed) { setShowAuthGate(true); return; }
     const newLiked = new Set(likedIds);
     newLiked.add(profile.id);
     setLikedIds(newLiked);
@@ -1127,6 +1148,41 @@ export default function GhostModePage() {
 
   return (
     <div translate="no" style={{ minHeight: "100dvh", background: "#050508", display: "flex", justifyContent: "center" }}>
+
+      {/* DEV — reset to start page */}
+      <button
+        onClick={() => {
+          localStorage.removeItem("ghost_profile_setup_done");
+          localStorage.removeItem("ghost_phone");
+          navigate("/ghost/welcome");
+        }}
+        style={{
+          position: "fixed", bottom: 12, right: 12, zIndex: 9999,
+          background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
+          borderRadius: 8, cursor: "pointer",
+          color: "rgba(239,68,68,0.6)", fontSize: 9,
+          fontWeight: 700, letterSpacing: "0.1em",
+          textTransform: "uppercase", padding: "5px 10px",
+        }}
+      >
+        ⚙ Dev · Start
+      </button>
+
+      {/* DEV — view escort page */}
+      <button
+        onClick={() => navigate("/ghost/escorted-out")}
+        style={{
+          position: "fixed", bottom: 12, right: 100, zIndex: 9999,
+          background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)",
+          borderRadius: 8, cursor: "pointer",
+          color: "rgba(212,175,55,0.7)", fontSize: 9,
+          fontWeight: 700, letterSpacing: "0.1em",
+          textTransform: "uppercase", padding: "5px 10px",
+        }}
+      >
+        🚪 Dev · Escort
+      </button>
+
     <div
       style={{ width: "100%", maxWidth: 480, minHeight: "100dvh", background: "#050508", color: "#fff", display: "flex", flexDirection: "column", position: "relative" }}
     >
@@ -1188,331 +1244,88 @@ export default function GhostModePage() {
       </div>
 
 
-      {/* ── Matches container ── */}
-      {(() => {
-        const activeMatches = savedMatches
-          .filter((m) => Date.now() - m.matchedAt < MATCH_EXPIRY_MS && !connectedMatchIds.has(m.id));
-        const PLACEHOLDER_IMG = isFemale
-          ? "https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdftewrtewrtDASDASD.png?updatedAt=1774110335030"
-          : "https://ik.imagekit.io/7grri5v7d/UntitledasfsadfasdftewrtewrtDASDASDDSDS.png?updatedAt=1774110383388";
-
-        // Use component-level computed lists (shuffled live)
-        const iLikeProfiles = iLikeList;
-        const likedMeProfiles = likedMeList;
-
-        // Avatar size: exactly 3 fit in screen width
-        // 28px margins + 2×8px item gaps = 44px, plus 8px flex-gap + 4px marginLeft + 52px buttons = 64px → 108px total
-        const avatarSize = "calc((100vw - 108px) / 3)";
-        // Height: profile item (avatar + 4px gap + ~12px label) should equal button stack (44+6+44 = 94px)
-        const avatarH = 78;
-
-        // Header label
-        const tabLabel = matchTab === "ilike" ? "I Like" : matchTab === "liked" ? "Liked Me" : matchTab === "lobby" ? "Hotel Lobby" : matchTab === "room" ? tierLabel : "Matches";
-        const tabCount = matchTab === "ilike" ? iLikeProfiles.length : matchTab === "liked" ? likedMeProfiles.length : matchTab === "lobby" ? lobbyList.length : matchTab === "room" ? roomMemberList.length : activeMatches.length;
-        // Lobby uses gender accent (same as everything else — pink/green)
-        const dotColor = a.accent;
-        const dotGlow  = a.glow(0.9);
-        const labelColor = a.glow(0.85);
-
-        // Build scroll content
-        const renderScrollContent = () => {
-          if (matchTab === "ilike") {
-            const TOTAL = Math.max(3, iLikeProfiles.length);
-            const phCount = TOTAL - iLikeProfiles.length;
-            return (
-              <>
-                {iLikeProfiles.map((p, i) => (
-                  <div key={p.id} onClick={() => openMatchAction(p, "ilike")}
-                    style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
-                  >
-                    <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
-                      <motion.div
-                        animate={{ scale: [1, 1.22, 1], opacity: [0.6, 0, 0.6] }}
-                        transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.2 }}
-                        style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px solid ${a.glow(0.7)}`, pointerEvents: "none" }}
-                      />
-                      <img src={p.image} alt=""
-                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.55)}`, display: "block" }}
-                        onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
-                      />
-                    </div>
-                    <p style={{ fontSize: 8, color: a.glow(0.8), fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name}</p>
-                  </div>
-                ))}
-                {Array.from({ length: phCount }).map((_, i) => (
-                  <div key={`ph-${i}`} style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <div style={{ width: avatarSize, height: avatarH, borderRadius: "50%", border: `2px dashed ${a.glow(0.2)}`, background: "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 14, opacity: 0.3 }}>👻</span>
-                    </div>
-                    <p style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", margin: 0 }}>Soon…</p>
-                  </div>
-                ))}
-              </>
-            );
-          }
-          if (matchTab === "liked") {
-            const TOTAL = Math.max(3, likedMeProfiles.length);
-            const phCount = TOTAL - likedMeProfiles.length;
-            return (
-              <>
-                {likedMeProfiles.map((p, i) => {
-                  const revealed = revealedInbound.has(p.id);
-                  return (
-                    <div key={p.id}
-                      onClick={() => {
-                        if (revealed) { setExpandedLikedProfile(p); return; }
-                        const current = coinBalance;
-                        if (current < 20) { setShowCoinShop(true); return; }
-                        updateCoins(current - 20);
-                        setRevealedInbound(prev => new Set([...prev, p.id]));
-                        setExpandedLikedProfile(p);
-                      }}
-                      style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
-                    >
-                      <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
-                        <motion.div
-                          animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0, 0.5] }}
-                          transition={{ duration: 2, repeat: Infinity, delay: i * 0.18 }}
-                          style={{ position: "absolute", inset: -4, borderRadius: "50%", border: "2px solid rgba(220,20,20,0.65)", pointerEvents: "none" }}
-                        />
-                        <img src={p.image} alt=""
-                          style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.45)", display: "block", filter: revealed ? "none" : "blur(7px) brightness(0.65)", transition: "filter 0.4s" }}
-                          onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
-                        />
-                        {!revealed && (
-                          <div style={{ position: "absolute", inset: 0, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.15)" }}>
-                            <span style={{ fontSize: 8, fontWeight: 900, color: "#d4af37", textAlign: "center", lineHeight: 1.3 }}>20🪙</span>
-                          </div>
-                        )}
-                      </div>
-                      <p style={{ fontSize: 8, color: "rgba(220,20,20,0.85)", fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
-                        {revealed ? p.name : "???"}
-                      </p>
-                    </div>
-                  );
-                })}
-                {Array.from({ length: phCount }).map((_, i) => (
-                  <div key={`ph-${i}`} style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <div style={{ width: avatarSize, height: avatarH, borderRadius: "50%", border: "2px dashed rgba(220,20,20,0.2)", background: "rgba(220,20,20,0.03)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 14, opacity: 0.3 }}>💗</span>
-                    </div>
-                    <p style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", margin: 0 }}>Soon…</p>
-                  </div>
-                ))}
-              </>
-            );
-          }
-          if (matchTab === "lobby") {
-            const TOTAL = Math.max(3, lobbyList.length);
-            const phCount = TOTAL - lobbyList.length;
-            return (
-              <>
-                {lobbyList.map((p, i) => (
-                  <div key={p.id} onClick={() => openMatchAction(p, "lobby")}
-                    style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
-                  >
-                    <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
-                      <motion.div
-                        animate={{ scale: [1, 1.18, 1], opacity: [0.6, 0, 0.6] }}
-                        transition={{ duration: 1.9, repeat: Infinity, delay: i * 0.18 }}
-                        style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px solid ${a.glow(0.65)}`, pointerEvents: "none" }}
-                      />
-                      <img src={p.image} alt=""
-                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.45)}`, display: "block" }}
-                        onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
-                      />
-                      {isOnline(p.last_seen_at) && (
-                        <motion.span
-                          animate={{ opacity: [1, 0.3, 1], scale: [1, 1.3, 1] }}
-                          transition={{ duration: 1.4, repeat: Infinity }}
-                          style={{ position: "absolute", bottom: 1, right: 1, width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)", display: "block" }}
-                        />
-                      )}
-                    </div>
-                    <p style={{ fontSize: 8, color: a.glow(0.8), fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name}</p>
-                  </div>
-                ))}
-                {Array.from({ length: phCount }).map((_, i) => (
-                  <div key={`ph-${i}`} style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <div style={{ width: avatarSize, height: avatarH, borderRadius: "50%", border: `2px dashed ${a.glow(0.2)}`, background: a.glow(0.03), display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 16, opacity: 0.3 }}>🏨</span>
-                    </div>
-                    <p style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", margin: 0 }}>Soon…</p>
-                  </div>
-                ))}
-              </>
-            );
-          }
-
-          if (matchTab === "room") {
-            const TOTAL = Math.max(3, roomMemberList.length);
-            const phCount = TOTAL - roomMemberList.length;
-            return (
-              <>
-                {roomMemberList.map((p, i) => (
-                  <div key={p.id} onClick={() => openMatchAction(p, "match")}
-                    style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
-                  >
-                    <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
-                      <motion.div
-                        animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0, 0.5] }}
-                        transition={{ duration: 2.1, repeat: Infinity, delay: i * 0.18 }}
-                        style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px solid ${tierColor}80`, pointerEvents: "none" }}
-                      />
-                      <img src={p.image} alt=""
-                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: `2px solid ${tierColor}60`, display: "block" }}
-                        onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
-                      />
-                      {isOnline(p.last_seen_at) && (
-                        <motion.span
-                          animate={{ opacity: [1, 0.3, 1], scale: [1, 1.3, 1] }}
-                          transition={{ duration: 1.4, repeat: Infinity }}
-                          style={{ position: "absolute", bottom: 1, right: 1, width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)", display: "block" }}
-                        />
-                      )}
-                    </div>
-                    <p style={{ fontSize: 8, color: `${tierColor}cc`, fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name}</p>
-                  </div>
-                ))}
-                {Array.from({ length: phCount }).map((_, i) => (
-                  <div key={`ph-${i}`} style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <div style={{ width: avatarSize, height: avatarH, borderRadius: "50%", border: `2px dashed ${tierColor}30`, background: `${tierColor}05`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 16, opacity: 0.3 }}>{tierIcon}</span>
-                    </div>
-                    <p style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", margin: 0 }}>Soon…</p>
-                  </div>
-                ))}
-              </>
-            );
-          }
-
-          // Default: matches tab
-          const TOTAL_SLOTS = Math.max(3, activeMatches.length);
-          const placeholderCount = TOTAL_SLOTS - activeMatches.length;
-          return (
-            <>
-              {activeMatches.map((m, i) => (
-                <div key={m.id} onClick={() => {
-                    const days = getDaysConnected(m.matchedAt);
-                    const shown = getConciergeShown();
-                    if (days >= 5 && !shown.includes(m.id)) {
-                      setConciergeProfile(m.profile);
-                      setConciergeMatchId(m.id);
-                      setConciergeDays(days);
-                      setShowConcierge(true);
-                    } else {
-                      openMatchAction(m.profile, "match");
-                    }
-                  }}
-                  style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }}
-                >
-                  <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
-                    <motion.div
-                      animate={{ scale: [1, 1.22, 1], opacity: [0.6, 0, 0.6] }}
-                      transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.2 }}
-                      style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px solid ${a.glow(0.7)}`, pointerEvents: "none" }}
-                    />
-                    <img src={m.profile.image} alt=""
-                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.55)}`, display: "block" }}
-                      onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
-                    />
-                    {(m.profile.lastActiveHoursAgo ?? 99) <= 0.5 && (
-                      <motion.span
-                        animate={{ opacity: [1, 0.3, 1], scale: [1, 1.3, 1] }}
-                        transition={{ duration: 1.4, repeat: Infinity }}
-                        style={{ position: "absolute", bottom: 1, right: 1, width: 8, height: 8, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)", display: "block" }}
-                      />
-                    )}
-                  </div>
-                  <p style={{ fontSize: 8, color: a.glow(0.8), fontWeight: 700, margin: 0, letterSpacing: "0.04em", textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{m.profile.name}</p>
-                  {getDaysConnected(m.matchedAt) >= 1 && (
-                    <p style={{ fontSize: 7, fontWeight: 900, color: "#fb923c", margin: 0, letterSpacing: "0.02em" }}>
-                      Day {getDaysConnected(m.matchedAt)} 🔥
-                    </p>
-                  )}
-                </div>
-              ))}
-              {Array.from({ length: placeholderCount }).map((_, i) => (
-                <div key={`ph-${i}`} style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                  <div style={{ position: "relative", width: avatarSize, height: avatarH }}>
-                    <motion.div
-                      animate={{ scale: [1, 1.22, 1], opacity: [0.4, 0, 0.4] }}
-                      transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.15 }}
-                      style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px solid ${a.glow(0.35)}`, pointerEvents: "none" }}
-                    />
-                    <img src={PLACEHOLDER_IMG} alt=""
-                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.glow(0.3)}`, display: "block", opacity: 0.6 }}
-                    />
-                  </div>
-                  <p style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", fontWeight: 700, margin: 0 }}>Soon…</p>
-                </div>
-              ))}
-            </>
-          );
-        };
-
-        return (
-          <div style={{ margin: "10px 14px 0" }}>
-            {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16 }}>
-              <motion.span
-                animate={{ opacity: [1, 0.3, 1], scale: [1, 1.2, 1] }}
-                transition={{ duration: 1.6, repeat: Infinity }}
-                style={{ width: 7, height: 7, borderRadius: "50%", background: dotColor, display: "block", boxShadow: `0 0 8px ${dotGlow}`, flexShrink: 0 }}
-              />
-              <span style={{ fontSize: 13, fontWeight: 800, color: labelColor, letterSpacing: "0.1em", textTransform: "uppercase" }}>{tabLabel}</span>
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", flex: 1 }}>
-                · {tabCount > 0 ? `${tabCount} ${matchTab === "liked" ? "liked you" : matchTab === "lobby" ? "in lobby" : "waiting"}` : "waiting for you"}
-              </span>
-              {/* Butler — right side */}
-              <div
-                onClick={() => { if (isCitySupported(userCity)) { setButlerMatchName(undefined); setShowButler(true); } else setShowButlerUnavailable(true); }}
-                style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", flexShrink: 0, padding: "6px 0 6px 10px" }}
-              >
-                <img src="https://ik.imagekit.io/7grri5v7d/butlers%20tray.png" alt="butler" style={{ width: 16, height: 16, objectFit: "contain" }} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap" }}>Butler Service</span>
-              </div>
-            </div>
-            {/* Main row: scroll area + tab buttons */}
-            <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-              {/* Scrollable profiles */}
-              <style>{`.matches-row::-webkit-scrollbar { display: none; }`}</style>
-              <div className="matches-row" onScroll={() => { if (matchTab !== "matches") startTabRevert(); }} style={{ flex: 1, display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, scrollbarWidth: "none" }}>
-                {renderScrollContent()}
-              </div>
-              {/* Tab buttons — stacked vertically */}
-              <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 6, paddingBottom: 8, marginLeft: 4 }}>
-                <button
-                  onClick={() => setMatchTab(matchTab === "ilike" ? "matches" : "ilike")}
-                  style={{
-                    width: 52, height: 44, borderRadius: 10,
-                    background: matchTab === "ilike" ? a.gradient : "rgba(255,255,255,0.07)",
-                    border: matchTab === "ilike" ? "none" : "1.5px solid rgba(255,255,255,0.15)",
-                    cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
-                    boxShadow: matchTab === "ilike" ? `0 0 14px ${a.glow(0.5)}` : "none",
-                  }}
-                >
-                  <img src="https://ik.imagekit.io/7grri5v7d/dfghdfghdfghdfg-removebg-preview.png?updatedAt=1774183141963" alt="" style={{ width: 22, height: 22, objectFit: "contain", display: "block" }} />
-                  <span style={{ fontSize: 8, fontWeight: 700, color: matchTab === "ilike" ? "#fff" : "rgba(255,255,255,0.5)", letterSpacing: "0.02em" }}>I Like</span>
-                </button>
-                <button
-                  onClick={() => setMatchTab(matchTab === "liked" ? "matches" : "liked")}
-                  style={{
-                    width: 52, height: 44, borderRadius: 10,
-                    background: matchTab === "liked" ? "linear-gradient(to bottom, #ff3b3b 0%, #e01010 40%, #b80000 100%)" : "rgba(255,255,255,0.07)",
-                    border: matchTab === "liked" ? "none" : "1.5px solid rgba(255,255,255,0.15)",
-                    cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
-                    boxShadow: matchTab === "liked" ? "0 0 14px rgba(220,20,20,0.5)" : "none",
-                  }}
-                >
-                  <span style={{ fontSize: 15 }}>❤️</span>
-                  <span style={{ fontSize: 8, fontWeight: 700, color: matchTab === "liked" ? "#fff" : "rgba(255,255,255,0.5)", letterSpacing: "0.02em" }}>Liked</span>
-                </button>
-              </div>
-            </div>
+      {/* ── Mr. Butlas staff banner — own user hasn't uploaded portrait ── */}
+      {ownIsStaff && (
+        <div style={{
+          margin: "8px 14px 0",
+          background: butlasStage === "final"  ? "rgba(220,20,20,0.12)"
+                    : butlasStage === "urgent" ? "rgba(220,120,0,0.10)"
+                    : "rgba(212,175,55,0.07)",
+          border: `1px solid ${
+            butlasStage === "final"  ? "rgba(220,20,20,0.4)"
+          : butlasStage === "urgent" ? "rgba(220,120,0,0.35)"
+          : "rgba(212,175,55,0.25)"}`,
+          borderRadius: 14, padding: "10px 14px",
+          display: "flex", alignItems: "center", gap: 10,
+        }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>
+            {butlasStage === "final" ? "🚨" : butlasStage === "urgent" ? "⚠️" : "🔑"}
+          </span>
+          <div style={{ flex: 1 }}>
+            <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 900,
+              color: butlasStage === "final" ? "rgba(220,20,20,0.9)"
+                   : butlasStage === "urgent" ? "rgba(220,150,0,0.9)"
+                   : "rgba(212,175,55,0.85)" }}>
+              {butlasStage === "final"  ? "Final Warning — Mr. Butlas"
+             : butlasStage === "urgent" ? "Mr. Butlas is waiting"
+             : "You are currently Hotel Staff"}
+            </p>
+            <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.4)", lineHeight: 1.4 }}>
+              {butlasStage === "final"
+                ? "Upload your portrait immediately or you will be asked to leave"
+                : butlasStage === "urgent"
+                ? "Your deadline is approaching — submit your portrait soon"
+                : "Upload your portrait to become a full guest of the house"}
+            </p>
           </div>
-        );
-      })()}
+          <button
+            onClick={() => navigate("/ghost/profile-setup")}
+            style={{
+              background: butlasStage === "final" ? "rgba(220,20,20,0.2)" : "rgba(212,175,55,0.12)",
+              border: `1px solid ${butlasStage === "final" ? "rgba(220,20,20,0.5)" : "rgba(212,175,55,0.4)"}`,
+              borderRadius: 9, padding: "6px 11px",
+              color: butlasStage === "final" ? "rgba(220,20,20,0.9)" : "rgba(212,175,55,0.9)",
+              fontSize: 11, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap",
+            }}>
+            Submit Portrait
+          </button>
+        </div>
+      )}
+
+      {/* ── Matches container ── */}
+      <GhostModeMatchBar
+        savedMatches={savedMatches}
+        connectedMatchIds={connectedMatchIds}
+        isFemale={isFemale}
+        iLikeList={iLikeList}
+        likedMeList={likedMeList}
+        lobbyList={lobbyList}
+        roomMemberList={roomMemberList}
+        matchTab={matchTab}
+        setMatchTab={setMatchTab}
+        tierLabel={tierLabel}
+        tierColor={tierColor}
+        tierIcon={tierIcon}
+        revealedInbound={revealedInbound}
+        setRevealedInbound={setRevealedInbound}
+        coinBalance={coinBalance}
+        setShowCoinShop={setShowCoinShop}
+        updateCoins={updateCoins}
+        setExpandedLikedProfile={setExpandedLikedProfile}
+        openMatchAction={openMatchAction}
+        setStaffPopupProfile={setStaffPopupProfile}
+        startTabRevert={startTabRevert}
+        userCity={userCity}
+        setButlerMatchName={setButlerMatchName}
+        setShowButler={setShowButler}
+        setShowButlerUnavailable={setShowButlerUnavailable}
+        setShowLobbyWelcome={setShowLobbyWelcome}
+        setConciergeProfile={setConciergeProfile}
+        setConciergeMatchId={setConciergeMatchId}
+        setConciergeDays={setConciergeDays}
+        setShowConcierge={setShowConcierge}
+        a={a}
+      />
 
 
 
@@ -1535,8 +1348,8 @@ export default function GhostModePage() {
           style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: lobbyList.length > 0 ? "rgba(220,20,20,0.12)" : "rgba(220,20,20,0.08)", border: `1px solid ${lobbyList.length > 0 ? "rgba(220,20,20,0.5)" : "rgba(220,20,20,0.25)"}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
         >
           {lobbyList.length > 0 && (
-            <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.6, repeat: Infinity }}
-              style={{ position: "absolute", top: 7, right: 8, width: 6, height: 6, borderRadius: "50%", background: "#e01010", boxShadow: "0 0 6px rgba(220,20,20,0.9)" }} />
+            <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.4, repeat: Infinity }}
+              style={{ position: "absolute", top: 7, right: 8, width: 7, height: 7, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 8px rgba(34,197,94,0.9)" }} />
           )}
           <Moon size={20} style={{ color: "#fff", flexShrink: 0 }} />
           <div style={{ textAlign: "left" }}>
@@ -1996,7 +1809,10 @@ export default function GhostModePage() {
       {/* ── Ready to Meet Tonight ── */}
       {lobbyList.length > 0 && (
         <div style={{ padding: "20px 14px 0" }}>
-          <div style={{ background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 16, padding: "12px 14px 0", marginBottom: 0 }}>
+          <div style={{ background: "rgba(220,20,20,0.06)", border: "1px solid rgba(220,20,20,0.22)", borderRadius: 16, overflow: "hidden", marginBottom: 0 }}>
+            {/* Red top stripe */}
+            <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #e01010, transparent)" }} />
+            <div style={{ padding: "12px 14px 0" }}>
           {/* Header */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -2038,17 +1854,23 @@ export default function GhostModePage() {
                       onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%)" }} />
 
-                    {/* Tonight badge */}
-                    <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "2px 7px", border: `1px solid ${a.glow(0.45)}` }}>
-                      <span style={{ fontSize: 8, fontWeight: 800, color: a.glow(0.95), letterSpacing: "0.04em" }}>🌙 TONIGHT</span>
-                    </div>
-
-                    {/* Online pulse */}
-                    <motion.div
-                      animate={{ opacity: [0.5, 1, 0.5] }}
-                      transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.2 }}
-                      style={{ position: "absolute", top: 7, right: 7, width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)" }}
-                    />
+                    {/* Online / Busy status */}
+                    {(() => {
+                      const online = isOnline(p.last_seen_at);
+                      const dotColor = online ? "#4ade80" : "#fb923c";
+                      const dotGlow  = online ? "rgba(74,222,128,0.9)" : "rgba(251,146,60,0.9)";
+                      const label    = online ? "Online" : "Busy";
+                      return (
+                        <div style={{ position: "absolute", top: 7, left: 7, display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "3px 8px" }}>
+                          <motion.div
+                            animate={{ opacity: [0.4, 1, 0.4] }}
+                            transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.18 }}
+                            style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, boxShadow: `0 0 5px ${dotGlow}`, flexShrink: 0 }}
+                          />
+                          <span style={{ fontSize: 8, fontWeight: 800, color: dotColor, letterSpacing: "0.04em" }}>{label}</span>
+                        </div>
+                      );
+                    })()}
 
                     {/* Name + age */}
                     <div style={{ position: "absolute", bottom: 7, left: 8, right: 8 }}>
@@ -2057,13 +1879,13 @@ export default function GhostModePage() {
                     </div>
                   </div>
 
-                  {/* Like button below card */}
+                  {/* Like / Gift button below card */}
                   <motion.button
                     whileTap={{ scale: 0.88 }}
-                    onClick={e => { e.stopPropagation(); handleLike(p); }}
-                    style={{ width: "100%", marginTop: 6, height: 30, borderRadius: 9, border: likedIds.has(p.id) ? `1.5px solid ${a.accent}` : "1px solid rgba(255,255,255,0.12)", background: likedIds.has(p.id) ? a.glowMid(0.2) : "rgba(255,255,255,0.05)", color: likedIds.has(p.id) ? a.accent : "rgba(255,255,255,0.6)", fontSize: 11, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
+                    onClick={e => { e.stopPropagation(); if (likedIds.has(p.id)) return; setTonightGiftProfile(p); }}
+                    style={{ width: "100%", marginTop: 6, height: 30, borderRadius: 9, border: likedIds.has(p.id) ? `1.5px solid ${a.accent}` : "1px solid rgba(255,255,255,0.12)", background: likedIds.has(p.id) ? a.glowMid(0.2) : "rgba(255,255,255,0.05)", color: likedIds.has(p.id) ? a.accent : "rgba(255,255,255,0.6)", fontSize: 11, fontWeight: 800, cursor: likedIds.has(p.id) ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
                   >
-                    {likedIds.has(p.id) ? "❤️ Liked" : "♡ Like"}
+                    {likedIds.has(p.id) ? "❤️ Liked" : "🎁 Like + Gift"}
                   </motion.button>
                 </motion.div>
               ))}
@@ -2071,807 +1893,200 @@ export default function GhostModePage() {
           </div>
 
           {/* Divider */}
-          <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.2)}, transparent)`, margin: "14px 0 0" }} />
-          </div>{/* close gender-accent container */}
+          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(220,20,20,0.2), transparent)", margin: "14px 0 0" }} />
+            </div>{/* close inner padding div */}
+          </div>{/* close red container */}
         </div>
       )}
 
-      <AnimatePresence>
-        {pendingGameInvite && (
-          <GameInvitePopup
-            invite={pendingGameInvite}
-            onAccept={async () => {
-              await respondToInvite(pendingGameInvite.id, "accepted");
-              setPendingGameInvite(null);
-              navigate("/ghost/games/connect4");
-            }}
-            onDecline={async (reason) => {
-              await respondToInvite(pendingGameInvite.id, "declined", reason);
-              setPendingGameInvite(null);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {matchActionProfile && (
-          <MatchActionPopup
-            profile={matchActionProfile}
-            context={matchActionContext}
-            coinBalance={coinBalance}
-            onClose={() => setMatchActionProfile(null)}
-            onConnect={() => handleMatchConnect(matchActionProfile)}
-            onLikeBack={() => handleLikeBack(matchActionProfile)}
-            onGift={(emoji, coins) => handleSendGift(emoji, coins)}
-            onPass={() => {
-              if (matchActionContext === "liked" || matchActionContext === "ilike") handlePass(matchActionProfile.id);
-              setMatchActionProfile(null);
-            }}
-            onNeedCoins={() => { setMatchActionProfile(null); setShowCoinShop(true); }}
-          />
-        )}
-      </AnimatePresence>
-
-
-      {/* ── 🏆 Top Profiles — City Leaderboard ── */}
-      <GhostLeaderboardSheet
-        show={showLeaderboard}
-        profiles={allProfiles}
+      <GhostModePopups
+        pendingGameInvite={pendingGameInvite}
+        setPendingGameInvite={setPendingGameInvite}
+        matchActionProfile={matchActionProfile}
+        setMatchActionProfile={setMatchActionProfile}
+        matchActionContext={matchActionContext}
+        coinBalance={coinBalance}
+        handleMatchConnect={handleMatchConnect}
+        handleLikeBack={handleLikeBack}
+        handleSendGift={handleSendGift}
+        handlePass={handlePass}
+        setShowCoinShop={setShowCoinShop}
+        showLeaderboard={showLeaderboard}
+        setShowLeaderboard={setShowLeaderboard}
+        allProfiles={allProfiles}
         userCity={userCity}
         homeFlag={homeFlag}
         likedIds={likedIds}
-        onClose={() => setShowLeaderboard(false)}
-        onLike={handleLike}
-        onView={(p) => setSelectedProfile(p)}
-      />
-
-      {/* ── 🌙 Tonight Lobby Sheet ── */}
-      <GhostTonightSheet
-        show={showTonightSheet}
+        handleLike={handleLike}
+        setSelectedProfile={setSelectedProfile}
+        showTonightSheet={showTonightSheet}
+        setShowTonightSheet={setShowTonightSheet}
         lobbyList={lobbyList}
-        likedIds={likedIds}
-        onClose={() => setShowTonightSheet(false)}
-        onSelectProfile={(p) => setSelectedProfile(p)}
-        onLike={handleLike}
-      />
-
-      {/* ── Lobby Welcome Popup ── */}
-      <GhostLobbyWelcomePopup
-        show={showLobbyWelcome}
-        onDismiss={() => { setShowLobbyWelcome(false); startTabRevert(); }}
-      />
-
-      <AnimatePresence>
-        {showCoinShop && (
-          <GhostCoinShop
-            coinBalance={coinBalance}
-            onClose={() => setShowCoinShop(false)}
-            onAddCoins={(amount) => {
-              updateCoins(coinBalance + amount);
-              setShowCoinShop(false);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {matchProfile && (
-          <GhostMatchPopup
-            profile={matchProfile}
-            isSubscribed={isGhost}
-            onClose={() => { const p = matchProfile; setMatchProfile(null); setTimeout(() => setIcebreakerProfile(p), 350); }}
-            onButler={() => {
-              const p = matchProfile;
-              setMatchProfile(null);
-              if (isCitySupported(userCity)) {
-                setButlerMatchName(p?.name);
-                setTimeout(() => setShowButler(true), 350);
-              } else {
-                setTimeout(() => setShowButlerUnavailable(true), 350);
-              }
-            }}
-            onConnectWhatsApp={() => {
-              if (isGhost) {
-                if (matchProfile) {
-                  // If user is male, show butler prompt first
-                  if (!isFemale) {
-                    setButlerConnectProfile(matchProfile);
-                    setMatchProfile(null);
-                  } else {
-                    handleFoundBoo(matchProfile);
-                    setConnectNowProfile(matchProfile);
-                    setMatchProfile(null);
-                  }
-                } else {
-                  setMatchProfile(null);
-                }
-              } else {
-                setMatchPaywallProfile(matchProfile);
-                setMatchProfile(null);
-              }
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {icebreakerProfile && (
-          <GhostIcebreakerPopup
-            profile={icebreakerProfile}
-            onClose={() => setIcebreakerProfile(null)}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showButler && (
-          <GhostButlerSheet
-            city={userCity}
-            matchName={butlerMatchName}
-            onClose={() => setShowButler(false)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Butler connect prompt — shows before opening WhatsApp when city is supported */}
-      <GhostButlerConnectPrompt
-        profile={butlerConnectProfile}
-        onConnectNow={() => {
-          const p = butlerConnectProfile;
-          setButlerConnectProfile(null);
-          if (p) { handleFoundBoo(p); setConnectNowProfile(p); }
-        }}
-        onOpenButler={() => {
-          const p = butlerConnectProfile;
-          setButlerConnectProfile(null);
-          if (isCitySupported(userCity)) {
-            setButlerMatchName(p?.name);
-            setTimeout(() => setShowButler(true), 200);
-          } else {
-            setTimeout(() => setShowButlerUnavailable(true), 200);
-          }
-        }}
-      />
-
-      {/* Butler unavailable — city not yet served */}
-      <GhostButlerUnavailablePopup
-        show={showButlerUnavailable}
-        onClose={() => setShowButlerUnavailable(false)}
-      />
-
-      <AnimatePresence>
-        {matchPaywallProfile && (
-          <MatchPaywallModal
-            profile={matchPaywallProfile}
-            onPay={(planKey) => {
-              try {
-                localStorage.setItem("ghost_mode_until", String(Date.now() + 30 * 24 * 60 * 60 * 1000));
-                localStorage.setItem("ghost_mode_plan", planKey);
-              } catch {}
-              activate(planKey as "ghost" | "bundle");
-              const profile = matchPaywallProfile;
-              setMatchPaywallProfile(null);
-              setMatchProfile(null);
-              if (profile) {
-                handleFoundBoo(profile);
-                setConnectNowProfile(profile);
-              }
-            }}
-            onClose={() => setMatchPaywallProfile(null)}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {connectNowProfile && (
-          <ConnectNowPopup
-            profile={connectNowProfile}
-            onDone={() => {
-              if (connectNowProfile) {
-                const matchEntry = savedMatches.find((m) => m.profile.id === connectNowProfile.id);
-                if (matchEntry) {
-                  const next = new Set(connectedMatchIds).add(matchEntry.id);
-                  setConnectedMatchIds(next);
-                  try { localStorage.setItem("ghost_connected_matches", JSON.stringify([...next])); } catch {}
-                }
-              }
-              setConnectNowProfile(null);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {flashMatchProfile && (
-          <GhostFlashMatchPopup
-            profile={flashMatchProfile}
-            onClose={() => setFlashMatchProfile(null)}
-            onConnect={(p) => {
-              const next = new Set(flashConnectedIds).add(p.id);
-              setFlashConnectedIds(next);
-              try { localStorage.setItem("ghost_flash_connected", JSON.stringify([...next])); } catch {}
-              setFlashMatchProfile(null);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Flash contact limit toast ── */}
-      <AnimatePresence>
-        {showFlashLimitToast && (
-          <motion.div
-            initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
-            style={{
-              position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)",
-              zIndex: 9999, background: "rgba(15,15,20,0.96)", border: "1px solid rgba(239,68,68,0.4)",
-              borderRadius: 14, padding: "12px 20px", display: "flex", alignItems: "center", gap: 10,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.6)", backdropFilter: "blur(12px)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            <span style={{ fontSize: 18 }}>⚡</span>
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 800, color: "#f87171", margin: 0 }}>Flash limit reached</p>
-              <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: 0 }}>
-                {FLASH_CONTACT_LIMIT} contacts per session — enter a new Flash window to reset
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── New Guests popup ── */}
-      <AnimatePresence>
-        {showNewGuests && newGuestProfiles.length > 0 && (
-          <GhostNewGuestsPopup
-            newGuests={newGuestProfiles}
-            onEnterLobby={() => { setShowNewGuests(false); setLobbyMode(true); }}
-            onDismiss={() => setShowNewGuests(false)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Shield blocked-attempt alert ── */}
-      <AnimatePresence>
-        {showBlockedAlert && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowBlockedAlert(false)}
-              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 9990, backdropFilter: "blur(4px)" }}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.88, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: 10 }}
-              transition={{ type: "spring", damping: 22, stiffness: 280 }}
-              style={{
-                position: "fixed", top: "50%", left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: "calc(100% - 40px)", maxWidth: 340,
-                zIndex: 9991,
-                background: "rgba(6,10,6,0.97)",
-                border: `1px solid ${a.glow(0.35)}`,
-                borderRadius: 22,
-                padding: "26px 22px 20px",
-                boxShadow: `0 0 60px ${a.glow(0.1)}, 0 24px 48px rgba(0,0,0,0.7)`,
-                backdropFilter: "blur(24px)",
-                textAlign: "center",
-              }}
-            >
-              <div style={{ height: 3, background: `linear-gradient(90deg, #16a34a, ${a.accent}, #22c55e)`, borderRadius: "4px 4px 0 0", position: "absolute", top: 0, left: 0, right: 0 }} />
-              <motion.div
-                animate={{ scale: [1, 1.07, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}
-              >
-                <img src={SHIELD_LOGO} alt="shield" style={{ width: 64, height: 64, objectFit: "contain", filter: `drop-shadow(0 0 12px ${a.glow(0.5)})` }} />
-              </motion.div>
-              <p style={{ fontSize: 11, fontWeight: 800, color: a.glow(0.8), letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 8px" }}>
-                🛡️ Alert Ghost
-              </p>
-              <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: "0 0 10px", lineHeight: 1.35 }}>
-                1 of your Shield numbers has tried to gain access to the Ghost House
-              </p>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 22px", lineHeight: 1.6 }}>
-                Don't stress — we guarded the gates as requested.
-              </p>
-              <motion.button
-                whileTap={{ scale: 0.96 }}
-                onClick={() => setShowBlockedAlert(false)}
-                style={{
-                  width: "100%", height: 46, borderRadius: 50, border: "none",
-                  background: a.gradient,
-                  color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer",
-                  boxShadow: `0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 20px ${a.glowMid(0.4)}`,
-                  position: "relative", overflow: "hidden",
-                }}
-              >
-                <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
-                Thanks 2Ghost
-              </motion.button>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* ── Ghost House modal ── */}
-      <AnimatePresence>
-        {showHouseModal && (
-          <GhostHouseModal
-            currentTier={houseTier}
-            onClose={() => setShowHouseModal(false)}
-            onPurchase={handleHousePurchase}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {inboundLike && (
-          <InboundLikePopup
-            like={inboundLike}
-            onLikeBack={() => {
-              const matched: GhostProfile = {
-                id: inboundLike.id, name: inboundLike.name, age: inboundLike.age,
-                city: inboundLike.city, country: inboundLike.country, countryFlag: inboundLike.countryFlag,
-                image: inboundLike.image, gender: "Female",
-              };
-              saveMatch(matched);
-              setInboundLike(null);
-              setMatchProfile(matched);
-            }}
-            onPass={() => setInboundLike(null)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Settings Sheet ── */}
-      <GhostSettingsDrawer
-        show={showSettingsSheet}
-        onClose={() => setShowSettingsSheet(false)}
-        onAction={handleSettingsAction}
+        tonightGiftProfile={tonightGiftProfile}
+        setTonightGiftProfile={setTonightGiftProfile}
+        saveMatch={saveMatch}
+        setFlashMatchProfile={setFlashMatchProfile}
+        showLobbyWelcome={showLobbyWelcome}
+        setShowLobbyWelcome={setShowLobbyWelcome}
+        startTabRevert={startTabRevert}
+        showCoinShop={showCoinShop}
+        updateCoins={updateCoins}
+        matchProfile={matchProfile}
+        setMatchProfile={setMatchProfile}
+        isGhost={isGhost}
+        setIcebreakerProfile={setIcebreakerProfile}
+        setButlerMatchName={setButlerMatchName}
+        setShowButler={setShowButler}
+        setShowButlerUnavailable={setShowButlerUnavailable}
+        isFemale={isFemale}
+        setButlerConnectProfile={setButlerConnectProfile}
+        handleFoundBoo={handleFoundBoo}
+        setConnectNowProfile={setConnectNowProfile}
+        setMatchPaywallProfile={setMatchPaywallProfile}
+        icebreakerProfile={icebreakerProfile}
+        showButler={showButler}
+        butlerMatchName={butlerMatchName}
+        butlerConnectProfile={butlerConnectProfile}
+        showButlerUnavailable={showButlerUnavailable}
+        matchPaywallProfile={matchPaywallProfile}
+        activate={activate}
+        connectNowProfile={connectNowProfile}
+        savedMatches={savedMatches}
+        connectedMatchIds={connectedMatchIds}
+        setConnectedMatchIds={setConnectedMatchIds}
+        flashMatchProfile={flashMatchProfile}
+        flashConnectedIds={flashConnectedIds}
+        setFlashConnectedIds={setFlashConnectedIds}
+        showFlashLimitToast={showFlashLimitToast}
+        FLASH_CONTACT_LIMIT={FLASH_CONTACT_LIMIT}
+        showNewGuests={showNewGuests}
+        setShowNewGuests={setShowNewGuests}
+        newGuestProfiles={newGuestProfiles}
+        setLobbyMode={setLobbyMode}
+        showBlockedAlert={showBlockedAlert}
+        setShowBlockedAlert={setShowBlockedAlert}
+        a={a}
+        showHouseModal={showHouseModal}
+        setShowHouseModal={setShowHouseModal}
+        houseTier={houseTier}
+        handleHousePurchase={handleHousePurchase}
+        inboundLike={inboundLike}
+        setInboundLike={setInboundLike}
+        showSettingsSheet={showSettingsSheet}
+        setShowSettingsSheet={setShowSettingsSheet}
+        handleSettingsAction={handleSettingsAction}
         loungeGuestCount={loungeGuestCount}
         loungeEnabled={loungeEnabled}
-        onToggleLounge={handleToggleLounge}
-      />
-
-      {/* ── Breakfast Lounge Country Picker ── */}
-      <AnimatePresence>
-        {showBreakfastPicker && (() => {
-          const userCountry = (() => { try { return localStorage.getItem("ghost_country") ?? "Indonesia"; } catch { return "Indonesia"; } })();
-          const utcH = new Date().getUTCHours() + new Date().getUTCMinutes() / 60;
-          const sorted = [...LOUNGE_COUNTRIES].sort((a, b) =>
-            a.name === userCountry ? -1 : b.name === userCountry ? 1 : 0
-          );
-          return (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                onClick={() => setShowBreakfastPicker(false)}
-                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 9100, backdropFilter: "blur(4px)" }}
-              />
-              <motion.div
-                initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-                transition={{ type: "spring", damping: 32, stiffness: 340 }}
-                style={{
-                  position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9101,
-                  background: "rgba(8,10,14,0.99)",
-                  borderTop: "1px solid rgba(212,175,55,0.25)",
-                  borderRadius: "20px 20px 0 0",
-                  maxHeight: "82vh", display: "flex", flexDirection: "column",
-                  paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))",
-                }}
-              >
-                {/* Gold top rim */}
-                <div style={{ height: 3, borderRadius: "20px 20px 0 0", background: "linear-gradient(90deg, transparent, #d4af37, rgba(212,175,55,0.4), transparent)" }} />
-                {/* Handle */}
-                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)", margin: "12px auto 0" }} />
-                {/* Header */}
-                <div style={{ padding: "16px 20px 12px" }}>
-                  <p style={{ fontSize: 16, fontWeight: 900, color: "#d4af37", margin: 0 }}>Breakfast Lounges</p>
-                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>
-                    {loungeGuestCount} guests online worldwide · select a country
-                  </p>
-                </div>
-                <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent)", margin: "0 20px 8px" }} />
-                {/* Country list */}
-                <div style={{ overflowY: "auto", flex: 1, padding: "0 14px" }}>
-                  {sorted.map((c) => {
-                    const localH = ((utcH + c.utcOffset) % 24 + 24) % 24;
-                    const isOnline = localH >= 7 && localH < 23;
-                    const isBreakfast = localH >= 7 && localH < 11;
-                    const hh = Math.floor(localH);
-                    const mm = Math.floor((localH - hh) * 60);
-                    const localTime = `${hh.toString().padStart(2, "0")}:${mm.toString().padStart(2, "0")}`;
-                    const isHome = c.name === userCountry;
-                    return (
-                      <button key={c.name}
-                        onClick={() => {
-                          try { sessionStorage.setItem("breakfast_country", c.name); } catch {}
-                          setShowBreakfastPicker(false);
-                          navigate("/ghost/breakfast-lounge");
-                        }}
-                        style={{
-                          width: "100%", display: "flex", alignItems: "center", gap: 14,
-                          background: isHome ? "rgba(212,175,55,0.06)" : "rgba(255,255,255,0.02)",
-                          border: isHome ? "1px solid rgba(212,175,55,0.2)" : "1px solid rgba(255,255,255,0.05)",
-                          borderRadius: 14, padding: "12px 14px", marginBottom: 8,
-                          cursor: "pointer", textAlign: "left",
-                        }}
-                      >
-                        <span style={{ fontSize: 24 }}>{c.flag}</span>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <p style={{ fontSize: 13, fontWeight: 800, color: isHome ? "#d4af37" : "#fff", margin: 0 }}>{c.name}</p>
-                            {isHome && <span style={{ fontSize: 9, fontWeight: 700, color: "#d4af37", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 5, padding: "1px 5px" }}>YOUR COUNTRY</span>}
-                          </div>
-                          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: "2px 0 0" }}>Local time {localTime}</p>
-                        </div>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-                          <span style={{
-                            fontSize: 10, fontWeight: 700,
-                            color: isBreakfast ? "#d4af37" : isOnline ? "#22c55e" : "rgba(255,255,255,0.3)",
-                            background: isBreakfast ? "rgba(212,175,55,0.1)" : isOnline ? "rgba(34,197,94,0.1)" : "rgba(255,255,255,0.04)",
-                            border: `1px solid ${isBreakfast ? "rgba(212,175,55,0.3)" : isOnline ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.08)"}`,
-                            borderRadius: 6, padding: "2px 7px",
-                          }}>
-                            {isBreakfast ? "🍳 Breakfast" : isOnline ? "Active" : "Quiet"}
-                          </span>
-                          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{isOnline ? c.poolCount : 0} guests</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            </>
-          );
-        })()}
-      </AnimatePresence>
-
-      {/* ── Flag / Report sheet ── */}
-      <GhostFlagSheet
+        handleToggleLounge={handleToggleLounge}
+        showBreakfastPicker={showBreakfastPicker}
+        setShowBreakfastPicker={setShowBreakfastPicker}
+        LOUNGE_COUNTRIES={LOUNGE_COUNTRIES}
         flagSheet={flagSheet}
-        onSubmit={handleFlag}
-        onClose={() => setFlagSheet(null)}
-      />
-
-      {/* ── Security popup — fires when user taps before agreeing to house rules ── */}
-      <GhostSecurityPopup
-        show={showSecurityPopup}
-        onClose={() => setShowSecurityPopup(false)}
-        onShowRules={() => setShowHouseRules(true)}
-      />
-
-      {/* ── House rules modal ── */}
-      <HouseRulesModal show={showHouseRules} onAccept={handleHouseRulesAccept} />
-
-      {/* ── International Ghost modal ── */}
-      <AnimatePresence>
-        {showIntlModal && (
-          <InternationalGhostModal
-            userCountryCode={homeCountryCode}
-            isFemale={isFemale}
-            onActivate={(countries) => {
-              setIntlCountries(countries);
-              setIsIntlGhost(true);
-              setShowIntlModal(false);
-            }}
-            onClose={() => setShowIntlModal(false)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Hotel events ── */}
-      <AnimatePresence>
-        {showEvents && <HotelEventsBoard onClose={() => setShowEvents(false)} />}
-      </AnimatePresence>
-
-      {/* ── Stats dashboard ── */}
-      <AnimatePresence>
-        {showStats && <GhostStatsDashboard onClose={() => setShowStats(false)} />}
-      </AnimatePresence>
-
-      {/* ── Invite Friend / Referral ── */}
-      <AnimatePresence>
-        {showReferral && <GhostReferralSheet onClose={() => setShowReferral(false)} />}
-      </AnimatePresence>
-
-      {/* ── Floor Invite Sheet ── */}
-      <AnimatePresence>
-        {showFloorInvite && floorInviteProfile && (
-          <FloorInviteSheet
-            profile={floorInviteProfile}
-            targetFloor={floorInviteTarget}
-            mode={floorInviteMode}
-            onClose={() => setShowFloorInvite(false)}
-            onSuccess={(member) => {
-              setInvitedMembers(getAcceptedFloorMembers());
-              setShowFloorInvite(false);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Butler nudge for silent floor joiner ── */}
-      <AnimatePresence>
-        {nudgeProfile && (
-          <FloorNudgeSheet member={nudgeProfile} onClose={() => setNudgeProfile(null)} />
-        )}
-      </AnimatePresence>
-
-      {/* ── Ghost Score Sheet ── */}
-      <AnimatePresence>
-        {showGhostScore && scoreProfile && (
-          <GhostScoreSheet profile={scoreProfile} onClose={() => { setShowGhostScore(false); setScoreProfile(null); }} />
-        )}
-      </AnimatePresence>
-
-      {/* ── Ghost Clock Sheet ── */}
-      <AnimatePresence>
-        {showGhostClock && (
-          <GhostClockSheet onClose={() => { setShowGhostClock(false); setWindowActive(hasActiveWindowMode()); }} />
-        )}
-      </AnimatePresence>
-
-      {/* ── Floor Wars Board ── */}
-      <AnimatePresence>
-        {showFloorWars && (
-          <FloorWarsBoard onClose={() => setShowFloorWars(false)} />
-        )}
-      </AnimatePresence>
-
-      {/* ── Whisper Sheet ── */}
-      <AnimatePresence>
-        {showWhisper && whisperProfile && (
-          <WhisperSheet
-            profile={whisperProfile}
-            onClose={() => { setShowWhisper(false); setWhisperProfile(null); }}
-            onWhisperSent={(profile, willConvert) => {
-              if (willConvert) {
-                const delay = (90 + Math.floor(Math.random() * 120)) * 1000;
-                setTimeout(() => {
-                  const savedMatches = loadMatches();
-                  const newMatch = { id: profile.id, profile, matchedAt: Date.now() };
-                  persistMatches([...savedMatches.filter(m => m.id !== profile.id), newMatch]);
-                  setSavedMatches(prev => [...prev.filter(m => m.id !== profile.id), newMatch]);
-                }, delay);
-              }
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Concierge Date Sheet ── */}
-      <AnimatePresence>
-        {showConcierge && conciergeProfile && (
-          <GhostConciergeSheet
-            profile={conciergeProfile}
-            matchId={conciergeMatchId}
-            daysConnected={conciergeDays}
-            onClose={() => { setShowConcierge(false); setConciergeProfile(null); }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Séance Popup ── */}
-      <AnimatePresence>
-        {showSeance && seanceProfile && (
-          <SeancePopup profile={seanceProfile} onClose={() => { setShowSeance(false); setSeanceProfile(null); }} />
-        )}
-      </AnimatePresence>
-
-      {/* ── Video Intro Player ── */}
-      <AnimatePresence>
-        {showVideoPlayer && videoProfile && (
-          <VideoIntroPlayer
-            profile={videoProfile}
-            myGhostId={(() => { try { return `Guest-${Math.abs(Array.from(localStorage.getItem("ghost_phone") ?? "").reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0)) % 9000 + 1000}`; } catch { return "Guest-0000"; } })()}
-            onClose={() => { setShowVideoPlayer(false); setVideoProfile(null); }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Video Intro Uploader ── */}
-      <AnimatePresence>
-        {showVideoUpload && (
-          <VideoIntroUploader onClose={() => setShowVideoUpload(false)} />
-        )}
-      </AnimatePresence>
-
-      {/* ── Viewed Me popup ── */}
-      <GhostViewedMeSheet
-        show={showViewedMe}
+        setFlagSheet={setFlagSheet}
+        handleFlag={handleFlag}
+        showSecurityPopup={showSecurityPopup}
+        setShowSecurityPopup={setShowSecurityPopup}
+        setShowHouseRules={setShowHouseRules}
+        showHouseRules={showHouseRules}
+        handleHouseRulesAccept={handleHouseRulesAccept}
+        showIntlModal={showIntlModal}
+        setShowIntlModal={setShowIntlModal}
+        homeCountryCode={homeCountryCode}
+        setIntlCountries={setIntlCountries}
+        setIsIntlGhost={setIsIntlGhost}
+        showEvents={showEvents}
+        setShowEvents={setShowEvents}
+        showStats={showStats}
+        setShowStats={setShowStats}
+        showReferral={showReferral}
+        setShowReferral={setShowReferral}
+        showFloorInvite={showFloorInvite}
+        setShowFloorInvite={setShowFloorInvite}
+        floorInviteProfile={floorInviteProfile}
+        floorInviteTarget={floorInviteTarget}
+        floorInviteMode={floorInviteMode}
+        setInvitedMembers={setInvitedMembers}
+        nudgeProfile={nudgeProfile}
+        setNudgeProfile={setNudgeProfile}
+        showGhostScore={showGhostScore}
+        setShowGhostScore={setShowGhostScore}
+        scoreProfile={scoreProfile}
+        setScoreProfile={setScoreProfile}
+        showGhostClock={showGhostClock}
+        setShowGhostClock={setShowGhostClock}
+        setWindowActive={setWindowActive}
+        showFloorWars={showFloorWars}
+        setShowFloorWars={setShowFloorWars}
+        showWhisper={showWhisper}
+        setShowWhisper={setShowWhisper}
+        whisperProfile={whisperProfile}
+        setWhisperProfile={setWhisperProfile}
+        setSavedMatches={setSavedMatches}
+        showConcierge={showConcierge}
+        setShowConcierge={setShowConcierge}
+        conciergeProfile={conciergeProfile}
+        setConciergeProfile={setConciergeProfile}
+        conciergeMatchId={conciergeMatchId}
+        conciergeDays={conciergeDays}
+        showSeance={showSeance}
+        setShowSeance={setShowSeance}
+        seanceProfile={seanceProfile}
+        setSeanceProfile={setSeanceProfile}
+        staffPopupProfile={staffPopupProfile}
+        setStaffPopupProfile={setStaffPopupProfile}
+        showVideoPlayer={showVideoPlayer}
+        setShowVideoPlayer={setShowVideoPlayer}
+        videoProfile={videoProfile}
+        setVideoProfile={setVideoProfile}
+        showVideoUpload={showVideoUpload}
+        setShowVideoUpload={setShowVideoUpload}
+        showViewedMe={showViewedMe}
+        setShowViewedMe={setShowViewedMe}
         viewedMeList={viewedMeList}
         myProfileId={myProfileId}
         userRoomTier={userRoomTier}
-        likedIds={likedIds}
-        onClose={() => setShowViewedMe(false)}
-        onLike={handleLike}
-        onMatchAction={(p) => openMatchAction(p, "match")}
-        onFloorInvite={(p, mode, target) => {
-          setFloorInviteProfile(p);
-          setFloorInviteMode(mode);
-          setFloorInviteTarget(target);
-          setShowViewedMe(false);
-          setShowFloorInvite(true);
-        }}
-        onStartChat={(p) => {
-          setShowViewedMe(false);
-          setPendingChatInviteProfileId(p.id);
-          setButlerMessage({ ...BUTLER_MESSAGES["chat_invite_viewed"] });
-        }}
-      />
-
-      {/* ── Hotel Lobby popup ── */}
-      <GhostLobbySheet
-        show={showLobbyPopup}
-        profiles={roomMemberList}
-        onClose={() => setShowLobbyPopup(false)}
-        onSelectProfile={(p) => openMatchAction(p, "match")}
-      />
-
-      {/* ── Late-night butler ── */}
-      <AnimatePresence>
-        {showLateNight && (
-          <LateNightButlerPopup
-            onDismiss={() => {
-              markLateNightShown();
-              setShowLateNight(false);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Butler welcome ── */}
-      <AnimatePresence>
-        {showButlerWelcome && (
-          <ButlerWelcomePopup
-            onDismiss={() => {
-              markButlerGreeted();
-              setShowButlerWelcome(false);
-            }}
-          />
-        )}
-
-        {showPushPrompt && (
-          <PushPermissionPrompt onDone={() => setShowPushPrompt(false)} />
-        )}
-      </AnimatePresence>
-
-      {/* ── Checkout reminder ── */}
-      <AnimatePresence>
-        {showCheckout && (
-          <CheckoutReminderPopup
-            onExtend={() => {
-              markCheckoutShown();
-              setShowCheckout(false);
-              navigate("/ghost/rooms");
-            }}
-            onDismiss={() => {
-              markCheckoutShown();
-              setShowCheckout(false);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Floor Chat popup ── */}
-      <AnimatePresence>
-        {showFloorChat && (floorChatTier ?? userRoomTier) && (() => {
-          const TIER_COLORS_ALL: Record<string, string> = { standard: "#a8a8b0", suite: "#cd7f32", kings: "#d4af37", penthouse: "#e0ddd8", cellar: "#9b1c1c", garden: "#7a9e7e" };
-          const TIER_LABELS_ALL: Record<string, string> = { standard: "Standard Room", suite: "Ensuite", kings: "The Casino", penthouse: "Penthouse", cellar: "The Cellar", garden: "Garden Lodge" };
-          const TIER_ICONS_ALL:  Record<string, string> = { standard: "🛏️", suite: "🛎️", kings: "🎰", penthouse: "🏙️", cellar: "🕯️", garden: "🌿" };
-          const activeTier  = (floorChatTier ?? userRoomTier)!;
-          const activeColor = TIER_COLORS_ALL[activeTier] ?? tierColor;
-          const activeLabel = TIER_LABELS_ALL[activeTier] ?? tierLabel;
-          const activeIcon  = TIER_ICONS_ALL[activeTier]  ?? tierIcon;
-          return (
-            <FloorChatPopup
-              tier={activeTier}
-              tierColor={activeColor}
-              tierLabel={activeLabel}
-              tierIcon={activeIcon}
-              onClose={() => { setShowFloorChat(false); setFloorChatTier(null); }}
-            />
-          );
-        })()}
-      </AnimatePresence>
-
-      {/* ── Ghost Flash paywall ── */}
-      <GhostFlashPaywallSheet
-        show={showFlashPaywall}
-        onClose={() => setShowFlashPaywall(false)}
-        onEnterFlash={enterFlash}
-      />
-
-      {/* ── Dev Popup Launcher ── */}
-      <DevPopupLauncher />
-
-      {/* ── Dev Panel ── */}
-      <DevPanel
+        openMatchAction={openMatchAction}
+        setFloorInviteProfile={setFloorInviteProfile}
+        setFloorInviteMode={setFloorInviteMode}
+        setFloorInviteTarget={setFloorInviteTarget}
+        setPendingChatInviteProfileId={setPendingChatInviteProfileId}
+        setButlerMessage={setButlerMessage}
+        showLobbyPopup={showLobbyPopup}
+        setShowLobbyPopup={setShowLobbyPopup}
+        roomMemberList={roomMemberList}
+        showLateNight={showLateNight}
+        setShowLateNight={setShowLateNight}
+        showButlerWelcome={showButlerWelcome}
+        setShowButlerWelcome={setShowButlerWelcome}
+        showPushPrompt={showPushPrompt}
+        setShowPushPrompt={setShowPushPrompt}
+        showCheckout={showCheckout}
+        setShowCheckout={setShowCheckout}
+        showFloorChat={showFloorChat}
+        setShowFloorChat={setShowFloorChat}
+        floorChatTier={floorChatTier}
+        setFloorChatTier={setFloorChatTier}
+        tierColor={tierColor}
+        tierLabel={tierLabel}
+        tierIcon={tierIcon}
+        showFlashPaywall={showFlashPaywall}
+        setShowFlashPaywall={setShowFlashPaywall}
+        enterFlash={enterFlash}
         isTonightMode={isTonightMode}
         toggleTonight={toggleTonight}
         isFlashActive={isFlashActive}
-        enterFlash={enterFlash}
         exitFlash={exitFlash}
-        houseTier={houseTier}
         setHouseTier={setHouseTier}
-        activate={activate}
         deactivate={deactivate}
-        onTriggerFlashMatch={() => {
-          const pick = profiles.filter((p) => isFlashProfile(p.id))[0] ?? profiles[0];
-          if (pick) setFlashMatchProfile(pick);
-        }}
-        onTriggerMatch={() => {
-          const pick = profiles[Math.floor(Math.random() * Math.min(profiles.length, 10))];
-          if (pick) { saveMatch(pick); setMatchProfile(pick); }
-        }}
-        onTriggerInbound={() => {
-          const pick = DEMO_INBOUND[Math.floor(Math.random() * DEMO_INBOUND.length)];
-          setInboundLike(pick);
-        }}
-        onTriggerButler={(key: ButlerMessageKey) => setButlerMessage(BUTLER_MESSAGES[key])}
-        onSimulateChatInvite={() => {
-          // Simulate User B receiving an invite from a random profile
-          const fakeFromId = allProfiles[0]?.id ?? "demo-profile-id";
-          const myId = myProfileId ?? "demo-my-id";
-          saveInvite(fakeFromId, myId);
-          setShowViewedMe(true);
-        }}
+        profiles={profiles}
+        expandedLikedProfile={expandedLikedProfile}
+        setExpandedLikedProfile={setExpandedLikedProfile}
+        butlerMessage={butlerMessage}
+        pendingChatInviteProfileId={pendingChatInviteProfileId}
+        showLikeRain={showLikeRain}
+        likeRainHearts={likeRainHearts}
       />
 
-      {/* ── Butler Message ── */}
-      {/* Liked-me profile modal — same component as fingerprint view */}
-      <AnimatePresence>
-        {expandedLikedProfile && (
-          <ProfileWhisperModal
-            profile={expandedLikedProfile}
-            liked={likedIds.has(expandedLikedProfile.id)}
-            onLike={() => handleLike(expandedLikedProfile)}
-            onClose={() => setExpandedLikedProfile(null)}
-          />
-        )}
-      </AnimatePresence>
-
-      {butlerMessage?.key === "room_ready" && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 799, cursor: "not-allowed" }} onClickCapture={e => e.stopPropagation()} />
-      )}
-      <GhostButlerMessage
-        message={butlerMessage}
-        onClose={() => { setButlerMessage(null); setPendingChatInviteProfileId(null); }}
-        onCreateProfile={() => { setButlerMessage(null); navigate("/ghost/setup"); }}
-        onAction={pendingChatInviteProfileId ? () => {
-          if (myProfileId) saveInvite(myProfileId, pendingChatInviteProfileId);
-          setPendingChatInviteProfileId(null);
-          setShowViewedMe(true);
-        } : undefined}
-      />
-
-      {/* ── Hearts cascade on inbound like ── */}
-      <AnimatePresence>
-        {showLikeRain && (
-          <motion.div
-            initial={{ opacity: 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}
-          >
-            {likeRainHearts.map(h => (
-              <motion.div
-                key={h.id}
-                initial={{ opacity: 0.9, y: "-8vh", x: `${h.x}vw` }}
-                animate={{ opacity: 0, y: "108vh" }}
-                transition={{ duration: h.duration, delay: h.delay, ease: "easeIn" }}
-                style={{ position: "absolute", fontSize: h.size, pointerEvents: "none" }}
-              >
-                ❤️
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── Auth Gate Popup ── */}
-      <GhostAuthGateSheet show={showAuthGate} onClose={() => setShowAuthGate(false)} />
 
     </div>
     </div>

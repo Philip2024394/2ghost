@@ -25,7 +25,7 @@ const COUNTRY_CODES = [
 export default function GhostAuthPage() {
   const a = useGenderAccent();
   const navigate = useNavigate();
-  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(() => !!localStorage.getItem("ghost_dob"));
   const [dobDay,   setDobDay]   = useState("");
   const [dobMonth, setDobMonth] = useState("");
   const [dobYear,  setDobYear]  = useState("");
@@ -141,7 +141,8 @@ export default function GhostAuthPage() {
       if (data.user) localStorage.setItem("ghost_auth_uid", data.user.id);
       localStorage.removeItem("ghost_house_welcomed");
     } catch {}
-    navigate("/ghost/gateway", { replace: true });
+    const isNewUser = !localStorage.getItem("ghost_profile_setup_done");
+    navigate(isNewUser ? "/ghost/profile-setup" : "/ghost/gateway", { replace: true });
   };
 
   const inputBase: React.CSSProperties = {
@@ -562,6 +563,25 @@ export default function GhostAuthPage() {
                   }}
                 >
                   · · ·
+                </button>
+
+                {/* DEV — start page shortcut */}
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("ghost_profile_setup_done");
+                    navigate("/ghost/welcome");
+                  }}
+                  style={{
+                    display: "block", margin: "6px auto 0",
+                    background: "rgba(239,68,68,0.08)",
+                    border: "1px solid rgba(239,68,68,0.25)",
+                    borderRadius: 8, cursor: "pointer",
+                    color: "rgba(239,68,68,0.6)", fontSize: 10,
+                    fontWeight: 700, letterSpacing: "0.1em",
+                    textTransform: "uppercase", padding: "5px 12px",
+                  }}
+                >
+                  ⚙ Dev · Start Page
                 </button>
               </motion.div>
             )}

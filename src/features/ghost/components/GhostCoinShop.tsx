@@ -137,7 +137,7 @@ export default function GhostCoinShop({
             {/* Header row */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
               <div>
-                <p style={{ fontSize: 21, fontWeight: 900, color: "#d4af37", margin: 0 }}>🪙 Ghost Coins</p>
+                <p style={{ fontSize: 21, fontWeight: 900, color: "#d4af37", margin: 0 }}>🪙 Coins</p>
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "2px 0 0" }}>Hotel credits · spend anywhere in the app</p>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 12, padding: "7px 12px" }}>

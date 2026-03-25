@@ -154,6 +154,41 @@ export function fmtKm(km: number): string {
   return `${Math.round(km)} km`;
 }
 
+// ── Interest / gender preference filter ──────────────────────────────────────
+
+/**
+ * Returns the gender the current user wants to see, based on ghost_interest.
+ * "Women" → "Female", "Men" → "Male", "Both" / "" / null → null (show all).
+ */
+export function getWantedGender(): "Female" | "Male" | null {
+  try {
+    const interest = localStorage.getItem("ghost_interest");
+    if (interest === "Women") return "Female";
+    if (interest === "Men")   return "Male";
+    return null; // "Both" or not set — show everyone
+  } catch { return null; }
+}
+
+/**
+ * Lounge variant — returns "f" | "m" | null.
+ */
+export function getWantedGenderLounge(): "f" | "m" | null {
+  const g = getWantedGender();
+  if (g === "Female") return "f";
+  if (g === "Male")   return "m";
+  return null;
+}
+
+// ── Staff placeholder images (shown when user has no uploaded photo) ──────────
+export const STAFF_IMG_FEMALE = "https://ik.imagekit.io/7grri5v7d/Untitledasdasdasdasdasdsdfsdf.png";
+export const STAFF_IMG_MALE   = ""; // placeholder until male staff image is provided
+
+/** Returns the staff placeholder image for a given gender, or null if male placeholder not set */
+export function getStaffPlaceholder(gender: string): string | null {
+  if (gender === "Female") return STAFF_IMG_FEMALE;
+  return STAFF_IMG_MALE || null;
+}
+
 // ~65% of mock profiles are verified (deterministic by id)
 export function profileIsVerified(id: string): boolean {
   let h = 0;

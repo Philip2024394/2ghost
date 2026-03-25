@@ -1,4 +1,5 @@
 // ── Breakfast Rating & Social Activity Service ────────────────────────────────
+import { ghostSupabase } from "../ghostSupabase";
 
 export type SocialActivity = {
   id:          string;
@@ -154,3 +155,101 @@ export const SOCIAL_DECLINE_REASONS = [
   "Timing isn't right for me right now ⏳",
   "I'd rather keep things casual for now ☕",
 ];
+
+// ── Supabase sync ─────────────────────────────────────────────────────────────
+
+/** Save a breakfast rating to Supabase (non-blocking) */
+export async function saveRatingDB(rating: BreakfastRating, raterGhostId: string): Promise<void> {
+  try {
+    await ghostSupabase.from("ghost_breakfast_ratings").upsert({
+      invite_id:         rating.inviteId,
+      rater_ghost_id:    raterGhostId,
+      rater_role:        rating.raterRole,
+      rating:            rating.rating,
+      rated_at:          rating.ratedAt,
+      selected_activity: rating.selectedActivity ?? null,
+    }, { onConflict: "invite_id,rater_ghost_id" });
+  } catch {}
+}
+
+/** Load activities from Supabase; falls back to localStorage defaults */
+export async function loadActivitiesFromDB(): Promise<SocialActivity[]> {
+  try {
+    const { data } = await ghostSupabase
+      .from("ghost_social_activities")
+      .select("*")
+      .order("sort_order", { ascending: true });
+    if (data?.length) {
+      const list: SocialActivity[] = data.map(r => ({
+        id:          r.id as string,
+        name:        r.name as string,
+        description: (r.description ?? "") as string,
+        imageUrl:    (r.image_url ?? "") as string,
+        icon:        (r.icon ?? "") as string,
+      }));
+      saveActivities(list);
+      return list;
+    }
+  } catch {}
+  return loadActivities();
+}
+
+/** Upsert a social invite to Supabase (non-blocking) */
+export async function upsertSocialInviteDB(inv: SocialInvite): Promise<void> {
+  try {
+    await ghostSupabase.from("ghost_social_invites").upsert({
+      id:             inv.id,
+      invite_id:      inv.inviteId,
+      from_ghost_id:  inv.fromUserId,
+      from_user_name: inv.fromUserName,
+      to_ghost_id:    inv.toUserId,
+      to_user_name:   inv.toUserName,
+      floor:          inv.floor,
+      activity:       inv.activity,
+      host_rating:    inv.hostRating,
+      guest_rating:   inv.guestRating,
+      sent_at:        inv.sentAt,
+      deliver_at:     inv.deliverAt,
+      status:         inv.status,
+      decline_reason: inv.declineReason ?? null,
+      updated_at:     new Date().toISOString(),
+    }, { onConflict: "id" });
+  } catch {}
+}
+
+/** Load social invite from Supabase for a user */
+export async function loadSocialInviteFromDB(myGhostId: string): Promise<{ sent: SocialInvite | null; received: SocialInvite | null }> {
+  try {
+    const { data } = await ghostSupabase
+      .from("ghost_social_invites")
+      .select("*")
+      .or(`from_ghost_id.eq.${myGhostId},to_ghost_id.eq.${myGhostId}`)
+      .order("sent_at", { ascending: false })
+      .limit(10);
+
+    if (!data?.length) return { sent: null, received: null };
+
+    const toInv = (r: Record<string, unknown>): SocialInvite => ({
+      id:            r.id as string,
+      inviteId:      r.invite_id as string,
+      fromUserId:    r.from_ghost_id as string,
+      fromUserName:  r.from_user_name as string,
+      toUserId:      r.to_ghost_id as string,
+      toUserName:    r.to_user_name as string,
+      floor:         r.floor as string,
+      activity:      r.activity as SocialActivity,
+      hostRating:    (r.host_rating ?? 0) as number,
+      guestRating:   (r.guest_rating ?? 0) as number,
+      sentAt:        r.sent_at as number,
+      deliverAt:     r.deliver_at as number,
+      status:        r.status as SocialInvite["status"],
+      declineReason: r.decline_reason as string | undefined,
+    });
+
+    const sent     = data.find(r => r.from_ghost_id === myGhostId) ?? null;
+    const received = data.find(r => r.to_ghost_id   === myGhostId) ?? null;
+    return { sent: sent ? toInv(sent) : null, received: received ? toInv(received) : null };
+  } catch {
+    return { sent: null, received: null };
+  }
+}

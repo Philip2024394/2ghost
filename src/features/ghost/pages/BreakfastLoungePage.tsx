@@ -19,6 +19,7 @@ import {
   getBusiestBreakfastRegion, loungePresence, approxDistance, pickInviteMsg,
   isLoungeOpen, getOpenCountdown, buildVisible, pickRec, rnd,
 } from "../lounge/loungeData";
+import { getWantedGenderLounge } from "../utils/ghostHelpers";
 
 const LOUNGE_IMG  = "https://ik.imagekit.io/7grri5v7d/mmmmmdfgdsfgdfg.png";
 const BUTLER_IMG  = "https://ik.imagekit.io/7grri5v7d/ewrwerwerwer-removebg-preview.png?updatedAt=1774288645920";
@@ -49,7 +50,8 @@ export default function BreakfastLoungePage() {
   const [clock, setClock]         = useState(getMorningTime);
   const [intlUnlocked, setIntlUnlocked] = useState(false); void intlUnlocked;
   const [intlActive, setIntlActive]     = useState(() => pickedCountry != null ? true : false);
-  const [visible, setVisible]     = useState(() => buildVisible(pickedCountry != null, new Set(), new Set(), pickedCountry));
+  const wg = getWantedGenderLounge();
+  const [visible, setVisible]     = useState(() => buildVisible(pickedCountry != null, new Set(), new Set(), pickedCountry, wg));
   const [countdown, setCountdown] = useState(() => rnd(ROTATE_MIN, ROTATE_MAX));
 
   // ── Phase / invite
@@ -164,7 +166,7 @@ export default function BreakfastLoungePage() {
             .filter(v => !dismissedIds.has(v.profile.id))
             .slice(0, Math.max(0, current.length - SWAP_PER_TICK));
           const keepIds = new Set(keep.map(v => v.profile.id));
-          const fresh = buildVisible(intlActive, new Set([...dismissedIds, ...keepIds]), nextShown, pickedCountry)
+          const fresh = buildVisible(intlActive, new Set([...dismissedIds, ...keepIds]), nextShown, pickedCountry, wg)
             .filter(v => !keepIds.has(v.profile.id))
             .slice(0, SWAP_PER_TICK);
           return [...keep, ...fresh];
@@ -225,7 +227,7 @@ export default function BreakfastLoungePage() {
     deductCoins(INTL_COST, "International breakfast guests");
     setIntlUnlocked(true);
     setIntlActive(true);
-    setVisible(buildVisible(true, dismissedIds, shownIds, pickedCountry));
+    setVisible(buildVisible(true, dismissedIds, shownIds, pickedCountry, wg));
     setShowCheckin(false);
   }, [canAfford, deductCoins]); void unlockIntl;
 
@@ -589,7 +591,7 @@ export default function BreakfastLoungePage() {
               </p>
               <div style={{ display: "flex", gap: 8 }}>
                 <motion.button whileTap={{ scale: 0.97 }}
-                  onClick={() => { setIntlUnlocked(true); setIntlActive(true); setVisible(buildVisible(true, dismissedIds, shownIds, pickedCountry)); setShowRedirect(true); }}
+                  onClick={() => { setIntlUnlocked(true); setIntlActive(true); setVisible(buildVisible(true, dismissedIds, shownIds, pickedCountry, wg)); setShowRedirect(true); }}
                   style={{ flex: 2, padding: "11px", background: "linear-gradient(135deg, #6b0000, #b00000, #ff3333)", border: "none", borderRadius: 12, cursor: "pointer", fontSize: 13, fontWeight: 900, color: "#fff" }}>
                   Take me there
                 </motion.button>
@@ -1147,7 +1149,7 @@ export default function BreakfastLoungePage() {
                   { icon: "🕐", label: "Set Seating Time", desc: seatingTime ? `Reserved: ${seatingTime}` : "Book your breakfast slot", action: () => { setShowLoungeMenu(false); setShowCheckin(true); setShowSeatingPicker(true); } },
                   { icon: "📊", label: "My Lounge Stats", desc: `${coffeesSent.size} coffee${coffeesSent.size !== 1 ? "s" : ""} sent · 🔥 ${loungeStreak} day streak`, action: () => { setShowLoungeStats(true); setShowLoungeMenu(false); } },
                   { icon: "🔔", label: "Check-in", desc: "Confirm your seat with Mr Butlas", action: () => { setShowLoungeMenu(false); setShowCheckin(true); } },
-                  { icon: "🌍", label: "International Guests", desc: intlActive ? "Showing worldwide guests" : "Local guests only", action: () => { setIntlActive(!intlActive); setVisible(buildVisible(!intlActive, dismissedIds, shownIds, pickedCountry)); setShowLoungeMenu(false); } },
+                  { icon: "🌍", label: "International Guests", desc: intlActive ? "Showing worldwide guests" : "Local guests only", action: () => { setIntlActive(!intlActive); setVisible(buildVisible(!intlActive, dismissedIds, shownIds, pickedCountry, wg)); setShowLoungeMenu(false); } },
                   { icon: "↩️", label: "Leave the Lounge", desc: "Return to Ghost Mode", action: () => { setShowLoungeMenu(false); navigate(-1); } },
                 ].map(item => (
                   <motion.button key={item.label} whileTap={{ scale: 0.97 }} onClick={item.action}

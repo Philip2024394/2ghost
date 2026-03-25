@@ -15,6 +15,13 @@ export default function GhostGatewayPage() {
 
     const onboarded = (() => { try { return !!localStorage.getItem("ghost_onboarded"); } catch { return false; } })();
 
+    // Profile setup not done yet — always show it first
+    const profileSetupDone = (() => { try { return !!localStorage.getItem("ghost_profile_setup_done"); } catch { return false; } })();
+    if (!profileSetupDone) {
+      navigate("/ghost/profile-setup", { replace: true });
+      return;
+    }
+
     // First-time user — show feature intro before anything else
     if (!onboarded) {
       navigate("/ghost/onboarding", { replace: true });

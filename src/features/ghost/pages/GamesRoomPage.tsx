@@ -145,20 +145,58 @@ export default function GamesRoomPage() {
             </span>
           </motion.p>
 
-          {/* Let's Connect CTA */}
+          {/* This Week's Game banner */}
+          {(() => {
+            const weekNum = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+            const isMemoryWeek = weekNum % 2 === 0;
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.75 }}
+                style={{ width: "100%", marginBottom: 16, padding: "10px 14px", borderRadius: 14, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.28)", borderTop: "1px solid rgba(212,175,55,0.5)", boxShadow: "inset 0 1px 0 rgba(212,175,55,0.15)", display: "flex", alignItems: "center", gap: 10 }}
+              >
+                <motion.span animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.6, repeat: Infinity }} style={{ fontSize: 20, flexShrink: 0 }}>
+                  {isMemoryWeek ? "🃏" : "🔴"}
+                </motion.span>
+                <div style={{ flex: 1, textAlign: "left" }}>
+                  <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "rgba(212,175,55,0.6)", textTransform: "uppercase", letterSpacing: "0.12em" }}>The Butler's Weekly Game</p>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#fff" }}>{isMemoryWeek ? "Memory Match" : "Connect 4"} — This Week</p>
+                </div>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(212,175,55,0.5)", flexShrink: 0 }}>LIVE ●</span>
+              </motion.div>
+            );
+          })()}
+
+          {/* Game buttons */}
           <motion.button
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
             whileTap={{ scale: 0.96 }}
             onClick={() => navigate("/ghost/games/connect4")}
             style={{
-              width: "100%", height: 60, borderRadius: 20, cursor: "pointer",
+              width: "100%", height: 56, borderRadius: 18, cursor: "pointer",
               background: "linear-gradient(135deg, #facc15, #f59e0b 55%, #d97706)",
               border: "none",
-              color: "#1a0f00", fontSize: 18, fontWeight: 900, letterSpacing: "0.02em",
+              color: "#1a0f00", fontSize: 16, fontWeight: 900, letterSpacing: "0.02em",
               boxShadow: "0 8px 32px rgba(250,204,21,0.45), 0 2px 0 rgba(255,255,255,0.18) inset",
+              marginBottom: 10,
             }}>
-            Let's Connect
+            🔴 Play Connect 4
+          </motion.button>
+
+          <motion.button
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.88 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => navigate("/ghost/games/memory")}
+            style={{
+              width: "100%", height: 56, borderRadius: 18, cursor: "pointer",
+              background: "linear-gradient(135deg, rgba(212,175,55,0.15), rgba(180,140,30,0.1))",
+              border: "1px solid rgba(212,175,55,0.4)",
+              color: "#d4af37", fontSize: 16, fontWeight: 900, letterSpacing: "0.02em",
+              boxShadow: "inset 0 1px 0 rgba(212,175,55,0.2)",
+            }}>
+            🃏 Play Memory Match
           </motion.button>
 
           {/* How it works link */}

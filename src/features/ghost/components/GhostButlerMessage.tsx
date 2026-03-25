@@ -30,7 +30,7 @@ export type ButlerMessage = {
   icon: string;
   title: string;
   body: string;
-  tone: "strict" | "funny" | "warning" | "gold";
+  tone: "strict" | "funny" | "warning" | "gold" | "red";
   buttonLabel?: string;
   headerLabel?: string;
 };
@@ -139,9 +139,9 @@ export const BUTLER_MESSAGES: Record<ButlerMessageKey, ButlerMessage> = {
     icon: "🎩",
     title: "The Signals Are There — This Is The Right Move.",
     body: "This guest has visited your profile more than once. That is not something people do without reason. Whether the attraction is curiosity, connection, or something more — only a conversation will confirm it.\n\nThe direction of their interest is unknown until words are exchanged. But what is clear is this — they have already looked twice. The hesitation is on their side. One well-placed invitation cuts through that entirely.\n\nThe Butler considers this the correct first move. A simple, direct chat invitation. No pressure, no commitment — just an open door. The signals are strong. Let us see if they walk through it.",
-    tone: "gold",
+    tone: "red",
     buttonLabel: "Send Chat Invite",
-    headerLabel: "Let's Start a Chat",
+    headerLabel: "Send Chat Invite",
   },
   repeated_view: {
     key: "repeated_view",
@@ -164,6 +164,7 @@ const TONE_STYLE: Record<ButlerMessage["tone"], { border: string; glow: string; 
   funny:   { border: "rgba(251,191,36,0.3)",   glow: "rgba(251,191,36,0.06)",  titleColor: "#fbbf24" },
   warning: { border: "rgba(239,68,68,0.35)",   glow: "rgba(239,68,68,0.07)",   titleColor: "#f87171" },
   gold:    { border: "rgba(212,175,55,0.4)",   glow: "rgba(212,175,55,0.08)",  titleColor: "#d4af37" },
+  red:     { border: "rgba(220,20,20,0.5)",    glow: "rgba(220,20,20,0.1)",    titleColor: "#fff" },
 };
 
 type Props = {
@@ -190,8 +191,7 @@ export default function GhostButlerMessage({ message, onClose, onCreateProfile, 
       setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timerRef.current!);
-          onClose();
-          navigate("/ghost");
+          setTimeout(() => { onClose(); navigate("/ghost"); }, 0);
           return 0;
         }
         return prev - 1;
@@ -240,8 +240,8 @@ export default function GhostButlerMessage({ message, onClose, onCreateProfile, 
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
                 <img src="https://ik.imagekit.io/7grri5v7d/ewrwerwerwer-removebg-preview.png?updatedAt=1774288645920" alt="Butler" style={{ width: 92, height: 92, objectFit: "contain", flexShrink: 0 }} />
                 <div>
-                  <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: "#d4af37", letterSpacing: "0.08em", textTransform: "uppercase" }}>{message?.headerLabel ?? "Create Profile"}</p>
-                  <p style={{ margin: "3px 0 8px", fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>Today's 2Ghost Guests</p>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: message?.tone === "red" ? "#d4af37" : "#d4af37", letterSpacing: "0.08em", textTransform: "uppercase" }}>{message?.headerLabel ?? "Create Profile"}</p>
+                  <p style={{ margin: "3px 0 8px", fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>Today's Hotel Guests</p>
                   <div style={{ display: "flex", gap: 5 }}>
                     {[
                       "https://ik.imagekit.io/7grri5v7d/5q.png?updatedAt=1774013004908",
@@ -306,9 +306,14 @@ export default function GhostButlerMessage({ message, onClose, onCreateProfile, 
                 }}
                 style={{
                   width: "100%", height: 48, marginTop: 14, borderRadius: 14, border: `1px solid ${ts.border}`,
-                  background: isRoomReady ? "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.08))" : ts.glow,
-                  color: ts.titleColor,
+                  background: message?.tone === "red"
+                    ? "linear-gradient(135deg, #b80000, #e01010)"
+                    : isRoomReady
+                      ? "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.08))"
+                      : ts.glow,
+                  color: message?.tone === "red" ? "#fff" : ts.titleColor,
                   fontSize: 13, fontWeight: 800, cursor: "pointer", letterSpacing: "0.02em",
+                  boxShadow: message?.tone === "red" ? "0 4px 20px rgba(220,20,20,0.4)" : "none",
                 }}
               >
                 {message?.buttonLabel ?? (isRoomReady ? "Create Profile" : "Understood")}

@@ -10,6 +10,7 @@ import {
   toGhostId,
   fmtKm,
   mockBio,
+  getStaffPlaceholder,
 } from "../utils/ghostHelpers";
 import { getDateIdea } from "../data/dateIdeas";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
@@ -101,6 +102,7 @@ const OUTCOME_TAGS  = ["Serious", "Casual", "Discreet", "Open", "Friendship", "A
 const OUTCOME_ICONS = ["💍",      "🤝",      "🤫",       "🔓",   "🌱",         "🔥",          "🌀",        "🕊️"];
 
 const SPAM_IMG        = "https://ik.imagekit.io/7grri5v7d/spam%20in.png";
+const REPORTED_IMG    = "https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdf.png";
 const FOUND_BOO_STAMP = "https://ik.imagekit.io/7grri5v7d/Found%20Boo%20postage%20stamp%20design.png";
 
 // ── Bestie seeded data ─────────────────────────────────────────────────────
@@ -313,7 +315,11 @@ export function ProfileWhisperModal({
   const online     = isOnline(profile.last_seen_at);
   const ghostId    = toGhostId(profile.id);
   const memberStars = getMemberStars(profile.id);
-  const isVerified = profile.isVerified || profile.faceVerified || isFaceVerifiedSeeded(profile.id);
+  const isVerified  = profile.isVerified || profile.faceVerified || isFaceVerifiedSeeded(profile.id);
+  // Staff (no verified photo): use gender-specific hotel placeholder
+  const cardImage   = !isVerified
+    ? (getStaffPlaceholder(profile.gender) ?? profile.image)
+    : profile.image;
   const dateIdea   = getDateIdea(profile.id, profile.firstDateIdea);
   const bioText    = profile.bio || mockBio(profile.id);
 
@@ -418,7 +424,7 @@ export function ProfileWhisperModal({
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           style={{ width: "100%", maxWidth: 480, background: "#0d0d0f", borderRadius: "24px 24px 0 0", padding: "36px 24px 52px", textAlign: "center", border: `1px solid ${a.glow(0.2)}`, borderBottom: "none" }}>
           <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)`, borderRadius: 2, marginBottom: 28 }} />
-          <img src={profile.image} alt={profile.name} style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${a.glow(0.5)}`, marginBottom: 14, boxShadow: `0 0 20px ${a.glow(0.35)}` }} />
+          <img src={cardImage} alt={profile.name} style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${a.glow(0.5)}`, marginBottom: 14, boxShadow: `0 0 20px ${a.glow(0.35)}` }} />
           <p style={{ fontSize: 20, fontWeight: 800, color: a.accent, margin: "0 0 8px" }}>Question Sent 👻</p>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 28px", lineHeight: 1.5 }}>
             {profile.name} will see it when they open the match. If they reply, you'll both unlock the conversation naturally.
@@ -510,7 +516,7 @@ export function ProfileWhisperModal({
           {/* ── Main Photo (4:5) ── */}
           <div style={{ position: "relative", width: "100%", aspectRatio: "4/5", flexShrink: 0 }}>
             {/* Blurred bg */}
-            <img src={profile.image} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "blur(28px) brightness(0.25)", transform: "scale(1.1)" }} />
+            <img src={cardImage} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "blur(28px) brightness(0.25)", transform: "scale(1.1)" }} />
             {/* Active photo crop */}
             <AnimatePresence mode="wait">
               <motion.img
@@ -519,7 +525,7 @@ export function ProfileWhisperModal({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0.7 }}
                 transition={{ duration: 0.22 }}
-                src={profile.image}
+                src={cardImage}
                 alt={ghostId}
                 style={{ position: "relative", width: "100%", height: "100%", objectFit: "cover", display: "block", objectPosition: PHOTO_CROPS[activeThumb] }}
                 onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
@@ -583,7 +589,7 @@ export function ProfileWhisperModal({
             {PHOTO_CROPS.map((crop, i) => (
               <motion.div key={i} whileTap={{ scale: 0.92 }} onClick={() => setActiveThumb(i)}
                 style={{ flex: 1, aspectRatio: "3/4", borderRadius: 10, overflow: "hidden", cursor: "pointer", border: activeThumb === i ? `2px solid ${a.accent}` : "2px solid rgba(255,255,255,0.1)", boxShadow: activeThumb === i ? `0 0 10px ${a.glow(0.5)}` : "none", transition: "border-color 0.15s, box-shadow 0.15s" }}>
-                <img src={profile.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: crop }} />
+                <img src={cardImage} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: crop }} />
               </motion.div>
             ))}
           </div>
@@ -1066,6 +1072,9 @@ export default function GhostCard({
   const cardRef = useRef<HTMLDivElement>(null);
 
   const isVerified  = profile.isVerified || profile.faceVerified || isFaceVerifiedSeeded(profile.id);
+  const cardImage   = !isVerified
+    ? (getStaffPlaceholder(profile.gender) ?? profile.image)
+    : profile.image;
   const heartColor  = "#e01010";
   const genderColor = { ring: "rgba(220,20,20,0.85)", glow: "rgba(220,20,20,0.4)" };
 
@@ -1119,7 +1128,7 @@ export default function GhostCard({
           }}
         >
           {/* Photo */}
-          <img src={profile.image} alt={ghostId}
+          <img src={cardImage} alt={ghostId}
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
           />
@@ -1204,25 +1213,30 @@ export default function GhostCard({
           </motion.button>
 
 
-          {/* Special overlays */}
-          {flaggedReason === "spam" && (
-            <div style={{ position: "absolute", inset: 0, zIndex: 5, borderRadius: 18, overflow: "hidden" }}>
-              <img src={SPAM_IMG} alt="Spam" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.2) 55%)" }} />
-              <div style={{ position: "absolute", bottom: 12, left: 12, right: 12 }}>
-                <p style={{ fontSize: 11, fontWeight: 800, color: "rgba(239,68,68,0.95)", margin: "0 0 2px" }}>{ghostId}</p>
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", margin: "0 0 4px" }}>{profile.age} · {profile.city} {profile.countryFlag}</p>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(239,68,68,0.2)", border: "1px solid rgba(239,68,68,0.4)", borderRadius: 50, padding: "2px 10px" }}>
-                  <span style={{ fontSize: 9 }}>🚫</span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(239,68,68,0.9)" }}>REPORTED · UNDER REVIEW</span>
-                </div>
-              </div>
+          {/* Staff badge — identity not yet confirmed */}
+          {!isVerified && (
+            <div style={{
+              position: "absolute", top: 10, left: 10, zIndex: 4,
+              background: "rgba(0,0,0,0.72)", backdropFilter: "blur(8px)",
+              border: "1px solid rgba(212,175,55,0.45)",
+              borderRadius: 8, padding: "3px 8px",
+              display: "flex", alignItems: "center", gap: 4,
+            }}>
+              <span style={{ fontSize: 10 }}>🔑</span>
+              <span style={{ fontSize: 9, fontWeight: 900,
+                color: "rgba(212,175,55,0.9)", letterSpacing: "0.08em" }}>STAFF</span>
             </div>
           )}
-          {flaggedReason && flaggedReason !== "spam" && (
-            <div style={{ position: "absolute", inset: 0, zIndex: 5, borderRadius: 18, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: 10, padding: "6px 14px" }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: "rgba(239,68,68,0.85)" }}>🚩 Reported</span>
+
+          {/* Special overlays */}
+          {flaggedReason && (
+            <div style={{ position: "absolute", inset: 0, zIndex: 5, borderRadius: 18, overflow: "hidden" }}>
+              <img src={REPORTED_IMG} alt="Reported" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 60%)" }} />
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", border: "1px solid rgba(239,68,68,0.5)", borderRadius: 12, padding: "8px 18px", textAlign: "center" }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "rgba(239,68,68,0.95)", letterSpacing: "0.06em" }}>Guest Reported</p>
+                </div>
               </div>
             </div>
           )}

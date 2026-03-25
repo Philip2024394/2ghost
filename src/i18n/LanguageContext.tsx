@@ -19,7 +19,29 @@ const COUNTRY_TO_LOCALE: Record<string, Locale> = {
   MY: "ms",
   FR: "fr",
   BE: "fr",
-  // Everything else (PH, SG, GB, AU, US, IE, etc.) → "en"
+  CN: "zh",
+  TW: "zh",
+  HK: "zh",
+  MO: "zh",
+  JP: "ja",
+  KR: "ko",
+  SA: "ar",
+  AE: "ar",
+  EG: "ar",
+  IQ: "ar",
+  IN: "hi",
+  ES: "es",
+  MX: "es",
+  CO: "es",
+  AR: "es",
+  CL: "es",
+  DE: "de",
+  AT: "de",
+  BR: "pt",
+  PT: "pt",
+  RU: "ru",
+  PH: "tl",
+  // Everything else (SG, GB, AU, US, IE, NZ, etc.) → "en"
 };
 
 function resolveLocale(countryCode: string): Locale {
@@ -29,7 +51,8 @@ function resolveLocale(countryCode: string): Locale {
 function getSavedLocale(): Locale | null {
   try {
     const v = localStorage.getItem(STORAGE_KEY);
-    if (v === "en" || v === "id" || v === "th" || v === "vi" || v === "ms" || v === "fr") return v as Locale;
+    const valid: string[] = ["en","id","th","vi","ms","fr","zh","ja","ko","ar","hi","es","de","pt","ru","tl"];
+    if (valid.includes(v ?? "")) return v as Locale;
   } catch {}
   return null;
 }

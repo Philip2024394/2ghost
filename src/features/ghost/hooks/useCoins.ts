@@ -31,6 +31,23 @@ function appendTransaction(tx: Omit<CoinTransaction, "id" | "ts">) {
     const entry: CoinTransaction = { ...tx, id: crypto.randomUUID(), ts: Date.now() };
     // keep last 100 only
     localStorage.setItem(TX_KEY, JSON.stringify([entry, ...all].slice(0, 100)));
+    // Sync to Supabase non-blocking
+    try {
+      const raw = localStorage.getItem("ghost_profile");
+      if (raw) {
+        const profile = JSON.parse(raw);
+        if (profile.ghost_id) {
+          ghostSupabase.from("ghost_coin_transactions").insert({
+            id:          entry.id,
+            ghost_id:    profile.ghost_id,
+            type:        entry.type,
+            amount:      entry.amount,
+            description: entry.description,
+            ts:          entry.ts,
+          }).then(() => {}).catch(() => {});
+        }
+      }
+    } catch {}
   } catch {}
 }
 

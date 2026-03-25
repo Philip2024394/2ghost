@@ -1,14 +1,21 @@
 // ── Game Invite Popup ──────────────────────────────────────────────────────────
-// Butler delivers a Connect 4 game invite. Player can accept or decline
-// (with a reason). Butler warns that declining lowers ranking position.
+// Butler delivers a weekly game challenge. Accept/decline with countdown timer.
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { GameInvite } from "../utils/gameInviteService";
 import { DECLINE_REASONS } from "../utils/gameInviteService";
 
-const BUTLER_IMG = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdfccc-removebg-preview.png";
-const GAMES_IMG  = "https://ik.imagekit.io/7grri5v7d/Skeleton%20in%20tuxedo%20flips%20Connect%204%20disc.png";
+const BUTLER_IMG   = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdfccc-removebg-preview.png";
+const GAMES_IMG    = "https://ik.imagekit.io/7grri5v7d/Skeleton%20in%20tuxedo%20flips%20Connect%204%20disc.png";
+const MEMORY_EMOJI = "🃏";
+
+// Derive this week's game (alternates weekly)
+function getThisWeeksGame(): "connect4" | "memory" {
+  return Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % 2 === 0 ? "memory" : "connect4";
+}
+
+const ACCEPT_WINDOW = 30; // seconds to accept before auto-decline
 
 type Props = {
   invite: GameInvite;
@@ -17,13 +24,27 @@ type Props = {
 };
 
 export default function GameInvitePopup({ invite, onAccept, onDecline }: Props) {
-  const [showReasons, setShowReasons] = useState(false);
+  const [showReasons,    setShowReasons]    = useState(false);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
+  const [timeLeft,       setTimeLeft]       = useState(ACCEPT_WINDOW);
+  const thisWeeksGame = getThisWeeksGame();
+  const gameLabel = thisWeeksGame === "memory" ? "Memory Match" : "Connect 4";
+  const gameEmoji = thisWeeksGame === "memory" ? MEMORY_EMOJI : "🔴";
+
+  // Countdown timer — auto-decline on expiry
+  useEffect(() => {
+    if (showReasons) return;
+    if (timeLeft <= 0) { onDecline("Time expired"); return; }
+    const t = setTimeout(() => setTimeLeft(s => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [timeLeft, showReasons, onDecline]);
 
   function handleDeclineConfirm() {
     if (!selectedReason) return;
     onDecline(selectedReason);
   }
+
+  const timerColor = timeLeft <= 5 ? "#ef4444" : timeLeft <= 10 ? "#fb923c" : "#d4af37";
 
   return (
     <motion.div
@@ -54,20 +75,31 @@ export default function GameInvitePopup({ invite, onAccept, onDecline }: Props) 
 
         <div style={{ padding: "22px 20px 0" }}>
 
-          {/* Butler messenger header */}
+          {/* Butler messenger header + timer */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
             <img src={BUTLER_IMG} alt="Butler"
               style={{ width: 40, height: 40, objectFit: "cover", objectPosition: "top",
                 borderRadius: 12, border: "1px solid rgba(250,204,21,0.2)" }} />
-            <div>
+            <div style={{ flex: 1 }}>
               <p style={{ margin: 0, fontSize: 10, fontWeight: 700,
                 color: "rgba(250,204,21,0.7)", letterSpacing: "0.06em" }}>
-                THE BUTLER
+                THE BUTLER · THIS WEEK'S GAME
               </p>
               <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
                 A challenge has arrived at your door
               </p>
             </div>
+            {/* Countdown */}
+            {!showReasons && (
+              <motion.div
+                animate={{ opacity: timeLeft <= 5 ? [1, 0.3, 1] : 1 }}
+                transition={{ duration: 0.5, repeat: timeLeft <= 5 ? Infinity : 0 }}
+                style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 1, padding: "6px 10px", borderRadius: 10, background: "rgba(0,0,0,0.4)", border: `1px solid ${timerColor}40` }}
+              >
+                <span style={{ fontSize: 20, fontWeight: 900, color: timerColor, lineHeight: 1, textShadow: timeLeft <= 5 ? `0 0 10px ${timerColor}` : "none" }}>{timeLeft}</span>
+                <span style={{ fontSize: 7, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>secs</span>
+              </motion.div>
+            )}
           </div>
 
           {/* Invite card */}
@@ -90,15 +122,17 @@ export default function GameInvitePopup({ invite, onAccept, onDecline }: Props) 
                 {invite.from_name}
               </p>
               <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                has invited you to play
+                has challenged you to this week's game
               </p>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 5,
                 padding: "3px 10px", borderRadius: 8,
-                background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                <img src={GAMES_IMG} alt="Connect 4"
-                  style={{ width: 16, height: 16, objectFit: "contain" }} />
-                <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>
-                  Connect 4
+                background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.25)" }}>
+                {thisWeeksGame === "connect4"
+                  ? <img src={GAMES_IMG} alt={gameLabel} style={{ width: 16, height: 16, objectFit: "contain" }} />
+                  : <span style={{ fontSize: 14 }}>{gameEmoji}</span>
+                }
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#d4af37" }}>
+                  {gameLabel}
                 </span>
               </div>
             </div>

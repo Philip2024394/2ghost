@@ -24,6 +24,8 @@ const GhostMapPage      = lazyWithRetry(() => import("./features/ghost/pages/Gho
 const GhostDashboardPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostDashboardPage"));
 const GhostPaymentSuccessPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostPaymentSuccessPage"));
 const GhostOnboardingPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostOnboardingPage"));
+const GhostProfileSetupPage    = lazyWithRetry(() => import("./features/ghost/pages/GhostProfileSetupPage"));
+const MrButlasEscortPage       = lazyWithRetry(() => import("./features/ghost/pages/MrButlasEscortPage"));
 const GhostRoomsPage           = lazyWithRetry(() => import("./features/ghost/pages/GhostRoomsPage"));
 const PenthouseFloorPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseFloorPage"));
 const LoftFloorPage            = lazyWithRetry(() => import("./features/ghost/pages/LoftFloorPage"));
@@ -34,9 +36,11 @@ const PenthouseApplyPage       = lazyWithRetry(() => import("./features/ghost/pa
 const PenthouseVaultPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseVaultPage"));
 const HotelCheckoutPage        = lazyWithRetry(() => import("./features/ghost/pages/HotelCheckoutPage"));
 const Connect4Page             = lazyWithRetry(() => import("./features/ghost/pages/Connect4Page"));
+const MemoryMatchPage          = lazyWithRetry(() => import("./features/ghost/pages/MemoryMatchPage"));
 const GamesRoomPage            = lazyWithRetry(() => import("./features/ghost/pages/GamesRoomPage"));
 const HotelRulesPage           = lazyWithRetry(() => import("./features/ghost/pages/HotelRulesPage"));
 const BreakfastLoungePage      = lazyWithRetry(() => import("./features/ghost/pages/BreakfastLoungePage"));
+const HotelActivitiesPage      = lazyWithRetry(() => import("./features/ghost/pages/HotelActivitiesPage"));
 
 // Affiliate
 const AffiliateJoinPage      = lazyWithRetry(() => import("./features/affiliate/pages/AffiliateJoinPage"));
@@ -94,7 +98,11 @@ export default function App() {
       <AnalyticsTracker />
       <Suspense fallback={null}>
         <Routes>
-          <Route path="/"               element={<Navigate to="/ghost/mode" replace />} />
+          <Route path="/" element={
+            localStorage.getItem("ghost_profile_setup_done")
+              ? <Navigate to="/ghost/mode" replace />
+              : <Navigate to="/ghost/welcome" replace />
+          } />
           <Route path="/ghost"         element={<GhostLandingPage />} />
           <Route path="/ghost/auth"    element={<GhostAuthPage />} />
           <Route path="/ghost/gateway" element={<GhostGatewayPage />} />
@@ -109,6 +117,8 @@ export default function App() {
           <Route path="/ghost/dashboard"       element={<GhostDashboardPage />} />
           <Route path="/ghost/payment-success" element={<GhostPaymentSuccessPage />} />
           <Route path="/ghost/onboarding"      element={<GhostOnboardingPage />} />
+          <Route path="/ghost/profile-setup"  element={<GhostProfileSetupPage />} />
+          <Route path="/ghost/escorted-out"   element={<MrButlasEscortPage />} />
           <Route path="/ghost/penthouse"       element={<PenthouseFloorPage />} />
           <Route path="/ghost/penthouse/apply" element={<PenthouseApplyPage />} />
           <Route path="/ghost/penthouse/vault/:matchId" element={<PenthouseVaultPage />} />
@@ -126,7 +136,9 @@ export default function App() {
           <Route path="/ghost/checkout"              element={<HotelCheckoutPage />} />
           <Route path="/ghost/games"                  element={<GamesRoomPage />} />
           <Route path="/ghost/games/connect4"        element={<Connect4Page />} />
+          <Route path="/ghost/games/memory"          element={<MemoryMatchPage />} />
           <Route path="/ghost/breakfast-lounge"     element={<BreakfastLoungePage />} />
+          <Route path="/ghost/activities"           element={<HotelActivitiesPage />} />
 
           {/* Affiliate */}
           <Route path="/affiliate/join"          element={<AffiliateJoinPage />} />

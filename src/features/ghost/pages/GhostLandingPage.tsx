@@ -68,6 +68,7 @@ export default function GhostLandingPage() {
   const navigate = useNavigate();
   const [showManifesto, setShowManifesto]   = useState(false);
   const [showVideoFull, setShowVideoFull]   = useState(false);
+  const [videoFailed,   setVideoFailed]     = useState(false);
   const [showA2HS, setShowA2HS]             = useState(false);
   const [a2hsDismissed, setA2HSDismissed]   = useState(() => {
     try { return !!localStorage.getItem("ghost_a2hs_dismissed"); } catch { return false; }
@@ -131,7 +132,7 @@ export default function GhostLandingPage() {
     const onPrompt = (e: Event) => { e.preventDefault(); deferredPromptRef.current = e; };
     window.addEventListener("beforeinstallprompt", onPrompt);
     const firstVisit = (() => { try { return Number(localStorage.getItem("ghost_first_visit")) || Date.now(); } catch { return Date.now(); } })();
-    const delay = Math.max(0, firstVisit + 10 * 60 * 1000 - Date.now());
+    const delay = Math.max(0, firstVisit + 5 * 60 * 1000 - Date.now());
     const t = setTimeout(() => setShowA2HS(true), delay);
     return () => { clearTimeout(t); window.removeEventListener("beforeinstallprompt", onPrompt); };
   }, [a2hsDismissed]);
@@ -235,7 +236,7 @@ export default function GhostLandingPage() {
         <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", display: "flex", flexDirection: "column", gap: 12 }}>
 
           {/* ── Hotel intro header ── */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2, marginTop: 10 }}>
             <div style={{ width: 3, height: 20, borderRadius: 2, background: "#e01010" }} />
             <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.45)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Hearts Way Hotel</p>
           </div>
@@ -246,12 +247,18 @@ export default function GhostLandingPage() {
             style={{ position: "relative", borderRadius: 16, overflow: "hidden", border: "1px solid rgba(220,20,20,0.22)", boxShadow: "0 0 24px rgba(220,20,20,0.1)", height: 160, cursor: "pointer", flexShrink: 0 }}
             onClick={() => setShowVideoFull(true)}
           >
-            {/* Muted preview video */}
-            <video
-              src={INTRO_VIDEO_URL}
-              autoPlay muted loop playsInline
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-            />
+            {/* Muted preview video — hidden if file not uploaded yet */}
+            {!videoFailed && (
+              <video
+                src={INTRO_VIDEO_URL}
+                autoPlay muted loop playsInline
+                onError={() => setVideoFailed(true)}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            )}
+            {videoFailed && (
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,rgba(30,6,6,0.98),rgba(80,10,10,0.92))" }} />
+            )}
             {/* Dark overlay */}
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 60%, rgba(0,0,0,0.6) 100%)" }} />
             {/* Red top rim */}

@@ -2,6 +2,7 @@
 // Manages the per-floor gift library for breakfast invites.
 // Admin uploads gifts via AdminGiftsPage; guests receive auto-selected gifts
 // when invited to the lounge from a different floor.
+import { ghostSupabase } from "../ghostSupabase";
 
 export type BreakfastGift = {
   id:          string;
@@ -104,3 +105,53 @@ export const FLOOR_META: Record<string, { label: string; color: string; icon: st
   loft:      { label: "The Loft",      color: "#8b5cf6", icon: "🎨"  },
   cellar:    { label: "The Cellar",    color: "#c0392b", icon: "🍷"  },
 };
+
+// ── Supabase sync ─────────────────────────────────────────────────────────────
+
+/** Load gifts from Supabase; caches to localStorage and falls back on error */
+export async function loadGiftsFromDB(): Promise<BreakfastGift[]> {
+  try {
+    const { data } = await ghostSupabase
+      .from("ghost_breakfast_gifts")
+      .select("*")
+      .order("floor")
+      .order("coin_value");
+    if (data?.length) {
+      const list: BreakfastGift[] = data.map(r => ({
+        id:          r.id as string,
+        floor:       r.floor as string,
+        emoji:       r.emoji as string,
+        name:        r.name as string,
+        imageUrl:    (r.image_url ?? "") as string,
+        description: (r.description ?? "") as string,
+        coinValue:   (r.coin_value ?? 0) as number,
+      }));
+      saveGifts(list);
+      return list;
+    }
+  } catch {}
+  return loadGifts();
+}
+
+/** Upsert a single gift to Supabase (non-blocking) */
+export async function saveGiftDB(gift: BreakfastGift): Promise<void> {
+  try {
+    await ghostSupabase.from("ghost_breakfast_gifts").upsert({
+      id:          gift.id,
+      floor:       gift.floor,
+      emoji:       gift.emoji,
+      name:        gift.name,
+      image_url:   gift.imageUrl || null,
+      description: gift.description || null,
+      coin_value:  gift.coinValue,
+      updated_at:  new Date().toISOString(),
+    }, { onConflict: "id" });
+  } catch {}
+}
+
+/** Delete a gift from Supabase (non-blocking) */
+export async function deleteGiftDB(id: string): Promise<void> {
+  try {
+    await ghostSupabase.from("ghost_breakfast_gifts").delete().eq("id", id);
+  } catch {}
+}

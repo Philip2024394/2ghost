@@ -260,6 +260,18 @@ export default function GhostDashboardPage() {
     } catch { return null; }
   });
 
+  const [tonightStatus, setTonightStatus] = useState<"available" | "busy">(() => {
+    try { return (localStorage.getItem("ghost_tonight_status") as "available" | "busy") || "available"; } catch { return "available"; }
+  });
+  const isTonightActive = (() => {
+    try { return Number(localStorage.getItem("ghost_tonight_until") || 0) > Date.now(); } catch { return false; }
+  })();
+  const toggleTonightStatus = () => {
+    const next: "available" | "busy" = tonightStatus === "available" ? "busy" : "available";
+    setTonightStatus(next);
+    try { localStorage.setItem("ghost_tonight_status", next); } catch {}
+  };
+
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setTick((n) => n + 1), 60000);
@@ -431,6 +443,42 @@ export default function GhostDashboardPage() {
               )}
             </AnimatePresence>
           </motion.div>
+
+          {/* ── Tonight Status ── */}
+          {isTonightActive && (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.07 }}>
+              <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>
+                Tonight Status
+              </p>
+              <div style={{ ...CARD, display: "flex", alignItems: "center", gap: 14 }}>
+                <motion.div
+                  animate={{ opacity: [0.4, 1, 0.4] }}
+                  transition={{ duration: tonightStatus === "available" ? 1.4 : 2.2, repeat: Infinity }}
+                  style={{ width: 12, height: 12, borderRadius: "50%", flexShrink: 0,
+                    background: tonightStatus === "available" ? "#22c55e" : "#f97316",
+                    boxShadow: tonightStatus === "available" ? "0 0 10px rgba(34,197,94,0.8)" : "0 0 10px rgba(249,115,22,0.8)" }}
+                />
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#fff" }}>
+                    {tonightStatus === "available" ? "Available Now" : "Busy"}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 2 }}>
+                    {tonightStatus === "available" ? "Showing as available in the Tonight lobby" : "Showing as busy — others can still see you"}
+                  </p>
+                </div>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={toggleTonightStatus}
+                  style={{ flexShrink: 0, height: 36, borderRadius: 10, border: "none", padding: "0 16px",
+                    background: tonightStatus === "available" ? "rgba(249,115,22,0.15)" : "rgba(34,197,94,0.15)",
+                    color: tonightStatus === "available" ? "#f97316" : "#22c55e",
+                    fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                >
+                  {tonightStatus === "available" ? "Set Busy" : "Set Available"}
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
 
           {/* ── Section 2: Activity Today ── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
@@ -1225,6 +1273,7 @@ export default function GhostDashboardPage() {
               {[
                 { label: "Edit Profile", emoji: "✏️", to: "/ghost/setup" },
                 { label: "My Room", emoji: "🚪", to: "/ghost/room" },
+                { label: "Activities", emoji: "🏨", to: "/ghost/activities" },
                 { label: "Back to Feed", emoji: "👻", to: "/ghost/mode" },
               ].map((action) => (
                 <motion.button

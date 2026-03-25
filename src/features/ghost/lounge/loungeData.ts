@@ -252,11 +252,13 @@ export function buildVisible(
   dismissed: Set<string> = new Set(),
   shown: Set<string> = new Set(),
   countryFilter?: string | null,
+  wantedGender?: "f" | "m" | null,
 ) {
   const pool = POOL.filter(p =>
     !dismissed.has(p.id) &&
     (intl || !p.international) &&
-    isOnlineHours(p.country),
+    isOnlineHours(p.country) &&
+    (!wantedGender || p.gender === wantedGender),
   );
   const sorted = [...pool].sort((a, b) => {
     const countryA = countryFilter && a.country === countryFilter ? 2 : 0;

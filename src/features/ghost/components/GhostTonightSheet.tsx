@@ -6,6 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 import type { GhostProfile } from "../types/ghostTypes";
 
+/** Deterministic busy/available for mock profiles — ~30% busy */
+function isMockBusy(id: string): boolean {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) { h = Math.imul(31, h) + id.charCodeAt(i) | 0; }
+  return Math.abs(h) % 10 < 3;
+}
+
 type Props = {
   show: boolean;
   lobbyList: GhostProfile[];
@@ -74,17 +81,24 @@ export default function GhostTonightSheet({ show, lobbyList, likedIds, onClose, 
                           onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
                         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)" }} />
 
-                        {/* Tonight badge */}
-                        <div style={{ position: "absolute", top: 6, left: 6, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "2px 6px" }}>
-                          <span style={{ fontSize: 7, fontWeight: 900, color: a.accent, letterSpacing: "0.04em" }}>🌙 TONIGHT</span>
-                        </div>
-
-                        {/* Online pulse */}
-                        <motion.div
-                          animate={{ opacity: [0.4, 1, 0.4] }}
-                          transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.15 }}
-                          style={{ position: "absolute", top: 6, right: 6, width: 7, height: 7, borderRadius: "50%", background: a.accent, boxShadow: `0 0 6px ${a.glow(0.9)}` }}
-                        />
+                        {/* Status dot — green = available, orange = busy */}
+                        {(() => {
+                          const busy = (p as GhostProfile & { tonightStatus?: string }).tonightStatus === "busy" || isMockBusy(p.id);
+                          return (
+                            <div style={{ position: "absolute", top: 7, right: 7, display: "flex", alignItems: "center", gap: 3 }}>
+                              <span style={{ fontSize: 7, fontWeight: 800, color: busy ? "#f97316" : "#22c55e" }}>
+                                {busy ? "Busy" : ""}
+                              </span>
+                              <motion.div
+                                animate={{ opacity: [0.35, 1, 0.35] }}
+                                transition={{ duration: busy ? 2.2 : 1.4, repeat: Infinity, delay: i * 0.12 }}
+                                style={{ width: 8, height: 8, borderRadius: "50%",
+                                  background: busy ? "#f97316" : "#22c55e",
+                                  boxShadow: busy ? "0 0 7px rgba(249,115,22,0.9)" : "0 0 7px rgba(34,197,94,0.9)" }}
+                              />
+                            </div>
+                          );
+                        })()}
 
                         {/* Info */}
                         <div style={{ position: "absolute", bottom: 6, left: 7, right: 7 }}>

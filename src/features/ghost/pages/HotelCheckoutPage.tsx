@@ -13,7 +13,8 @@ import {
   type HotelStayStats,
 } from "../utils/checkoutService";
 
-const BUTLER_IMG = "https://ik.imagekit.io/7grri5v7d/sdfasdfasdfasdfasdfsds-removebg-preview.png";
+const BUTLER_IMG   = "https://ik.imagekit.io/7grri5v7d/sdfasdfasdfasdfasdfsds-removebg-preview.png";
+const MATCH_BG_IMG = "https://ik.imagekit.io/7grri5v7d/jjjhfghfg.png";
 
 type Path = "choose" | "with_match" | "without_match";
 type WithMatchStep = "receipt" | "farewell" | "done";
@@ -136,7 +137,7 @@ function PathWithMatch({ stats, accent, onDone }: { stats: HotelStayStats; accen
           </motion.div>
           <p style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 900, color: "#fff" }}>Safe travels</p>
           <p style={{ margin: "0 0 28px", fontSize: 14, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, maxWidth: 300 }}>
-            The Mr. Butlas doors are always open. Come back anytime — your memories stay with us for 90 days.
+            The doors of Heartsway Hotel are always open. Come back anytime — your memories stay with us for 90 days.
           </p>
           <motion.button whileTap={{ scale: 0.97 }} onClick={onDone}
             style={{ height: 50, width: "100%", borderRadius: 16, background: accent.gradient, border: "none", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" }}>
@@ -448,7 +449,7 @@ export default function HotelCheckoutPage() {
   if (!stats) return null;
 
   return (
-    <div style={{ minHeight: "100dvh", background: "#06060e", backgroundImage: "url(https://ik.imagekit.io/7grri5v7d/sdfasdfdddsaasdf.png)", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed", color: "#fff", display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100dvh", background: "#06060e", backgroundImage: `url(${path === "with_match" ? MATCH_BG_IMG : "https://ik.imagekit.io/7grri5v7d/sdfasdfdddsaasdf.png"})`, backgroundSize: "cover", backgroundPosition: "center top", backgroundAttachment: "fixed", color: "#fff", display: "flex", flexDirection: "column", transition: "background-image 0.6s ease" }}>
 
       {/* Header bar */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
@@ -462,8 +463,13 @@ export default function HotelCheckoutPage() {
         </button>
       </div>
 
+      {/* Overlay for match bg readability */}
+      {path === "with_match" && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(4,2,6,0.62)", pointerEvents: "none", zIndex: 0 }} />
+      )}
+
       {/* Scrollable body */}
-      <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "24px 20px 40px" }}>
+      <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "24px 20px 40px", position: "relative", zIndex: 1 }}>
         <AnimatePresence mode="wait">
 
           {/* Path chooser */}
