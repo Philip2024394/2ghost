@@ -8,10 +8,10 @@ import { logServiceRequest } from "../../admin/adminSupabaseService";
 
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const PACK_PRICE = "$9.99";
-const G = "#4ade80";                          // primary green
-const G_DIM = "rgba(74,222,128,0.7)";
-const G_BG  = "rgba(74,222,128,0.08)";
-const G_BORDER = "rgba(74,222,128,0.2)";
+const G = "#e01010";                          // primary red
+const G_DIM = "rgba(220,20,20,0.8)";
+const G_BG  = "rgba(220,20,20,0.08)";
+const G_BORDER = "rgba(220,20,20,0.25)";
 const BG = "rgb(5,5,10)";                    // app background black
 
 type Screen = "list" | "payment" | "unlocked";
@@ -85,7 +85,7 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <img src="https://ik.imagekit.io/7grri5v7d/butlers%20tray.png" alt="butler" style={{ width: 28, height: 28, objectFit: "contain" }} />
-                <p style={{ fontSize: 19, fontWeight: 900, color: G, margin: 0 }}>Ghost Butler</p>
+                <p style={{ fontSize: 19, fontWeight: 900, color: G, margin: 0 }}>Mr Butlas</p>
               </div>
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "2px 0 0" }}>
                 {matchName ? `Send ${matchName} a real-world surprise` : "Send a surprise to your match"} · {city}
@@ -240,8 +240,8 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
                       onClick={() => setScreen("payment")}
                       style={{
                         width: "100%", height: 54, borderRadius: 50, border: "none",
-                        background: `linear-gradient(135deg, ${a.accent}, #16a34a)`,
-                        color: "#000", fontSize: 15, fontWeight: 900, cursor: "pointer",
+                        background: "linear-gradient(135deg, #e01010, #a00000)",
+                        color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
                         boxShadow: `0 4px 20px ${a.glow(0.25)}`,
                       }}
                     >
@@ -288,8 +288,8 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
                   disabled={paying}
                   style={{
                     width: "100%", height: 54, borderRadius: 50, border: "none",
-                    background: paying ? "rgba(255,255,255,0.07)" : `linear-gradient(135deg, ${a.accent}, #16a34a)`,
-                    color: paying ? "rgba(255,255,255,0.3)" : "#000",
+                    background: paying ? "rgba(255,255,255,0.07)" : "linear-gradient(135deg, #e01010, #a00000)",
+                    color: paying ? "rgba(255,255,255,0.3)" : "#fff",
                     fontSize: 15, fontWeight: 900, cursor: paying ? "default" : "pointer", marginBottom: 10,
                     boxShadow: paying ? "none" : `0 4px 20px ${a.glow(0.25)}`,
                   }}

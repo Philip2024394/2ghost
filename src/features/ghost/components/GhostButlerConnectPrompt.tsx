@@ -27,13 +27,13 @@ export default function GhostButlerConnectPrompt({ profile, onConnectNow, onOpen
             style={{
               width: "100%", maxWidth: 480,
               background: "rgba(10,10,16,0.98)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)",
-              borderRadius: "22px 22px 0 0", border: "1px solid rgba(251,191,36,0.2)",
+              borderRadius: "22px 22px 0 0", border: "1px solid rgba(220,20,20,0.2)",
               padding: "20px 20px max(20px, env(safe-area-inset-bottom, 20px))",
             }}
           >
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <span style={{ fontSize: 32, lineHeight: 1 }}>🎩</span>
-              <p style={{ margin: "8px 0 4px", fontSize: 15, fontWeight: 800, color: "#fbbf24" }}>
+              <p style={{ margin: "8px 0 4px", fontSize: 15, fontWeight: 800, color: "#e01010" }}>
                 Send a Surprise First?
               </p>
               <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
@@ -45,12 +45,12 @@ export default function GhostButlerConnectPrompt({ profile, onConnectNow, onOpen
                 onClick={onOpenButler}
                 style={{
                   width: "100%", height: 48, borderRadius: 14, border: "none",
-                  background: "linear-gradient(135deg, #d97706, #fbbf24)",
-                  color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer",
+                  background: "linear-gradient(135deg, #e01010, #a00000)",
+                  color: "#fff", fontWeight: 900, fontSize: 14, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 }}
               >
-                🎩 Open Ghost Butler
+                🎩 Open Mr Butlas
               </button>
               <button
                 onClick={onConnectNow}

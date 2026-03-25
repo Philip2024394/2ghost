@@ -11,6 +11,10 @@ import { DATE_IDEAS as FIRST_DATE_IDEAS } from "../data/dateIdeas";
 import { PROFILE_BADGES, BADGE_CATEGORIES } from "../data/profileBadges";
 
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
+const RED = "#e01010";
+const RED_GLOW = "rgba(220,20,20,0.18)";
+const RED_BORDER = "rgba(220,20,20,0.3)";
+const RED_DIM = "rgba(220,20,20,0.7)";
 const GHOST_PROFILE_KEY = "ghost_profile";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwq.png";
 
@@ -314,7 +318,7 @@ export default function GhostSetupPage() {
               style={{
                 position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 201,
                 width: 280, background: "#09091a",
-                borderLeft: `1px solid ${a.glow(0.15)}`,
+                borderLeft: `1px solid rgba(220,20,20,0.15)`,
                 display: "flex", flexDirection: "column",
                 paddingTop: "max(24px, env(safe-area-inset-top, 24px))",
               }}
@@ -351,7 +355,7 @@ export default function GhostSetupPage() {
                       cursor: "pointer", textAlign: "left",
                     }}
                   >
-                    <Icon size={16} style={{ color: a.accent, flexShrink: 0 }} />
+                    <Icon size={16} style={{ color: RED, flexShrink: 0 }} />
                     {lbl}
                   </button>
                 ))}
@@ -388,10 +392,10 @@ export default function GhostSetupPage() {
             onClick={() => fileRef.current?.click()}
             style={{
               width: 110, height: 110, borderRadius: "50%",
-              background: photo ? "transparent" : a.glow(0.06),
+              background: photo ? "transparent" : "rgba(220,20,20,0.06)",
               border: submitAttempted && errors.photo
                 ? "2px dashed rgba(239,68,68,0.6)"
-                : photo ? `3px solid ${a.glow(0.5)}` : `2px dashed ${a.glow(0.25)}`,
+                : photo ? `3px solid rgba(220,20,20,0.5)` : `2px dashed rgba(220,20,20,0.25)`,
               cursor: "pointer", overflow: "hidden", position: "relative",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
@@ -400,12 +404,12 @@ export default function GhostSetupPage() {
               <img src={photo} alt="You" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             ) : (
               <div style={{ textAlign: "center" }}>
-                <Camera size={26} style={{ color: a.glow(0.5), display: "block", margin: "0 auto 6px" }} />
-                <span style={{ fontSize: 10, color: a.glow(0.5), fontWeight: 700 }}>Add Photo</span>
+                <Camera size={26} style={{ color: "rgba(220,20,20,0.5)", display: "block", margin: "0 auto 6px" }} />
+                <span style={{ fontSize: 10, color: "rgba(220,20,20,0.5)", fontWeight: 700 }}>Add Photo</span>
               </div>
             )}
           </motion.button>
-          <p style={{ fontSize: 11, color: photo ? a.glow(0.7) : "rgba(255,255,255,0.3)", marginTop: 10, fontWeight: photo ? 700 : 400 }}>
+          <p style={{ fontSize: 11, color: photo ? "rgba(220,20,20,0.7)" : "rgba(255,255,255,0.3)", marginTop: 10, fontWeight: photo ? 700 : 400 }}>
             {photo ? "✓ Photo added — tap to change" : "Your profile photo · required"}
           </p>
           {submitAttempted && errors.photo && (
@@ -420,7 +424,7 @@ export default function GhostSetupPage() {
             style={{
               marginTop: 12, width: 72, height: 72, borderRadius: 14,
               background: photo2 ? "transparent" : "rgba(255,255,255,0.03)",
-              border: photo2 ? `2px solid ${a.glow(0.4)}` : `2px dashed ${a.glow(0.15)}`,
+              border: photo2 ? `2px solid rgba(220,20,20,0.4)` : `2px dashed rgba(220,20,20,0.15)`,
               cursor: "pointer", overflow: "hidden", position: "relative",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
@@ -429,19 +433,19 @@ export default function GhostSetupPage() {
               <img src={photo2} alt="Second photo" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             ) : (
               <div style={{ textAlign: "center" }}>
-                <Camera size={18} style={{ color: a.glow(0.35), display: "block", margin: "0 auto 4px" }} />
-                <span style={{ fontSize: 9, color: a.glow(0.35), fontWeight: 700 }}>2nd Photo</span>
+                <Camera size={18} style={{ color: "rgba(220,20,20,0.35)", display: "block", margin: "0 auto 4px" }} />
+                <span style={{ fontSize: 9, color: "rgba(220,20,20,0.35)", fontWeight: 700 }}>2nd Photo</span>
               </div>
             )}
           </motion.button>
-          <p style={{ fontSize: 10, color: photo2 ? a.glow(0.6) : "rgba(255,255,255,0.2)", marginTop: 6, fontWeight: photo2 ? 700 : 400 }}>
+          <p style={{ fontSize: 10, color: photo2 ? "rgba(220,20,20,0.6)" : "rgba(255,255,255,0.2)", marginTop: 6, fontWeight: photo2 ? 700 : 400 }}>
             {photo2 ? "✓ Second photo added" : "Add a second photo · optional"}
           </p>
         </div>
 
         {/* ── Required fields section ── */}
         <div style={{ marginBottom: 8 }}>
-          <p style={{ fontSize: 10, fontWeight: 800, color: a.glow(0.5), letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 20px" }}>
+          <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(220,20,20,0.5)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 20px" }}>
             Required
           </p>
         </div>
@@ -506,7 +510,7 @@ export default function GhostSetupPage() {
                     border: submitAttempted && errors.city
                       ? "1px solid rgba(239,68,68,0.5)"
                       : focusedField === "city"
-                        ? `1px solid ${a.glow(0.45)}`
+                        ? `1px solid rgba(220,20,20,0.45)`
                         : "1px solid rgba(255,255,255,0.1)",
                     color: city ? "#fff" : "rgba(255,255,255,0.35)",
                     fontSize: 15, paddingLeft: 14, paddingRight: 30,
@@ -514,7 +518,7 @@ export default function GhostSetupPage() {
                     appearance: "none", WebkitAppearance: "none",
                     cursor: "pointer",
                     transition: "background 0.15s, border-color 0.15s",
-                    boxShadow: focusedField === "city" ? `0 0 0 3px ${a.glow(0.08)}` : "none",
+                    boxShadow: focusedField === "city" ? `0 0 0 3px rgba(220,20,20,0.08)` : "none",
                   }}
                 >
                   <option value="" disabled style={{ background: "#0a0a10", color: "rgba(255,255,255,0.4)" }}>
@@ -556,7 +560,7 @@ export default function GhostSetupPage() {
                 border: submitAttempted && errors.country
                   ? "1px solid rgba(239,68,68,0.5)"
                   : focusedField === "country"
-                    ? `1px solid ${a.glow(0.45)}`
+                    ? `1px solid rgba(220,20,20,0.45)`
                     : "1px solid rgba(255,255,255,0.1)",
                 color: country ? "#fff" : "rgba(255,255,255,0.35)",
                 fontSize: 15,
@@ -567,7 +571,7 @@ export default function GhostSetupPage() {
                 appearance: "none", WebkitAppearance: "none",
                 cursor: "pointer",
                 transition: "background 0.15s, border-color 0.15s",
-                boxShadow: focusedField === "country" ? `0 0 0 3px ${a.glow(0.08)}` : "none",
+                boxShadow: focusedField === "country" ? `0 0 0 3px rgba(220,20,20,0.08)` : "none",
               }}
             >
               <option value="" disabled style={{ background: "#0a0a10", color: "rgba(255,255,255,0.4)" }}>
@@ -599,11 +603,11 @@ export default function GhostSetupPage() {
                 onClick={() => setGender(g)}
                 style={{
                   flex: 1, height: 50, borderRadius: 12, cursor: "pointer",
-                  background: gender === g ? a.glow(0.12) : "rgba(255,255,255,0.04)",
+                  background: gender === g ? "rgba(220,20,20,0.12)" : "rgba(255,255,255,0.04)",
                   border: submitAttempted && errors.gender
                     ? "1px solid rgba(239,68,68,0.4)"
-                    : gender === g ? `1px solid ${a.glow(0.4)}` : "1px solid rgba(255,255,255,0.08)",
-                  color: gender === g ? a.glow(0.95) : "rgba(255,255,255,0.5)",
+                    : gender === g ? `1px solid rgba(220,20,20,0.4)` : "1px solid rgba(255,255,255,0.08)",
+                  color: gender === g ? "rgba(220,20,20,0.95)" : "rgba(255,255,255,0.5)",
                   fontSize: 14, fontWeight: 700, transition: "all 0.15s",
                 }}
               >
@@ -746,9 +750,9 @@ export default function GhostSetupPage() {
                 whileTap={{ scale: 0.97 }}
                 onClick={recording ? stopRecording : startRecording}
                 style={{
-                  flex: 1, height: 44, borderRadius: 10, border: `1px solid ${recording ? "rgba(239,68,68,0.4)" : a.glow(0.25)}`,
-                  background: recording ? "rgba(239,68,68,0.08)" : a.glow(0.05),
-                  color: recording ? "#f87171" : a.accent,
+                  flex: 1, height: 44, borderRadius: 10, border: `1px solid ${recording ? "rgba(239,68,68,0.4)" : "rgba(220,20,20,0.25)"}`,
+                  background: recording ? "rgba(239,68,68,0.08)" : "rgba(220,20,20,0.05)",
+                  color: recording ? "#f87171" : RED,
                   fontSize: 13, fontWeight: 800, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 }}
@@ -773,9 +777,9 @@ export default function GhostSetupPage() {
                 onClick={() => setLookingFor(lookingFor === opt.key ? "" : opt.key)}
                 style={{
                   height: 46, borderRadius: 12, cursor: "pointer",
-                  background: lookingFor === opt.key ? a.glow(0.1) : "rgba(255,255,255,0.03)",
-                  border: lookingFor === opt.key ? `1px solid ${a.glow(0.35)}` : "1px solid rgba(255,255,255,0.07)",
-                  color: lookingFor === opt.key ? a.glow(0.95) : "rgba(255,255,255,0.5)",
+                  background: lookingFor === opt.key ? "rgba(220,20,20,0.1)" : "rgba(255,255,255,0.03)",
+                  border: lookingFor === opt.key ? `1px solid rgba(220,20,20,0.35)` : "1px solid rgba(255,255,255,0.07)",
+                  color: lookingFor === opt.key ? "rgba(220,20,20,0.95)" : "rgba(255,255,255,0.5)",
                   fontSize: 12, fontWeight: 700,
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                 }}
@@ -801,10 +805,10 @@ export default function GhostSetupPage() {
                   onClick={() => setFirstDateIdea(sel ? "" : idea.key)}
                   style={{
                     borderRadius: 14, padding: "14px 12px",
-                    background: sel ? a.glow(0.1) : "rgba(255,255,255,0.03)",
-                    border: sel ? `1px solid ${a.glow(0.5)}` : "1px solid rgba(255,255,255,0.07)",
+                    background: sel ? "rgba(220,20,20,0.1)" : "rgba(255,255,255,0.03)",
+                    border: sel ? `1px solid rgba(220,20,20,0.5)` : "1px solid rgba(255,255,255,0.07)",
                     cursor: "pointer", textAlign: "left",
-                    boxShadow: sel ? `0 0 16px ${a.glow(0.15)}` : "none",
+                    boxShadow: sel ? `0 0 16px rgba(220,20,20,0.15)` : "none",
                     transition: "all 0.15s",
                   }}
                 >
@@ -812,8 +816,8 @@ export default function GhostSetupPage() {
                     ? <img src={idea.image} alt={idea.label} style={{ width: 48, height: 48, borderRadius: 10, objectFit: "cover", marginBottom: 6, display: "block" }} />
                     : <div style={{ fontSize: 26, marginBottom: 6, lineHeight: 1 }}>{idea.emoji}</div>
                   }
-                  <p style={{ fontSize: 12, fontWeight: 800, color: sel ? a.glow(0.95) : "#fff", margin: "0 0 3px", lineHeight: 1.2 }}>{idea.label}</p>
-                  <p style={{ fontSize: 10, color: sel ? a.glow(0.6) : "rgba(255,255,255,0.3)", margin: 0, lineHeight: 1.4 }}>{idea.desc}</p>
+                  <p style={{ fontSize: 12, fontWeight: 800, color: sel ? "rgba(220,20,20,0.95)" : "#fff", margin: "0 0 3px", lineHeight: 1.2 }}>{idea.label}</p>
+                  <p style={{ fontSize: 10, color: sel ? "rgba(220,20,20,0.6)" : "rgba(255,255,255,0.3)", margin: 0, lineHeight: 1.4 }}>{idea.desc}</p>
                 </button>
               );
             })}
@@ -1000,11 +1004,11 @@ export default function GhostSetupPage() {
           style={{
             width: "100%", height: 56, borderRadius: 16, border: "none",
             background: isValid
-              ? a.gradient
+              ? "linear-gradient(135deg, #e01010, #a00000)"
               : "rgba(255,255,255,0.06)",
             color: isValid ? "#fff" : "rgba(255,255,255,0.2)",
             fontSize: 16, fontWeight: 900, cursor: isValid ? "pointer" : "default",
-            boxShadow: isValid ? `0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px ${a.glowMid(0.4)}` : "none",
+            boxShadow: isValid ? `0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px rgba(220,20,20,0.4)` : "none",
             transition: "all 0.2s",
             position: "relative", overflow: "hidden",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,

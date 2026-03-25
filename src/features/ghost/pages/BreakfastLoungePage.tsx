@@ -332,9 +332,9 @@ export default function BreakfastLoungePage() {
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 28px", textAlign: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-            <img src={BUTLER_IMG} alt="" style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.35)" }} />
+            <img src={BUTLER_IMG} alt="" style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.35)" }} />
             <div style={{ textAlign: "left" }}>
-              <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: "#d4af37", letterSpacing: "0.12em", textTransform: "uppercase" }}>Mr. Butla</p>
+              <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: "#e01010", letterSpacing: "0.12em", textTransform: "uppercase" }}>Mr Butlas</p>
               <p style={{ margin: "3px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>Breakfast Lounge</p>
             </div>
           </div>
@@ -347,7 +347,7 @@ export default function BreakfastLoungePage() {
               try { localStorage.setItem("breakfast_lounge_enabled", "true"); } catch {}
               setLoungeOptIn(true);
             }}
-            style={{ padding: "14px 32px", background: "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", border: "none", borderRadius: 14, cursor: "pointer", fontSize: 14, fontWeight: 900, color: "#0a0500" }}>
+            style={{ padding: "14px 32px", background: "linear-gradient(135deg, #6b0000, #b00000, #ff3333)", border: "none", borderRadius: 14, cursor: "pointer", fontSize: 14, fontWeight: 900, color: "#fff" }}>
             Re-join the Breakfast Lounge
           </motion.button>
         </div>
@@ -378,8 +378,8 @@ export default function BreakfastLoungePage() {
           <p style={{ margin: "0 0 28px", fontSize: 13, color: "rgba(255,255,255,0.3)" }}>
             {LOUNGE_OPEN_H}:00 AM — {LOUNGE_CLOSE_H}:00 AM
           </p>
-          <div style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 16, padding: "16px 24px" }}>
-            <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase" }}>Opens in</p>
+          <div style={{ background: "rgba(220,20,20,0.08)", border: "1px solid rgba(220,20,20,0.2)", borderRadius: 16, padding: "16px 24px" }}>
+            <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#e01010", letterSpacing: "0.1em", textTransform: "uppercase" }}>Opens in</p>
             <p style={{ margin: 0, fontSize: 28, fontWeight: 900, color: "#fff" }}>{getOpenCountdown()}</p>
           </div>
         </div>
@@ -409,7 +409,7 @@ export default function BreakfastLoungePage() {
 
       {/* Hero */}
       <div style={{ position: "relative", height: 210, overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, transparent, #d4af37, rgba(212,175,55,0.5), transparent)", zIndex: 10 }} />
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, transparent, #e01010, rgba(220,20,20,0.5), transparent)", zIndex: 10 }} />
         <img src={LOUNGE_IMG} alt="Breakfast Lounge" style={{ width: "100%", height: "110%", objectFit: "cover", objectPosition: "center 30%" }} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(8,8,14,0.2) 0%, rgba(8,8,14,0.6) 60%, #08080e 100%)" }} />
         {/* Host figure — left side, behind the lounge title */}
@@ -430,7 +430,7 @@ export default function BreakfastLoungePage() {
           </div>
         </div>
         <div style={{ position: "absolute", bottom: 14, left: 16, zIndex: 2 }}>
-          <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 700, color: "#d4af37", letterSpacing: "0.16em", textTransform: "uppercase" }}>Mr. Butla</p>
+          <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 700, color: "#e01010", letterSpacing: "0.16em", textTransform: "uppercase" }}>Mr Butlas</p>
           <p style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>
             {pickedCountry ? `${pickedCountry} Lounge` : "Breakfast Lounge"}
           </p>
@@ -449,14 +449,14 @@ export default function BreakfastLoungePage() {
               key="coffee-recv"
               initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               onClick={() => setShowCoffeeReply(true)}
-              style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 14, overflow: "hidden", marginBottom: 10, cursor: "pointer", position: "relative" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #d4af37, rgba(212,175,55,0.4))", borderRadius: "14px 14px 0 0" }} />
+              style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(220,20,20,0.06)", border: "1px solid rgba(220,20,20,0.2)", borderRadius: 14, overflow: "hidden", marginBottom: 10, cursor: "pointer", position: "relative" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #e01010, rgba(220,20,20,0.4))", borderRadius: "14px 14px 0 0" }} />
               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 14px 11px", width: "100%" }}>
                 <motion.div animate={{ rotate: [0, -8, 8, 0] }} transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 2 }}>
                   <img src="https://ik.imagekit.io/7grri5v7d/Red%20mug%20with%20steam%20swirls.png" alt="coffee" style={{ width: 28, height: 28, objectFit: "contain", display: "block" }} />
                 </motion.div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#fbbf24" }}>Someone left you a coffee</p>
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#ff3333" }}>Someone left you a coffee</p>
                   <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
                     {coffeeReplySent ? `You replied: "${coffeeReplySent}"` : "Tap to see who — and reply"}
                   </p>
@@ -482,12 +482,12 @@ export default function BreakfastLoungePage() {
         <AnimatePresence>
           {phase === "invite-pending" && partner && (
             <motion.div key="pending" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.22)", borderRadius: 14, padding: "12px 14px", marginBottom: 12 }}>
+              style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(255,51,51,0.07)", border: "1px solid rgba(255,51,51,0.22)", borderRadius: 14, padding: "12px 14px", marginBottom: 12 }}>
               <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.4, repeat: Infinity }}
-                style={{ width: 8, height: 8, borderRadius: "50%", background: "#fbbf24", flexShrink: 0 }} />
+                style={{ width: 8, height: 8, borderRadius: "50%", background: "#ff3333", flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#fbbf24" }}>Invite pending</p>
-                <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Mr. Butla is delivering your invite to {partner.ghostId}…</p>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#ff3333" }}>Invite pending</p>
+                <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Mr Butlas is delivering your invite to {partner.ghostId}…</p>
               </div>
               <img src={BUTLER_IMG} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover" }} />
             </motion.div>
@@ -497,7 +497,7 @@ export default function BreakfastLoungePage() {
               style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "12px 14px", marginBottom: 12 }}>
               <img src={BUTLER_IMG} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
               <div>
-                <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.35)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Mr. Butla</p>
+                <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.35)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Mr Butlas</p>
                 <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.38)", lineHeight: 1.55 }}>{refuseMsg}</p>
               </div>
             </motion.div>
@@ -506,15 +506,15 @@ export default function BreakfastLoungePage() {
 
         {/* ── BUTLER RECOMMENDATION ── */}
         {butlerRec && phase === "browsing" && (
-          <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 16, padding: "13px 14px", marginBottom: 14 }}>
+          <div style={{ background: "rgba(220,20,20,0.06)", border: "1px solid rgba(220,20,20,0.2)", borderRadius: 16, padding: "13px 14px", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <img src={BUTLER_IMG} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
-              <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase", flex: 1 }}>Mr. Butla's Pick</p>
+              <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: "#e01010", letterSpacing: "0.1em", textTransform: "uppercase", flex: 1 }}>Mr Butlas's Pick</p>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#fbbf24", lineHeight: 1 }}>
+                <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#ff3333", lineHeight: 1 }}>
                   {42 + (butlerRec.seed % 57)}%
                 </p>
-                <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(212,175,55,0.55)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Match</p>
+                <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(220,20,20,0.55)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Match</p>
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
@@ -525,18 +525,18 @@ export default function BreakfastLoungePage() {
                 <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>"{butlerRec.mood}"</p>
               </div>
             </div>
-            <p style={{ margin: "0 0 12px", fontSize: 12, color: "rgba(212,175,55,0.65)", fontStyle: "italic", lineHeight: 1.5 }}>"{recMsg}"</p>
+            <p style={{ margin: "0 0 12px", fontSize: 12, color: "rgba(220,20,20,0.65)", fontStyle: "italic", lineHeight: 1.5 }}>"{recMsg}"</p>
             <div style={{ display: "flex", gap: 8 }}>
               <motion.button whileTap={{ scale: 0.96 }}
                 onClick={() => { setSelectedProfile(butlerRec); setInviteNote(""); }}
                 disabled={locked}
-                style={{ flex: 2, padding: "11px", background: locked ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", border: "none", borderRadius: 12, cursor: locked ? "default" : "pointer", fontSize: 13, fontWeight: 900, color: locked ? "rgba(255,255,255,0.2)" : "#0a0500" }}>
+                style={{ flex: 2, padding: "11px", background: locked ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #6b0000, #b00000, #ff3333)", border: "none", borderRadius: 12, cursor: locked ? "default" : "pointer", fontSize: 13, fontWeight: 900, color: locked ? "rgba(255,255,255,0.2)" : "#fff" }}>
                 View & Invite
               </motion.button>
               <motion.button whileTap={{ scale: 0.96 }}
                 onClick={getExtraRec}
                 disabled={!canAfford(EXTRA_REC_COST) || extraRecLoading}
-                style={{ flex: 1, padding: "11px", background: "rgba(212,175,55,0.07)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 12, cursor: canAfford(EXTRA_REC_COST) ? "pointer" : "default", fontSize: 11, fontWeight: 800, color: canAfford(EXTRA_REC_COST) ? "#d4af37" : "rgba(255,255,255,0.2)" }}>
+                style={{ flex: 1, padding: "11px", background: "rgba(220,20,20,0.07)", border: "1px solid rgba(220,20,20,0.2)", borderRadius: 12, cursor: canAfford(EXTRA_REC_COST) ? "pointer" : "default", fontSize: 11, fontWeight: 800, color: canAfford(EXTRA_REC_COST) ? "#e01010" : "rgba(255,255,255,0.2)" }}>
                 {extraRecLoading ? "…" : `New pick 🪙${EXTRA_REC_COST}`}
               </motion.button>
             </div>
@@ -549,13 +549,13 @@ export default function BreakfastLoungePage() {
           <div style={{ display: "flex", borderRadius: 14, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", flexShrink: 0 }}>
             <motion.button whileTap={{ scale: 0.95 }}
               onClick={() => setFloorView(false)}
-              style={{ padding: "9px 18px", fontSize: 13, fontWeight: 800, border: "none", cursor: "pointer", background: !floorView ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.03)", color: !floorView ? "#d4af37" : "rgba(255,255,255,0.3)" }}>
+              style={{ padding: "9px 18px", fontSize: 13, fontWeight: 800, border: "none", cursor: "pointer", background: !floorView ? "rgba(220,20,20,0.2)" : "rgba(255,255,255,0.03)", color: !floorView ? "#e01010" : "rgba(255,255,255,0.3)" }}>
               ≡ List
             </motion.button>
             <div style={{ width: 1, background: "rgba(255,255,255,0.08)", flexShrink: 0 }} />
             <motion.button whileTap={{ scale: 0.95 }}
               onClick={() => setFloorView(true)}
-              style={{ padding: "9px 18px", fontSize: 13, fontWeight: 800, border: "none", cursor: "pointer", background: floorView ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.03)", color: floorView ? "#d4af37" : "rgba(255,255,255,0.3)" }}>
+              style={{ padding: "9px 18px", fontSize: 13, fontWeight: 800, border: "none", cursor: "pointer", background: floorView ? "rgba(220,20,20,0.2)" : "rgba(255,255,255,0.03)", color: floorView ? "#e01010" : "rgba(255,255,255,0.3)" }}>
               ⊞ Floor
             </motion.button>
           </div>
@@ -577,20 +577,20 @@ export default function BreakfastLoungePage() {
           if (localBreakfast && !showRedirect) return null;
           if (!localBreakfast) return (
             <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-              style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 14, padding: "13px 14px", marginBottom: 14 }}>
+              style={{ background: "rgba(220,20,20,0.06)", border: "1px solid rgba(220,20,20,0.2)", borderRadius: 14, padding: "13px 14px", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <img src={BUTLER_IMG} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
-                <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase", flex: 1 }}>Mr. Butla</p>
+                <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: "#e01010", letterSpacing: "0.1em", textTransform: "uppercase", flex: 1 }}>Mr Butlas</p>
                 <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.6, repeat: Infinity }}
                   style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e" }} />
               </div>
               <p style={{ margin: "0 0 12px", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
-                The lounge is quiet here right now. <span style={{ color: "#fbbf24", fontWeight: 800 }}>{region.flag} {region.name}</span> is buzzing — {onlineCount} guests are at breakfast there this morning.
+                The lounge is quiet here right now. <span style={{ color: "#ff3333", fontWeight: 800 }}>{region.flag} {region.name}</span> is buzzing — {onlineCount} guests are at breakfast there this morning.
               </p>
               <div style={{ display: "flex", gap: 8 }}>
                 <motion.button whileTap={{ scale: 0.97 }}
                   onClick={() => { setIntlUnlocked(true); setIntlActive(true); setVisible(buildVisible(true, dismissedIds, shownIds, pickedCountry)); setShowRedirect(true); }}
-                  style={{ flex: 2, padding: "11px", background: "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", border: "none", borderRadius: 12, cursor: "pointer", fontSize: 13, fontWeight: 900, color: "#0a0500" }}>
+                  style={{ flex: 2, padding: "11px", background: "linear-gradient(135deg, #6b0000, #b00000, #ff3333)", border: "none", borderRadius: 12, cursor: "pointer", fontSize: 13, fontWeight: 900, color: "#fff" }}>
                   Take me there
                 </motion.button>
                 <motion.button whileTap={{ scale: 0.97 }}
@@ -613,7 +613,7 @@ export default function BreakfastLoungePage() {
             return (
               <motion.div key={p.id}
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                style={{ borderRadius: 16, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", overflow: "hidden", opacity: locked ? 0.45 : 1 }}>
+                style={{ borderRadius: 16, background: "rgba(220,20,20,0.06)", border: "1px solid rgba(220,20,20,0.2)", overflow: "hidden", opacity: locked ? 0.45 : 1 }}>
 
                 {/* Main row */}
                 <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 12px", cursor: locked ? "default" : "pointer" }}
@@ -637,7 +637,7 @@ export default function BreakfastLoungePage() {
                     <p style={{ margin: "3px 0 0", fontSize: 10, color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>"{p.mood}"</p>
                     {(() => { const lp = loungePresence(p.seed); return (
                       <div style={{ display: "flex", gap: 8, marginTop: 5, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 9, color: "rgba(212,175,55,0.7)", fontWeight: 700 }}>🕐 Usually {lp.time}</span>
+                        <span style={{ fontSize: 9, color: "rgba(220,20,20,0.7)", fontWeight: 700 }}>🕐 Usually {lp.time}</span>
                         <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>·</span>
                         <span style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>🍽️ {lp.tables} table{lp.tables > 1 ? "s" : ""} this week</span>
                       </div>
@@ -646,9 +646,9 @@ export default function BreakfastLoungePage() {
 
                   {/* Match % — top right */}
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flexShrink: 0 }}>
-                    <div style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.22)", borderRadius: 10, padding: "5px 9px", textAlign: "center" }}>
-                      <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#d4af37", lineHeight: 1 }}>{42 + (p.seed % 51)}%</p>
-                      <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(212,175,55,0.6)", letterSpacing: "0.08em" }}>MATCH</p>
+                    <div style={{ background: "rgba(220,20,20,0.08)", border: "1px solid rgba(220,20,20,0.22)", borderRadius: 10, padding: "5px 9px", textAlign: "center" }}>
+                      <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#e01010", lineHeight: 1 }}>{42 + (p.seed % 51)}%</p>
+                      <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(220,20,20,0.6)", letterSpacing: "0.08em" }}>MATCH</p>
                     </div>
                   </div>
                 </div>
@@ -658,7 +658,7 @@ export default function BreakfastLoungePage() {
                   <motion.button whileTap={{ scale: 0.97 }}
                     onClick={() => { if (!locked) { setSelectedProfile(p); setInviteNote(""); }}}
                     disabled={locked}
-                    style={{ flex: 1, padding: "11px", borderRadius: 12, border: "none", background: locked ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", color: locked ? "rgba(255,255,255,0.2)" : "#0a0500", fontSize: 13, fontWeight: 900, cursor: locked ? "default" : "pointer" }}>
+                    style={{ flex: 1, padding: "11px", borderRadius: 12, border: "none", background: locked ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #6b0000, #b00000, #ff3333)", color: locked ? "rgba(255,255,255,0.2)" : "#fff", fontSize: 13, fontWeight: 900, cursor: locked ? "default" : "pointer" }}>
                     Invite to Breakfast · <span style={{ opacity: 0.7 }}>🪙{INVITE_COST}</span>
                   </motion.button>
 
@@ -667,10 +667,10 @@ export default function BreakfastLoungePage() {
                     <motion.button whileTap={{ scale: 0.92 }}
                       onClick={e => sendCoffee(p.id, p.ghostId, e)}
                       disabled={coffeesSent.has(p.id) || !canAfford(COFFEE_COST) || locked}
-                      style={{ height: 40, borderRadius: 10, border: "none", background: coffeesSent.has(p.id) ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "0 10px", cursor: coffeesSent.has(p.id) || locked ? "default" : "pointer" }}>
+                      style={{ height: 40, borderRadius: 10, border: "none", background: coffeesSent.has(p.id) ? "rgba(255,255,255,0.04)" : "linear-gradient(135deg, #6b0000, #b00000, #ff3333)", display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "0 10px", cursor: coffeesSent.has(p.id) || locked ? "default" : "pointer" }}>
                       {coffeesSent.has(p.id)
                         ? <img src="https://ik.imagekit.io/7grri5v7d/Red%20mug%20with%20steam%20swirls.png" alt="coffee" style={{ width: 20, height: 20, objectFit: "contain", opacity: 0.35 }} />
-                        : <><img src="https://ik.imagekit.io/7grri5v7d/Red%20mug%20with%20steam%20swirls.png" alt="coffee" style={{ width: 20, height: 20, objectFit: "contain" }} /><span style={{ fontSize: 11, fontWeight: 900, color: "#0a0500" }}>Send</span></>}
+                        : <><img src="https://ik.imagekit.io/7grri5v7d/Red%20mug%20with%20steam%20swirls.png" alt="coffee" style={{ width: 20, height: 20, objectFit: "contain" }} /><span style={{ fontSize: 11, fontWeight: 900, color: "#fff" }}>Send</span></>}
                     </motion.button>
                     {coffeesSent.has(p.id) && (
                       <AnimatePresence mode="wait">
@@ -703,7 +703,7 @@ export default function BreakfastLoungePage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
               {atTable.map(({ profile: p, tableWith }) => {
                 return (
-                  <div key={p.id} style={{ borderRadius: 16, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", overflow: "hidden", opacity: 0.5 }}>
+                  <div key={p.id} style={{ borderRadius: 16, background: "rgba(220,20,20,0.06)", border: "1px solid rgba(220,20,20,0.2)", overflow: "hidden", opacity: 0.5 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 12px" }}>
                       <LoungeAvatar p={p} size={54} status="at-table" />
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -733,19 +733,19 @@ export default function BreakfastLoungePage() {
               style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.72)", zIndex: 200, backdropFilter: "blur(7px)" }} />
             <motion.div key="pp-sheet" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 201, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", maxHeight: "88dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 201, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(220,20,20,0.2)", borderBottom: "none", maxHeight: "88dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
               {/* Gold top rim */}
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "22px 22px 0 0", background: "linear-gradient(90deg, transparent, #d4af37, rgba(212,175,55,0.4), transparent)" }} />
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "22px 22px 0 0", background: "linear-gradient(90deg, transparent, #e01010, rgba(220,20,20,0.4), transparent)" }} />
 
               {/* Fixed top: handle + header + guest carousel */}
               <div style={{ flexShrink: 0, padding: "14px 18px 0" }}>
                 <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)", margin: "0 auto 14px" }} />
 
-                {/* Mr. Butla intro */}
+                {/* Mr Butlas intro */}
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-                  <img src={BUTLER_IMG} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.5)", flexShrink: 0 }} />
+                  <img src={BUTLER_IMG} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.5)", flexShrink: 0 }} />
                   <div>
-                    <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#d4af37" }}>Breakfast Invitation</p>
+                    <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#e01010" }}>Breakfast Invitation</p>
                     <p style={{ margin: "4px 0 0", fontSize: 11, color: "rgba(255,255,255,0.4)", fontStyle: "italic", lineHeight: 1.5 }}>
                       Tap a guest to select them, then scroll down to send
                     </p>
@@ -753,7 +753,7 @@ export default function BreakfastLoungePage() {
                 </div>
 
                 {/* Guest selector — horizontal scroll */}
-                <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: "0.12em", textTransform: "uppercase" }}>Guests Available</p>
+                <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 800, color: "#e01010", letterSpacing: "0.12em", textTransform: "uppercase" }}>Guests Available</p>
                 <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 12, scrollbarWidth: "none" }}>
                   {visible.filter(v => v.status === "available").map(({ profile: p }) => {
                     const isSel = selectedProfile.id === p.id;
@@ -763,9 +763,9 @@ export default function BreakfastLoungePage() {
                         <div style={{ position: "relative" }}>
                           <div style={{
                             width: 54, height: 54, borderRadius: "50%", overflow: "hidden",
-                            border: isSel ? "3px solid #d4af37" : "2.5px solid #22c55e",
+                            border: isSel ? "3px solid #e01010" : "2.5px solid #22c55e",
                             boxSizing: "border-box",
-                            boxShadow: isSel ? "0 0 0 3px rgba(212,175,55,0.35), 0 0 14px rgba(212,175,55,0.4)" : "none",
+                            boxShadow: isSel ? "0 0 0 3px rgba(220,20,20,0.35), 0 0 14px rgba(220,20,20,0.4)" : "none",
                             transition: "box-shadow 0.2s, border-color 0.2s",
                           }}>
                             <img src={p.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -776,7 +776,7 @@ export default function BreakfastLoungePage() {
                             style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", background: "#22c55e", border: "1.5px solid #08080e" }}
                           />
                         </div>
-                        <p style={{ margin: 0, fontSize: 9, fontWeight: isSel ? 800 : 600, color: isSel ? "#d4af37" : "rgba(255,255,255,0.3)", maxWidth: 58, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <p style={{ margin: 0, fontSize: 9, fontWeight: isSel ? 800 : 600, color: isSel ? "#e01010" : "rgba(255,255,255,0.3)", maxWidth: 58, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {p.ghostId.replace("Guest-", "")}
                         </p>
                       </button>
@@ -789,7 +789,7 @@ export default function BreakfastLoungePage() {
               <div style={{ flex: 1, overflowY: "auto", padding: "0 18px 8px" }}>
 
                 {/* Selected guest info */}
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, background: "rgba(212,175,55,0.07)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 13, padding: "12px 12px", boxShadow: "0 0 12px rgba(212,175,55,0.1)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, background: "rgba(220,20,20,0.07)", border: "1px solid rgba(220,20,20,0.3)", borderRadius: 13, padding: "12px 12px", boxShadow: "0 0 12px rgba(220,20,20,0.1)" }}>
                   <LoungeAvatar p={selectedProfile} size={44} status="available" />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#fff" }}>{selectedProfile.ghostId}</p>
@@ -799,35 +799,35 @@ export default function BreakfastLoungePage() {
                     <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.4)", fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>"{selectedProfile.mood}"</p>
                     {(() => { const lp = loungePresence(selectedProfile.seed); return (
                       <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                        <span style={{ fontSize: 9, color: "rgba(212,175,55,0.75)", fontWeight: 700 }}>🕐 Usually {lp.time}</span>
+                        <span style={{ fontSize: 9, color: "rgba(220,20,20,0.75)", fontWeight: 700 }}>🕐 Usually {lp.time}</span>
                         <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)" }}>·</span>
                         <span style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>🍽️ {lp.tables} table{lp.tables > 1 ? "s" : ""} this week</span>
                       </div>
                     ); })()}
                   </div>
-                  <div style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, padding: "5px 9px", textAlign: "center", flexShrink: 0 }}>
-                    <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#d4af37", lineHeight: 1 }}>{42 + (selectedProfile.seed % 51)}%</p>
-                    <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(212,175,55,0.6)", letterSpacing: "0.08em" }}>MATCH</p>
+                  <div style={{ background: "rgba(220,20,20,0.1)", border: "1px solid rgba(220,20,20,0.3)", borderRadius: 10, padding: "5px 9px", textAlign: "center", flexShrink: 0 }}>
+                    <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#e01010", lineHeight: 1 }}>{42 + (selectedProfile.seed % 51)}%</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(220,20,20,0.6)", letterSpacing: "0.08em" }}>MATCH</p>
                   </div>
                 </div>
 
                 {/* Note label + counter */}
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 7 }}>
                   <p style={{ margin: 0, fontSize: 10, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                    <span style={{ color: "#d4af37" }}>Morning note</span> <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, color: "rgba(255,255,255,0.6)" }}>— optional · 🪙{NOTE_COST}</span>
+                    <span style={{ color: "#e01010" }}>Morning note</span> <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, color: "rgba(255,255,255,0.6)" }}>— optional · 🪙{NOTE_COST}</span>
                   </p>
                   <span style={{ fontSize: 10, color: "rgba(255,255,255,0.7)" }}>{inviteNote.length}/500</span>
                 </div>
                 <textarea value={inviteNote} onChange={e => setInviteNote(e.target.value)}
                   placeholder="e.g. Good morning, your profile caught my eye and I would like to invite you to join me for a breakfast chat." maxLength={500} rows={4}
-                  style={{ width: "100%", borderRadius: 11, boxSizing: "border-box", background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.18)", color: "#fff", fontSize: 13, padding: "10px 14px", outline: "none", caretColor: "#d4af37", resize: "none", lineHeight: 1.6, fontFamily: "inherit" }} />
+                  style={{ width: "100%", borderRadius: 11, boxSizing: "border-box", background: "rgba(220,20,20,0.05)", border: "1px solid rgba(220,20,20,0.18)", color: "#fff", fontSize: 13, padding: "10px 14px", outline: "none", caretColor: "#e01010", resize: "none", lineHeight: 1.6, fontFamily: "inherit" }} />
               </div>
 
               {/* Sticky send button */}
-              <div style={{ flexShrink: 0, padding: "10px 18px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 14px)", borderTop: "1px solid rgba(212,175,55,0.1)", background: "#0a0a0f" }}>
+              <div style={{ flexShrink: 0, padding: "10px 18px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 14px)", borderTop: "1px solid rgba(220,20,20,0.1)", background: "#0a0a0f" }}>
                 <motion.button whileTap={{ scale: 0.97 }} onClick={handleSendInvite}
                   disabled={inviteNote.trim().length > 0 && !canAfford(NOTE_COST)}
-                  style={{ width: "100%", padding: "15px", background: "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", border: "none", borderRadius: 16, cursor: "pointer", fontSize: 14, fontWeight: 900, color: "#0a0500", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  style={{ width: "100%", padding: "15px", background: "linear-gradient(135deg, #6b0000, #b00000, #ff3333)", border: "none", borderRadius: 16, cursor: "pointer", fontSize: 14, fontWeight: 900, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                   <span>Send Invitation</span>
                   <span style={{ fontSize: 11, opacity: 0.65 }}>
                     {inviteNote.trim().length > 0 ? `· 🪙${NOTE_COST}` : "· Free"}
@@ -847,19 +847,19 @@ export default function BreakfastLoungePage() {
               style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 350, backdropFilter: "blur(10px)" }} />
             <motion.div key="ci-popup" initial={{ opacity: 0, y: 40, scale: 0.94 }} animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.96 }} transition={{ type: "spring", damping: 26, stiffness: 280 }}
-              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 351, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)", overflow: "hidden" }}>
+              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 351, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(220,20,20,0.2)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)", overflow: "hidden" }}>
 
               {/* Gold top rim */}
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "22px 22px 0 0", background: "linear-gradient(90deg, transparent, #d4af37, rgba(212,175,55,0.4), transparent)" }} />
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "22px 22px 0 0", background: "linear-gradient(90deg, transparent, #e01010, rgba(220,20,20,0.4), transparent)" }} />
 
               {/* Butler header */}
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
                 <div style={{ position: "relative", flexShrink: 0 }}>
-                  <img src={BUTLER_IMG} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.5)", flexShrink: 0 }} />
-                  <div style={{ position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: "50%", background: "#d4af37", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 }}>🔔</div>
+                  <img src={BUTLER_IMG} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.5)", flexShrink: 0 }} />
+                  <div style={{ position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: "50%", background: "#e01010", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 }}>🔔</div>
                 </div>
                 <div>
-                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#d4af37", letterSpacing: "0.12em", textTransform: "uppercase" }}>Mr. Butla</p>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#e01010", letterSpacing: "0.12em", textTransform: "uppercase" }}>Mr Butlas</p>
                   <p style={{ margin: "4px 0 0", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.55, fontStyle: "italic" }}>
                     "Good morning. Allow me to arrange your seating."
                   </p>
@@ -867,7 +867,7 @@ export default function BreakfastLoungePage() {
               </div>
 
               {/* Lounge intro blurb */}
-              <div style={{ background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 14, padding: "12px 14px", marginBottom: 14 }}>
+              <div style={{ background: "rgba(220,20,20,0.05)", border: "1px solid rgba(220,20,20,0.12)", borderRadius: 14, padding: "12px 14px", marginBottom: 14 }}>
                 <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.65 }}>
                   You are automatically seated in the Breakfast Lounge and visible to guests. Browse guests and send invitations, or wait to receive one. Optionally set a time so guests know when to expect you.
                 </p>
@@ -875,7 +875,7 @@ export default function BreakfastLoungePage() {
 
               {/* Optional time picker */}
               <div style={{ marginBottom: 16 }}>
-                <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 800, color: "#e01010", letterSpacing: "0.1em", textTransform: "uppercase" }}>
                   Optional — set your arrival time
                 </p>
                 <motion.button whileTap={{ scale: 0.97 }}
@@ -908,7 +908,7 @@ export default function BreakfastLoungePage() {
               </div>
 
               <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(false)}
-                style={{ width: "100%", padding: "15px", background: "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", border: "none", borderRadius: 16, cursor: "pointer", fontSize: 14, fontWeight: 900, color: "#0a0500" }}>
+                style={{ width: "100%", padding: "15px", background: "linear-gradient(135deg, #6b0000, #b00000, #ff3333)", border: "none", borderRadius: 16, cursor: "pointer", fontSize: 14, fontWeight: 900, color: "#fff" }}>
                 Enter the Lounge
               </motion.button>
             </motion.div>
@@ -924,20 +924,20 @@ export default function BreakfastLoungePage() {
               style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 300, backdropFilter: "blur(9px)" }} />
             <motion.div key="ii-popup" initial={{ opacity: 0, y: 40, scale: 0.94 }} animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 30 }} transition={{ type: "spring", damping: 26, stiffness: 280 }}
-              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 301, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)", overflow: "hidden" }}>
+              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 301, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(220,20,20,0.2)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)", overflow: "hidden" }}>
               {/* Gold top rim */}
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "22px 22px 0 0", background: "linear-gradient(90deg, transparent, #d4af37, rgba(212,175,55,0.4), transparent)" }} />
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "22px 22px 0 0", background: "linear-gradient(90deg, transparent, #e01010, rgba(220,20,20,0.4), transparent)" }} />
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                 <div style={{ position: "relative" }}>
-                  <img src={BUTLER_IMG} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.5)", flexShrink: 0 }} />
-                  <div style={{ position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: "50%", background: "#d4af37", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 }}>🔔</div>
+                  <img src={BUTLER_IMG} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.5)", flexShrink: 0 }} />
+                  <div style={{ position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: "50%", background: "#e01010", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 }}>🔔</div>
                 </div>
                 <div>
-                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase" }}>Breakfast Invitation</p>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#e01010", letterSpacing: "0.1em", textTransform: "uppercase" }}>Breakfast Invitation</p>
                   <p style={{ margin: "2px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>A message from the breakfast lounge</p>
                 </div>
               </div>
-              <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 14, padding: "13px", marginBottom: 16 }}>
+              <div style={{ background: "rgba(220,20,20,0.06)", border: "1px solid rgba(220,20,20,0.15)", borderRadius: 14, padding: "13px", marginBottom: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 9 }}>
                   <div style={{ width: 44, height: 44, borderRadius: "50%", overflow: "hidden", border: "2px solid #22c55e", boxSizing: "border-box", flexShrink: 0 }}>
                     <img src="https://ik.imagekit.io/7grri5v7d/ewrwerwerwer-removebg-preview.png?updatedAt=1774288645920" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -956,7 +956,7 @@ export default function BreakfastLoungePage() {
                 <motion.button whileTap={{ scale: 0.95 }} onClick={declineIncoming}
                   style={{ flex: 1, padding: "14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, cursor: "pointer", fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.35)" }}>Decline</motion.button>
                 <motion.button whileTap={{ scale: 0.95 }} onClick={acceptIncoming}
-                  style={{ flex: 2, padding: "14px", background: "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", border: "none", borderRadius: 14, cursor: "pointer", fontSize: 14, fontWeight: 900, color: "#0a0500", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+                  style={{ flex: 2, padding: "14px", background: "linear-gradient(135deg, #6b0000, #b00000, #ff3333)", border: "none", borderRadius: 14, cursor: "pointer", fontSize: 14, fontWeight: 900, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
                   Accept Invitation
                 </motion.button>
               </div>
@@ -974,19 +974,19 @@ export default function BreakfastLoungePage() {
               style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 400, backdropFilter: "blur(8px)" }} />
             <motion.div key="cr-sheet" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 401, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)", overflow: "hidden" }}>
+              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 401, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(220,20,20,0.2)", borderBottom: "none", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)", overflow: "hidden" }}>
               {/* Gold top rim */}
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "22px 22px 0 0", background: "linear-gradient(90deg, transparent, #d4af37, rgba(212,175,55,0.4), transparent)" }} />
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "22px 22px 0 0", background: "linear-gradient(90deg, transparent, #e01010, rgba(220,20,20,0.4), transparent)" }} />
               <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)", margin: "14px auto 0" }} />
               <div style={{ padding: "16px 18px 0" }}>
 
                 {/* Header */}
                 <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
                   <div style={{ position: "relative", flexShrink: 0 }}>
-                    <img src={BUTLER_IMG} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.5)", display: "block" }} />
+                    <img src={BUTLER_IMG} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.5)", display: "block" }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#d4af37", letterSpacing: "-0.01em" }}>You Received A Coffee</p>
+                    <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#e01010", letterSpacing: "-0.01em" }}>You Received A Coffee</p>
                     <p style={{ margin: "5px 0 0", fontSize: 11, color: "rgba(255,255,255,0.42)", lineHeight: 1.6 }}>
                       A guest has sent you a coffee to catch your attention. Show a little warmth — a kind reply goes a long way.
                     </p>
@@ -994,7 +994,7 @@ export default function BreakfastLoungePage() {
                 </div>
 
                 {/* Sender profile */}
-                <div style={{ display: "flex", alignItems: "center", gap: 14, background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.15)", borderRadius: 16, padding: "14px", marginBottom: 18 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, background: "rgba(255,51,51,0.05)", border: "1px solid rgba(255,51,51,0.15)", borderRadius: 16, padding: "14px", marginBottom: 18 }}>
                   <LoungeAvatar p={coffeeFrom} size={56} status="available" />
                   <div style={{ flex: 1 }}>
                     <p style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#fff" }}>{coffeeFrom.ghostId}</p>
@@ -1013,8 +1013,8 @@ export default function BreakfastLoungePage() {
                 {/* Reply carousel */}
                 {coffeeReplySent ? (
                   <div style={{ padding: "4px 0 8px" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "14px 20px", background: "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", borderRadius: 16 }}>
-                      <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#0a0500" }}>Reply Sent</p>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "14px 20px", background: "linear-gradient(135deg, #6b0000, #b00000, #ff3333)", borderRadius: 16 }}>
+                      <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#fff" }}>Reply Sent</p>
                     </div>
                   </div>
                 ) : (() => {
@@ -1087,7 +1087,7 @@ export default function BreakfastLoungePage() {
                       <div style={{ display: "flex", gap: 7, overflowX: "auto", paddingBottom: 10, marginBottom: 2, scrollbarWidth: "none" }}>
                         {CATEGORIES.map((cat, i) => (
                           <button key={cat.label} onClick={() => setCoffeeReplyCategory(i)}
-                            style={{ flexShrink: 0, padding: "6px 14px", borderRadius: 20, border: `1px solid ${coffeeReplyCategory === i ? "rgba(212,175,55,0.5)" : "rgba(255,255,255,0.1)"}`, background: coffeeReplyCategory === i ? "rgba(212,175,55,0.12)" : "rgba(255,255,255,0.04)", color: coffeeReplyCategory === i ? "#d4af37" : "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+                            style={{ flexShrink: 0, padding: "6px 14px", borderRadius: 20, border: `1px solid ${coffeeReplyCategory === i ? "rgba(220,20,20,0.5)" : "rgba(255,255,255,0.1)"}`, background: coffeeReplyCategory === i ? "rgba(220,20,20,0.12)" : "rgba(255,255,255,0.04)", color: coffeeReplyCategory === i ? "#e01010" : "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
                             {cat.label}
                           </button>
                         ))}
@@ -1121,23 +1121,23 @@ export default function BreakfastLoungePage() {
               style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 600, backdropFilter: "blur(6px)" }} />
             <motion.div key="lm-drawer" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
-              style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 270, zIndex: 601, background: "rgba(8,10,14,0.99)", borderLeft: "1px solid rgba(212,175,55,0.15)", display: "flex", flexDirection: "column", paddingTop: "max(48px, env(safe-area-inset-top, 48px))", paddingBottom: "max(28px, env(safe-area-inset-bottom, 28px))" }}>
+              style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 270, zIndex: 601, background: "rgba(8,10,14,0.99)", borderLeft: "1px solid rgba(220,20,20,0.15)", display: "flex", flexDirection: "column", paddingTop: "max(48px, env(safe-area-inset-top, 48px))", paddingBottom: "max(28px, env(safe-area-inset-bottom, 28px))" }}>
               {/* Gold top rim */}
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, transparent, #d4af37, transparent)" }} />
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, transparent, #e01010, transparent)" }} />
 
               {/* Header */}
               <div style={{ padding: "0 18px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <img src={BUTLER_IMG} alt="" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: "1.5px solid rgba(212,175,55,0.45)" }} />
+                  <img src={BUTLER_IMG} alt="" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: "1.5px solid rgba(220,20,20,0.45)" }} />
                   <div>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#d4af37" }}>Lounge Menu</p>
-                    <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.28)" }}>Mr. Butla · 2Ghost</p>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#e01010" }}>Lounge Menu</p>
+                    <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.28)" }}>Mr Butlas · 2Ghost</p>
                   </div>
                 </div>
                 <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowLoungeMenu(false)}
                   style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</motion.button>
               </div>
-              <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent)", margin: "0 18px 14px" }} />
+              <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(220,20,20,0.15), transparent)", margin: "0 18px 14px" }} />
 
               {/* Items */}
               <div style={{ flex: 1, overflowY: "auto", padding: "0 12px" }}>
@@ -1146,13 +1146,13 @@ export default function BreakfastLoungePage() {
                   { icon: "☕", label: "Send a Coffee", desc: `Surprise someone · 🪙${COFFEE_COST}`, action: () => { setShowLoungeMenu(false); } },
                   { icon: "🕐", label: "Set Seating Time", desc: seatingTime ? `Reserved: ${seatingTime}` : "Book your breakfast slot", action: () => { setShowLoungeMenu(false); setShowSeatingPicker(true); } },
                   { icon: "📊", label: "My Lounge Stats", desc: `${coffeesSent.size} coffee${coffeesSent.size !== 1 ? "s" : ""} sent · 🔥 ${loungeStreak} day streak`, action: () => { setShowLoungeStats(true); setShowLoungeMenu(false); } },
-                  { icon: "🔔", label: "Check-in", desc: "Confirm your seat with Mr. Butla", action: () => { setShowLoungeMenu(false); setShowCheckin(true); } },
+                  { icon: "🔔", label: "Check-in", desc: "Confirm your seat with Mr Butlas", action: () => { setShowLoungeMenu(false); setShowCheckin(true); } },
                   { icon: "🌍", label: "International Guests", desc: intlActive ? "Showing worldwide guests" : "Local guests only", action: () => { setIntlActive(!intlActive); setVisible(buildVisible(!intlActive, dismissedIds, shownIds, pickedCountry)); setShowLoungeMenu(false); } },
                   { icon: "↩️", label: "Leave the Lounge", desc: "Return to Ghost Mode", action: () => { setShowLoungeMenu(false); navigate(-1); } },
                 ].map(item => (
                   <motion.button key={item.label} whileTap={{ scale: 0.97 }} onClick={item.action}
                     style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 13, padding: "12px 12px", marginBottom: 7, cursor: "pointer", textAlign: "left" }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.14)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(220,20,20,0.08)", border: "1px solid rgba(220,20,20,0.14)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <span style={{ fontSize: 16 }}>{item.icon}</span>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -1182,22 +1182,22 @@ export default function BreakfastLoungePage() {
               style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.72)", zIndex: 600, backdropFilter: "blur(8px)" }} />
             <motion.div key="ls-sheet" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 601, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)", overflow: "hidden" }}>
-              <div style={{ height: 3, position: "absolute", top: 0, left: 0, right: 0, background: "linear-gradient(90deg, transparent, #d4af37, transparent)", borderRadius: "22px 22px 0 0" }} />
+              style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 601, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(220,20,20,0.2)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)", overflow: "hidden" }}>
+              <div style={{ height: 3, position: "absolute", top: 0, left: 0, right: 0, background: "linear-gradient(90deg, transparent, #e01010, transparent)", borderRadius: "22px 22px 0 0" }} />
               <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)", margin: "0 auto 16px" }} />
               {/* Header */}
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                <img src={BUTLER_IMG} alt="" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.45)" }} />
+                <img src={BUTLER_IMG} alt="" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.45)" }} />
                 <div>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#d4af37" }}>Your Lounge Record</p>
-                  <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Compiled by Mr. Butla</p>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#e01010" }}>Your Lounge Record</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Compiled by Mr Butlas</p>
                 </div>
               </div>
               {/* Stats grid */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
                 {[
                   { icon: "🔥", value: `${loungeStreak}`, label: `Day${loungeStreak !== 1 ? "s" : ""} in a row`, color: "#f97316" },
-                  { icon: "☕", value: `${coffeesSent.size}`, label: "Coffees sent", color: "#d4af37" },
+                  { icon: "☕", value: `${coffeesSent.size}`, label: "Coffees sent", color: "#e01010" },
                   { icon: "📬", value: `${coffeeReceivedIds.size}`, label: "Coffees received", color: "#a78bfa" },
                   { icon: "🍽️", value: `${Math.max(1, loungeStreak)}`, label: "Tables this week", color: "#22c55e" },
                 ].map(s => (
@@ -1231,8 +1231,8 @@ export default function BreakfastLoungePage() {
       <AnimatePresence>
         {coffeeToast && (
           <motion.div key="ct" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-            style={{ position: "fixed", bottom: "calc(env(safe-area-inset-bottom,0px) + 24px)", left: "50%", transform: "translateX(-50%)", zIndex: 500, background: "rgba(10,10,18,0.95)", border: "1px solid rgba(251,191,36,0.3)", borderRadius: 24, padding: "10px 20px", whiteSpace: "nowrap" }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#fbbf24" }}>{coffeeToast}</p>
+            style={{ position: "fixed", bottom: "calc(env(safe-area-inset-bottom,0px) + 24px)", left: "50%", transform: "translateX(-50%)", zIndex: 500, background: "rgba(10,10,18,0.95)", border: "1px solid rgba(255,51,51,0.3)", borderRadius: 24, padding: "10px 20px", whiteSpace: "nowrap" }}>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#ff3333" }}>{coffeeToast}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1340,14 +1340,14 @@ export default function BreakfastLoungePage() {
               style={{ position: "fixed", inset: 0, zIndex: 100, background: "radial-gradient(ellipse at 50% 30%, rgba(28,18,6,0.98) 0%, rgba(8,8,14,1) 100%)", display: "flex", flexDirection: "column", fontFamily: "system-ui, sans-serif", color: "#fff" }}
             >
               {/* Top bar */}
-              <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(env(safe-area-inset-top,16px) + 8px) 16px 10px", background: "rgba(6,6,10,0.96)", borderBottom: "1px solid rgba(212,175,55,0.12)" }}>
+              <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(env(safe-area-inset-top,16px) + 8px) 16px 10px", background: "rgba(6,6,10,0.96)", borderBottom: "1px solid rgba(220,20,20,0.12)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <motion.button whileTap={{ scale: 0.92 }}
                     onClick={() => setFloorView(false)}
                     style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 20, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                     <span>≡</span><span>List</span>
                   </motion.button>
-                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "rgba(212,175,55,0.55)", letterSpacing: "0.12em", textTransform: "uppercase" }}>The Breakfast Room</p>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "rgba(220,20,20,0.55)", letterSpacing: "0.12em", textTransform: "uppercase" }}>The Breakfast Room</p>
                 </div>
                 <CoinBalanceChip size="sm" />
               </div>
@@ -1365,10 +1365,10 @@ export default function BreakfastLoungePage() {
 
                     {/* Ambient floor grid lines */}
                     {[12,24,36,48,60,72,84,96].map(y => (
-                      <div key={y} style={{ position: "absolute", left: 0, right: 0, top: `${y}%`, height: 1, background: "rgba(212,175,55,0.02)", pointerEvents: "none" }} />
+                      <div key={y} style={{ position: "absolute", left: 0, right: 0, top: `${y}%`, height: 1, background: "rgba(220,20,20,0.02)", pointerEvents: "none" }} />
                     ))}
                     {[10,20,30,40,50,60,70,80,90].map(x => (
-                      <div key={x} style={{ position: "absolute", top: 0, bottom: 0, left: `${x}%`, width: 1, background: "rgba(212,175,55,0.02)", pointerEvents: "none" }} />
+                      <div key={x} style={{ position: "absolute", top: 0, bottom: 0, left: `${x}%`, width: 1, background: "rgba(220,20,20,0.02)", pointerEvents: "none" }} />
                     ))}
 
                     {/* Tables */}
@@ -1380,14 +1380,14 @@ export default function BreakfastLoungePage() {
                       return (
                         <div key={table.id} style={{ position: "absolute", left: `${table.x}%`, top: `${table.y}%`, transform: "translate(-50%,-50%)" }}>
                           {/* Candle glow */}
-                          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: glowSize, height: glowSize, borderRadius: "50%", background: anyGuests ? "radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%)" : "radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%)", pointerEvents: "none" }} />
+                          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: glowSize, height: glowSize, borderRadius: "50%", background: anyGuests ? "radial-gradient(circle, rgba(220,20,20,0.15) 0%, transparent 70%)" : "radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%)", pointerEvents: "none" }} />
                           {/* Table surface */}
                           {(() => {
                             const isVip = table.id === "VIP";
                             return (
-                              <div style={{ position: "relative", width: table.ts, height: table.ts, borderRadius: "50%", background: isVip ? "rgba(212,175,55,0.22)" : anyGuests ? "rgba(212,175,55,0.14)" : "rgba(8,8,14,0.55)", border: `${isVip ? 3 : 2}px solid ${isFloorSel ? "#d4af37" : isVip ? "#d4af37" : anyGuests ? "rgba(212,175,55,0.5)" : "rgba(255,255,255,0.12)"}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", boxShadow: isVip ? "0 0 28px rgba(212,175,55,0.5)" : isFloorSel ? "0 0 22px rgba(212,175,55,0.55)" : anyGuests ? "0 0 10px rgba(212,175,55,0.1)" : "none", backdropFilter: "blur(2px)" }}>
-                                {isVip && <p style={{ margin: 0, fontSize: 7, fontWeight: 900, color: "rgba(212,175,55,0.7)", letterSpacing: "0.08em", lineHeight: 1 }}>★</p>}
-                                <p style={{ margin: 0, fontSize: table.ts > 55 ? 9 : 8, fontWeight: 900, color: isVip ? "#d4af37" : anyGuests ? "#d4af37" : "rgba(255,255,255,0.3)", letterSpacing: "0.04em", lineHeight: 1 }}>{table.id}</p>
+                              <div style={{ position: "relative", width: table.ts, height: table.ts, borderRadius: "50%", background: isVip ? "rgba(220,20,20,0.22)" : anyGuests ? "rgba(220,20,20,0.14)" : "rgba(8,8,14,0.55)", border: `${isVip ? 3 : 2}px solid ${isFloorSel ? "#e01010" : isVip ? "#e01010" : anyGuests ? "rgba(220,20,20,0.5)" : "rgba(255,255,255,0.12)"}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", boxShadow: isVip ? "0 0 28px rgba(220,20,20,0.5)" : isFloorSel ? "0 0 22px rgba(220,20,20,0.55)" : anyGuests ? "0 0 10px rgba(220,20,20,0.1)" : "none", backdropFilter: "blur(2px)" }}>
+                                {isVip && <p style={{ margin: 0, fontSize: 7, fontWeight: 900, color: "rgba(220,20,20,0.7)", letterSpacing: "0.08em", lineHeight: 1 }}>★</p>}
+                                <p style={{ margin: 0, fontSize: table.ts > 55 ? 9 : 8, fontWeight: 900, color: isVip ? "#e01010" : anyGuests ? "#e01010" : "rgba(255,255,255,0.3)", letterSpacing: "0.04em", lineHeight: 1 }}>{table.id}</p>
                               </div>
                             );
                           })()}
@@ -1401,7 +1401,7 @@ export default function BreakfastLoungePage() {
                                   if (isOccupied) { setFloorSelectedProfile(seat as LoungeProfile); setFloorSelectedTableId(table.id); }
                                   else if (isEmptyAtOccupied) { setFloorJoinTableId(table.id); }
                                 }}
-                                style={{ ...(offsets[si] ?? {}), width: seatSize, height: seatSize, borderRadius: "50%", overflow: "hidden", border: isOccupied ? "2px solid rgba(212,175,55,0.55)" : isEmptyAtOccupied ? "2px dashed rgba(74,222,128,0.5)" : "2px dashed rgba(255,255,255,0.1)", background: isOccupied ? "transparent" : "rgba(255,255,255,0.02)", cursor: isOccupied || isEmptyAtOccupied ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isOccupied ? "0 2px 8px rgba(0,0,0,0.5)" : "none" }}>
+                                style={{ ...(offsets[si] ?? {}), width: seatSize, height: seatSize, borderRadius: "50%", overflow: "hidden", border: isOccupied ? "2px solid rgba(220,20,20,0.55)" : isEmptyAtOccupied ? "2px dashed rgba(74,222,128,0.5)" : "2px dashed rgba(255,255,255,0.1)", background: isOccupied ? "transparent" : "rgba(255,255,255,0.02)", cursor: isOccupied || isEmptyAtOccupied ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isOccupied ? "0 2px 8px rgba(0,0,0,0.5)" : "none" }}>
                                 {isOccupied
                                   ? <img src={(seat as LoungeProfile).photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                   : isEmptyAtOccupied
@@ -1427,7 +1427,7 @@ export default function BreakfastLoungePage() {
                 <div style={{ position: "absolute", bottom: 12, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px", pointerEvents: "none", zIndex: 3 }}>
                   <div style={{ display: "flex", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", border: "1.5px solid rgba(212,175,55,0.5)", background: "rgba(212,175,55,0.12)" }} />
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", border: "1.5px solid rgba(220,20,20,0.5)", background: "rgba(220,20,20,0.12)" }} />
                       <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>Occupied</span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -1448,15 +1448,15 @@ export default function BreakfastLoungePage() {
                       style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 10, backdropFilter: "blur(4px)" }} />
                     <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                       transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                      style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 11, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", padding: "0 0 calc(env(safe-area-inset-bottom,0px) + 22px)", overflow: "hidden" }}>
+                      style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 11, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(220,20,20,0.2)", borderBottom: "none", padding: "0 0 calc(env(safe-area-inset-bottom,0px) + 22px)", overflow: "hidden" }}>
                       {/* Gold rim */}
-                      <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #d4af37, rgba(212,175,55,0.4), transparent)" }} />
+                      <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #e01010, rgba(220,20,20,0.4), transparent)" }} />
                       <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)", margin: "12px auto 14px" }} />
                       <div style={{ padding: "0 18px" }}>
                         {/* Header */}
                         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
                           <div style={{ position: "relative", flexShrink: 0 }}>
-                            <img src={floorSelectedProfile.photo} alt="" style={{ width: 62, height: 62, borderRadius: "50%", objectFit: "cover", border: "2.5px solid rgba(212,175,55,0.45)" }} />
+                            <img src={floorSelectedProfile.photo} alt="" style={{ width: 62, height: 62, borderRadius: "50%", objectFit: "cover", border: "2.5px solid rgba(220,20,20,0.45)" }} />
                             <motion.div animate={{ opacity: [1, 0.3, 1], scale: [1, 1.2, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
                               style={{ position: "absolute", bottom: 1, right: 1, width: 13, height: 13, borderRadius: "50%", background: "#22c55e", border: "2px solid #0a0a0f" }} />
                           </div>
@@ -1465,11 +1465,11 @@ export default function BreakfastLoungePage() {
                             <p style={{ margin: "3px 0 0", fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
                               {floorSelectedProfile.flag} {floorSelectedProfile.city}, {floorSelectedProfile.country} · Age {floorSelectedProfile.age}
                             </p>
-                            <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(212,175,55,0.7)", fontStyle: "italic" }}>"{floorSelectedProfile.mood}"</p>
+                            <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(220,20,20,0.7)", fontStyle: "italic" }}>"{floorSelectedProfile.mood}"</p>
                           </div>
-                          <div style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 12, padding: "6px 10px", textAlign: "center", flexShrink: 0 }}>
-                            <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#d4af37", lineHeight: 1 }}>{42 + (floorSelectedProfile.seed % 51)}%</p>
-                            <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(212,175,55,0.55)", letterSpacing: "0.08em" }}>MATCH</p>
+                          <div style={{ background: "rgba(220,20,20,0.1)", border: "1px solid rgba(220,20,20,0.3)", borderRadius: 12, padding: "6px 10px", textAlign: "center", flexShrink: 0 }}>
+                            <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#e01010", lineHeight: 1 }}>{42 + (floorSelectedProfile.seed % 51)}%</p>
+                            <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(220,20,20,0.55)", letterSpacing: "0.08em" }}>MATCH</p>
                           </div>
                         </div>
                         {/* Stats */}
@@ -1492,7 +1492,7 @@ export default function BreakfastLoungePage() {
                           const total = t?.maxSeats ?? 0;
                           const open = total - occupied;
                           return (
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, padding: "9px 12px", background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.12)", borderRadius: 12 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, padding: "9px 12px", background: "rgba(220,20,20,0.05)", border: "1px solid rgba(220,20,20,0.12)", borderRadius: 12 }}>
                               <span style={{ fontSize: 13 }}>🪑</span>
                               <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
                                 {t ? `Table ${t.id} · ${occupied} seated · ${open} open seat${open !== 1 ? "s" : ""}` : "In the lounge"}
@@ -1505,9 +1505,9 @@ export default function BreakfastLoungePage() {
                           <motion.button whileTap={{ scale: 0.95 }}
                             onClick={e => sendCoffee(floorSelectedProfile.id, floorSelectedProfile.ghostId, e)}
                             disabled={coffeesSent.has(floorSelectedProfile.id) || !canAfford(COFFEE_COST)}
-                            style={{ flex: 1, padding: "12px", borderRadius: 14, border: "none", background: coffeesSent.has(floorSelectedProfile.id) ? "rgba(255,255,255,0.04)" : "rgba(212,175,55,0.12)", cursor: coffeesSent.has(floorSelectedProfile.id) ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                            style={{ flex: 1, padding: "12px", borderRadius: 14, border: "none", background: coffeesSent.has(floorSelectedProfile.id) ? "rgba(255,255,255,0.04)" : "rgba(220,20,20,0.12)", cursor: coffeesSent.has(floorSelectedProfile.id) ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                             <img src="https://ik.imagekit.io/7grri5v7d/Red%20mug%20with%20steam%20swirls.png" alt="" style={{ width: 18, height: 18, objectFit: "contain", opacity: coffeesSent.has(floorSelectedProfile.id) ? 0.3 : 1 }} />
-                            <span style={{ fontSize: 11, fontWeight: 800, color: coffeesSent.has(floorSelectedProfile.id) ? "rgba(255,255,255,0.2)" : "#d4af37" }}>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: coffeesSent.has(floorSelectedProfile.id) ? "rgba(255,255,255,0.2)" : "#e01010" }}>
                               {coffeesSent.has(floorSelectedProfile.id) ? "Sent" : `Coffee · 🪙${COFFEE_COST}`}
                             </span>
                           </motion.button>
@@ -1517,7 +1517,7 @@ export default function BreakfastLoungePage() {
                             if (open && !locked) return (
                               <motion.button whileTap={{ scale: 0.95 }}
                                 onClick={() => { setFloorJoinTableId(floorSelectedTableId); setFloorSelectedProfile(null); setFloorSelectedTableId(null); }}
-                                style={{ flex: 2, padding: "12px", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #78350f, #d97706, #fbbf24)", cursor: "pointer", fontSize: 13, fontWeight: 900, color: "#0a0500" }}>
+                                style={{ flex: 2, padding: "12px", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #6b0000, #b00000, #ff3333)", cursor: "pointer", fontSize: 13, fontWeight: 900, color: "#fff" }}>
                                 Request to Join · 🪙{TABLE_INVITE_COST}
                               </motion.button>
                             );
@@ -1546,14 +1546,14 @@ export default function BreakfastLoungePage() {
                       style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 10, backdropFilter: "blur(4px)" }} />
                     <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                       transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                      style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 11, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)", overflow: "hidden" }}>
-                      <div style={{ height: 3, position: "absolute", top: 0, left: 0, right: 0, background: "linear-gradient(90deg, transparent, #d4af37, transparent)", borderRadius: "22px 22px 0 0" }} />
+                      style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 11, background: "#0a0a0f", borderRadius: "22px 22px 0 0", border: "1px solid rgba(220,20,20,0.2)", borderBottom: "none", padding: "20px 20px", paddingBottom: "calc(env(safe-area-inset-bottom,0px) + 28px)", overflow: "hidden" }}>
+                      <div style={{ height: 3, position: "absolute", top: 0, left: 0, right: 0, background: "linear-gradient(90deg, transparent, #e01010, transparent)", borderRadius: "22px 22px 0 0" }} />
                       <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)", margin: "0 auto 18px" }} />
                       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-                        <img src={BUTLER_IMG} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.5)", flexShrink: 0 }} />
+                        <img src={BUTLER_IMG} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.5)", flexShrink: 0 }} />
                         <div>
-                          <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#d4af37" }}>Request a Seat</p>
-                          <p style={{ margin: "3px 0 0", fontSize: 11, color: "rgba(255,255,255,0.38)" }}>Mr. Butla will arrange your seating at <span style={{ color: "#d4af37", fontWeight: 800 }}>{floorJoinTableId}</span></p>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#e01010" }}>Request a Seat</p>
+                          <p style={{ margin: "3px 0 0", fontSize: 11, color: "rgba(255,255,255,0.38)" }}>Mr Butlas will arrange your seating at <span style={{ color: "#e01010", fontWeight: 800 }}>{floorJoinTableId}</span></p>
                         </div>
                       </div>
                       {(() => {
@@ -1562,7 +1562,7 @@ export default function BreakfastLoungePage() {
                         return (
                           <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
                             {guests.map(g => (
-                              <div key={g.id} style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 12, padding: "10px 10px" }}>
+                              <div key={g.id} style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, background: "rgba(220,20,20,0.06)", border: "1px solid rgba(220,20,20,0.15)", borderRadius: 12, padding: "10px 10px" }}>
                                 <img src={g.photo} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                                 <div>
                                   <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: "#fff" }}>{g.ghostId}</p>
@@ -1574,7 +1574,7 @@ export default function BreakfastLoungePage() {
                         );
                       })()}
                       <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
-                        Mr. Butla will discreetly notify the guests at this table that you'd like to join. They can accept or decline your request.
+                        Mr Butlas will discreetly notify the guests at this table that you'd like to join. They can accept or decline your request.
                       </p>
                       <div style={{ display: "flex", gap: 10 }}>
                         <motion.button whileTap={{ scale: 0.95 }} onClick={() => setFloorJoinTableId(null)}
@@ -1588,7 +1588,7 @@ export default function BreakfastLoungePage() {
                             setFloorJoinTableId(null);
                           }}
                           disabled={!canAfford(TABLE_INVITE_COST)}
-                          style={{ flex: 2, padding: "13px", background: canAfford(TABLE_INVITE_COST) ? "linear-gradient(135deg, #78350f, #d97706, #fbbf24)" : "rgba(255,255,255,0.04)", border: "none", borderRadius: 14, cursor: canAfford(TABLE_INVITE_COST) ? "pointer" : "default", fontSize: 13, fontWeight: 900, color: canAfford(TABLE_INVITE_COST) ? "#0a0500" : "rgba(255,255,255,0.2)" }}>
+                          style={{ flex: 2, padding: "13px", background: canAfford(TABLE_INVITE_COST) ? "linear-gradient(135deg, #6b0000, #b00000, #ff3333)" : "rgba(255,255,255,0.04)", border: "none", borderRadius: 14, cursor: canAfford(TABLE_INVITE_COST) ? "pointer" : "default", fontSize: 13, fontWeight: 900, color: canAfford(TABLE_INVITE_COST) ? "#fff" : "rgba(255,255,255,0.2)" }}>
                           Send Request · 🪙{TABLE_INVITE_COST}
                         </motion.button>
                       </div>
