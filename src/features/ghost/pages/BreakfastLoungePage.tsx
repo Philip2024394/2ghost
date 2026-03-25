@@ -334,7 +334,7 @@ export default function BreakfastLoungePage() {
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
             <img src={BUTLER_IMG} alt="" style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.35)" }} />
             <div style={{ textAlign: "left" }}>
-              <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: "#e01010", letterSpacing: "0.12em", textTransform: "uppercase" }}>Mr Butlas</p>
+              <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: "#d4af37", letterSpacing: "0.12em", textTransform: "uppercase" }}>Mr Butlas</p>
               <p style={{ margin: "3px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>Breakfast Lounge</p>
             </div>
           </div>
@@ -430,7 +430,7 @@ export default function BreakfastLoungePage() {
           </div>
         </div>
         <div style={{ position: "absolute", bottom: 14, left: 16, zIndex: 2 }}>
-          <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 700, color: "#e01010", letterSpacing: "0.16em", textTransform: "uppercase" }}>Mr Butlas</p>
+          <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 700, color: "#d4af37", letterSpacing: "0.16em", textTransform: "uppercase" }}>Mr Butlas</p>
           <p style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>
             {pickedCountry ? `${pickedCountry} Lounge` : "Breakfast Lounge"}
           </p>
@@ -456,7 +456,7 @@ export default function BreakfastLoungePage() {
                   <img src="https://ik.imagekit.io/7grri5v7d/Red%20mug%20with%20steam%20swirls.png" alt="coffee" style={{ width: 28, height: 28, objectFit: "contain", display: "block" }} />
                 </motion.div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#ff3333" }}>Someone left you a coffee</p>
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#d4af37" }}>Someone left you a coffee</p>
                   <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
                     {coffeeReplySent ? `You replied: "${coffeeReplySent}"` : "Tap to see who — and reply"}
                   </p>
@@ -497,7 +497,7 @@ export default function BreakfastLoungePage() {
               style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "12px 14px", marginBottom: 12 }}>
               <img src={BUTLER_IMG} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
               <div>
-                <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.35)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Mr Butlas</p>
+                <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: "0.08em", textTransform: "uppercase" }}>Mr Butlas</p>
                 <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.38)", lineHeight: 1.55 }}>{refuseMsg}</p>
               </div>
             </motion.div>
@@ -509,12 +509,12 @@ export default function BreakfastLoungePage() {
           <div style={{ background: "rgba(220,20,20,0.06)", border: "1px solid rgba(220,20,20,0.2)", borderRadius: 16, padding: "13px 14px", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <img src={BUTLER_IMG} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
-              <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: "#e01010", letterSpacing: "0.1em", textTransform: "uppercase", flex: 1 }}>Mr Butlas's Pick</p>
+              <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase", flex: 1 }}>Mr Butlas's Pick</p>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#ff3333", lineHeight: 1 }}>
+                <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#d4af37", lineHeight: 1 }}>
                   {42 + (butlerRec.seed % 57)}%
                 </p>
-                <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(220,20,20,0.55)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Match</p>
+                <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(212,175,55,0.7)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Match</p>
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
@@ -536,7 +536,7 @@ export default function BreakfastLoungePage() {
               <motion.button whileTap={{ scale: 0.96 }}
                 onClick={getExtraRec}
                 disabled={!canAfford(EXTRA_REC_COST) || extraRecLoading}
-                style={{ flex: 1, padding: "11px", background: "rgba(220,20,20,0.07)", border: "1px solid rgba(220,20,20,0.2)", borderRadius: 12, cursor: canAfford(EXTRA_REC_COST) ? "pointer" : "default", fontSize: 11, fontWeight: 800, color: canAfford(EXTRA_REC_COST) ? "#e01010" : "rgba(255,255,255,0.2)" }}>
+                style={{ flex: 1, padding: "11px", background: "rgba(212,175,55,0.10)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 12, cursor: canAfford(EXTRA_REC_COST) ? "pointer" : "default", fontSize: 11, fontWeight: 800, color: canAfford(EXTRA_REC_COST) ? "#d4af37" : "rgba(255,255,255,0.2)" }}>
                 {extraRecLoading ? "…" : `New pick 🪙${EXTRA_REC_COST}`}
               </motion.button>
             </div>
@@ -580,7 +580,7 @@ export default function BreakfastLoungePage() {
               style={{ background: "rgba(220,20,20,0.06)", border: "1px solid rgba(220,20,20,0.2)", borderRadius: 14, padding: "13px 14px", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <img src={BUTLER_IMG} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
-                <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: "#e01010", letterSpacing: "0.1em", textTransform: "uppercase", flex: 1 }}>Mr Butlas</p>
+                <p style={{ margin: 0, fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase", flex: 1 }}>Mr Butlas</p>
                 <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.6, repeat: Infinity }}
                   style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e" }} />
               </div>
@@ -646,9 +646,9 @@ export default function BreakfastLoungePage() {
 
                   {/* Match % — top right */}
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flexShrink: 0 }}>
-                    <div style={{ background: "rgba(220,20,20,0.08)", border: "1px solid rgba(220,20,20,0.22)", borderRadius: 10, padding: "5px 9px", textAlign: "center" }}>
-                      <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#e01010", lineHeight: 1 }}>{42 + (p.seed % 51)}%</p>
-                      <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(220,20,20,0.6)", letterSpacing: "0.08em" }}>MATCH</p>
+                    <div style={{ background: "rgba(212,175,55,0.10)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, padding: "5px 9px", textAlign: "center" }}>
+                      <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#d4af37", lineHeight: 1 }}>{42 + (p.seed % 51)}%</p>
+                      <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(212,175,55,0.7)", letterSpacing: "0.08em" }}>MATCH</p>
                     </div>
                   </div>
                 </div>
@@ -745,7 +745,7 @@ export default function BreakfastLoungePage() {
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
                   <img src={BUTLER_IMG} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.5)", flexShrink: 0 }} />
                   <div>
-                    <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#e01010" }}>Breakfast Invitation</p>
+                    <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#d4af37" }}>Breakfast Invitation</p>
                     <p style={{ margin: "4px 0 0", fontSize: 11, color: "rgba(255,255,255,0.4)", fontStyle: "italic", lineHeight: 1.5 }}>
                       Tap a guest to select them, then scroll down to send
                     </p>
@@ -753,7 +753,7 @@ export default function BreakfastLoungePage() {
                 </div>
 
                 {/* Guest selector — horizontal scroll */}
-                <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 800, color: "#e01010", letterSpacing: "0.12em", textTransform: "uppercase" }}>Guests Available</p>
+                <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 800, color: "#fff", letterSpacing: "0.12em", textTransform: "uppercase" }}>Guests Available</p>
                 <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 12, scrollbarWidth: "none" }}>
                   {visible.filter(v => v.status === "available").map(({ profile: p }) => {
                     const isSel = selectedProfile.id === p.id;
@@ -763,9 +763,9 @@ export default function BreakfastLoungePage() {
                         <div style={{ position: "relative" }}>
                           <div style={{
                             width: 54, height: 54, borderRadius: "50%", overflow: "hidden",
-                            border: isSel ? "3px solid #e01010" : "2.5px solid #22c55e",
+                            border: isSel ? "3px solid #d4af37" : "2.5px solid #22c55e",
                             boxSizing: "border-box",
-                            boxShadow: isSel ? "0 0 0 3px rgba(220,20,20,0.35), 0 0 14px rgba(220,20,20,0.4)" : "none",
+                            boxShadow: isSel ? "0 0 0 3px rgba(212,175,55,0.35), 0 0 14px rgba(212,175,55,0.4)" : "none",
                             transition: "box-shadow 0.2s, border-color 0.2s",
                           }}>
                             <img src={p.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -776,7 +776,7 @@ export default function BreakfastLoungePage() {
                             style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", background: "#22c55e", border: "1.5px solid #08080e" }}
                           />
                         </div>
-                        <p style={{ margin: 0, fontSize: 9, fontWeight: isSel ? 800 : 600, color: isSel ? "#e01010" : "rgba(255,255,255,0.3)", maxWidth: 58, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <p style={{ margin: 0, fontSize: 9, fontWeight: isSel ? 800 : 600, color: isSel ? "#d4af37" : "rgba(255,255,255,0.3)", maxWidth: 58, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {p.ghostId.replace("Guest-", "")}
                         </p>
                       </button>
@@ -805,16 +805,16 @@ export default function BreakfastLoungePage() {
                       </div>
                     ); })()}
                   </div>
-                  <div style={{ background: "rgba(220,20,20,0.1)", border: "1px solid rgba(220,20,20,0.3)", borderRadius: 10, padding: "5px 9px", textAlign: "center", flexShrink: 0 }}>
-                    <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#e01010", lineHeight: 1 }}>{42 + (selectedProfile.seed % 51)}%</p>
-                    <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(220,20,20,0.6)", letterSpacing: "0.08em" }}>MATCH</p>
+                  <div style={{ background: "rgba(212,175,55,0.10)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, padding: "5px 9px", textAlign: "center", flexShrink: 0 }}>
+                    <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#d4af37", lineHeight: 1 }}>{42 + (selectedProfile.seed % 51)}%</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(212,175,55,0.7)", letterSpacing: "0.08em" }}>MATCH</p>
                   </div>
                 </div>
 
                 {/* Note label + counter */}
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 7 }}>
                   <p style={{ margin: 0, fontSize: 10, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                    <span style={{ color: "#e01010" }}>Morning note</span> <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, color: "rgba(255,255,255,0.6)" }}>— optional · 🪙{NOTE_COST}</span>
+                    <span style={{ color: "#d4af37" }}>Morning note</span> <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, color: "rgba(255,255,255,0.6)" }}>— optional · 🪙{NOTE_COST}</span>
                   </p>
                   <span style={{ fontSize: 10, color: "rgba(255,255,255,0.7)" }}>{inviteNote.length}/500</span>
                 </div>
@@ -859,7 +859,7 @@ export default function BreakfastLoungePage() {
                   <div style={{ position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: "50%", background: "#e01010", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 }}>🔔</div>
                 </div>
                 <div>
-                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#e01010", letterSpacing: "0.12em", textTransform: "uppercase" }}>Mr Butlas</p>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#d4af37", letterSpacing: "0.12em", textTransform: "uppercase" }}>Mr Butlas</p>
                   <p style={{ margin: "4px 0 0", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.55, fontStyle: "italic" }}>
                     "Good morning. Allow me to arrange your seating."
                   </p>
@@ -933,7 +933,7 @@ export default function BreakfastLoungePage() {
                   <div style={{ position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: "50%", background: "#e01010", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 }}>🔔</div>
                 </div>
                 <div>
-                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#e01010", letterSpacing: "0.1em", textTransform: "uppercase" }}>Breakfast Invitation</p>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase" }}>Breakfast Invitation</p>
                   <p style={{ margin: "2px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>A message from the breakfast lounge</p>
                 </div>
               </div>
@@ -986,7 +986,7 @@ export default function BreakfastLoungePage() {
                     <img src={BUTLER_IMG} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.5)", display: "block" }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#e01010", letterSpacing: "-0.01em" }}>You Received A Coffee</p>
+                    <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#d4af37", letterSpacing: "-0.01em" }}>You Received A Coffee</p>
                     <p style={{ margin: "5px 0 0", fontSize: 11, color: "rgba(255,255,255,0.42)", lineHeight: 1.6 }}>
                       A guest has sent you a coffee to catch your attention. Show a little warmth — a kind reply goes a long way.
                     </p>
@@ -1347,7 +1347,7 @@ export default function BreakfastLoungePage() {
                     style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 20, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                     <span>≡</span><span>List</span>
                   </motion.button>
-                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "rgba(220,20,20,0.55)", letterSpacing: "0.12em", textTransform: "uppercase" }}>The Breakfast Room</p>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.85)", letterSpacing: "0.12em", textTransform: "uppercase" }}>The Breakfast Room</p>
                 </div>
                 <CoinBalanceChip size="sm" />
               </div>
@@ -1428,14 +1428,14 @@ export default function BreakfastLoungePage() {
                   <div style={{ display: "flex", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                       <div style={{ width: 8, height: 8, borderRadius: "50%", border: "1.5px solid rgba(220,20,20,0.5)", background: "rgba(220,20,20,0.12)" }} />
-                      <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>Occupied</span>
+                      <span style={{ fontSize: 9, color: "rgba(255,255,255,0.85)" }}>Occupied</span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                       <div style={{ width: 8, height: 8, borderRadius: "50%", border: "1.5px dashed rgba(74,222,128,0.45)" }} />
-                      <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>Open seat</span>
+                      <span style={{ fontSize: 9, color: "rgba(255,255,255,0.85)" }}>Open seat</span>
                     </div>
                   </div>
-                  <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.2)", fontWeight: 600 }}>← pan to explore →</p>
+                  <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>← pan to explore →</p>
                 </div>
               </div>
 
@@ -1467,9 +1467,9 @@ export default function BreakfastLoungePage() {
                             </p>
                             <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(220,20,20,0.7)", fontStyle: "italic" }}>"{floorSelectedProfile.mood}"</p>
                           </div>
-                          <div style={{ background: "rgba(220,20,20,0.1)", border: "1px solid rgba(220,20,20,0.3)", borderRadius: 12, padding: "6px 10px", textAlign: "center", flexShrink: 0 }}>
-                            <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#e01010", lineHeight: 1 }}>{42 + (floorSelectedProfile.seed % 51)}%</p>
-                            <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(220,20,20,0.55)", letterSpacing: "0.08em" }}>MATCH</p>
+                          <div style={{ background: "rgba(212,175,55,0.10)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 12, padding: "6px 10px", textAlign: "center", flexShrink: 0 }}>
+                            <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#d4af37", lineHeight: 1 }}>{42 + (floorSelectedProfile.seed % 51)}%</p>
+                            <p style={{ margin: "2px 0 0", fontSize: 8, fontWeight: 700, color: "rgba(212,175,55,0.7)", letterSpacing: "0.08em" }}>MATCH</p>
                           </div>
                         </div>
                         {/* Stats */}
