@@ -58,6 +58,7 @@ import GhostCoinShop from "../components/GhostCoinShop";
 import FloorChatPopup, { getChatUnread, setChatUnread } from "../components/FloorChatPopup";
 import CheckoutReminderPopup, { shouldShowCheckout, markCheckoutShown } from "../components/CheckoutReminderPopup";
 import ButlerWelcomePopup, { shouldShowButlerWelcome, markButlerGreeted } from "../components/ButlerWelcomePopup";
+import PushPermissionPrompt, { shouldShowPushPrompt } from "../components/PushPermissionPrompt";
 import LateNightButlerPopup, { shouldShowLateNight, markLateNightShown } from "../components/LateNightButlerPopup";
 import HotelEventsBoard from "../components/HotelEventsBoard";
 import GhostStatsDashboard from "../components/GhostStatsDashboard";
@@ -404,6 +405,7 @@ export default function GhostModePage() {
   const [showCheckout,       setShowCheckout]       = useState(false);
   const [showButlerWelcome,  setShowButlerWelcome]  = useState(false);
   const [showLateNight,      setShowLateNight]      = useState(false);
+  const [showPushPrompt,     setShowPushPrompt]     = useState(false);
   const [showCoinShop,       setShowCoinShop]       = useState(false);
   const [butlerMessage,      setButlerMessage]      = useState<ButlerMessage | null>(null);
   const [showEvents,         setShowEvents]         = useState(false);
@@ -489,6 +491,13 @@ export default function GhostModePage() {
   //   const t = setTimeout(() => setShowButlerWelcome(true), 60000);
   //   return () => clearTimeout(t);
   // }, []);
+
+  // Push notification prompt — show 20s after load if not yet subscribed/dismissed
+  useEffect(() => {
+    if (!shouldShowPushPrompt()) return;
+    const t = setTimeout(() => setShowPushPrompt(true), 20000);
+    return () => clearTimeout(t);
+  }, []);
 
   // Late-night butler — show 90s after load if time is 10pm–3:59am, once per day
   useEffect(() => {
@@ -2723,6 +2732,10 @@ export default function GhostModePage() {
               setShowButlerWelcome(false);
             }}
           />
+        )}
+
+        {showPushPrompt && (
+          <PushPermissionPrompt onDone={() => setShowPushPrompt(false)} />
         )}
       </AnimatePresence>
 

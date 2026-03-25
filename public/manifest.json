@@ -1,18 +1,18 @@
 {
-  "name": "2Ghost — Discreet Dating",
-  "short_name": "2Ghost",
-  "description": "The world's most discreet dating app. Anonymous profiles. Instant connections. Ghost Room private vault.",
+  "name": "Hearts Way Hotel",
+  "short_name": "HeartsWay",
+  "description": "Hearts Way Hotel — the world's most discreet dating experience. Anonymous profiles. Private vault. Curated connections.",
   "start_url": "/ghost/mock",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "any",
   "background_color": "#050508",
-  "theme_color": "#050508",
+  "theme_color": "#e01010",
   "categories": ["social", "lifestyle", "entertainment"],
   "lang": "en",
   "dir": "ltr",
-  "id": "2ghost-app",
+  "id": "heartswayhotel-app",
   "icons": [
     { "src": "/icons/icon-72.png",  "sizes": "72x72",   "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-96.png",  "sizes": "96x96",   "type": "image/png", "purpose": "any" },
@@ -29,14 +29,14 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "2Ghost feed — swipe discreet profiles"
+      "label": "Hearts Way Hotel — discreet dating experience"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "2Ghost desktop — full experience"
+      "label": "Hearts Way Hotel — desktop experience"
     }
   ],
   "shortcuts": [
