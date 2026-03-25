@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useGenderAccent } from "../../../shared/hooks/useGenderAccent";
 import VaultPrivateChatPopup from "./VaultPrivateChatPopup";
 import GiftReplyModal, { type PendingGift } from "./GiftReplyModal";
 import GhostRadioRecorder from "./GhostRadioRecorder";
@@ -230,29 +229,24 @@ function idColor(name: string): string {
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function FloorChatPopup({
   tier, tierColor, tierLabel, tierIcon, onClose,
+  tierIconImg,
   isBreakfast, onEndBreakfast, breakfastGuestName,
   breakfastGifts, breakfastHostName,
 }: {
   tier: string; tierColor: string; tierLabel: string; tierIcon: string; onClose: () => void;
+  tierIconImg?: string;
   isBreakfast?: boolean; onEndBreakfast?: () => void; breakfastGuestName?: string;
   breakfastGifts?: BreakfastGift[];
   breakfastHostName?: string;
 }) {
-  const _a = useGenderAccent();
-  const a = (() => {
-    const r = parseInt(tierColor.slice(1,3),16);
-    const g = parseInt(tierColor.slice(3,5),16);
-    const b = parseInt(tierColor.slice(5,7),16);
-    return {
-      ..._a,
-      accent:         tierColor,
-      accentMid:      tierColor,
-      accentDark:     tierColor,
-      gradient:       `linear-gradient(135deg, ${tierColor}cc, ${tierColor})`,
-      gradientSubtle: `rgba(${r},${g},${b},0.08)`,
-      glow: (o: number) => `rgba(${r},${g},${b},${o})`,
-    };
-  })();
+  const a = {
+    accent:         "#e01010",
+    accentMid:      "#c01010",
+    accentDark:     "#8b0000",
+    gradient:       "linear-gradient(135deg, #e01010, #a00000)",
+    gradientSubtle: "linear-gradient(180deg, rgba(220,20,20,0.12) 0%, rgba(220,20,20,0.06) 100%)",
+    glow: (o: number) => `rgba(220,20,20,${o})`,
+  };
   const scrollRef  = useRef<HTMLDivElement>(null);
   const inputRef   = useRef<HTMLInputElement>(null);
   const fileRef    = useRef<HTMLInputElement>(null);
@@ -263,6 +257,7 @@ export default function FloorChatPopup({
   const [coins,        setCoins]       = useState(loadCoins);
   const [tappedMsg,    setTappedMsg]   = useState<ChatMessage | null>(null);
   const [vaultTarget,  setVaultTarget] = useState<string | null>(null);
+  const [callAutoStart, setCallAutoStart] = useState<"voice" | "video" | undefined>(undefined);
   const [mediaPreview, setMediaPreview] = useState<{ url: string; type: "image" | "video" } | null>(null);
   const [subscribed,   setSubscribed]  = useState(() => isChatSubscribed());
   useEffect(() => { setSubscribed(isChatSubscribed()); }, [tier]);
@@ -620,7 +615,10 @@ export default function FloorChatPopup({
             ←
           </button>
           <div style={{ width: 36, height: 36, borderRadius: 10, background: a.glow(0.15), border: `1.5px solid ${a.glow(0.4)}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <span style={{ fontSize: 18 }}>{tierIcon}</span>
+            {tierIconImg
+              ? <img src={tierIconImg} alt="" style={{ width: 24, height: 24, objectFit: "contain" }} />
+              : <span style={{ fontSize: 18 }}>{tierIcon}</span>
+            }
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -655,7 +653,7 @@ export default function FloorChatPopup({
           >
             👥
             <div style={{ position: "absolute", top: -3, right: -3, width: 16, height: 16, borderRadius: "50%", background: a.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: 8, fontWeight: 900, color: "#0a0700" }}>{onlineCount}</span>
+              <span style={{ fontSize: 8, fontWeight: 900, color: "#fff" }}>{onlineCount}</span>
             </div>
           </button>
         </div>
@@ -834,11 +832,11 @@ export default function FloorChatPopup({
                               {msg.mediaUrl && msg.mediaType === "audio" && (
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 8px" }}>
                                   <span style={{ fontSize: 16 }}>🎤</span>
-                                  <p style={{ margin: 0, fontSize: 12, color: msg.isOwn ? "#0a0700" : "rgba(255,255,255,0.8)" }}>{msg.text}</p>
+                                  <p style={{ margin: 0, fontSize: 12, color: msg.isOwn ? "#fff" : "rgba(255,255,255,0.8)" }}>{msg.text}</p>
                                 </div>
                               )}
                               {!msg.mediaUrl && (
-                                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.45, color: msg.isOwn ? "#0a0700" : "rgba(255,255,255,0.88)", fontWeight: msg.isOwn ? 700 : 400 }}>
+                                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.45, color: msg.isOwn ? "#fff" : "rgba(255,255,255,0.88)", fontWeight: msg.isOwn ? 700 : 400 }}>
                                   {msg.isOwn && msg.isDirected && msg.directedTo ? (
                                     <>
                                       <span style={{ color: a.accentDark, fontWeight: 900 }}>@{msg.directedTo}</span>
@@ -1058,7 +1056,7 @@ export default function FloorChatPopup({
                 The {tierLabel} chat is a live floor for members only. Subscribe to send messages, share media, interact with other members, and access the full floor experience.
               </p>
               <motion.button whileTap={{ scale: 0.97 }} onClick={handleSubscribe}
-                style={{ width: "100%", height: 48, borderRadius: 12, border: "none", background: a.gradient, color: "#0a0700", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 20px ${a.glow(0.35)}`, marginBottom: 8 }}>
+                style={{ width: "100%", height: 48, borderRadius: 12, border: "none", background: a.gradient, color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 20px ${a.glow(0.35)}`, marginBottom: 8 }}>
                 Activate Membership — {CHAT_PRICES[tier] ?? "$2.99"}/mo
               </motion.button>
               <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.2)", textAlign: "center" }}>Cancel anytime · Instant access · No hidden fees</p>
@@ -1089,6 +1087,8 @@ export default function FloorChatPopup({
                 <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{tierLabel} member</p>
               </div>
               {[
+                { icon: "📞", label: "Voice Call",  sub: "Private voice call · 15 coins/min", action: () => { setVaultTarget(tappedMsg.senderName); setCallAutoStart("voice"); setTappedMsg(null); }, color: "#4ade80" },
+                { icon: "📹", label: "Video Call",  sub: "Private video call · 25 coins/min", action: () => { setVaultTarget(tappedMsg.senderName); setCallAutoStart("video"); setTappedMsg(null); }, color: "#e01010" },
                 { icon: "🔐", label: "Invite to Vault", sub: "Private chat · 2 coins/msg",           action: () => { setVaultTarget(tappedMsg.senderName); setTappedMsg(null); }, color: a.accent },
                 { icon: "🎁", label: "Send Gift",       sub: "Choose a gift for this member",         action: () => openGiftFromTap(tappedMsg.senderName),                           color: null },
                 { icon: "💬", label: "Direct Message",  sub: `@${tappedMsg.senderName} in chat`,      action: () => { setInput(`@${tappedMsg.senderName} `); setTappedMsg(null); setTimeout(() => inputRef.current?.focus(), 200); }, color: null },
@@ -1139,7 +1139,7 @@ export default function FloorChatPopup({
       {/* ── Vault private chat ── */}
       <AnimatePresence>
         {vaultTarget && (
-          <VaultPrivateChatPopup targetId={vaultTarget} tierColor={tierColor} tierIcon={tierIcon} onClose={() => setVaultTarget(null)} />
+          <VaultPrivateChatPopup targetId={vaultTarget} tierColor={tierColor} tierIcon={tierIcon} autoStartCall={callAutoStart} onClose={() => { setVaultTarget(null); setCallAutoStart(undefined); }} />
         )}
       </AnimatePresence>
 
@@ -1267,7 +1267,7 @@ export default function FloorChatPopup({
                       setDrawerAction("gift");
                       setDrawerOpen(true);
                     }}
-                    style={{ flex: 1, height: 46, borderRadius: 14, border: "none", background: a.gradient, color: "#0a0700", fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, boxShadow: `0 4px 16px ${a.glow(0.3)}` }}
+                    style={{ flex: 1, height: 46, borderRadius: 14, border: "none", background: a.gradient, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, boxShadow: `0 4px 16px ${a.glow(0.3)}` }}
                   >
                     🎁 Send Gift
                   </motion.button>

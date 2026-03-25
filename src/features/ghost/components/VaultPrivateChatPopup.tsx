@@ -84,12 +84,13 @@ const VAULT_GIFT_REPLIES = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function VaultPrivateChatPopup({
-  targetId, tierColor, tierIcon, onClose,
+  targetId, tierColor, tierIcon, onClose, autoStartCall,
 }: {
   targetId: string;
   tierColor: string;
   tierIcon: string;
   onClose: () => void;
+  autoStartCall?: "voice" | "video";
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLInputElement>(null);
@@ -231,6 +232,13 @@ export default function VaultPrivateChatPopup({
       setCallCoins(cost);
     }, 2500);
   }
+
+  // ── Auto-start call when opened from tap menu ────────────────────────────────
+  useEffect(() => {
+    if (autoStartCall && callState === "idle") {
+      setTimeout(() => startCall(autoStartCall), 800);
+    }
+  }, [autoStartCall]);
 
   function endCall(reason?: string) {
     if (callTimerRef.current) clearInterval(callTimerRef.current);
