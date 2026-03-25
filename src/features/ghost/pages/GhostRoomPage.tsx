@@ -1981,7 +1981,7 @@ export default function GhostRoomPage() {
               <div style={{ flex: 1, overflowY: "auto", padding: "16px 14px max(24px,env(safe-area-inset-bottom,24px))" }}>
                 {([
                   { page: "files"    as const, icon: "📁", label: "Files",         sub: `${fileFolders.length} folder${fileFolders.length !== 1 ? "s" : ""}` },
-                  { page: "chat"     as const, icon: "💬", label: "Vault Chat",    sub: "Private messages" },
+                  { page: "chat"     as const, icon: "🔐", label: "Secret Messages", sub: "Disappearing · private" },
                   { page: "voice"    as const, icon: "🎙️", label: "Voice Notes",   sub: `${voiceNotes.length} recorded` },
                   { page: "image"    as const, icon: "🖼️", label: "Images",        sub: `${myImages.length} saved` },
                   { page: "video"    as const, icon: "🎬", label: "Videos",        sub: `${myVideoUrls.length} saved` },
@@ -2049,7 +2049,7 @@ export default function GhostRoomPage() {
                   : vaultPage === "code" ? "🔑 Vault Code"
                   : vaultPage === "ghosts" ? "👥 My Contacts"
                   : vaultPage === "share" ? "📤 Share Room"
-                  : vaultPage === "chat" ? (chatContact ? `💬 ${chatContact}` : "💬 Vault Chat")
+                  : vaultPage === "chat" ? (chatContact ? `🔐 ${chatContact}` : "🔐 Secret Messages")
                   : vaultPage === "voice" ? "🎙️ Voice Notes"
                   : vaultPage === "activity" ? "📋 Activity Log"
                   : vaultPage === "shared" ? "🔗 Shared Vault"
@@ -2436,10 +2436,10 @@ export default function GhostRoomPage() {
 
               if (!chatContact) return (
                 <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px max(24px,env(safe-area-inset-bottom,24px))", scrollbarWidth: "none" }}>
-                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>Select a contact to open a private chat</p>
+                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>🔐 Disappearing messages only — nothing stored permanently. Select a contact to start.</p>
                   {allContacts.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "60px 0" }}>
-                      <p style={{ fontSize: 36 }}>💬</p>
+                      <p style={{ fontSize: 36 }}>🔐</p>
                       <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>No contacts yet — match with ghosts first</p>
                     </div>
                   ) : allContacts.map(c => (
@@ -2988,10 +2988,18 @@ export default function GhostRoomPage() {
                   ],
                 },
                 {
-                  title: "Vault Chat", emoji: "💬",
+                  title: "Secret Messages", emoji: "🔐",
                   rows: [
-                    { label: "Send chat message", detail: "Each message sent in vault chat", cost: `${VAULT_COSTS.chatMessage} coins` },
+                    { label: "Send secret message", detail: "Each message sent in the disappearing secret channel", cost: `${VAULT_COSTS.chatMessage} coins` },
                     { label: "Disappearing messages", detail: "Set 24h expiry or view-once", cost: "FREE", free: true },
+                  ],
+                },
+                {
+                  title: "Calls (Chat header)", emoji: "📞",
+                  rows: [
+                    { label: "Voice call", detail: "Per minute — accessed from any chat thread header", cost: "15 coins/min" },
+                    { label: "Video call", detail: "Per minute — premium quality private video", cost: "25 coins/min" },
+                    { label: "Call ends automatically", detail: "Auto-ends when balance too low", cost: "FREE", free: true },
                   ],
                 },
                 {
