@@ -10,7 +10,6 @@ import { saveProfileToSupabase } from "../ghostProfileService";
 import { DATE_IDEAS as FIRST_DATE_IDEAS } from "../data/dateIdeas";
 import { PROFILE_BADGES, BADGE_CATEGORIES } from "../data/profileBadges";
 
-import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 const RED = "#e01010";
 const RED_GLOW = "rgba(220,20,20,0.18)";
 const RED_BORDER = "rgba(220,20,20,0.3)";
@@ -43,7 +42,6 @@ const label: React.CSSProperties = {
 };
 
 export default function GhostSetupPage() {
-  const a = useGenderAccent();
 
   const input = (hasError = false, focused = false): React.CSSProperties => ({
     width: "100%", height: 50, borderRadius: 12,
@@ -51,12 +49,12 @@ export default function GhostSetupPage() {
     border: hasError
       ? "1px solid rgba(239,68,68,0.5)"
       : focused
-        ? `1px solid ${a.glow(0.45)}`
+        ? "1px solid rgba(220,20,20,0.45)"
         : "1px solid rgba(255,255,255,0.1)",
     color: "#fff", fontSize: 15, padding: "0 14px",
     outline: "none", boxSizing: "border-box",
     transition: "background 0.15s, border-color 0.15s",
-    boxShadow: focused ? `0 0 0 3px ${a.glow(0.08)}` : "none",
+    boxShadow: focused ? "0 0 0 3px rgba(220,20,20,0.08)" : "none",
   });
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);

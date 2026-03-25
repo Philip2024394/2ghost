@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { getCachedIpCountry } from "@/shared/hooks/useIpCountry";
 
 import { buildAccent } from "@/shared/hooks/useGenderAccent";
-const GHOST_HERO = "https://ik.imagekit.io/7grri5v7d/Untitledasfsadfasdftewrtewrt.png";
+const GHOST_HERO = "https://ik.imagekit.io/7grri5v7d/sfsadfasdfsdfasdfsdadsa.png";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function seededInt(seed: number, lo: number, hi: number): number {
@@ -34,34 +34,12 @@ const AVATARS = [
 
 // ── Floating hearts only ───────────────────────────────────────────────────────
 const HEARTS = [
-  { delay: 0,    x:  "8%",  size: 14, dur: 3.8, drift:  10, icon: "❤️" },
-  { delay: 0.4,  x: "18%",  size: 16, dur: 3.2, drift:  14, icon: "💗" },
-  { delay: 0.8,  x: "28%",  size: 12, dur: 4.1, drift: -12, icon: "💕" },
-  { delay: 1.2,  x: "38%",  size: 18, dur: 3.5, drift:   8, icon: "❤️" },
-  { delay: 1.6,  x: "48%",  size: 20, dur: 2.9, drift: -16, icon: "💓" },
-  { delay: 2.0,  x: "58%",  size: 13, dur: 3.9, drift:  18, icon: "💗" },
-  { delay: 2.4,  x: "68%",  size: 16, dur: 3.3, drift:  -8, icon: "❤️" },
-  { delay: 2.8,  x: "78%",  size: 11, dur: 4.2, drift:  12, icon: "💕" },
-  { delay: 3.2,  x: "88%",  size: 15, dur: 3.6, drift: -14, icon: "💝" },
-  { delay: 3.6,  x: "13%",  size: 22, dur: 2.8, drift:   6, icon: "💗" },
-  { delay: 4.0,  x: "73%",  size: 18, dur: 3.4, drift: -10, icon: "❤️" },
-  { delay: 4.4,  x: "43%",  size: 14, dur: 4.0, drift:  16, icon: "💓" },
+  { delay: 0,    x: "15%",  size: 13, dur: 3.8, drift:  10 },
+  { delay: 1.2,  x: "42%",  size: 11, dur: 4.1, drift: -12 },
+  { delay: 2.4,  x: "70%",  size: 14, dur: 3.5, drift:   8 },
+  { delay: 3.6,  x: "85%",  size: 10, dur: 4.3, drift: -10 },
 ];
 
-const COUNTRY_CODES = [
-  { code: "+62", flag: "🇮🇩", name: "Indonesia" },
-  { code: "+60", flag: "🇲🇾", name: "Malaysia" },
-  { code: "+65", flag: "🇸🇬", name: "Singapore" },
-  { code: "+63", flag: "🇵🇭", name: "Philippines" },
-  { code: "+66", flag: "🇹🇭", name: "Thailand" },
-  { code: "+84", flag: "🇻🇳", name: "Vietnam" },
-  { code: "+61", flag: "🇦🇺", name: "Australia" },
-  { code: "+44", flag: "🇬🇧", name: "UK" },
-  { code: "+353", flag: "🇮🇪", name: "Ireland" },
-  { code: "+1",  flag: "🇺🇸", name: "USA" },
-  { code: "+81", flag: "🇯🇵", name: "Japan" },
-  { code: "+91", flag: "🇮🇳", name: "India" },
-];
 
 function getDeadline(): number {
   try {
@@ -82,14 +60,6 @@ function formatCountdown(ms: number): string {
   return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
 }
 
-function isBlocked(full: string): boolean {
-  try {
-    const blockUntil = parseInt(localStorage.getItem("ghost_block_until") || "0", 10);
-    if (Date.now() > blockUntil) return false;
-    const list: string[] = JSON.parse(localStorage.getItem("ghost_blocked_numbers") || "[]");
-    return list.includes(full);
-  } catch { return false; }
-}
 
 export default function GhostLandingPage() {
   const navigate = useNavigate();
@@ -109,80 +79,31 @@ export default function GhostLandingPage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Auth form state ──────────────────────────────────────────────────────────
-  const [gender, setGender]             = useState<"Female" | "Male">("Female");
+  const [gender, setGender]   = useState<"Female" | "Male">("Female");
   const a = buildAccent(gender);
-  const [countryCode, setCountryCode]   = useState(COUNTRY_CODES[0]);
-  const [showCountryPicker, setShowCountryPicker] = useState(false);
-  const [phone, setPhone]               = useState("");
-  const [authStep, setAuthStep]         = useState<"phone" | "otp">("phone");
-  const [otp, setOtp]                   = useState(["", "", "", "", "", ""]);
-  const [sending, setSending]           = useState(false);
-  const [verifying, setVerifying]       = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
-  const [serverError, setServerError]   = useState(false);
-  const [otpChannel, setOtpChannel]     = useState<"whatsapp" | "sms">("whatsapp");
-  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [email, setEmail]     = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState(false);
 
-  const cleanPhone    = phone.replace(/\D/g, "");
-  const isPhoneValid  = cleanPhone.length >= 8;
-  const fullOtp       = otp.join("");
-  const isOtpComplete = fullOtp.length === 6;
+  const isFormValid = email.includes("@") && password.length >= 6;
 
-  // Cooldown ticker
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    cooldownRef.current = setInterval(() => {
-      setResendCooldown((n) => {
-        if (n <= 1) { clearInterval(cooldownRef.current!); return 0; }
-        return n - 1;
-      });
-    }, 1000);
-    return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
-  }, [resendCooldown]);
-
-  const handleSendCode = (channel: "whatsapp" | "sms" = otpChannel) => {
-    if (!isPhoneValid) return;
-    setSending(true);
+  const handleLogin = () => {
+    if (!isFormValid) return;
+    setIsLoading(true);
     setServerError(false);
-    setOtpChannel(channel);
-    const fullNumber = countryCode.code + cleanPhone;
-    // TODO: call Twilio Verify — channel: "whatsapp" or "sms"
+    // TODO: call auth API with email/password
     setTimeout(() => {
-      setSending(false);
-      if (isBlocked(fullNumber)) { setServerError(true); return; }
-      setAuthStep("otp");
-      setResendCooldown(30);
-      setTimeout(() => otpRefs.current[0]?.focus(), 300);
-    }, 1800);
-  };
-
-  const handleOtpKey = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus();
-  };
-  const handleOtpChange = (i: number, val: string) => {
-    const digit = val.replace(/\D/g, "").slice(-1);
-    const next = [...otp]; next[i] = digit; setOtp(next);
-    if (digit && i < 5) otpRefs.current[i + 1]?.focus();
-  };
-  const handleOtpPaste = (e: React.ClipboardEvent) => {
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (pasted.length === 6) { setOtp(pasted.split("")); otpRefs.current[5]?.focus(); }
-  };
-
-  const handleVerify = () => {
-    if (!isOtpComplete) return;
-    setVerifying(true);
-    // TODO: verify OTP with Twilio — any 6 digits pass for now
-    setTimeout(() => {
-      setVerifying(false);
+      setIsLoading(false);
       try {
         localStorage.setItem("ghost_gender", gender);
-        localStorage.setItem("ghost_phone", countryCode.code + cleanPhone);
+        localStorage.setItem("ghost_email", email);
+        localStorage.setItem("ghost_password", password);
         localStorage.removeItem("ghost_house_welcomed");
       } catch {}
       navigate("/ghost/gateway", { replace: true });
-    }, 1000);
+    }, 1200);
   };
 
   // ── Manifesto popup ──────────────────────────────────────────────────────────
@@ -252,8 +173,8 @@ export default function GhostLandingPage() {
         src={GHOST_HERO}
         alt="2Ghost"
         style={{
-          position: "absolute", inset: 0,
-          width: "100%", height: "100%",
+          position: "absolute", top: 0, left: 0, right: 0, bottom: 90,
+          width: "100%", height: "calc(100% - 90px)",
           objectFit: "cover", objectPosition: "top center",
         }}
       />
@@ -266,50 +187,6 @@ export default function GhostLandingPage() {
       }} />
 
 
-      {/* ── "2Ghost" — right side, vertically centered on hero ── */}
-      <div style={{
-        position: "absolute",
-        top: "calc(32% - 140px)",
-        right: 20,
-        zIndex: 20,
-        pointerEvents: "none",
-      }}>
-        <p style={{
-          margin: 0,
-          fontSize: 62,
-          fontWeight: 900,
-          lineHeight: 1,
-          letterSpacing: 0,
-        }}>
-          <span style={{
-            color: gender === "Female" ? "#f472b6" : a.accent,
-            textShadow: gender === "Female"
-              ? "0 0 12px rgba(244,114,182,0.9), 0 0 28px rgba(244,114,182,0.6), 0 0 55px rgba(244,114,182,0.35)"
-              : `0 0 12px ${a.glow(0.9)}, 0 0 28px ${a.glow(0.6)}, 0 0 55px ${a.glow(0.35)}`,
-          }}>2</span>
-          <span style={{
-            color: "#fff",
-            textShadow: `0 0 18px ${a.glow(0.25)}, 0 2px 16px rgba(0,0,0,0.5)`,
-            letterSpacing: 0,
-          }}>Gh</span>
-          <span style={{
-            display: "inline-block",
-            fontSize: 42,
-            verticalAlign: "middle",
-            lineHeight: 1,
-            margin: "0 -9px",
-            letterSpacing: 0,
-            filter: gender === "Female"
-              ? "drop-shadow(0 0 8px rgba(244,114,182,0.9)) drop-shadow(0 0 20px rgba(244,114,182,0.55))"
-              : `drop-shadow(0 0 8px ${a.glow(0.9)}) drop-shadow(0 0 20px ${a.glow(0.55)})`,
-          }}>{gender === "Female" ? "🩷" : "💚"}</span>
-          <span style={{
-            color: "#fff",
-            textShadow: `0 0 18px ${a.glow(0.25)}, 0 2px 16px rgba(0,0,0,0.5)`,
-            letterSpacing: 0,
-          }}>st</span>
-        </p>
-      </div>
 
       {/* ── Floating hearts ── */}
       <div style={{ position: "absolute", inset: 0, zIndex: 5, pointerEvents: "none", overflow: "hidden" }}>
@@ -328,13 +205,19 @@ export default function GhostLandingPage() {
               position: "absolute",
               left: h.x,
               bottom: "28%",
-              fontSize: h.size,
+              width: h.size,
+              height: h.size,
               animation: `floatHeart ${h.dur}s ease-out ${h.delay}s infinite`,
               ["--drift" as any]: `${h.drift}px`,
               willChange: "transform, opacity",
-              filter: "drop-shadow(0 0 5px rgba(239,68,68,0.5))",
+              filter: "drop-shadow(0 0 4px rgba(220,20,20,0.7))",
+              display: "inline-block",
             }}
-          >{h.icon}</span>
+          >
+            <svg viewBox="0 0 24 24" width={h.size} height={h.size} fill="#e01010" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </span>
         ))}
       </div>
 
@@ -347,7 +230,7 @@ export default function GhostLandingPage() {
       }}>
         <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", display: "flex", flexDirection: "column", gap: 12 }}>
 
-          {/* Find Your Boo */}
+          {/* Find My Match */}
           <p style={{
             margin: 0,
             fontSize: 28,
@@ -355,7 +238,7 @@ export default function GhostLandingPage() {
             color: "#fff",
             lineHeight: 1.2,
             letterSpacing: "-0.02em",
-          }}>Find Your Boo</p>
+          }}>Find My Match</p>
 
           {/* Avatar row */}
           <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
@@ -385,9 +268,7 @@ export default function GhostLandingPage() {
 
           <>
 
-            {/* ── Phone step ── */}
-            {authStep === "phone" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {/* Gender toggle */}
                 <div style={{
                   display: "flex", borderRadius: 50,
@@ -403,58 +284,61 @@ export default function GhostLandingPage() {
                       style={{
                         flex: 1, height: 40, borderRadius: 50, border: "none",
                         background: gender === g
-                          ? g === "Female"
-                            ? "linear-gradient(to bottom, #f472b6, #ec4899)"
-                            : `linear-gradient(to bottom, ${a.accent}, ${a.accentMid})`
+                          ? "linear-gradient(to bottom, #ff3b3b 0%, #e01010 40%, #b80000 100%)"
                           : "transparent",
                         color: gender === g ? "#fff" : "rgba(255,255,255,0.4)",
                         fontSize: 13, fontWeight: 800, cursor: "pointer",
                         transition: "all 0.2s",
-                        boxShadow: gender === g
-                          ? g === "Female"
-                            ? "0 4px 14px rgba(244,114,182,0.35)"
-                            : `0 4px 14px ${a.glowMid(0.35)}`
-                          : "none",
+                        boxShadow: gender === g ? "0 4px 14px rgba(220,20,20,0.4)" : "none",
                       }}
                     >
-                      {g === "Female" ? "🩷 I'm a Woman" : "💚 I'm a Man"}
+                      {g === "Female" ? "I'm a Woman" : "I'm a Man"}
                     </button>
                   ))}
                 </div>
 
 
-                {/* Phone input row */}
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    onClick={() => setShowCountryPicker(true)}
-                    style={{
-                      ...inputBase,
-                      height: 46, borderRadius: 14, padding: "0 12px",
-                      display: "flex", alignItems: "center", gap: 6,
-                      cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap",
-                    }}
-                  >
-                    <span style={{ fontSize: 18 }}>{countryCode.flag}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{countryCode.code}</span>
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>▾</span>
-                  </button>
+                {/* Email input */}
+                <input
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                  style={{
+                    ...inputBase,
+                    width: "100%", height: 46, borderRadius: 14,
+                    paddingLeft: 16, paddingRight: 16, fontSize: 15,
+                    boxSizing: "border-box",
+                  }}
+                />
+
+                {/* Password input */}
+                <div style={{ position: "relative" }}>
                   <input
-                    type="tel"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                    placeholder="WhatsApp number"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSendCode("whatsapp")}
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                     style={{
                       ...inputBase,
-                      flex: 1, height: 46, borderRadius: 14,
-                      paddingLeft: 16, paddingRight: 16, fontSize: 15,
+                      width: "100%", height: 46, borderRadius: 14,
+                      paddingLeft: 16, paddingRight: 46, fontSize: 15,
+                      boxSizing: "border-box",
                     }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    style={{
+                      position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
+                      background: "none", border: "none", cursor: "pointer",
+                      color: "rgba(255,255,255,0.35)", fontSize: 13, padding: 0,
+                    }}
+                  >{showPassword ? "Hide" : "Show"}</button>
                 </div>
 
                 {/* Server error */}
@@ -467,34 +351,25 @@ export default function GhostLandingPage() {
                   }}>
                     <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
                     <div>
-                      <p style={{ fontSize: 13, fontWeight: 800, color: "#fca5a5", margin: "0 0 2px" }}>Sorry, our server is down</p>
-                      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>Please try again later.</p>
+                      <p style={{ fontSize: 13, fontWeight: 800, color: "#fca5a5", margin: "0 0 2px" }}>Invalid email or password</p>
+                      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>Please check your details and try again.</p>
                     </div>
                   </div>
                 )}
 
-                {/* Send via WhatsApp */}
+                {/* Login button */}
                 <button
-                  onClick={() => handleSendCode("whatsapp")}
-                  disabled={sending || !isPhoneValid}
+                  onClick={handleLogin}
+                  disabled={isLoading || !isFormValid}
                   style={{
                     width: "100%", height: 50, borderRadius: 50, border: "none",
-                    background: isPhoneValid
-                      ? gender === "Female"
-                        ? "linear-gradient(to bottom, #f472b6 0%, #ec4899 40%, #db2777 100%)"
-                        : a.gradient
-                      : "rgba(255,255,255,0.07)",
-                    color: isPhoneValid ? "#fff" : "rgba(255,255,255,0.3)",
+                    background: isFormValid ? "linear-gradient(to bottom, #ff3b3b 0%, #e01010 40%, #b80000 100%)" : "rgba(255,255,255,0.07)",
+                    color: isFormValid ? "#fff" : "rgba(255,255,255,0.3)",
                     fontSize: 15, fontWeight: 900, letterSpacing: "0.04em",
-                    cursor: isPhoneValid ? "pointer" : "default",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    boxShadow: isPhoneValid
-                      ? gender === "Female"
-                        ? "0 1px 0 rgba(255,255,255,0.28) inset, 0 4px 16px rgba(236,72,153,0.4)"
-                        : `0 1px 0 rgba(255,255,255,0.28) inset, 0 4px 16px ${a.glowMid(0.4)}`
-                      : "none",
-                    transition: "all 0.2s",
-                    position: "relative", overflow: "hidden",
+                    cursor: isFormValid ? "pointer" : "default",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: isFormValid ? "0 1px 0 rgba(255,255,255,0.25) inset, 0 4px 16px rgba(220,20,20,0.45)" : "none",
+                    transition: "all 0.2s", position: "relative", overflow: "hidden",
                   }}
                 >
                   <div style={{
@@ -502,41 +377,8 @@ export default function GhostLandingPage() {
                     background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)",
                     borderRadius: "50px 50px 60% 60%", pointerEvents: "none",
                   }} />
-                  {sending && otpChannel === "whatsapp" ? (
-                    <span style={{ opacity: 0.7 }}>Sending to WhatsApp...</span>
-                  ) : (
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                      </svg>
-                      Send Code via WhatsApp
-                    </span>
-                  )}
+                  {isLoading ? <span style={{ opacity: 0.7 }}>Signing in...</span> : <span>Proceed To Find →</span>}
                 </button>
-
-                {/* SMS fallback */}
-                <div style={{ textAlign: "center" }}>
-                  <button
-                    onClick={() => handleSendCode("sms")}
-                    disabled={sending || !isPhoneValid}
-                    style={{
-                      background: "none", border: "none",
-                      color: isPhoneValid ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.15)",
-                      fontSize: 12, fontWeight: 600, cursor: isPhoneValid ? "pointer" : "default",
-                      padding: "2px 0",
-                    }}
-                  >
-                    {sending && otpChannel === "sms" ? "Sending SMS..." : "No WhatsApp? Send code via SMS instead →"}
-                  </button>
-                </div>
-
-                {/* Legal */}
-                <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.2)", margin: 0, lineHeight: 1.6 }}>
-                  By continuing you agree to our{" "}
-                  <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>Terms</span>
-                  {" "}&amp;{" "}
-                  <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>Privacy Policy</span>
-                </p>
 
                 {/* Admin bypass */}
                 <button
@@ -563,186 +405,12 @@ export default function GhostLandingPage() {
                   }}
                 >· · ·</button>
 
-                {/* Footer */}
-                <p style={{ textAlign: "center", margin: "4px 0 0", fontSize: 14, lineHeight: 1.8, fontWeight: 700 }}>
-                  <a href="/affiliate/join" style={{
-                    color: gender === "Female" ? "rgba(244,114,182,0.75)" : a.glow(0.75),
-                    textDecoration: "none",
-                  }}>Become an Affiliate</a>
-                </p>
               </div>
-            )}
-
-            {/* ── OTP step ── */}
-            {authStep === "otp" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {/* Back */}
-                <button
-                  onClick={() => { setAuthStep("phone"); setOtp(["","","","","",""]); }}
-                  style={{
-                    background: "none", border: "none", cursor: "pointer",
-                    color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 600,
-                    display: "flex", alignItems: "center", gap: 5, padding: 0,
-                    alignSelf: "flex-start",
-                  }}
-                >
-                  ← Change number
-                </button>
-
-                {/* Sent confirmation */}
-                <div style={{
-                  background: a.glow(0.08),
-                  border: `1px solid ${a.glow(0.3)}`,
-                  borderRadius: 12, padding: "12px 16px",
-                  display: "flex", alignItems: "center", gap: 12,
-                }}>
-                  <div style={{
-                    width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
-                    background: gender === "Female"
-                      ? "linear-gradient(135deg, #f472b6, #db2777)"
-                      : "linear-gradient(135deg, #4ade80, #16a34a)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 16,
-                    boxShadow: `0 0 12px ${a.glow(0.4)}`,
-                  }}>
-                    {otpChannel === "whatsapp" ? (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                      </svg>
-                    ) : "📱"}
-                  </div>
-                  <div>
-                    <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: "0 0 2px" }}>
-                      Code sent via {otpChannel === "whatsapp" ? "WhatsApp" : "SMS"}
-                    </p>
-                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: 0 }}>
-                      {countryCode.code} {phone}
-                    </p>
-                  </div>
-                </div>
-
-                {/* 6-digit OTP */}
-                <div style={{ display: "flex", gap: 8, justifyContent: "center" }} onPaste={handleOtpPaste}>
-                  {otp.map((digit, i) => (
-                    <input
-                      key={i}
-                      ref={(el) => { otpRefs.current[i] = el; }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleOtpChange(i, e.target.value)}
-                      onKeyDown={(e) => handleOtpKey(i, e)}
-                      style={{
-                        width: 44, height: 52, borderRadius: 12,
-                        background: digit ? a.glow(0.12) : "rgba(0,0,0,0.55)",
-                        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-                        border: digit ? `1px solid ${a.glow(0.5)}` : "1px solid rgba(255,255,255,0.14)",
-                        color: "#fff", fontSize: 22, fontWeight: 900,
-                        textAlign: "center", outline: "none", transition: "all 0.15s",
-                        boxSizing: "border-box",
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {/* Verify button */}
-                <button
-                  onClick={handleVerify}
-                  disabled={verifying || !isOtpComplete}
-                  style={{
-                    width: "100%", height: 50, borderRadius: 50, border: "none",
-                    background: isOtpComplete
-                      ? a.gradient
-                      : "rgba(255,255,255,0.07)",
-                    color: isOtpComplete ? "#fff" : "rgba(255,255,255,0.3)",
-                    fontSize: 15, fontWeight: 900, cursor: isOtpComplete ? "pointer" : "default",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    boxShadow: isOtpComplete ? `0 1px 0 rgba(255,255,255,0.28) inset, 0 4px 16px ${a.glowMid(0.4)}` : "none",
-                    transition: "all 0.2s", position: "relative", overflow: "hidden",
-                  }}
-                >
-                  <div style={{
-                    position: "absolute", top: 0, left: "10%", right: "10%", height: "45%",
-                    background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent)",
-                    borderRadius: "50px 50px 60% 60%", pointerEvents: "none",
-                  }} />
-                  {verifying ? <span style={{ opacity: 0.7 }}>Verifying...</span> : <span>Enter Ghost Hotel →</span>}
-                </button>
-
-                {/* Resend */}
-                <p style={{ textAlign: "center", fontSize: 12, color: "rgba(255,255,255,0.3)", margin: 0 }}>
-                  {resendCooldown > 0 ? (
-                    <span>Resend in {resendCooldown}s</span>
-                  ) : (
-                    <span>
-                      <button onClick={() => handleSendCode(otpChannel)} style={{ background: "none", border: "none", cursor: "pointer", color: a.accent, fontWeight: 700, fontSize: 12, padding: 0 }}>
-                        Resend code
-                      </button>
-                      {" · "}
-                      <button onClick={() => handleSendCode(otpChannel === "whatsapp" ? "sms" : "whatsapp")} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", fontWeight: 600, fontSize: 12, padding: 0 }}>
-                        Try {otpChannel === "whatsapp" ? "SMS" : "WhatsApp"} instead
-                      </button>
-                    </span>
-                  )}
-                </p>
-              </div>
-            )}
 
           </>
         </div>
       </div>
 
-      {/* ── Country picker sheet ── */}
-      <AnimatePresence>
-        {showCountryPicker && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowCountryPicker(false)}
-            style={{
-              position: "fixed", inset: 0, zIndex: 100,
-              display: "flex", alignItems: "flex-end", justifyContent: "center",
-              background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)",
-            }}
-          >
-            <motion.div
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: "100%", maxWidth: 420,
-                background: "rgba(8,8,12,0.98)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "18px 18px 0 0",
-                padding: "10px 0 max(20px, env(safe-area-inset-bottom, 20px))",
-                maxHeight: "60dvh", overflowY: "auto",
-              }}
-            >
-              <div style={{ padding: "8px 16px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "#fff", textAlign: "center" }}>Select Country</p>
-              </div>
-              {COUNTRY_CODES.map((c) => (
-                <button
-                  key={c.code}
-                  onClick={() => { setCountryCode(c); setShowCountryPicker(false); }}
-                  style={{
-                    width: "100%", padding: "13px 20px",
-                    background: countryCode.code === c.code ? a.glow(0.08) : "transparent",
-                    border: "none", cursor: "pointer",
-                    display: "flex", alignItems: "center", gap: 12, textAlign: "left",
-                  }}
-                >
-                  <span style={{ fontSize: 22 }}>{c.flag}</span>
-                  <span style={{ flex: 1, fontSize: 14, color: "#fff", fontWeight: 600 }}>{c.name}</span>
-                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>{c.code}</span>
-                </button>
-              ))}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ── Manifesto popup — fires after 3s ── */}
       <AnimatePresence>
@@ -769,13 +437,13 @@ export default function GhostLandingPage() {
                 width: "100%", maxWidth: 480,
                 background: "rgba(4,6,4,0.97)",
                 borderRadius: "24px 24px 0 0",
-                border: `1px solid ${gender === "Female" ? "rgba(244,114,182,0.2)" : a.glow(0.2)}`, borderBottom: "none",
+                border: `1px solid ${a.glow(0.2)}`, borderBottom: "none",
                 padding: "0 22px max(36px, env(safe-area-inset-bottom, 36px))",
                 boxShadow: "0 -24px 80px rgba(0,0,0,0.7)",
                 overflow: "hidden",
               }}
             >
-              <div style={{ height: 3, background: gender === "Female" ? "linear-gradient(90deg, #be185d, #f472b6, #ec4899)" : `linear-gradient(90deg, ${a.accentDeep}, ${a.accent}, ${a.accentMid})`, marginLeft: -22, marginRight: -22 }} />
+              <div style={{ height: 3, background: `linear-gradient(90deg, ${a.accentDeep}, ${a.accent}, ${a.accentMid})`, marginLeft: -22, marginRight: -22 }} />
               <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 20px" }}>
                 <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
               </div>
@@ -786,7 +454,7 @@ export default function GhostLandingPage() {
                 style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 0 18px", gap: 12 }}
               >
                 <h2 style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.2, letterSpacing: "-0.02em", margin: 0, flex: 1 }}>
-                  Dating without<br />the noise —<br /><span style={{ color: gender === "Female" ? "#f472b6" : a.accent }}>finally.</span>
+                  Dating without<br />the noise —<br /><span style={{ color: a.accent }}>finally.</span>
                 </h2>
                 <img
                   src="https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasdasdasd.png"
@@ -796,31 +464,39 @@ export default function GhostLandingPage() {
               </motion.div>
 
               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28, duration: 0.45 }}
-                style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, margin: "0 0 14px" }}>
-                2Ghost is the dating app of 2026 that forms relationships like no other dating app. We keep dating simple — no long profiles, no credit card required to get started, and most importantly, we want you to find your soul mate as quickly as possible and move on outside of the 2Ghost app.
+                style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, margin: "0 0 12px" }}>
+                I am Mr Butlas, your host for the dating experience of 2026. Within my hotel, connections are formed unlike anywhere else. I keep dating simple — no long profiles, no credit cards to begin, and most importantly, my purpose is to help you find your soulmate as quickly as possible… so you may leave my halls together.
               </motion.p>
               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.32, duration: 0.45 }}
+                style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, margin: "0 0 12px" }}>
+                Every guest under my care is granted strict privacy, carefully managed introductions, and protection from unwanted distractions through refined filtering and attentive oversight. I personally ensure the atmosphere remains… suitable for meaningful encounters.
+              </motion.p>
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.34, duration: 0.45 }}
+                style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, margin: "0 0 12px" }}>
+                Each day, I arrange activities, subtle opportunities, and curated moments designed to bring the right people together at the right time. Here, you will not wander endlessly — you will be guided.
+              </motion.p>
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.36, duration: 0.45 }}
                 style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, margin: "0 0 18px" }}>
-                We are here to give you an experience like never before, with strict privacy for your profile and high spam filters, supported by live operators. We aim to become the app that leads the future of the dating industry, helping you succeed with less effort, lower cost, and real connections.
+                My ambition is simple: to redefine the future of dating. Less effort, less cost… and far more real connections.
               </motion.p>
 
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.36, duration: 0.4 }}
-                style={{ fontSize: 14, color: gender === "Female" ? "rgba(244,114,182,0.9)" : a.glow(0.9), fontWeight: 900, margin: "0 0 20px", letterSpacing: "0.01em" }}>
-                2Ghost — Now its time to - Find your boo. 👻
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.38, duration: 0.4 }}
+                style={{ fontSize: 14, color: a.glow(0.9), fontWeight: 900, margin: "0 0 20px", letterSpacing: "0.01em", fontStyle: "italic" }}>
+                Now let's get you checked in — your soulmate awaits. 🎩
               </motion.p>
 
-              <div style={{ height: 1, background: gender === "Female" ? "linear-gradient(90deg, transparent, rgba(244,114,182,0.18), transparent)" : `linear-gradient(90deg, transparent, ${a.glow(0.18)}, transparent)`, marginBottom: 20 }} />
+              <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.18)}, transparent)`, marginBottom: 20 }} />
 
               {/* Countdown */}
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.4 }}
                 style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
                 <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
-                  style={{ width: 8, height: 8, borderRadius: "50%", background: gender === "Female" ? "#f472b6" : a.accent, boxShadow: gender === "Female" ? "0 0 8px rgba(244,114,182,0.8)" : `0 0 8px ${a.glow(0.8)}`, flexShrink: 0 }} />
+                  style={{ width: 8, height: 8, borderRadius: "50%", background: a.accent, boxShadow: `0 0 8px ${a.glow(0.8)}`, flexShrink: 0 }} />
                 <div>
                   <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: "0 0 2px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
                     Free membership closes in
                   </p>
-                  <p style={{ fontSize: 24, fontWeight: 900, color: gender === "Female" ? "#f472b6" : a.accent, margin: 0, letterSpacing: "0.05em", fontVariantNumeric: "tabular-nums" }}>
+                  <p style={{ fontSize: 24, fontWeight: 900, color: a.accent, margin: 0, letterSpacing: "0.05em", fontVariantNumeric: "tabular-nums" }}>
                     {formatCountdown(countdown)}
                   </p>
                 </div>
@@ -837,14 +513,10 @@ export default function GhostLandingPage() {
                 onClick={() => setShowManifesto(false)}
                 style={{
                   width: "100%", height: 54, borderRadius: 50, border: "none",
-                  background: gender === "Female"
-                    ? "linear-gradient(to bottom, #f472b6 0%, #ec4899 40%, #db2777 100%)"
-                    : a.gradient,
+                  background: "linear-gradient(to bottom, #ff3b3b 0%, #e01010 40%, #b80000 100%)",
                   color: "#fff", fontSize: 16, fontWeight: 900,
                   cursor: "pointer", letterSpacing: "0.03em",
-                  boxShadow: gender === "Female"
-                    ? "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 28px rgba(236,72,153,0.45)"
-                    : `0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 28px ${a.glowMid(0.45)}`,
+                  boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 28px rgba(220,20,20,0.55)",
                   position: "relative", overflow: "hidden",
                   marginBottom: 14,
                 }}
@@ -929,7 +601,7 @@ export default function GhostLandingPage() {
               ) : (
                 <div style={{ display: "flex", gap: 8 }}>
                   <button onClick={dismissA2HS} style={{ flex: "0 0 auto", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "11px 16px", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.4)", cursor: "pointer" }}>Not now</button>
-                  <button onClick={handleA2HSInstall} style={{ flex: 1, background: `linear-gradient(135deg,${a.accentDark},${a.accent})`, border: "none", borderRadius: 12, padding: "11px 0", fontSize: 13, fontWeight: 900, color: "#000", cursor: "pointer" }}>Add to Home Screen →</button>
+                  <button onClick={handleA2HSInstall} style={{ flex: 1, background: "linear-gradient(to bottom, #ff3b3b 0%, #e01010 40%, #b80000 100%)", border: "none", borderRadius: 12, padding: "11px 0", fontSize: 13, fontWeight: 900, color: "#fff", cursor: "pointer" }}>Add to Home Screen →</button>
                 </div>
               )}
             </div>
