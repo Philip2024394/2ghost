@@ -195,6 +195,7 @@ function saveHiddenCities(arr: string[]) {
 export default function GhostBlockPage() {
   const a = useGenderAccent();
   const navigate = useNavigate();
+  const [page, setPage] = useState<1 | 2>(1);
   const [pkg, setPkg] = useState<number>(getBlockPackage);
   const [blocked, setBlocked] = useState<string[]>(getBlockedNumbers);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -312,14 +313,25 @@ export default function GhostBlockPage() {
           <ArrowLeft size={16} />
         </button>
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>No Vacancy</h1>
-          <p style={{ fontSize: 10, color: a.glow(0.7), margin: 0, fontWeight: 600 }}>You control the guest list — hotel rooms full for who you choose</p>
+          <h1 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>No Vacancy{page === 2 ? " · Personal" : ""}</h1>
+          <p style={{ fontSize: 10, color: a.glow(0.7), margin: 0, fontWeight: 600 }}>
+            {page === 1 ? "Privacy controls — free features" : "Block specific guests by number"}
+          </p>
         </div>
         <img src={SHIELD_LOGO} alt="shield" style={{ width: 64, height: 64, objectFit: "contain" }} />
       </div>
 
       {/* ── Main scrollable content ── */}
-      <div style={{ position: "relative", zIndex: 1, padding: "16px 16px 40px", display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ position: "relative", zIndex: 1, padding: "16px 16px 100px", display: "flex", flexDirection: "column", gap: 14, overflowX: "hidden" }}>
+
+        {/* ════ PAGE 1 ════ */}
+        <AnimatePresence mode="wait">
+        {page === 1 && (
+          <motion.div key="page1"
+            initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }}
+            transition={{ duration: 0.25 }}
+            style={{ display: "flex", flexDirection: "column", gap: 14 }}
+          >
 
         {/* ── Intro text ── */}
         <div style={{
@@ -506,6 +518,17 @@ export default function GhostBlockPage() {
             </div>
           )}
         </div>
+
+          </motion.div>
+        )}
+
+        {/* ════ PAGE 2 ════ */}
+        {page === 2 && (
+          <motion.div key="page2"
+            initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 24 }}
+            transition={{ duration: 0.25 }}
+            style={{ display: "flex", flexDirection: "column", gap: 14 }}
+          >
 
         {/* ── Divider ── */}
         <div style={{
@@ -721,7 +744,70 @@ export default function GhostBlockPage() {
             )}
           </>
         )}
+
+          </motion.div>
+        )}
+        </AnimatePresence>
+
       </div>
+
+      {/* ── Bottom page navigation ── */}
+      <div style={{
+        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 60,
+        background: "rgba(4,5,8,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+        borderTop: `1px solid ${a.glow(0.15)}`,
+        padding: "12px 20px max(20px, env(safe-area-inset-bottom, 20px))",
+        display: "flex", alignItems: "center", gap: 12,
+      }}>
+        {/* Back button */}
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          onClick={() => page === 1 ? navigate(-1) : setPage(1)}
+          style={{
+            height: 46, borderRadius: 14, padding: "0 18px",
+            background: "rgba(255,255,255,0.05)", border: `1px solid ${a.glow(0.2)}`,
+            borderTop: `1px solid ${a.glow(0.35)}`,
+            boxShadow: `inset 0 1px 0 ${a.glow(0.12)}`,
+            color: "rgba(255,255,255,0.55)", fontSize: 13, fontWeight: 800,
+            cursor: "pointer", display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
+          }}
+        >
+          <ArrowLeft size={15} />
+          {page === 1 ? "Exit" : "Back"}
+        </motion.button>
+
+        {/* Page dots */}
+        <div style={{ flex: 1, display: "flex", justifyContent: "center", gap: 8 }}>
+          {[1, 2].map((n) => (
+            <motion.div key={n}
+              animate={{ width: page === n ? 22 : 8, background: page === n ? a.accent : "rgba(255,255,255,0.18)" }}
+              transition={{ duration: 0.2 }}
+              style={{ height: 8, borderRadius: 4, cursor: "pointer" }}
+              onClick={() => setPage(n as 1 | 2)}
+            />
+          ))}
+        </div>
+
+        {/* Next button */}
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          onClick={() => page === 2 ? navigate(-1) : setPage(2)}
+          style={{
+            height: 46, borderRadius: 14, padding: "0 18px",
+            background: page === 1 ? a.gradient : "rgba(255,255,255,0.05)",
+            border: page === 1 ? "none" : `1px solid ${a.glow(0.2)}`,
+            borderTop: page === 1 ? "none" : `1px solid ${a.glow(0.35)}`,
+            boxShadow: page === 1 ? `0 4px 14px ${a.glowMid(0.35)}` : `inset 0 1px 0 ${a.glow(0.12)}`,
+            color: "#fff", fontSize: 13, fontWeight: 900,
+            cursor: "pointer", display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
+          }}
+        >
+          {page === 2 ? "Done" : "Next"}
+          {page === 1 && <ArrowRight size={15} />}
+        </motion.button>
+      </div>
+
+      <div style={{ height: 0 }}>{/* spacer replaced by padding-bottom on scroll container */}</div>
 
       {/* ── Country block sheet ── */}
       <AnimatePresence>

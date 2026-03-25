@@ -13,9 +13,9 @@ const SLIDES = [
     accent: null,
     title: "Ghost From the Start",
     subtitle: "Your identity is yours to reveal",
-    body: "You are Ghost-XXXX until you choose otherwise. No full name, no social login, no algorithm that knows you better than you know yourself. You control when — and who — gets to see the real you.",
+    body: "You are Guest-XXXX until you choose otherwise. No full name, no social login, no algorithm that knows you better than you know yourself. You control when — and who — gets to see the real you.",
     detail: [
-      "🔒 Ghost ID hides your identity completely",
+      "🔒 Guest ID hides your identity completely",
       "📵 No social login — zero data leaks",
       "👻 Reveal yourself only when you're ready",
     ],
@@ -229,7 +229,7 @@ export default function GhostOnboardingPage() {
               borderRadius: 24, padding: "28px 22px",
               marginBottom: 24,
             }}>
-              {/* Ghost ID visual — only for slide 0 */}
+              {/* Guest ID visual — only for slide 0 */}
               {slide === 0 && <GhostIDVisual accent={s.accent} glow={a.glow} />}
               <div style={{ fontSize: 56, marginBottom: 16, lineHeight: 1 }}>{s.icon}</div>
               <p style={{ fontSize: 11, fontWeight: 800, color: s.accent, letterSpacing: 1.5, margin: "0 0 8px", textTransform: "uppercase" }}>

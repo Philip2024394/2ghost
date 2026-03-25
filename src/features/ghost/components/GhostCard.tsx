@@ -103,6 +103,27 @@ const OUTCOME_ICONS = ["💍",      "🤝",      "🤫",       "🔓",   "🌱",
 const SPAM_IMG        = "https://ik.imagekit.io/7grri5v7d/spam%20in.png";
 const FOUND_BOO_STAMP = "https://ik.imagekit.io/7grri5v7d/Found%20Boo%20postage%20stamp%20design.png";
 
+// ── Bestie seeded data ─────────────────────────────────────────────────────
+const BESTIE_AVATARS = [
+  "https://ik.imagekit.io/7grri5v7d/4i.png?updatedAt=1774012879924",
+  "https://ik.imagekit.io/7grri5v7d/2q.png?updatedAt=1774012847860",
+  "https://ik.imagekit.io/7grri5v7d/1as.png?updatedAt=1774009744350",
+  "https://ik.imagekit.io/7grri5v7d/5q.png?updatedAt=1774013004908",
+  "https://ik.imagekit.io/7grri5v7d/1a.png?updatedAt=1774012891284",
+  "https://ik.imagekit.io/7grri5v7d/15a.png?updatedAt=1774012937480",
+];
+const BESTIE_REVIEWS = [
+  "She's the realest person I know — funny, kind, and worth your time 💯",
+  "I've known her for years. If she chose you, you're already lucky 🌸",
+  "Don't sleep on this one. She's the one everyone talks about after the night ends 🔥",
+  "She has standards. But if you make her laugh, you're halfway there 😂",
+  "Most genuine girl I know. No games, no drama — just real vibes ✨",
+  "If she's talking to you, it means something. She doesn't waste time 🎯",
+  "My ride or die since forever. She'll show up for the right person 💕",
+  "Real talk — she's the one my whole friend group ships to win 🏆",
+];
+const BESTIE_CITIES = ["Jakarta", "Bali", "Singapore", "Kuala Lumpur", "Manila", "Bangkok", "London", "Dubai"];
+
 // ── Voice Note Player ─────────────────────────────────────────────────────────
 function VoiceNotePlayer({ profileId, accent }: { profileId: string; accent: string }) {
   const [playing, setPlaying] = useState(false);
@@ -154,6 +175,116 @@ function VoiceNotePlayer({ profileId, accent }: { profileId: string; accent: str
 
 function Divider() {
   return <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "0 14px" }} />;
+}
+
+// ── Bestie helpers & component ───────────────────────────────────────────────
+function getSeededBestie(profileId: string) {
+  const h = idHash(profileId + "bestie_v1");
+  const bh = idHash(profileId + "bestie_photo");
+  return {
+    photo:   BESTIE_AVATARS[bh % BESTIE_AVATARS.length],
+    ghostId: `Guest-${1000 + (h % 9000)}`,
+    review:  BESTIE_REVIEWS[h % BESTIE_REVIEWS.length],
+    city:    BESTIE_CITIES[(h >> 3) % BESTIE_CITIES.length],
+    age:     22 + (h % 12),
+  };
+}
+
+// Card-only — sheet is rendered at top level to escape CSS transform stacking context
+function BestieSection({ profile, onView }: { profile: GhostProfile; onView: () => void }) {
+  const bestie = getSeededBestie(profile.id);
+  return (
+    <>
+      <p style={{ margin: "0 0 10px", fontSize: 10, fontWeight: 800, color: "rgba(212,175,55,0.7)", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+        👯 Hotel Bestie
+      </p>
+      <motion.div whileTap={{ scale: 0.98 }} onClick={onView}
+        style={{
+          display: "flex", alignItems: "center", gap: 12, padding: "12px 14px",
+          borderRadius: 14, cursor: "pointer",
+          background: "rgba(6,6,8,0.88)",
+          border: "1px solid rgba(212,175,55,0.25)",
+          borderTop: "1px solid rgba(212,175,55,0.4)",
+          boxShadow: "inset 0 1px 0 rgba(212,175,55,0.12)",
+        }}
+      >
+        {/* Left: avatar + badge */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, flexShrink: 0 }}>
+          <img src={bestie.photo} alt=""
+            style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.35)" }}
+          />
+          <span style={{ fontSize: 8, fontWeight: 800, color: "#d4af37", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 20, padding: "2px 7px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            BESTIE
+          </span>
+        </div>
+        {/* Center: guest ID + review */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 800, color: "#d4af37" }}>{bestie.ghostId}</p>
+          <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.65)", fontStyle: "italic", lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+            {bestie.review}
+          </p>
+        </div>
+        {/* Right: View button */}
+        <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); onView(); }}
+          style={{ flexShrink: 0, padding: "6px 10px", borderRadius: 10, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.28)", color: "#d4af37", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+        >
+          <span>👁</span><span>View</span>
+        </motion.button>
+      </motion.div>
+    </>
+  );
+}
+
+// Full bestie profile sheet — rendered outside any CSS transform so position:fixed works
+function BestieSheet({ profile, onClose }: { profile: GhostProfile; onClose: () => void }) {
+  const bestie = getSeededBestie(profile.id);
+  const bestieBestie = getSeededBestie(bestie.ghostId);
+  const profileGhostId = toGhostId(profile.id);
+  const outcomeIdx = idHash(bestie.ghostId + "outcome") % OUTCOME_TAGS.length;
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ position: "fixed", inset: 0, zIndex: 9998, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+      onClick={onClose}
+    >
+      <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", stiffness: 320, damping: 32 }}
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: "100%", maxWidth: 480, background: "rgba(8,8,12,0.99)", borderRadius: "20px 20px 0 0", paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))", maxHeight: "80dvh", overflowY: "auto", scrollbarWidth: "none", position: "relative" }}
+      >
+        {/* Red top stripe */}
+        <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #e01010, transparent)", borderRadius: "20px 20px 0 0" }} />
+        {/* Handle */}
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 10, marginBottom: 4 }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)" }} />
+        </div>
+        {/* Close */}
+        <motion.button whileTap={{ scale: 0.88 }} onClick={onClose}
+          style={{ position: "absolute", top: 14, right: 16, width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+        >✕</motion.button>
+
+        <div style={{ padding: "8px 20px 20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <img src={bestie.photo} alt="" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "2.5px solid rgba(212,175,55,0.5)", marginBottom: 10 }} />
+          <p style={{ margin: "0 0 2px", fontSize: 17, fontWeight: 900, color: "#d4af37" }}>{bestie.ghostId}</p>
+          <p style={{ margin: "0 0 14px", fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>Bestie of {profileGhostId}</p>
+          <p style={{ margin: "0 0 16px", fontSize: 14, color: "rgba(255,255,255,0.8)", fontStyle: "italic", lineHeight: 1.65, textAlign: "center" }}>"{bestie.review}"</p>
+          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+            {[`📍 ${bestie.city}`, `🎂 ${bestie.age}`, `${OUTCOME_ICONS[outcomeIdx]} ${OUTCOME_TAGS[outcomeIdx]}`].map(t => (
+              <span key={t} style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "4px 10px" }}>{t}</span>
+            ))}
+          </div>
+          <div style={{ width: "100%", height: 1, background: "rgba(255,255,255,0.07)", marginBottom: 16 }} />
+          <p style={{ margin: "0 0 10px", fontSize: 10, fontWeight: 800, color: "rgba(212,175,55,0.7)", textTransform: "uppercase", letterSpacing: "0.12em", alignSelf: "flex-start" }}>Her Bestie</p>
+          <div style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, background: "rgba(6,6,8,0.85)", border: "1px solid rgba(212,175,55,0.2)", boxShadow: "inset 0 1px 0 rgba(212,175,55,0.08)" }}>
+            <img src={bestieBestie.photo} alt="" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: "1.5px solid rgba(212,175,55,0.3)", flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 800, color: "#d4af37" }}>{bestieBestie.ghostId}</p>
+              <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.55)", fontStyle: "italic", lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical" }}>{bestieBestie.review}</p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
 }
 
 // ── Combined Profile + Whisper Modal ─────────────────────────────────────────
@@ -217,7 +348,7 @@ export function ProfileWhisperModal({
 
   const FC_META = {
     chat:    { emoji: "💬", label: "Ghost Chat First",   sub: "Anonymous in-app chat",          coinCost: 0,  color: "#4ade80" },
-    video:   { emoji: "🎬", label: "Video Intro First",  sub: "Short personal video first",      coinCost: 5,  color: "#a78bfa" },
+    video:   { emoji: "🎬", label: "Video Intro First",  sub: "Short personal video first",      coinCost: 5,  color: "#e01010" },
     outside: { emoji: "📱", label: "Meet Outside First", sub: "WhatsApp + book a real date",     coinCost: 50, color: "#f59e0b" },
   } as const;
 
@@ -225,6 +356,7 @@ export function ProfileWhisperModal({
   const [activeThumb, setActiveThumb] = useState(0);
   const [outsideStatus, setOutsideStatus] = useState<"idle" | "pending" | "done">("idle");
   const [showReport, setShowReport]       = useState(false);
+  const [showBestieSheet, setShowBestieSheet] = useState(false);
   const [reportReason, setReportReason]   = useState("");
   const [reporterId, setReporterId]       = useState("");
   const [reporterWA, setReporterWA]       = useState("");
@@ -555,7 +687,7 @@ export function ProfileWhisperModal({
             )}
             {resolvedContactPref === "video" && (
               <motion.button whileTap={{ scale: 0.97 }} onClick={handleVideoRequest} disabled={videoRequesting || readCoins() < 5}
-                style={{ width: "100%", height: 46, borderRadius: 14, border: `1px solid ${a.glow(readCoins() >= 5 ? 0.35 : 0.1)}`, background: readCoins() >= 5 ? "rgba(167,139,250,0.08)" : "rgba(255,255,255,0.03)", color: readCoins() >= 5 ? "#a78bfa" : "rgba(255,255,255,0.2)", fontSize: 13, fontWeight: 800, cursor: readCoins() >= 5 ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                style={{ width: "100%", height: 46, borderRadius: 14, border: `1px solid ${a.glow(readCoins() >= 5 ? 0.35 : 0.1)}`, background: readCoins() >= 5 ? a.glow(0.08) : "rgba(255,255,255,0.03)", color: readCoins() >= 5 ? a.accent : "rgba(255,255,255,0.2)", fontSize: 13, fontWeight: 800, cursor: readCoins() >= 5 ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 {videoRequesting
                   ? <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 0.8, repeat: Infinity }}>Sending request…</motion.span>
                   : <><span>🎬</span><span>Request Video Introduction</span><span style={{ fontSize: 11, opacity: 0.6 }}>· 🪙5</span></>}
@@ -666,7 +798,7 @@ export function ProfileWhisperModal({
             </div>
 
             <button onClick={() => { setUseCustom(true); setSelected(null); setTimeout(() => inputRef.current?.focus(), 50); }}
-              style={{ width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, background: useCustom ? "rgba(168,85,247,0.08)" : "rgba(255,255,255,0.03)", border: useCustom ? "1px solid rgba(168,85,247,0.35)" : "1px solid rgba(255,255,255,0.06)", color: useCustom ? "rgba(168,85,247,0.9)" : "rgba(255,255,255,0.3)", fontSize: 12, fontWeight: 700, cursor: "pointer", marginBottom: useCustom ? 8 : 0 }}>
+              style={{ width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, background: useCustom ? "rgba(220,20,20,0.08)" : "rgba(255,255,255,0.03)", border: useCustom ? "1px solid rgba(220,20,20,0.35)" : "1px solid rgba(255,255,255,0.06)", color: useCustom ? "rgba(220,20,20,0.9)" : "rgba(255,255,255,0.3)", fontSize: 12, fontWeight: 700, cursor: "pointer", marginBottom: useCustom ? 8 : 0 }}>
               ✏️ Write my own question
             </button>
             <AnimatePresence>
@@ -705,6 +837,11 @@ export function ProfileWhisperModal({
                 <span style={{ color: "#d4af37", fontWeight: 800 }}>The Butler suggests —</span> rather than an opening question, consider inviting <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 700 }}>{toGhostId(profile.id)}</span> to a game. The chat room opens as you play — a natural way to connect before you reveal yourself.
               </p>
             </div>
+          </div>
+
+          {/* ── Hotel Bestie ── */}
+          <div style={{ margin: "0 16px 20px" }}>
+            <BestieSection profile={profile} onView={() => setShowBestieSheet(true)} />
           </div>
         </div>
 
@@ -799,7 +936,7 @@ export function ProfileWhisperModal({
               </div>
 
               {/* Your ID */}
-              <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.12em" }}>Your Ghost ID</p>
+              <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.12em" }}>Your Guest ID</p>
               <input
                 value={reporterId}
                 onChange={e => setReporterId(e.target.value)}
@@ -880,6 +1017,13 @@ export function ProfileWhisperModal({
             </div>
           </div>
         </motion.div>
+      )}
+    </AnimatePresence>
+
+    {/* ── Bestie Sheet — outside transform so position:fixed works ── */}
+    <AnimatePresence>
+      {showBestieSheet && (
+        <BestieSheet profile={profile} onClose={() => setShowBestieSheet(false)} />
       )}
     </AnimatePresence>
     </>
@@ -994,7 +1138,7 @@ export default function GhostCard({
 
           {/* BOTTOM strip */}
           <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 11px 12px" }}>
-            {/* Ghost ID + voice indicator */}
+            {/* Guest ID + voice indicator */}
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
               {hasVoiceNote(profile.id) && (
                 <motion.div

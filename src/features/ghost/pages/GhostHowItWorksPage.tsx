@@ -22,7 +22,7 @@ const SLIDES = [
     body: "Ghost is built like a hotel. You check into a Room that matches where you are in life — and everyone inside knows the vibe. No noise. No mismatches. Just the right people at the right level.",
     bullets: [
       "🏨 Six rooms — from The Cellar to the Penthouse",
-      "🎭 Anonymous Ghost ID — real name never shown",
+      "🎭 Anonymous Guest ID — real name never shown",
       "🌍 City-based matching — your floor, your city",
     ],
   },
@@ -50,9 +50,9 @@ const SLIDES = [
     grad: "linear-gradient(135deg, #14532d 0%, #22c55e 60%, #4ade80 100%)",
     border: "rgba(74,222,128,0.3)",
     glow: "rgba(74,222,128,0.2)",
-    title: "Your Ghost ID Protects You",
+    title: "Your Guest ID Protects You",
     subtitle: "Be real — without being exposed.",
-    body: "You are Ghost-XXXX. Your real name, phone, and social accounts are never shown to anyone. You decide when to reveal yourself. Until then, your Ghost ID is all anyone sees — and that's exactly how it should be.",
+    body: "You are Guest-XXXX. Your real name, phone, and social accounts are never shown to anyone. You decide when to reveal yourself. Until then, your Guest ID is all anyone sees — and that's exactly how it should be.",
     bullets: [
       "🔒 Real name hidden from everyone",
       "📵 No Facebook or Google login needed",
@@ -100,7 +100,7 @@ const SLIDES = [
     glow: "rgba(74,222,128,0.2)",
     title: "You're Ready",
     subtitle: "Pick your room and check in.",
-    body: "You understand the Ghost House. Now go find your room. Start with Standard if you're exploring — upgrade anytime. Your Ghost ID is waiting. The right people are already inside.",
+    body: "You understand the Ghost House. Now go find your room. Start with Standard if you're exploring — upgrade anytime. Your Guest ID is waiting. The right people are already inside.",
     bullets: [
       "✅ One-time entry — never pay again",
       "🔄 Upgrade your room anytime",

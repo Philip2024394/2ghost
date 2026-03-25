@@ -658,8 +658,8 @@ export default function GhostRoomsPage() {
           flexShrink: 0,
         }}>
           <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: 0, lineHeight: 1.1 }}>Hotel Rooms</h1>
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>Choose your floor</p>
+            <h1 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: 0, lineHeight: 1.1 }}>Hotel Vacancy</h1>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>Room availability & booking</p>
           </div>
           {/* Close — right */}
           <button

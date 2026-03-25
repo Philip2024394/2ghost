@@ -11,7 +11,7 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
     { icon: "🤝", title: "Respect Every Ghost", desc: "No harassment, hate, or disrespect. Every person here deserves dignity — no exceptions." },
     { icon: "🔒", title: "Privacy is Sacred", desc: "Never share another member's identity, photos, or location outside the House." },
     { icon: "🚫", title: "No Bad Energy", desc: "No spam, scams, or fake profiles. Genuine connections only — the House self-cleanses." },
-    { icon: "👻", title: "Stay Anonymous Until Ready", desc: "Your Ghost ID protects you. Only reveal yourself when you're truly comfortable." },
+    { icon: "👻", title: "Stay Anonymous Until Ready", desc: "Your Guest ID protects you. Only reveal yourself when you're truly comfortable." },
     { icon: "💚", title: "Good Vibes Only", desc: "Bring curiosity, openness, and warmth. The energy you put in is the energy you get back." },
   ];
 
@@ -21,7 +21,7 @@ export function GhostHouseWelcomeModal({ onAccept }: { onAccept: () => void }) {
     { icon: "📱", title: "Connect on Match", desc: "After a mutual match, pay once to unlock their contact — WhatsApp, Telegram, WeChat, iMessage, any app they use. No in-app chat — real connection only." },
     { icon: "🚪", title: "Ghost Vault", desc: "Your private vault. All your matches live here with a 48-hour countdown. Don't let them fade." },
     { icon: "🌍", title: "Global House", desc: "Members from Indonesia, Philippines, Thailand, Singapore, Malaysia, Vietnam and beyond — your next match could be anywhere in SEA." },
-    { icon: "👁️", title: "You're Invisible", desc: "Others only see your Ghost ID, photo, age, and city — nothing else — until you both connect." },
+    { icon: "👁️", title: "You're Invisible", desc: "Others only see your Guest ID, photo, age, and city — nothing else — until you both connect." },
   ];
 
   return (

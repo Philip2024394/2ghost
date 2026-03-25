@@ -30,9 +30,9 @@ const LOOKING_FOR = [
 ];
 
 const FIRST_CONTACT_OPTIONS = [
-  { key: "chat",    emoji: "💬", label: "Ghost Chat First",   sub: "Anonymous in-app chat — private & safe",  coinCost: 0,  color: "#4ade80" },
-  { key: "video",   emoji: "🎬", label: "Video Intro First",  sub: "Short personal video before meeting",      coinCost: 5,  color: "#a78bfa" },
-  { key: "outside", emoji: "📱", label: "Meet Outside First", sub: "Share WhatsApp & book a real date",        coinCost: 50, color: "#f59e0b" },
+  { key: "chat",    emoji: "💬", label: "Chat Message Private",  sub: "Anonymous in-app chat — private & safe",        coinCost: 0,  color: "#4ade80" },
+  { key: "video",   emoji: "📹", label: "Video Call",            sub: "Face-to-face video before committing to a date", coinCost: 5,  color: "#a78bfa" },
+  { key: "outside", emoji: "🚪", label: "Let's Leave The Hotel", sub: "Share WhatsApp & book a real date together",     coinCost: 50, color: "#f59e0b" },
 ] as const;
 
 const label: React.CSSProperties = {

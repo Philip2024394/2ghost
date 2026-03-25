@@ -1144,14 +1144,14 @@ export default function BreakfastLoungePage() {
                 {[
                   { icon: floorView ? "≡" : "⊞", label: floorView ? "List View" : "Floor View", desc: floorView ? "Switch to guest list" : "See who's seated where", action: () => { setFloorView(!floorView); setShowLoungeMenu(false); } },
                   { icon: "☕", label: "Send a Coffee", desc: `Surprise someone · 🪙${COFFEE_COST}`, action: () => { setShowLoungeMenu(false); } },
-                  { icon: "🕐", label: "Set Seating Time", desc: seatingTime ? `Reserved: ${seatingTime}` : "Book your breakfast slot", action: () => { setShowLoungeMenu(false); setShowSeatingPicker(true); } },
+                  { icon: "🕐", label: "Set Seating Time", desc: seatingTime ? `Reserved: ${seatingTime}` : "Book your breakfast slot", action: () => { setShowLoungeMenu(false); setShowCheckin(true); setShowSeatingPicker(true); } },
                   { icon: "📊", label: "My Lounge Stats", desc: `${coffeesSent.size} coffee${coffeesSent.size !== 1 ? "s" : ""} sent · 🔥 ${loungeStreak} day streak`, action: () => { setShowLoungeStats(true); setShowLoungeMenu(false); } },
                   { icon: "🔔", label: "Check-in", desc: "Confirm your seat with Mr Butlas", action: () => { setShowLoungeMenu(false); setShowCheckin(true); } },
                   { icon: "🌍", label: "International Guests", desc: intlActive ? "Showing worldwide guests" : "Local guests only", action: () => { setIntlActive(!intlActive); setVisible(buildVisible(!intlActive, dismissedIds, shownIds, pickedCountry)); setShowLoungeMenu(false); } },
                   { icon: "↩️", label: "Leave the Lounge", desc: "Return to Ghost Mode", action: () => { setShowLoungeMenu(false); navigate(-1); } },
                 ].map(item => (
                   <motion.button key={item.label} whileTap={{ scale: 0.97 }} onClick={item.action}
-                    style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 13, padding: "12px 12px", marginBottom: 7, cursor: "pointer", textAlign: "left" }}>
+                    style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(220,20,20,0.18)", borderTop: "1px solid rgba(220,20,20,0.35)", borderRadius: 13, padding: "12px 12px", marginBottom: 7, cursor: "pointer", textAlign: "left", boxShadow: "inset 0 1px 0 rgba(220,20,20,0.12)" }}>
                     <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(220,20,20,0.08)", border: "1px solid rgba(220,20,20,0.14)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <span style={{ fontSize: 16 }}>{item.icon}</span>
                     </div>
@@ -1189,7 +1189,7 @@ export default function BreakfastLoungePage() {
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
                 <img src={BUTLER_IMG} alt="" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.45)" }} />
                 <div>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#e01010" }}>Your Lounge Record</p>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#d4af37" }}>Your Lounge Record</p>
                   <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Compiled by Mr Butlas</p>
                 </div>
               </div>

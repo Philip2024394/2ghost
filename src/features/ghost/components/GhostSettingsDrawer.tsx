@@ -38,26 +38,28 @@ export default function GhostSettingsDrawer({ show, onClose, onAction, loungeGue
     isRoom?: boolean;
     isCheckout?: boolean;
   }> = [
-    { icon: "📊", label: "Dashboard",             desc: "Your stats & activity",                           action: "dashboard" },
-    { icon: null, label: "Shield",                 desc: "Block & privacy controls", isShield: true,       action: "shield" },
-    { icon: "🏨", label: "Rooms",                  desc: "Ghost Hotel floor",                               action: "rooms" },
-    { icon: null, label: "Room Vault",             desc: "Your private ghost room",  isRoom: true,          action: "roomVault" },
-    { icon: "🕐", label: "Ghost Clock",            desc: "Open your 2-hour availability window",            action: "ghostClock" },
-    { icon: "🎮", label: "Games",                  desc: "Rooms",                                           action: "games" },
+    { icon: "📊", label: "Dashboard",             desc: "Your stats & activity",                                  action: "dashboard" },
+    { icon: null, label: "Shield",                 desc: "Block & privacy controls",       isShield: true,        action: "shield" },
+    { icon: "🏨", label: "Hotel Vacancy",          desc: "Room availability & booking",                            action: "rooms" },
+    { icon: null, label: "Room Vault",             desc: "Your private ghost room",        isRoom: true,           action: "roomVault" },
+    { icon: "🕐", label: "Ghost Clock",            desc: "Open your 2-hour availability window",                   action: "ghostClock" },
+    { icon: "🎮", label: "Games",                  desc: "Play games with other guests",                           action: "games" },
     { icon: "🍳", label: "Breakfast Lounge",       desc: loungeGuestCount != null ? `${loungeGuestCount} guests online worldwide` : "Invite a guest to your table", action: "breakfastLounge" },
-    { icon: "⚔️", label: "Floor Wars",             desc: "Weekly floor gift leaderboard",                   action: "floorWars" },
-    { icon: "🎬", label: "Video Introduction",     desc: "Upload & manage your video intro",                action: "video" },
-    { icon: "📄", label: "Terms & Conditions",     desc: "Privacy & usage policy",                          action: "terms" },
-    { icon: "🏨", label: "Check Out of Hotel",     desc: "Leave a calling card or check out with your match", isCheckout: true, action: "checkout" },
+    { icon: "⚔️", label: "Floor Wars",             desc: "Weekly floor gift leaderboard",                          action: "floorWars" },
+    { icon: "🎬", label: "Video Introduction",     desc: "Upload & manage your video intro",                       action: "video" },
+    { icon: "📄", label: "Terms & Conditions",     desc: "Privacy & usage policy",                                 action: "terms" },
+    { icon: "🏨", label: "Check Out of Hotel",     desc: "Leave a calling card or check out with your match",      isCheckout: true, action: "checkout" },
   ];
 
   const handleItem = (action: SettingsAction) => {
     onClose();
     if (action === "dashboard")  { navigate("/ghost/dashboard"); return; }
     if (action === "shield")     { navigate("/ghost/block"); return; }
+    if (action === "rooms")      { navigate("/ghost/rooms"); return; }
     if (action === "roomVault")  { navigate("/ghost/room"); return; }
-    if (action === "terms")      { window.open("https://2ghost.com/terms", "_blank"); return; }
+    if (action === "games")      { navigate("/ghost/games"); return; }
     if (action === "checkout")   { navigate("/ghost/checkout"); return; }
+    if (action === "terms")      { window.open("https://2ghost.com/terms", "_blank"); return; }
     onAction(action);
   };
 

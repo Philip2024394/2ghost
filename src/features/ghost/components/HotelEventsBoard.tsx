@@ -22,7 +22,7 @@ const FORTUNES = [
   "The Tower has fallen. Something old ends — something real is about to begin.",
   "A message you haven't sent will mean more than you expect. Send it.",
   "Two of Cups reversed — a connection exists but needs honesty to bloom.",
-  "The stars favour the quiet ones tonight. Your Ghost ID carries more energy than you know.",
+  "The stars favour the quiet ones tonight. Your Guest ID carries more energy than you know.",
   "Someone is looking at your profile right now and wondering the same thing you are.",
 ];
 function dailyFortune(): string {

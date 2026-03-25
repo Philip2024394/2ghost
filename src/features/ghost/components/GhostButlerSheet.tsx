@@ -226,7 +226,7 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
                   <div style={{ background: G_BG, border: `1px solid ${G_BORDER}`, borderRadius: 14, padding: 14, textAlign: "center", marginBottom: 8 }}>
                     <p style={{ fontSize: 13, fontWeight: 800, color: G, margin: "0 0 4px" }}>✓ Numbers Unlocked</p>
                     <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "0 0 10px" }}>Tap any number above to open WhatsApp directly</p>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: G_DIM, margin: 0 }}>Your Ghost ID for delivery: <strong style={{ color: G, letterSpacing: "0.08em" }}>{ghostId}</strong></p>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: G_DIM, margin: 0 }}>Your Guest ID for delivery: <strong style={{ color: G, letterSpacing: "0.08em" }}>{ghostId}</strong></p>
                   </div>
                 ) : (
                   <>
@@ -278,7 +278,7 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
 
                 <div style={{ background: G_BG, border: `1px solid ${G_BORDER}`, borderRadius: 12, padding: "10px 14px", marginBottom: 18 }}>
                   <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.6 }}>
-                    🔒 Your match's delivery address is <strong style={{ color: "rgba(255,255,255,0.75)" }}>never shared with you</strong>. If delivery is needed, the provider contacts Ghost admin with your Ghost ID — we verify and release the address directly to them.
+                    🔒 Your match's delivery address is <strong style={{ color: "rgba(255,255,255,0.75)" }}>never shared with you</strong>. If delivery is needed, the provider contacts Ghost admin with your Guest ID — we verify and release the address directly to them.
                   </p>
                 </div>
 
@@ -314,7 +314,7 @@ export default function GhostButlerSheet({ city, matchName, onClose }: Props) {
                 </div>
 
                 <div style={{ background: G_BG, border: `1px solid ${G_BORDER}`, borderRadius: 14, padding: 14, marginBottom: 16 }}>
-                  <p style={{ fontSize: 10, fontWeight: 800, color: G_DIM, letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 4px" }}>Your Ghost ID for delivery requests</p>
+                  <p style={{ fontSize: 10, fontWeight: 800, color: G_DIM, letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 4px" }}>Your Guest ID for delivery requests</p>
                   <p style={{ fontSize: 22, fontWeight: 900, color: G, letterSpacing: "0.12em", margin: "0 0 4px" }}>{ghostId}</p>
                   <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0, lineHeight: 1.5 }}>Give this to the provider if they need to coordinate a delivery address. They WhatsApp Ghost admin → we verify → release address to them only.</p>
                 </div>

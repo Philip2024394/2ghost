@@ -61,9 +61,13 @@ function formatCountdown(ms: number): string {
 }
 
 
+// ── Video intro URL — replace with your actual promo video ────────────────────
+const INTRO_VIDEO_URL = "https://ik.imagekit.io/7grri5v7d/hotel_intro.mp4";
+
 export default function GhostLandingPage() {
   const navigate = useNavigate();
   const [showManifesto, setShowManifesto]   = useState(false);
+  const [showVideoFull, setShowVideoFull]   = useState(false);
   const [showA2HS, setShowA2HS]             = useState(false);
   const [a2hsDismissed, setA2HSDismissed]   = useState(() => {
     try { return !!localStorage.getItem("ghost_a2hs_dismissed"); } catch { return false; }
@@ -229,6 +233,46 @@ export default function GhostLandingPage() {
         padding: "0 22px max(36px, env(safe-area-inset-bottom, 36px))",
       }}>
         <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", display: "flex", flexDirection: "column", gap: 12 }}>
+
+          {/* ── Hotel intro header ── */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+            <div style={{ width: 3, height: 20, borderRadius: 2, background: "#e01010" }} />
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.45)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Hearts Way Hotel</p>
+          </div>
+
+          {/* ── Video intro card ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.5 }}
+            style={{ position: "relative", borderRadius: 16, overflow: "hidden", border: "1px solid rgba(220,20,20,0.22)", boxShadow: "0 0 24px rgba(220,20,20,0.1)", height: 160, cursor: "pointer", flexShrink: 0 }}
+            onClick={() => setShowVideoFull(true)}
+          >
+            {/* Muted preview video */}
+            <video
+              src={INTRO_VIDEO_URL}
+              autoPlay muted loop playsInline
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+            />
+            {/* Dark overlay */}
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 60%, rgba(0,0,0,0.6) 100%)" }} />
+            {/* Red top rim */}
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, transparent, #e01010, transparent)" }} />
+            {/* Content */}
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "12px 14px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <motion.div animate={{ opacity: [1,0.3,1] }} transition={{ duration: 1.4, repeat: Infinity }}
+                  style={{ width: 7, height: 7, borderRadius: "50%", background: "#e01010", boxShadow: "0 0 6px rgba(220,20,20,0.8)" }} />
+                <span style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.7)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Preview</span>
+              </div>
+              <div>
+                <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 900, color: "#fff", lineHeight: 1.2 }}>Welcome to Hearts Way Hotel</p>
+                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>The world's most discreet dating experience</p>
+              </div>
+            </div>
+            {/* Play button */}
+            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 44, height: 44, borderRadius: "50%", background: "rgba(220,20,20,0.85)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 18px rgba(220,20,20,0.5)" }}>
+              <svg viewBox="0 0 24 24" width={18} height={18} fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </motion.div>
 
           {/* Find My Match */}
           <p style={{
@@ -411,6 +455,27 @@ export default function GhostLandingPage() {
         </div>
       </div>
 
+
+      {/* ── Fullscreen video modal ── */}
+      <AnimatePresence>
+        {showVideoFull && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowVideoFull(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 200, background: "#000", display: "flex", flexDirection: "column" }}>
+            {/* Close bar */}
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10, display: "flex", justifyContent: "flex-end", padding: "max(14px, env(safe-area-inset-top,14px)) 16px 14px" }}>
+              <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowVideoFull(false)}
+                style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</motion.button>
+            </div>
+            <video
+              src={INTRO_VIDEO_URL}
+              autoPlay controls playsInline
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Manifesto popup — fires after 3s ── */}
       <AnimatePresence>

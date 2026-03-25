@@ -81,7 +81,7 @@ export default function GhostProfilePopup({
             </div>
           )}
 
-          {/* Ghost ID / age / city */}
+          {/* Guest ID / age / city */}
           <div style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
               <p style={{ fontSize: 14, fontWeight: 800, color: `rgba(${accentRgb},0.9)`, margin: 0, letterSpacing: "0.06em" }}>
