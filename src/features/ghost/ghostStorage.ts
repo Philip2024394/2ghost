@@ -14,11 +14,12 @@ export async function uploadGhostImage(
   ghostId: string,
 ): Promise<string> {
   const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const path = `${ghostId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+  const safeId = ghostId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const path = `${safeId}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
 
   const { error } = await ghostSupabase.storage
     .from(IMAGE_BUCKET)
-    .upload(path, file, { contentType: file.type, upsert: false });
+    .upload(path, file, { contentType: file.type, upsert: true });
 
   if (error) throw new Error(`Image upload failed: ${error.message}`);
 
@@ -40,14 +41,15 @@ export async function uploadGhostVideo(
   onProgress?: (percent: number) => void,
 ): Promise<string> {
   const ext = file.name.split('.').pop()?.toLowerCase() || 'mp4';
-  const path = `${ghostId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+  const safeId = ghostId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const path = `${safeId}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
 
   // Supabase JS v2 doesn't expose upload progress natively — simulate via size check
   if (onProgress) onProgress(0);
 
   const { error } = await ghostSupabase.storage
     .from(VIDEO_BUCKET)
-    .upload(path, file, { contentType: file.type, upsert: false });
+    .upload(path, file, { contentType: file.type, upsert: true });
 
   if (error) throw new Error(`Video upload failed: ${error.message}`);
 
@@ -79,4 +81,60 @@ function extractPath(publicUrl: string, bucket: string): string | null {
   } catch {
     return null;
   }
+}
+
+// ── File upload ────────────────────────────────────────────────────────────
+
+const FILE_BUCKET = 'ghost-files';
+
+export async function uploadGhostFile(
+  file: File,
+  ghostId: string,
+): Promise<{ path: string; publicUrl: string }> {
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
+  const safeId = ghostId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = `${safeId}/${Date.now()}-${safeName}`;
+
+  const { error } = await ghostSupabase.storage
+    .from(FILE_BUCKET)
+    .upload(path, file, { contentType: file.type, upsert: true });
+
+  if (error) throw new Error(`File upload failed: ${error.message}`);
+
+  const { data } = ghostSupabase.storage.from(FILE_BUCKET).getPublicUrl(path);
+  return { path, publicUrl: data.publicUrl };
+}
+
+export async function deleteGhostFile(url: string): Promise<void> {
+  const path = extractPath(url, FILE_BUCKET);
+  if (!path) return;
+  await ghostSupabase.storage.from(FILE_BUCKET).remove([path]);
+}
+
+// ── Voice note upload ──────────────────────────────────────────────────────
+
+const VOICE_BUCKET = 'ghost-voice';
+
+export async function uploadGhostVoiceNote(
+  audioBlob: Blob,
+  ghostId: string,
+): Promise<{ path: string; publicUrl: string }> {
+  const safeId = ghostId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const path = `${safeId}/${Date.now()}-voice.webm`;
+
+  const { error } = await ghostSupabase.storage
+    .from(VOICE_BUCKET)
+    .upload(path, audioBlob, { contentType: 'audio/webm', upsert: true });
+
+  if (error) throw new Error(`Voice upload failed: ${error.message}`);
+
+  const { data } = ghostSupabase.storage.from(VOICE_BUCKET).getPublicUrl(path);
+  return { path, publicUrl: data.publicUrl };
+}
+
+export async function deleteGhostVoiceNote(url: string): Promise<void> {
+  const path = extractPath(url, VOICE_BUCKET);
+  if (!path) return;
+  await ghostSupabase.storage.from(VOICE_BUCKET).remove([path]);
 }
