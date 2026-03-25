@@ -1140,9 +1140,8 @@ export default function GhostModePage() {
         {/* Top row: title + primary actions */}
         <div style={{ padding: "0 16px 6px", display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
-            <img src="https://ik.imagekit.io/7grri5v7d/asdfasdfasdwq.png" alt="2Ghost" style={{ width: 52, height: 52, objectFit: "contain" }} />
             <h1 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
-              <span style={{ color: a.accent, fontWeight: 900 }}>2</span>Ghost
+              Mr.Butlas
             </h1>
           </div>
           {/* Coin balance pill */}
@@ -1265,10 +1264,10 @@ export default function GhostModePage() {
                         <motion.div
                           animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0, 0.5] }}
                           transition={{ duration: 2, repeat: Infinity, delay: i * 0.18 }}
-                          style={{ position: "absolute", inset: -4, borderRadius: "50%", border: "2px solid rgba(244,114,182,0.65)", pointerEvents: "none" }}
+                          style={{ position: "absolute", inset: -4, borderRadius: "50%", border: "2px solid rgba(220,20,20,0.65)", pointerEvents: "none" }}
                         />
                         <img src={p.image} alt=""
-                          style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(244,114,182,0.45)", display: "block", filter: revealed ? "none" : "blur(7px) brightness(0.65)", transition: "filter 0.4s" }}
+                          style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.45)", display: "block", filter: revealed ? "none" : "blur(7px) brightness(0.65)", transition: "filter 0.4s" }}
                           onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
                         />
                         {!revealed && (
@@ -1277,7 +1276,7 @@ export default function GhostModePage() {
                           </div>
                         )}
                       </div>
-                      <p style={{ fontSize: 8, color: "rgba(244,114,182,0.85)", fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
+                      <p style={{ fontSize: 8, color: "rgba(220,20,20,0.85)", fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
                         {revealed ? p.name : "???"}
                       </p>
                     </div>
@@ -1285,7 +1284,7 @@ export default function GhostModePage() {
                 })}
                 {Array.from({ length: phCount }).map((_, i) => (
                   <div key={`ph-${i}`} style={{ flexShrink: 0, width: avatarSize, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <div style={{ width: avatarSize, height: avatarH, borderRadius: "50%", border: "2px dashed rgba(244,114,182,0.2)", background: "rgba(244,114,182,0.03)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: avatarSize, height: avatarH, borderRadius: "50%", border: "2px dashed rgba(220,20,20,0.2)", background: "rgba(220,20,20,0.03)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <span style={{ fontSize: 14, opacity: 0.3 }}>💗</span>
                     </div>
                     <p style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", margin: 0 }}>Soon…</p>
@@ -1491,10 +1490,10 @@ export default function GhostModePage() {
                   onClick={() => setMatchTab(matchTab === "liked" ? "matches" : "liked")}
                   style={{
                     width: 52, height: 44, borderRadius: 10,
-                    background: matchTab === "liked" ? "linear-gradient(to bottom, #f472b6 0%, #ec4899 40%, #db2777 100%)" : "rgba(255,255,255,0.07)",
+                    background: matchTab === "liked" ? "linear-gradient(to bottom, #ff3b3b 0%, #e01010 40%, #b80000 100%)" : "rgba(255,255,255,0.07)",
                     border: matchTab === "liked" ? "none" : "1.5px solid rgba(255,255,255,0.15)",
                     cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
-                    boxShadow: matchTab === "liked" ? "0 0 14px rgba(244,114,182,0.5)" : "none",
+                    boxShadow: matchTab === "liked" ? "0 0 14px rgba(220,20,20,0.5)" : "none",
                   }}
                 >
                   <span style={{ fontSize: 15 }}>❤️</span>
@@ -1524,15 +1523,15 @@ export default function GhostModePage() {
 
         {/* Tonight */}
         <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => setShowTonightSheet(true))}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: lobbyList.length > 0 ? "rgba(244,114,182,0.12)" : "rgba(244,114,182,0.08)", border: `1px solid ${lobbyList.length > 0 ? "rgba(244,114,182,0.5)" : "rgba(244,114,182,0.25)"}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: lobbyList.length > 0 ? "rgba(220,20,20,0.12)" : "rgba(220,20,20,0.08)", border: `1px solid ${lobbyList.length > 0 ? "rgba(220,20,20,0.5)" : "rgba(220,20,20,0.25)"}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
         >
           {lobbyList.length > 0 && (
             <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.6, repeat: Infinity }}
-              style={{ position: "absolute", top: 7, right: 8, width: 6, height: 6, borderRadius: "50%", background: "#f472b6", boxShadow: "0 0 6px rgba(244,114,182,0.9)" }} />
+              style={{ position: "absolute", top: 7, right: 8, width: 6, height: 6, borderRadius: "50%", background: "#e01010", boxShadow: "0 0 6px rgba(220,20,20,0.9)" }} />
           )}
           <Moon size={20} style={{ color: "#fff", flexShrink: 0 }} />
           <div style={{ textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#f472b6" }}>Tonight</p>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#e01010" }}>Tonight</p>
             <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Available</p>
           </div>
         </motion.button>
@@ -1554,12 +1553,11 @@ export default function GhostModePage() {
         {/* Floor Chat */}
         <motion.button whileTap={{ scale: 0.95 }}
           onClick={() => requireAuth(() => {
-            if (userRoomTier) {
-              setFloorChatTier(userRoomTier);
-              setShowFloorChat(true);
-              setChatUnreadState(0);
-              setChatUnread("standard", 0);
-            }
+            const tier = userRoomTier ?? "standard";
+            setFloorChatTier(tier);
+            setShowFloorChat(true);
+            setChatUnreadState(0);
+            setChatUnread("standard", 0);
           })}
           style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
         >
