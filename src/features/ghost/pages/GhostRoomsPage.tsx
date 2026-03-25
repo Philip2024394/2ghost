@@ -9,10 +9,11 @@ import WelcomeGiftPopup, { shouldShowWelcomeGift } from "../components/WelcomeGi
 
 const ROOM_BG      = "https://ik.imagekit.io/7grri5v7d/ghost%20rooms.png";
 const KINGS_BG     = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrt.png";
-const PENTHOUSE_BG = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsd.png";
+const PENTHOUSE_BG = "https://ik.imagekit.io/7grri5v7d/sdsdffsdfsdfasdasdasdas.png";
 const LOFT_BG      = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsdstertefsdfsd.png";
 const SUITE_BG     = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsds.png";
-const STANDARD_BG  = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdwqdssdsdewtrewrtdsdsterte.png";
+const STANDARD_BG  = "https://ik.imagekit.io/7grri5v7d/sdsdffsdfsdfasdasd.png";
+const CELLAR_BG    = "https://ik.imagekit.io/7grri5v7d/sdsdffsdfsdf.png";
 
 type RoomTier = "standard" | "suite" | "kings" | "penthouse" | "cellar" | "garden" | "loft";
 
@@ -23,7 +24,7 @@ const ROOM_BG_IMAGES: Record<RoomTier, string> = {
   suite:     SUITE_BG,
   kings:     KINGS_BG,
   penthouse: PENTHOUSE_BG,
-  cellar:    LOFT_BG,
+  cellar:    CELLAR_BG,
   garden:    GARDEN_BG,
   loft:      LOFT_BG,
 };
@@ -288,15 +289,15 @@ const ROOMS = [
     floorLevel: "B1",
     rank: -1,
     icon: "🍷",
-    iconImg: undefined as string | undefined,
+    iconImg: "https://ik.imagekit.io/7grri5v7d/UntitledSDFSDFASDF.png?updatedAt=1774209861112" as string | undefined,
     name: "The Cellar",
     tagline: "Bold connections · Adults only",
     price: "Free (women) · 150 coins (men)",
-    color: "#9b6b9b",
-    border: "rgba(155,107,155,0.4)",
-    bg: "rgba(155,107,155,0.06)",
-    glow: "rgba(155,107,155,0.35)",
-    gradient: "linear-gradient(135deg, #5a1e5a, #9b6b9b, #c49fc4)",
+    color: "#c0392b",
+    border: "rgba(192,57,43,0.4)",
+    bg: "rgba(192,57,43,0.06)",
+    glow: "rgba(192,57,43,0.35)",
+    gradient: "linear-gradient(135deg, #7b241c, #c0392b, #e74c3c)",
     giftCoins: 25,
     features: [
       "Free entry for verified women",
@@ -415,7 +416,7 @@ const ROOMS = [
     floorLevel: "3F",
     rank: 1,
     icon: "🎨",
-    iconImg: undefined as string | undefined,
+    iconImg: "https://ik.imagekit.io/7grri5v7d/UntitledSSSSSSSSS-removebg-preview.png?updatedAt=1774210228924" as string | undefined,
     name: "The Loft",
     tagline: "LGBTQ+ · Free entry · Your space, your rules",
     price: "Free",
@@ -484,7 +485,7 @@ const FLOOR_CHECKOUT_META: Record<string, { label: string; icon: string; color: 
   kings:     { label: "The Casino",  icon: "🎰", color: "#d4af6a" },
   penthouse: { label: "The Penthouse",   icon: "🏙️", color: "#c8a84b" },
   loft:      { label: "The Loft",        icon: "🎨", color: "#a8c5a0" },
-  cellar:    { label: "The Cellar",      icon: "🍷", color: "#9b6b9b" },
+  cellar:    { label: "The Cellar",      icon: "🍷", color: "#c0392b" },
 };
 
 const BUTLER_IMG_URL = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdfccc-removebg-preview.png";
@@ -647,7 +648,7 @@ export default function GhostRoomsPage() {
       <div style={{ position: "fixed", inset: 0, zIndex: 1, background: "rgba(3,4,8,0.82)", pointerEvents: "none" }} />
 
       {/* Content */}
-      <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
+      <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", flex: 1 }}>
 
         {/* Header */}
         <div style={{
@@ -656,8 +657,6 @@ export default function GhostRoomsPage() {
           paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)",
           flexShrink: 0,
         }}>
-          {/* Logo — left */}
-          <img src={GHOST_LOGO} alt="2Ghost" style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
             <h1 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: 0, lineHeight: 1.1 }}>Hotel Rooms</h1>
             <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>Choose your floor</p>
@@ -697,7 +696,7 @@ export default function GhostRoomsPage() {
         </div>
 
         {/* Room cards */}
-        <div style={{ padding: "8px 14px calc(env(safe-area-inset-bottom, 0px) + 24px)", display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ flex: 1, padding: "8px 14px calc(env(safe-area-inset-bottom, 0px) + 24px)", display: "flex", flexDirection: "column", gap: 12 }}>
           {ROOMS.map((room, idx) => {
             const isSpecialFloor = room.key === "garden" || room.key === "cellar" || room.key === "loft";
             const owned   = isSpecialFloor ? currentTier === room.key : ownedRank >= room.rank;
@@ -803,7 +802,7 @@ export default function GhostRoomsPage() {
                 {room.key === "cellar" && <>
                   <div style={{
                     position: "absolute", inset: 0,
-                    backgroundImage: `url(${LOFT_BG})`,
+                    backgroundImage: `url(${CELLAR_BG})`,
                     backgroundSize: "cover", backgroundPosition: "center",
                     opacity: 0.4,
                     pointerEvents: "none",

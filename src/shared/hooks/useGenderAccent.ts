@@ -1,19 +1,19 @@
 import { useMemo } from "react";
 
 export type GenderAccent = {
-  /** Main accent  — #4ade80 (M) | #f472b6 (F) */
+  /** Main accent  — #d4af37 hotel gold */
   accent:    string;
-  /** Mid shade   — #22c55e (M) | #ec4899 (F) */
+  /** Mid shade   — #c9a227 active gold */
   accentMid: string;
-  /** Dark shade  — #16a34a (M) | #db2777 (F) */
+  /** Dark shade  — #a8892f deep bronze */
   accentDark: string;
-  /** Deepest     — #15803d (M) | #be185d (F) */
+  /** Deepest     — #8a6f1e shadow gold */
   accentDeep: string;
-  /** rgba(74,222,128,o) or rgba(244,114,182,o) */
+  /** rgba(212,175,55,o) gold glow */
   glow: (opacity: number) => string;
-  /** rgba(34,197,94,o)  or rgba(236,72,153,o) */
+  /** rgba(180,148,35,o) mid gold glow */
   glowMid: (opacity: number) => string;
-  /** Full pill-button gradient */
+  /** Full pill-button gradient — champagne → gold → bronze */
   gradient: string;
   /** 135deg subtle card bg */
   gradientSubtle: string;
@@ -30,19 +30,21 @@ export function getStoredGender(): "Female" | "Male" {
 
 export function buildAccent(gender: "Female" | "Male"): GenderAccent {
   const f = gender === "Female";
+  // ── Unified app red palette ────────────────────────────────────────────────
+  // #e01010 — signature red           (main accent, text, borders)
+  // #c00000 — mid red                 (active / hover states)
+  // #900000 — deep red                (pressed states, dark borders)
+  // #600000 — shadow red              (deepest tones)
+  // #ff3b3b — bright red highlight    (gradient tops, shimmer)
   return {
-    accent:         f ? "#f472b6" : "#4ade80",
-    accentMid:      f ? "#ec4899" : "#22c55e",
-    accentDark:     f ? "#db2777" : "#16a34a",
-    accentDeep:     f ? "#be185d" : "#15803d",
-    glow:    (o)  => f ? `rgba(244,114,182,${o})` : `rgba(74,222,128,${o})`,
-    glowMid: (o)  => f ? `rgba(236,72,153,${o})`  : `rgba(34,197,94,${o})`,
-    gradient:       f
-      ? "linear-gradient(to bottom, #f472b6 0%, #ec4899 40%, #db2777 100%)"
-      : "linear-gradient(to bottom, #4ade80 0%, #22c55e 40%, #16a34a 100%)",
-    gradientSubtle: f
-      ? "linear-gradient(135deg, rgba(244,114,182,0.15), rgba(236,72,153,0.06))"
-      : "linear-gradient(135deg, rgba(74,222,128,0.15), rgba(34,197,94,0.06))",
+    accent:         "#e01010",
+    accentMid:      "#c00000",
+    accentDark:     "#900000",
+    accentDeep:     "#600000",
+    glow:    (o)  => `rgba(220,20,20,${o})`,
+    glowMid: (o)  => `rgba(180,0,0,${o})`,
+    gradient:       "linear-gradient(to bottom, #ff3b3b 0%, #e01010 40%, #b80000 100%)",
+    gradientSubtle: "linear-gradient(135deg, rgba(220,20,20,0.14), rgba(180,0,0,0.05))",
     isFemale: f,
   };
 }

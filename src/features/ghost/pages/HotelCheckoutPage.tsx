@@ -48,7 +48,7 @@ function PathWithMatch({ stats, accent, onDone }: { stats: HotelStayStats; accen
         >
           {/* Hotel receipt header */}
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <p style={{ margin: 0, fontSize: 10, color: accent.glow(0.7), fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase" }}>2Ghost Hotel</p>
+            <p style={{ margin: 0, fontSize: 10, color: accent.glow(0.7), fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase" }}>Mr. Butlas</p>
             <p style={{ margin: "4px 0 0", fontSize: 20, fontWeight: 900, color: "#fff" }}>Your Stay Receipt</p>
             <p style={{ margin: "6px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
               {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
@@ -105,7 +105,7 @@ function PathWithMatch({ stats, accent, onDone }: { stats: HotelStayStats; accen
 
           <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 18, padding: "20px", marginBottom: 24, maxWidth: 360 }}>
             <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.8, fontStyle: "italic" }}>
-              "It has been a true honour to serve you during your stay. The 2Ghost Hotel was built for moments like this one — when two souls find each other in the dark. We wish you every joy. Your profile will show <span style={{ color: accent.accentMid, fontWeight: 800, fontStyle: "normal" }}>Found their person 💛</span> for 48 hours — a quiet tribute to what was found here."
+              "It has been a true honour to serve you during your stay. The Mr. Butlas was built for moments like this one — when two souls find each other in the dark. We wish you every joy. Your profile will show <span style={{ color: accent.accentMid, fontWeight: 800, fontStyle: "normal" }}>Found their person 💛</span> for 48 hours — a quiet tribute to what was found here."
             </p>
           </div>
 
@@ -136,11 +136,11 @@ function PathWithMatch({ stats, accent, onDone }: { stats: HotelStayStats; accen
           </motion.div>
           <p style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 900, color: "#fff" }}>Safe travels</p>
           <p style={{ margin: "0 0 28px", fontSize: 14, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, maxWidth: 300 }}>
-            The 2Ghost Hotel doors are always open. Come back anytime — your memories stay with us for 90 days.
+            The Mr. Butlas doors are always open. Come back anytime — your memories stay with us for 90 days.
           </p>
           <motion.button whileTap={{ scale: 0.97 }} onClick={onDone}
             style={{ height: 50, width: "100%", borderRadius: 16, background: accent.gradient, border: "none", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" }}>
-            Back to 2Ghost
+            Back to Mr. Butlas
           </motion.button>
         </motion.div>
       )}
@@ -161,49 +161,89 @@ function PathWithoutMatch({ stats, accent, onDone }: { stats: HotelStayStats; ac
     <AnimatePresence mode="wait">
       {step === "butler" && (
         <motion.div key="butler"
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-          style={{ display: "flex", flexDirection: "column" }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          style={{ position: "fixed", inset: 0, zIndex: 500, display: "flex", flexDirection: "column" }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-            <img src={BUTLER_IMG} alt="Butler" style={{ width: 60, height: 60, borderRadius: 15, objectFit: "cover", border: `2px solid ${accent.glow(0.4)}`, flexShrink: 0 }} />
-            <div>
-              <p style={{ margin: 0, fontSize: 11, color: accent.accentMid, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Butler Advice</p>
-              <p style={{ margin: "3px 0 0", fontSize: 17, fontWeight: 900, color: "#fff", lineHeight: 1.3 }}>Not every stay ends with a match.</p>
+          {/* Full-screen background image */}
+          <img
+            src="https://ik.imagekit.io/7grri5v7d/fsfsdfs.png"
+            alt=""
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+          />
+          {/* Gradient — bottom heavy so content is readable */}
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.1) 100%)" }} />
+
+          {/* ── Bottom glass content ── */}
+          <div style={{
+            position: "absolute", bottom: 0, left: 0, right: 0,
+            maxHeight: "75dvh",
+            display: "flex", flexDirection: "column",
+            padding: "0 0 max(28px, env(safe-area-inset-bottom, 28px))",
+            zIndex: 3,
+          }}>
+            {/* Glass farewell card — scrollable */}
+            <div style={{
+              margin: "0 16px 16px",
+              background: "rgba(6,6,14,0.52)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              borderRadius: 22,
+              border: "1px solid rgba(255,255,255,0.14)",
+              boxShadow: "0 8px 40px rgba(0,0,0,0.6)",
+              display: "flex", flexDirection: "column",
+              overflow: "hidden",
+              flex: 1, minHeight: 0,
+            }}>
+              {/* Scrollable text area */}
+              <div style={{ overflowY: "auto", padding: "20px 20px 16px", scrollbarWidth: "none" }}>
+                <p style={{ margin: "0 0 12px", fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.18em" }}>
+                  A Farewell from Mr. Butlas
+                </p>
+                {[
+                  "Not every stay ends with a match — and that is not a failure. Within these halls, I have witnessed your patience, your courage, and the quiet hope you carried with you each day.",
+                  "Some connections are not meant to be found here, not because they do not exist… but because they are waiting beyond these walls, in a moment not yet ready to reveal itself.",
+                  "Be patient… what is meant for you will never pass you by.",
+                  "Do not mistake this departure for an ending. It is merely a continuation — a step closer to the one who will recognise you without hesitation.",
+                  "You arrived as a guest, but you leave as something more: someone who dared to seek something real.",
+                  "And for that, you have my deepest respect.",
+                  "Should fate be kind, our doors will welcome you again.\nUntil then… travel well, and trust that your story is still unfolding.",
+                ].map((para, i) => (
+                  <p key={i} style={{ margin: "0 0 14px", fontSize: 12.5, color: "rgba(255,255,255,0.88)", lineHeight: 1.85, fontStyle: "italic", whiteSpace: "pre-line" }}>
+                    {i === 0 ? `"${para}` : para}{i === 6 ? `"` : ""}
+                  </p>
+                ))}
+                <p style={{ margin: "4px 0 0", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.55)", fontStyle: "normal", letterSpacing: "0.04em" }}>
+                  — Mr. Butlas
+                </p>
+              </div>
+              {/* Stay stats — pinned to bottom of card */}
+              <div style={{ flexShrink: 0, display: "flex", justifyContent: "space-around", padding: "12px 16px 16px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                {[
+                  { label: "Duration",   val: formatStayDuration(stats.joinedAt) },
+                  { label: "Floors",     val: stats.floorsVisited.length || 1 },
+                  { label: "Matches",    val: stats.matchCount },
+                  { label: "Breakfasts", val: stats.breakfastInvitesAccepted },
+                ].map(({ label, val }) => (
+                  <div key={label} style={{ textAlign: "center" }}>
+                    <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#fff" }}>{val}</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 9, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ padding: "0 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+              <motion.button whileTap={{ scale: 0.97 }} onClick={() => setStep("card")}
+                style={{ height: 52, borderRadius: 16, background: accent.gradient, border: "none", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" }}>
+                Leave a calling card →
+              </motion.button>
+              <button onClick={() => { performCheckout("without_match"); setStep("done"); }}
+                style={{ height: 44, borderRadius: 14, background: "rgba(0,0,0,0.35)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.45)", fontSize: 13, cursor: "pointer" }}>
+                Skip — check out quietly
+              </button>
             </div>
           </div>
-
-          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "16px 18px", marginBottom: 20 }}>
-            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.8, fontStyle: "italic" }}>
-              "Not every stay ends with a match — and that is not a failure. The house sees your patience, your presence, and your openness. Sometimes the right person arrives the morning after you leave. That is why we offer you two gifts before you go: a <span style={{ color: accent.accentMid, fontWeight: 800, fontStyle: "normal" }}>Calling Card</span> that stays in the hotel for 30 days, and the option to let your profile sleep quietly — waking only when a genuine match arrives."
-            </p>
-          </div>
-
-          {/* Stay summary — compact */}
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, padding: "12px 16px", marginBottom: 24 }}>
-            <p style={{ margin: "0 0 8px", fontSize: 10, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700 }}>Your time here</p>
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-              {[
-                { label: "Duration", val: formatStayDuration(stats.joinedAt) },
-                { label: "Floors", val: stats.floorsVisited.length || 1 },
-                { label: "Matches", val: stats.matchCount },
-                { label: "Breakfasts", val: stats.breakfastInvitesAccepted },
-              ].map(({ label, val }) => (
-                <div key={label} style={{ textAlign: "center" }}>
-                  <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff" }}>{val}</p>
-                  <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <motion.button whileTap={{ scale: 0.97 }} onClick={() => setStep("card")}
-            style={{ height: 52, borderRadius: 16, background: accent.gradient, border: "none", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", marginBottom: 10 }}>
-            Leave a calling card →
-          </motion.button>
-          <button onClick={() => { performCheckout("without_match"); setStep("done"); }}
-            style={{ height: 44, borderRadius: 14, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.35)", fontSize: 13, cursor: "pointer" }}>
-            Skip — check out quietly
-          </button>
         </motion.div>
       )}
 
@@ -364,7 +404,7 @@ function PathWithoutMatch({ stats, accent, onDone }: { stats: HotelStayStats; ac
           >
             🌙
           </motion.div>
-          <p style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 900, color: "#fff" }}>Goodnight, Ghost.</p>
+          <p style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 900, color: "#fff" }}>Goodnight, Guest.</p>
           <p style={{ margin: "0 0 8px", fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 300 }}>
             Your profile is sleeping. Your calling card is on the concierge desk. Your room is held.
           </p>
@@ -379,7 +419,7 @@ function PathWithoutMatch({ stats, accent, onDone }: { stats: HotelStayStats; ac
           )}
           <motion.button whileTap={{ scale: 0.97 }} onClick={onDone}
             style={{ height: 50, width: "100%", borderRadius: 16, background: accent.gradient, border: "none", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" }}>
-            Back to 2Ghost
+            Back to Mr. Butlas
           </motion.button>
         </motion.div>
       )}
@@ -413,7 +453,7 @@ export default function HotelCheckoutPage() {
       {/* Header bar */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
         <div style={{ flex: 1 }}>
-          <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700 }}>2Ghost Hotel</p>
+          <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700 }}>Mr. Butlas</p>
           <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#fff" }}>Check Out</p>
         </div>
         <button onClick={() => navigate("/ghost")}
@@ -437,7 +477,7 @@ export default function HotelCheckoutPage() {
                 <img src={BUTLER_IMG} alt="Butler" style={{ width: 64, height: 64, borderRadius: 16, objectFit: "cover", border: `2px solid ${a.glow(0.35)}`, flexShrink: 0 }} />
                 <div>
                   <p style={{ margin: 0, fontSize: 11, color: a.accentMid, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Your butler</p>
-                  <p style={{ margin: "4px 0 0", fontSize: 17, fontWeight: 900, color: "#fff", lineHeight: 1.3 }}>Checking out of the 2Ghost Hotel?</p>
+                  <p style={{ margin: "4px 0 0", fontSize: 17, fontWeight: 900, color: "#fff", lineHeight: 1.3 }}>Checking out of the Mr. Butlas?</p>
                   <p style={{ margin: "8px 0 0", fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
                     "Before you go, I'd like to know — are you leaving because you found someone, or are you stepping away for now?"
                   </p>

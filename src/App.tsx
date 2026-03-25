@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, ComponentType } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./i18n/LanguageContext";
 import AnalyticsTracker from "./features/analytics/AnalyticsTracker";
@@ -10,6 +10,7 @@ function lazyWithRetry<T extends { default: any }>(factory: () => Promise<T>) {
   return lazy(() => factory().catch(() => factory()));
 }
 
+const GhostWelcomePage  = lazyWithRetry(() => import("./features/ghost/pages/GhostWelcomePage"));
 const GhostLandingPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostLandingPage"));
 const GhostGatewayPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostGatewayPage"));
 const GhostAuthPage     = lazyWithRetry(() => import("./features/ghost/pages/GhostAuthPage"));
@@ -27,12 +28,7 @@ const GhostRoomsPage           = lazyWithRetry(() => import("./features/ghost/pa
 const PenthouseFloorPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseFloorPage"));
 const LoftFloorPage            = lazyWithRetry(() => import("./features/ghost/pages/LoftFloorPage"));
 const CellarFloorPage          = lazyWithRetry(() => import("./features/ghost/pages/CellarFloorPage"));
-const FloorHomePage            = lazyWithRetry(() => import("./features/ghost/pages/FloorHomePage"));
-const SuiteRoomPage            = lazyWithRetry(() => import("./features/ghost/pages/SuiteRoomPage"));
-const CasinoFloorPage          = lazyWithRetry(() => import("./features/ghost/components/casino/CasinoFloorPage"));
-const PenthouseRoomPage        = lazyWithRetry(() => import("./features/ghost/pages/PenthouseRoomPage"));
-const LoftRoomPage             = lazyWithRetry(() => import("./features/ghost/pages/LoftRoomPage"));
-const CellarRoomPage           = lazyWithRetry(() => import("./features/ghost/pages/CellarRoomPage"));
+const FloorRoomPage            = lazyWithRetry(() => import("./features/ghost/pages/FloorRoomPage")) as ComponentType<{ tier: "cellar" | "loft" | "suite" | "penthouse" | "standard" | "garden" | "kings" }>;
 const GhostHowItWorksPage      = lazyWithRetry(() => import("./features/ghost/pages/GhostHowItWorksPage"));
 const PenthouseApplyPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseApplyPage"));
 const PenthouseVaultPage       = lazyWithRetry(() => import("./features/ghost/pages/PenthouseVaultPage"));
@@ -118,12 +114,13 @@ export default function App() {
           <Route path="/ghost/penthouse/vault/:matchId" element={<PenthouseVaultPage />} />
           <Route path="/ghost/loft"                   element={<LoftFloorPage />} />
           <Route path="/ghost/cellar"                 element={<CellarFloorPage />} />
-          <Route path="/ghost/floor/suite"             element={<SuiteRoomPage />} />
-          <Route path="/ghost/floor/kings"            element={<CasinoFloorPage />} />
-          <Route path="/ghost/floor/penthouse-floor"  element={<PenthouseRoomPage />} />
-          <Route path="/ghost/floor/loft-floor"       element={<LoftRoomPage />} />
-          <Route path="/ghost/floor/cellar-floor"     element={<CellarRoomPage />} />
-          <Route path="/ghost/floor/:tier"            element={<FloorHomePage />} />
+          <Route path="/ghost/floor/suite"             element={<FloorRoomPage tier="suite" />} />
+          <Route path="/ghost/floor/kings"            element={<FloorRoomPage tier="kings" />} />
+          <Route path="/ghost/floor/penthouse-floor"  element={<FloorRoomPage tier="penthouse" />} />
+          <Route path="/ghost/floor/loft-floor"       element={<FloorRoomPage tier="loft" />} />
+          <Route path="/ghost/floor/cellar-floor"     element={<FloorRoomPage tier="cellar" />} />
+          <Route path="/ghost/floor/standard"         element={<FloorRoomPage tier="standard" />} />
+          <Route path="/ghost/floor/garden"           element={<FloorRoomPage tier="garden" />} />
           <Route path="/ghost/how-it-works"           element={<GhostHowItWorksPage />} />
           <Route path="/hotel-rules"                 element={<HotelRulesPage />} />
           <Route path="/ghost/checkout"              element={<HotelCheckoutPage />} />
@@ -155,7 +152,8 @@ export default function App() {
             <Route path="activities" element={<AdminActivitiesPage />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/ghost" replace />} />
+          <Route path="/ghost/welcome" element={<GhostWelcomePage />} />
+          <Route path="*" element={<Navigate to="/ghost/welcome" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

@@ -922,10 +922,8 @@ export default function GhostCard({
   const cardRef = useRef<HTMLDivElement>(null);
 
   const isVerified  = profile.isVerified || profile.faceVerified || isFaceVerifiedSeeded(profile.id);
-  const heartColor  = profile.gender === "Female" ? "#f472b6" : "#ef4444";
-  const genderColor = profile.gender === "Female"
-    ? { ring: "rgba(244,114,182,0.85)", glow: "rgba(244,114,182,0.4)" }
-    : { ring: "rgba(74,222,128,0.85)",  glow: "rgba(74,222,128,0.4)" };
+  const heartColor  = "#e01010";
+  const genderColor = { ring: "rgba(220,20,20,0.85)", glow: "rgba(220,20,20,0.4)" };
 
   // Floating hearts
   const heartIdRef = useRef(0);

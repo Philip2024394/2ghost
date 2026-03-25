@@ -43,7 +43,7 @@ export default function HouseRulesModal({ show, onAccept }: Props) {
                 {/* Text */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h1 style={{ fontSize: 20, fontWeight: 900, margin: "0 0 8px", letterSpacing: "-0.02em", lineHeight: 1.2, background: `linear-gradient(135deg, #fff 40%, ${a.accent})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                    Welcome To 2Ghost Hotel
+                    Welcome To Hearts Way Hotel
                   </h1>
                   <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.65 }}>
                     Within these walls, you are free to be whoever you are —{" "}
@@ -58,7 +58,7 @@ export default function HouseRulesModal({ show, onAccept }: Props) {
                     width: 220, height: 280,
                     objectFit: "contain",
                     flexShrink: 0,
-                    filter: `drop-shadow(0 0 14px ${a.glow(0.5)})`,
+                    filter: "drop-shadow(0 0 18px rgba(255,255,255,0.55)) drop-shadow(0 0 6px rgba(255,255,255,0.3))",
                     pointerEvents: "none",
                     marginBottom: -98,
                     marginRight: -22,

@@ -199,10 +199,9 @@ export default function KingsRoomPage() {
         <div style={{ padding: "0 16px 6px", display: "flex", alignItems: "center", gap: 10 }}>
           {/* Logo + name */}
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
-            <img src={GHOST_LOGO} alt="2Ghost" style={{ width: 52, height: 52, objectFit: "contain" }} />
             <div>
               <h1 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
-                <span style={{ color: C, fontWeight: 900 }}>2</span>Ghost
+                Mr Butlas
               </h1>
               <p style={{ margin: 0, fontSize: 9, fontWeight: 700, color: C, letterSpacing: "0.1em", textTransform: "uppercase" }}>
                 The Casino 👑
