@@ -591,34 +591,59 @@ export async function updateGhostProfile(
     .eq("ghost_id", ghostId);
 }
 
-/** Approve a video verification — marks user as face_verified and sets status = verified. */
-export async function approveGhostVerification(ghostId: string): Promise<void> {
-  if (!ghostId || !isConnected()) return;
-  await ghostSupabase
-    .from("ghost_profiles")
-    .update({ verification_status: "verified", face_verified: true, updated_at: new Date().toISOString() })
-    .eq("ghost_id", ghostId);
-  // Delete the verification video from storage to save space
+/** Deletes a verification video from Supabase Storage given its public URL. */
+async function deleteVerificationVideo(videoUrl: string | null | undefined): Promise<void> {
+  if (!videoUrl) return;
   try {
-    const { data: profile } = await ghostSupabase
-      .from("ghost_profiles")
-      .select("verification_video_url")
-      .eq("ghost_id", ghostId)
-      .maybeSingle();
-    if (profile?.verification_video_url) {
-      const path = profile.verification_video_url.split("/ghost-videos/").pop();
-      if (path) await ghostSupabase.storage.from("ghost-videos").remove([path]);
-    }
+    // URL format: .../storage/v1/object/public/ghost-videos/verify/<ghostId>.webm
+    const path = videoUrl.split("/ghost-videos/").pop();
+    if (path) await ghostSupabase.storage.from("ghost-videos").remove([path]);
   } catch {}
 }
 
-/** Reject a video verification — marks status = rejected. */
-export async function rejectGhostVerification(ghostId: string): Promise<void> {
+/** Approve a video verification — marks face_verified, clears video from DB and Storage. */
+export async function approveGhostVerification(ghostId: string): Promise<void> {
   if (!ghostId || !isConnected()) return;
+  // 1. Fetch video URL before clearing it
+  const { data: profile } = await ghostSupabase
+    .from("ghost_profiles")
+    .select("verification_video_url")
+    .eq("ghost_id", ghostId)
+    .maybeSingle();
+  // 2. Mark as verified and clear the video URL in DB
   await ghostSupabase
     .from("ghost_profiles")
-    .update({ verification_status: "rejected", verification_video_url: null, updated_at: new Date().toISOString() })
+    .update({
+      verification_status: "verified",
+      face_verified: true,
+      verification_video_url: null,
+      updated_at: new Date().toISOString(),
+    })
     .eq("ghost_id", ghostId);
+  // 3. Delete the file from Supabase Storage
+  await deleteVerificationVideo(profile?.verification_video_url);
+}
+
+/** Reject a video verification — marks status = rejected, deletes video from DB and Storage. */
+export async function rejectGhostVerification(ghostId: string): Promise<void> {
+  if (!ghostId || !isConnected()) return;
+  // 1. Fetch video URL before clearing it
+  const { data: profile } = await ghostSupabase
+    .from("ghost_profiles")
+    .select("verification_video_url")
+    .eq("ghost_id", ghostId)
+    .maybeSingle();
+  // 2. Mark as rejected and clear URL in DB
+  await ghostSupabase
+    .from("ghost_profiles")
+    .update({
+      verification_status: "rejected",
+      verification_video_url: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("ghost_id", ghostId);
+  // 3. Delete the file from Supabase Storage
+  await deleteVerificationVideo(profile?.verification_video_url);
 }
 
 /** Fetch all profiles with verification_status = pending (for admin review queue). */
