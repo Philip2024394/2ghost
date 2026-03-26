@@ -719,3 +719,38 @@ export async function fetchStripeStats(): Promise<StripeRevenueStats> {
     arpu:              totalTxn > 0 ? Number((totalRev / totalTxn).toFixed(2)) : 0,
   };
 }
+
+// ── Per-user purchase history ──────────────────────────────────────────────────
+
+export interface UserPurchaseRow {
+  id: string;
+  pkg: string;
+  amount: string;
+  date: string;
+  status: "paid" | "failed" | "refunded";
+}
+
+const MOCK_PURCHASES: UserPurchaseRow[] = [
+  { id: "TXN-A1B2C3", pkg: "Gold Room",   amount: "$9.99", date: "Mar 15, 2026", status: "paid"     },
+  { id: "TXN-D4E5F6", pkg: "Ghost Suite", amount: "$4.99", date: "Feb 1, 2026",  status: "paid"     },
+  { id: "TXN-G7H8I9", pkg: "Gold Room",   amount: "$9.99", date: "Jan 3, 2026",  status: "refunded" },
+];
+
+export async function fetchUserPurchases(ghostId: string): Promise<UserPurchaseRow[]> {
+  if (!ghostId || ghostId.startsWith("mock-")) return MOCK_PURCHASES;
+  if (!isConnected()) return MOCK_PURCHASES;
+  const { data } = await ghostSupabase
+    .from("ghost_payments")
+    .select("id, package, amount_usd, status, created_at")
+    .eq("ghost_id", ghostId)
+    .order("created_at", { ascending: false })
+    .limit(30);
+  if (!data || data.length === 0) return [];
+  return data.map((r: any) => ({
+    id:     `TXN-${r.id.slice(0, 6).toUpperCase()}`,
+    pkg:    r.package === "gold" ? "Gold Room" : "Ghost Suite",
+    amount: `$${Number(r.amount_usd).toFixed(2)}`,
+    date:   fmtDate(r.created_at),
+    status: (r.status === "paid" || r.status === "refunded" ? r.status : "failed") as UserPurchaseRow["status"],
+  }));
+}
