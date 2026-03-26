@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import {
   LayoutDashboard, Users, CreditCard, Wrench,
   Ghost, LogOut, UserCheck, ChevronRight, ClipboardList, Activity, BarChart2,
-  Monitor, X, RefreshCw, ExternalLink, Smartphone, ShieldCheck, Gift, Sparkles,
+  Monitor, X, RefreshCw, ExternalLink, Smartphone, ShieldCheck, Gift, Sparkles, TrendingUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { isAdminAuthenticated, adminLogout } from "./adminAuth";
@@ -19,6 +19,7 @@ const NAV = [
   { path: "/admin/users",     label: "Real Users",     icon: UserCheck       },
   { path: "/admin/control",  label: "User Control",   icon: ShieldCheck     },
   { path: "/admin/payments",  label: "Payments",       icon: CreditCard      },
+  { path: "/admin/stripe",    label: "Stripe Revenue", icon: TrendingUp      },
   { path: "/admin/services",  label: "Butler Services",icon: Wrench          },
   { path: "/admin/gifts",      label: "Floor Gifts",    icon: Gift            },
   { path: "/admin/activities", label: "Social Activities", icon: Sparkles       },

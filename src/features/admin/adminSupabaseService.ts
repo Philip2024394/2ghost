@@ -55,6 +55,7 @@ export interface TransactionRow {
 
 export interface UserRow {
   id: string;
+  ghostId: string;   // real ghost_id from ghost_profiles — use this for Supabase mutations
   name: string;
   phone: string;
   city: string;
@@ -63,6 +64,16 @@ export interface UserRow {
   joined: string;
   lastActive: string;
   gender: string;
+  verificationStatus?: "none" | "pending" | "verified" | "rejected";
+  verificationVideoUrl?: string;
+}
+
+export interface PendingVerificationRow {
+  ghostId: string;
+  name: string;
+  country: string;
+  videoUrl: string;
+  submittedAt: string;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -161,13 +172,13 @@ export async function fetchUsers(): Promise<UserRow[]> {
   if (!isConnected()) return MOCK_REAL_USERS;
   const { data } = await ghostSupabase
     .from("ghost_profiles")
-    .select("ghost_id, display_name, connect_phone, city, country, country_flag, house_tier, joined_at, last_seen_at, gender")
-    .eq("is_blocked", false)
+    .select("ghost_id, display_name, connect_phone, city, country, country_flag, house_tier, joined_at, last_seen_at, gender, verification_status, verification_video_url")
     .order("joined_at", { ascending: false })
     .limit(200);
   if (!data || data.length === 0) return MOCK_REAL_USERS;
   return data.map((r: any, i: number) => ({
     id: `USR-${String(i + 1).padStart(3, "0")}`,
+    ghostId: r.ghost_id || "",
     name: r.display_name || "Unknown",
     phone: r.connect_phone ? r.connect_phone.replace(/(\d{3})\d+(\d{3})/, "$1 *** $2") : "—",
     city: r.city || "—",
@@ -176,6 +187,8 @@ export async function fetchUsers(): Promise<UserRow[]> {
     joined: r.joined_at ? fmtDate(r.joined_at) : "—",
     lastActive: r.last_seen_at ? timeAgo(r.last_seen_at) : "—",
     gender: r.gender || "—",
+    verificationStatus: r.verification_status || "none",
+    verificationVideoUrl: r.verification_video_url || undefined,
   }));
 }
 
@@ -535,4 +548,149 @@ export function isButlerBroadcastDismissed(id: string): boolean {
     const dismissed: string[] = JSON.parse(localStorage.getItem("admin_butler_dismissed") || "[]");
     return dismissed.includes(id);
   } catch { return false; }
+}
+
+// ── Admin: User control (Supabase-persisted) ───────────────────────────────────
+
+/** Ban or unban a ghost user. Sets is_blocked on ghost_profiles. */
+export async function banGhostUser(ghostId: string, ban: boolean): Promise<void> {
+  if (!ghostId || !isConnected()) return;
+  await ghostSupabase
+    .from("ghost_profiles")
+    .update({ is_blocked: ban, updated_at: new Date().toISOString() })
+    .eq("ghost_id", ghostId);
+}
+
+/** Set coin balance directly (admin override). */
+export async function setGhostCoins(ghostId: string, coins: number): Promise<void> {
+  if (!ghostId || !isConnected()) return;
+  await ghostSupabase
+    .from("ghost_profiles")
+    .update({ coin_balance: coins, updated_at: new Date().toISOString() })
+    .eq("ghost_id", ghostId);
+}
+
+/** Override subscription tier (house_tier). */
+export async function setGhostTier(ghostId: string, tier: string): Promise<void> {
+  if (!ghostId || !isConnected()) return;
+  await ghostSupabase
+    .from("ghost_profiles")
+    .update({ house_tier: tier, updated_at: new Date().toISOString() })
+    .eq("ghost_id", ghostId);
+}
+
+/** Update display name and/or city (admin edit). */
+export async function updateGhostProfile(
+  ghostId: string,
+  updates: { display_name?: string; city?: string },
+): Promise<void> {
+  if (!ghostId || !isConnected()) return;
+  await ghostSupabase
+    .from("ghost_profiles")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("ghost_id", ghostId);
+}
+
+/** Approve a video verification — marks user as face_verified and sets status = verified. */
+export async function approveGhostVerification(ghostId: string): Promise<void> {
+  if (!ghostId || !isConnected()) return;
+  await ghostSupabase
+    .from("ghost_profiles")
+    .update({ verification_status: "verified", face_verified: true, updated_at: new Date().toISOString() })
+    .eq("ghost_id", ghostId);
+  // Delete the verification video from storage to save space
+  try {
+    const { data: profile } = await ghostSupabase
+      .from("ghost_profiles")
+      .select("verification_video_url")
+      .eq("ghost_id", ghostId)
+      .maybeSingle();
+    if (profile?.verification_video_url) {
+      const path = profile.verification_video_url.split("/ghost-videos/").pop();
+      if (path) await ghostSupabase.storage.from("ghost-videos").remove([path]);
+    }
+  } catch {}
+}
+
+/** Reject a video verification — marks status = rejected. */
+export async function rejectGhostVerification(ghostId: string): Promise<void> {
+  if (!ghostId || !isConnected()) return;
+  await ghostSupabase
+    .from("ghost_profiles")
+    .update({ verification_status: "rejected", verification_video_url: null, updated_at: new Date().toISOString() })
+    .eq("ghost_id", ghostId);
+}
+
+/** Fetch all profiles with verification_status = pending (for admin review queue). */
+export async function fetchPendingVerifications(): Promise<PendingVerificationRow[]> {
+  if (!isConnected()) return [];
+  const { data } = await ghostSupabase
+    .from("ghost_profiles")
+    .select("ghost_id, display_name, country_flag, verification_video_url, updated_at")
+    .eq("verification_status", "pending")
+    .order("updated_at", { ascending: true })
+    .limit(50);
+  if (!data) return [];
+  return data.map((r: any) => ({
+    ghostId: r.ghost_id,
+    name: r.display_name || "Unknown",
+    country: r.country_flag || "🌍",
+    videoUrl: r.verification_video_url || "",
+    submittedAt: r.updated_at || "",
+  }));
+}
+
+// ── Admin: Stripe / Payments ───────────────────────────────────────────────────
+
+export interface StripeRevenueStats {
+  totalRevenue: number;
+  thisMonthRevenue: number;
+  lastMonthRevenue: number;
+  totalTransactions: number;
+  failedCount: number;
+  refundedCount: number;
+  goldCount: number;
+  suiteCount: number;
+  arpu: number;
+}
+
+export async function fetchStripeStats(): Promise<StripeRevenueStats> {
+  if (!isConnected()) {
+    return {
+      totalRevenue: 4872.50, thisMonthRevenue: 1243.80, lastMonthRevenue: 987.40,
+      totalTransactions: 318, failedCount: 12, refundedCount: 4,
+      goldCount: 187, suiteCount: 131, arpu: 8.42,
+    };
+  }
+  const now      = new Date();
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+
+  const [allPaid, thisMonth, lastMonth, failed, refunded] = await Promise.all([
+    ghostSupabase.from("ghost_payments").select("amount_usd, package").eq("status", "paid"),
+    ghostSupabase.from("ghost_payments").select("amount_usd").eq("status", "paid").gte("created_at", thisMonthStart),
+    ghostSupabase.from("ghost_payments").select("amount_usd").eq("status", "paid").gte("created_at", lastMonthStart).lt("created_at", thisMonthStart),
+    ghostSupabase.from("ghost_payments").select("id", { count: "exact" }).eq("status", "failed"),
+    ghostSupabase.from("ghost_payments").select("id", { count: "exact" }).eq("status", "refunded"),
+  ]);
+
+  const paidRows   = allPaid.data || [];
+  const totalRev   = paidRows.reduce((s: number, r: any) => s + Number(r.amount_usd), 0);
+  const thisMRev   = (thisMonth.data || []).reduce((s: number, r: any) => s + Number(r.amount_usd), 0);
+  const lastMRev   = (lastMonth.data || []).reduce((s: number, r: any) => s + Number(r.amount_usd), 0);
+  const goldCount  = paidRows.filter((r: any) => r.package === "gold").length;
+  const suiteCount = paidRows.filter((r: any) => r.package === "suite").length;
+  const totalTxn   = paidRows.length;
+
+  return {
+    totalRevenue:      totalRev,
+    thisMonthRevenue:  thisMRev,
+    lastMonthRevenue:  lastMRev,
+    totalTransactions: totalTxn,
+    failedCount:       failed.count ?? 0,
+    refundedCount:     refunded.count ?? 0,
+    goldCount,
+    suiteCount,
+    arpu:              totalTxn > 0 ? Number((totalRev / totalTxn).toFixed(2)) : 0,
+  };
 }

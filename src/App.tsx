@@ -58,7 +58,8 @@ const AdminLayout       = lazyWithRetry(() => import("./features/admin/AdminLayo
 const AdminOverviewPage = lazyWithRetry(() => import("./features/admin/pages/AdminOverviewPage"));
 const AdminProfilesPage = lazyWithRetry(() => import("./features/admin/pages/AdminProfilesPage"));
 const AdminUsersPage    = lazyWithRetry(() => import("./features/admin/pages/AdminUsersPage"));
-const AdminPaymentsPage = lazyWithRetry(() => import("./features/admin/pages/AdminPaymentsPage"));
+const AdminPaymentsPage     = lazyWithRetry(() => import("./features/admin/pages/AdminPaymentsPage"));
+const AdminStripeReportPage = lazyWithRetry(() => import("./features/admin/pages/AdminStripeReportPage"));
 const AdminServicesPage = lazyWithRetry(() => import("./features/admin/pages/AdminServicesPage"));
 const AdminTasksPage    = lazyWithRetry(() => import("./features/admin/pages/AdminTasksPage"));
 const AdminHealthPage   = lazyWithRetry(() => import("./features/admin/pages/AdminHealthPage"));
@@ -172,6 +173,7 @@ export default function App() {
             <Route path="profiles"  element={<AdminProfilesPage />} />
             <Route path="users"     element={<AdminUsersPage />} />
             <Route path="payments"  element={<AdminPaymentsPage />} />
+            <Route path="stripe"    element={<AdminStripeReportPage />} />
             <Route path="services"  element={<AdminServicesPage />} />
             <Route path="control"   element={<AdminUserControlPage />} />
             <Route path="gifts"      element={<AdminGiftsPage />} />

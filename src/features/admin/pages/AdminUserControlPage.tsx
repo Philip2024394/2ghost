@@ -5,7 +5,12 @@ import {
   MessageSquare, Lock, User, AlertTriangle, Trash2, Coins,
   ChevronDown, Eye, EyeOff, Save, RotateCcw, Camera, Send, Radio,
 } from "lucide-react";
-import { fetchUsers, UserRow, sendButlerMessage } from "../adminSupabaseService";
+import {
+  fetchUsers, UserRow, sendButlerMessage,
+  banGhostUser, setGhostCoins, setGhostTier, updateGhostProfile,
+  approveGhostVerification, rejectGhostVerification, fetchPendingVerifications,
+  PendingVerificationRow,
+} from "../adminSupabaseService";
 
 // ── Persistent ban/block/edit store (localStorage) ───────────────────────────
 const BANS_KEY      = "admin_bans";
@@ -240,7 +245,7 @@ export default function AdminUserControlPage() {
   const [tierF, setTierF]       = useState("all");
   const [statusF, setStatusF]   = useState<"all" | "active" | "banned" | "blocked">("all");
   const [selected, setSelected] = useState<UserRow | null>(null);
-  const [tab, setTab]           = useState<"profile" | "vault" | "chats" | "butler" | "actions" | "dateideas" | "reports">("profile");
+  const [tab, setTab]           = useState<"profile" | "vault" | "chats" | "butler" | "actions" | "dateideas" | "reports" | "verify">("profile");
   const [editing, setEditing]   = useState(false);
 
   // ── Butler messaging state ─────────────────────────────────────────────────
@@ -255,6 +260,10 @@ export default function AdminUserControlPage() {
   const [broadcastExpiry, setBroadcastExpiry] = useState(24);
   const [broadcastSending, setBroadcastSending] = useState(false);
   const [broadcastSent, setBroadcastSent]   = useState(false);
+
+  // ── Verification queue state ────────────────────────────────────────────────
+  const [pendingVerify, setPendingVerify]       = useState<PendingVerificationRow[]>([]);
+  const [verifyAction, setVerifyAction]         = useState<Record<string, "approving" | "rejecting" | "done">>({});
 
   // Persistent state
   const [bans,      setBans]      = useState<Record<string, boolean>>(() => loadJSON(BANS_KEY, {}));
@@ -273,8 +282,9 @@ export default function AdminUserControlPage() {
 
   const load = async () => {
     setLoading(true);
-    const u = await fetchUsers();
+    const [u, pv] = await Promise.all([fetchUsers(), fetchPendingVerifications()]);
     setUsers(u);
+    setPendingVerify(pv);
     setLoading(false);
   };
 
@@ -282,18 +292,22 @@ export default function AdminUserControlPage() {
 
   const persist = useCallback((key: string, val: unknown) => saveJSON(key, val), []);
 
-  const toggleBan = (id: string) => {
+  const toggleBan = (id: string, ghostId?: string) => {
     const next = { ...bans, [id]: !bans[id] };
     if (!next[id]) delete next[id];
     setBans(next);
     persist(BANS_KEY, next);
+    // Persist to Supabase (ghostId = real profile id)
+    if (ghostId) banGhostUser(ghostId, !!next[id]);
   };
 
-  const toggleBlock = (id: string) => {
+  const toggleBlock = (id: string, ghostId?: string) => {
     const next = { ...blocks, [id]: !blocks[id] };
     if (!next[id]) delete next[id];
     setBlocks(next);
     persist(BLOCKS_KEY, next);
+    // Block = soft ban (is_blocked) — same field in Supabase
+    if (ghostId) banGhostUser(ghostId, !!next[id]);
   };
 
   const toggleDismiss = (id: string) => {
@@ -330,6 +344,15 @@ export default function AdminUserControlPage() {
     const all = { ...edits, [selected.id]: next };
     setEdits(all);
     persist(EDITS_KEY, all);
+    // Persist to Supabase
+    if (selected.ghostId) {
+      updateGhostProfile(selected.ghostId, {
+        display_name: next.name,
+        city: next.city,
+      });
+      if (next.tier) setGhostTier(selected.ghostId, next.tier);
+      if (next.coins !== undefined) setGhostCoins(selected.ghostId, next.coins);
+    }
     setSaved(true);
     setTimeout(() => { setSaved(false); setEditing(false); }, 900);
   };
@@ -374,7 +397,8 @@ export default function AdminUserControlPage() {
             <div>
               <h1 style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>User Control</h1>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0 }}>
-                {users.length} users · {Object.keys(bans).length} banned · {Object.keys(blocks).length} blocked · {Object.keys(dismissed).length} no portrait
+                {users.length} users · {Object.keys(bans).length} banned · {Object.keys(blocks).length} blocked
+                {pendingVerify.length > 0 && <span style={{ color: "#d4af37", fontWeight: 700 }}> · {pendingVerify.length} verify pending</span>}
               </p>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
@@ -465,14 +489,14 @@ export default function AdminUserControlPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
                   <span style={{ fontSize: 9, fontWeight: 800, borderRadius: 5, padding: "2px 6px", background: statusBg(st), color: statusColor(st), textTransform: "uppercase", letterSpacing: "0.06em" }}>{st}</span>
                   <button
-                    onClick={(e) => { e.stopPropagation(); toggleBan(u.id); }}
+                    onClick={(e) => { e.stopPropagation(); toggleBan(u.id, u.ghostId); }}
                     title={bans[u.id] ? "Unban" : "Ban"}
                     style={{ width: 28, height: 28, borderRadius: 7, border: "none", background: bans[u.id] ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.05)", color: bans[u.id] ? "#ef4444" : "rgba(255,255,255,0.3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                   >
                     <Ban size={12} />
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); toggleBlock(u.id); }}
+                    onClick={(e) => { e.stopPropagation(); toggleBlock(u.id, u.ghostId); }}
                     title={blocks[u.id] ? "Unblock" : "Block"}
                     style={{ width: 28, height: 28, borderRadius: 7, border: "none", background: blocks[u.id] ? "rgba(245,158,11,0.15)" : "rgba(255,255,255,0.05)", color: blocks[u.id] ? "#f59e0b" : "rgba(255,255,255,0.3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                   >
@@ -532,9 +556,10 @@ export default function AdminUserControlPage() {
 
               {/* Tabs */}
               <div style={{ display: "flex", gap: 2, borderBottom: "1px solid rgba(255,255,255,0.07)", paddingBottom: 0 }}>
-                {(["profile", "vault", "chats", "butler", "actions", "dateideas", "reports"] as const).map((t) => {
-                  const gold = t === "butler" || t === "dateideas" || t === "reports";
-                  const label = t === "butler" ? "🎩 Butler" : t === "dateideas" ? "💝 Date Ideas" : t === "reports" ? "🚩 Reports" : t;
+                {(["profile", "vault", "chats", "butler", "actions", "dateideas", "reports", "verify"] as const).map((t) => {
+                  const gold = t === "butler" || t === "dateideas" || t === "reports" || t === "verify";
+                  const pendingCount = t === "verify" ? pendingVerify.length + users.filter(u => u.verificationStatus === "pending").length : 0;
+                  const label = t === "butler" ? "🎩 Butler" : t === "dateideas" ? "💝 Date Ideas" : t === "reports" ? "🚩 Reports" : t === "verify" ? `✅ Verify${pendingCount > 0 ? ` (${pendingCount})` : ""}` : t;
                   return (
                   <button
                     key={t}
@@ -755,7 +780,7 @@ export default function AdminUserControlPage() {
                     <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 14px" }}>Access Control</p>
                     <div style={{ display: "flex", gap: 10, flexDirection: "column" }}>
                       <button
-                        onClick={() => toggleBan(selected.id)}
+                        onClick={() => toggleBan(selected.id, selected.ghostId)}
                         style={{
                           flex: 1, height: 44, borderRadius: 11,
                           background: bans[selected.id] ? "rgba(74,222,128,0.1)" : "rgba(239,68,68,0.1)",
@@ -769,7 +794,7 @@ export default function AdminUserControlPage() {
                         {bans[selected.id] ? "Remove Ban" : "Ban User"}
                       </button>
                       <button
-                        onClick={() => toggleBlock(selected.id)}
+                        onClick={() => toggleBlock(selected.id, selected.ghostId)}
                         style={{
                           flex: 1, height: 44, borderRadius: 11,
                           background: blocks[selected.id] ? "rgba(74,222,128,0.1)" : "rgba(245,158,11,0.1)",
@@ -812,9 +837,11 @@ export default function AdminUserControlPage() {
                         <button key={amt} onClick={() => {
                           const cur = edits[selected.id]?.coins ?? 0;
                           const e = edits[selected.id] ?? {};
-                          const next = { ...edits, [selected.id]: { ...e, coins: cur + amt } };
+                          const newCoins = cur + amt;
+                          const next = { ...edits, [selected.id]: { ...e, coins: newCoins } };
                           setEdits(next); persist(EDITS_KEY, next);
-                          setECoins(String(cur + amt));
+                          setECoins(String(newCoins));
+                          if (selected.ghostId) setGhostCoins(selected.ghostId, newCoins);
                         }} style={{ flex: 1, height: 38, borderRadius: 9, border: "1px solid rgba(74,222,128,0.2)", background: "rgba(74,222,128,0.07)", color: "#4ade80", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                           +{amt}
                         </button>
@@ -824,6 +851,7 @@ export default function AdminUserControlPage() {
                         const next = { ...edits, [selected.id]: { ...e, coins: 0 } };
                         setEdits(next); persist(EDITS_KEY, next);
                         setECoins("0");
+                        if (selected.ghostId) setGhostCoins(selected.ghostId, 0);
                       }} style={{ flex: 1, height: 38, borderRadius: 9, border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.06)", color: "#f87171", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                         Reset
                       </button>
@@ -844,6 +872,7 @@ export default function AdminUserControlPage() {
                             const e = edits[selected.id] ?? {};
                             const next = { ...edits, [selected.id]: { ...e, tier: t } };
                             setEdits(next); persist(EDITS_KEY, next);
+                            if (selected.ghostId) setGhostTier(selected.ghostId, t);
                           }} style={{ flex: 1, height: 40, borderRadius: 10, border: cur === t ? `1px solid ${TIER_COLOR[t]}50` : "1px solid rgba(255,255,255,0.08)", background: cur === t ? `${TIER_COLOR[t]}14` : "rgba(255,255,255,0.03)", color: cur === t ? TIER_COLOR[t] : "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700, cursor: "pointer", textTransform: "capitalize" }}>{t}</button>
                         );
                       })}
@@ -972,6 +1001,139 @@ export default function AdminUserControlPage() {
               {/* ── PLACE REPORTS TAB ── */}
               {tab === "reports" && (
                 <AdminPlaceReportsPanel />
+              )}
+
+              {/* ── VERIFY TAB ── */}
+              {tab === "verify" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  {/* Selected user verification status */}
+                  <div style={{ ...CARD, padding: "16px 18px" }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(212,175,55,0.7)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 14px" }}>
+                      {getDisplayName(selected!)}'s Verification
+                    </p>
+                    {(() => {
+                      const vs = selected!.verificationStatus ?? "none";
+                      const color = vs === "verified" ? "#4ade80" : vs === "pending" ? "#d4af37" : vs === "rejected" ? "#ef4444" : "rgba(255,255,255,0.3)";
+                      return (
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                            <div style={{ width: 38, height: 38, borderRadius: 10, background: `${color}18`, border: `1px solid ${color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
+                              {vs === "verified" ? "✅" : vs === "pending" ? "⏳" : vs === "rejected" ? "❌" : "⬜"}
+                            </div>
+                            <div>
+                              <p style={{ fontSize: 14, fontWeight: 800, color, margin: 0, textTransform: "capitalize" }}>{vs}</p>
+                              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0 }}>
+                                {vs === "verified" ? "Face verified — blue checkmark active" :
+                                 vs === "pending" ? "Video submitted — awaiting admin review" :
+                                 vs === "rejected" ? "Verification declined — user can retry" :
+                                 "No verification submitted"}
+                              </p>
+                            </div>
+                          </div>
+
+                          {vs === "pending" && selected!.verificationVideoUrl && (
+                            <div style={{ marginBottom: 14 }}>
+                              <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 8px" }}>Verification Video</p>
+                              <video
+                                src={selected!.verificationVideoUrl}
+                                controls
+                                style={{ width: "100%", borderRadius: 12, border: "1px solid rgba(212,175,55,0.25)", background: "#000", maxHeight: 240 }}
+                              />
+                            </div>
+                          )}
+
+                          {vs === "pending" && (
+                            <div style={{ display: "flex", gap: 10 }}>
+                              <motion.button
+                                whileTap={{ scale: 0.97 }}
+                                disabled={verifyAction[selected!.id] === "approving"}
+                                onClick={async () => {
+                                  setVerifyAction((prev) => ({ ...prev, [selected!.id]: "approving" }));
+                                  await approveGhostVerification(selected!.ghostId);
+                                  // Update local state
+                                  setUsers((prev) => prev.map((u) => u.id === selected!.id ? { ...u, verificationStatus: "verified" as const } : u));
+                                  setSelected((prev) => prev ? { ...prev, verificationStatus: "verified" as const } : prev);
+                                  setPendingVerify((prev) => prev.filter((p) => p.ghostId !== selected!.ghostId));
+                                  setVerifyAction((prev) => ({ ...prev, [selected!.id]: "done" }));
+                                }}
+                                style={{ flex: 1, height: 44, borderRadius: 11, background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.35)", color: "#4ade80", fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}
+                              >
+                                <Check size={14} /> {verifyAction[selected!.id] === "approving" ? "Approving…" : "Approve ✓"}
+                              </motion.button>
+                              <motion.button
+                                whileTap={{ scale: 0.97 }}
+                                disabled={verifyAction[selected!.id] === "rejecting"}
+                                onClick={async () => {
+                                  setVerifyAction((prev) => ({ ...prev, [selected!.id]: "rejecting" }));
+                                  await rejectGhostVerification(selected!.ghostId);
+                                  setUsers((prev) => prev.map((u) => u.id === selected!.id ? { ...u, verificationStatus: "rejected" as const } : u));
+                                  setSelected((prev) => prev ? { ...prev, verificationStatus: "rejected" as const } : prev);
+                                  setPendingVerify((prev) => prev.filter((p) => p.ghostId !== selected!.ghostId));
+                                  setVerifyAction((prev) => ({ ...prev, [selected!.id]: "done" }));
+                                }}
+                                style={{ flex: 1, height: 44, borderRadius: 11, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", fontSize: 13, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}
+                              >
+                                <X size={14} /> {verifyAction[selected!.id] === "rejecting" ? "Rejecting…" : "Reject ✗"}
+                              </motion.button>
+                            </div>
+                          )}
+
+                          {vs === "verified" && (
+                            <motion.button
+                              whileTap={{ scale: 0.97 }}
+                              onClick={async () => {
+                                await rejectGhostVerification(selected!.ghostId);
+                                setUsers((prev) => prev.map((u) => u.id === selected!.id ? { ...u, verificationStatus: "rejected" as const } : u));
+                                setSelected((prev) => prev ? { ...prev, verificationStatus: "rejected" as const } : prev);
+                              }}
+                              style={{ width: "100%", height: 40, borderRadius: 10, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                            >
+                              <X size={13} /> Revoke Verification
+                            </motion.button>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Global pending verification queue */}
+                  {pendingVerify.length > 0 && (
+                    <div style={{ ...CARD, padding: "16px 18px" }}>
+                      <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(212,175,55,0.7)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 12px" }}>
+                        All Pending — {pendingVerify.length} in queue
+                      </p>
+                      {pendingVerify.map((pv) => (
+                        <div key={pv.ghostId} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>
+                            {pv.country}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", margin: 0 }}>{pv.name}</p>
+                            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>{new Date(pv.submittedAt).toLocaleDateString()}</p>
+                          </div>
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <button
+                              onClick={async () => {
+                                await approveGhostVerification(pv.ghostId);
+                                setPendingVerify((prev) => prev.filter((p) => p.ghostId !== pv.ghostId));
+                                setUsers((prev) => prev.map((u) => u.ghostId === pv.ghostId ? { ...u, verificationStatus: "verified" as const } : u));
+                              }}
+                              style={{ height: 30, padding: "0 12px", borderRadius: 8, border: "1px solid rgba(74,222,128,0.3)", background: "rgba(74,222,128,0.08)", color: "#4ade80", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
+                            >✓ Approve</button>
+                            <button
+                              onClick={async () => {
+                                await rejectGhostVerification(pv.ghostId);
+                                setPendingVerify((prev) => prev.filter((p) => p.ghostId !== pv.ghostId));
+                                setUsers((prev) => prev.map((u) => u.ghostId === pv.ghostId ? { ...u, verificationStatus: "rejected" as const } : u));
+                              }}
+                              style={{ height: 30, padding: "0 10px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.06)", color: "#f87171", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
+                            >✗</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </motion.div>
