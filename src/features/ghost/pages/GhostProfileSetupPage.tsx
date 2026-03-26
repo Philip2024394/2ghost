@@ -196,10 +196,10 @@ export default function GhostProfileSetupPage() {
             inviter_ghost_id: refCode,
             invited_ghost_id: myId,
             status: "pending",
-            coins_awarded: 50,
+            coins_awarded: 25,   // inviter earns 25 — below the 50-coin contact-reveal threshold
           }).then(null, () => null);
-          // Award 25 welcome coins to the new user via ghost_profiles
-          ghostSupabase.rpc("add_coins_to_ghost", { p_ghost_id: myId, p_amount: 25 }).then(null, () => null);
+          // Award 10 welcome coins to the new user — meaningful but below reveal threshold
+          ghostSupabase.rpc("add_coins_to_ghost", { p_ghost_id: myId, p_amount: 10 }).then(null, () => null);
           try { localStorage.removeItem("ghost_referral_code"); } catch {}
         }
       }

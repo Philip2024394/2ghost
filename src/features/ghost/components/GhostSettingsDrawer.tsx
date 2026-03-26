@@ -412,7 +412,7 @@ export default function GhostSettingsDrawer({
               <Row
                 icon={<span style={{ fontSize: 17 }}>🔗</span>}
                 label="Invite Friends"
-                desc="Earn 50 coins per friend who joins"
+                desc="Earn 25 coins per friend who joins"
                 onClick={() => act("inviteFriends")}
               />
 

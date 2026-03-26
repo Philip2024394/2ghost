@@ -97,10 +97,10 @@ export default function InviteFriendsSheet({ ghostId, onClose }: Props) {
   };
 
   const TIERS = [
-    { count: 1,  reward: "50 coins",  label: "First Friend",   icon: "🌟" },
-    { count: 3,  reward: "200 coins", label: "Social Ghost",   icon: "💫" },
-    { count: 5,  reward: "400 coins", label: "Suite Opener",   icon: "🏨" },
-    { count: 10, reward: "1000 coins",label: "Ghost Royalty",  icon: "👑" },
+    { count: 1,  reward: "25 coins",  label: "First Friend",   icon: "🌟" },
+    { count: 3,  reward: "100 coins", label: "Social Ghost",   icon: "💫" },
+    { count: 5,  reward: "200 coins", label: "Suite Opener",   icon: "🏨" },
+    { count: 10, reward: "500 coins", label: "Ghost Royalty",  icon: "👑" },
   ];
 
   return (
@@ -146,7 +146,7 @@ export default function InviteFriendsSheet({ ghostId, onClose }: Props) {
             </div>
             <div>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#fff" }}>Invite Friends</p>
-              <p style={{ margin: 0, fontSize: 11, color: "rgba(212,175,55,0.7)", fontWeight: 600 }}>Earn 50 coins for every friend who joins</p>
+              <p style={{ margin: 0, fontSize: 11, color: "rgba(212,175,55,0.7)", fontWeight: 600 }}>Earn 25 coins for every friend who joins</p>
             </div>
           </div>
           <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: "50%", border: "none", background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.5)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
@@ -239,7 +239,7 @@ export default function InviteFriendsSheet({ ghostId, onClose }: Props) {
             <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.8 }}>
               1. Share your personal link with friends<br />
               2. They sign up and create their Ghost profile<br />
-              3. You automatically receive 50 coins — they get 25 coins as a welcome gift<br />
+              3. You automatically receive 25 coins — they get 10 coins as a welcome gift<br />
               4. Coins are credited within minutes of their first login
             </p>
           </div>

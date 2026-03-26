@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS ghost_referrals (
   invited_ghost_id  TEXT NOT NULL,           -- ghost ID of the new user who joined
   status            TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending','completed','rejected')),
-  coins_awarded     INTEGER NOT NULL DEFAULT 50,
+  coins_awarded     INTEGER NOT NULL DEFAULT 25,   -- kept below 50-coin contact-reveal threshold
   created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   completed_at      TIMESTAMPTZ DEFAULT NULL,
   UNIQUE (invited_ghost_id)                  -- each new user can only be referred once
