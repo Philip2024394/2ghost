@@ -549,7 +549,7 @@ export default function AdminUserControlPage() {
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                       <h2 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getDisplayName(selected)}</h2>
                       {selected.verificationStatus === "verified" && <span style={{ fontSize: 13 }}>✅</span>}
-                      {selected.verificationStatus === "pending"  && <span style={{ fontSize: 11, background: "rgba(212,175,55,0.15)", color: GOLD, borderRadius: 5, padding: "2px 6px", fontWeight: 700, fontSize: 9 }}>VERIFY PENDING</span>}
+                      {selected.verificationStatus === "pending"  && <span style={{ fontSize: 9, background: "rgba(212,175,55,0.15)", color: GOLD, borderRadius: 5, padding: "2px 6px", fontWeight: 700 }}>VERIFY PENDING</span>}
                     </div>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                       <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontFamily: "monospace" }}>{selected.phone}</span>
