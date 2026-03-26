@@ -11,6 +11,7 @@ import MaidUpgradeSheet from "./MaidUpgradeSheet";
 import GamesRoomInviteSheet from "./GamesRoomInviteSheet";
 import JokerInviteSheet, { shouldShowJoker } from "./JokerInviteSheet";
 import { sendVideoRequest, getVideoRequestStatus, profileHasVideo, readCoins, spendCoins } from "../utils/featureGating";
+import { matchScoreColor } from "../utils/matchScore";
 import {
   toGhostId,
   fmtKm,
@@ -1204,6 +1205,22 @@ export default function GhostCard({
             <div style={{ position: "absolute", top: 10, left: 10, display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.62)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "3px 9px", border: "1px solid rgba(255,255,255,0.14)" }}>
               <MapPin size={9} style={{ color: "#f87171", flexShrink: 0 }} />
               <span style={{ fontSize: 9, fontWeight: 800, color: "#fff" }}>{fmtKm(profile.distanceKm)}</span>
+            </div>
+          )}
+
+          {/* TOP RIGHT: match score pill — only for real scored profiles */}
+          {isVerified && profile.matchScore !== undefined && profile.matchScore >= 40 && (
+            <div style={{
+              position: "absolute", top: 10, right: 10,
+              display: "flex", alignItems: "center", gap: 3,
+              background: "rgba(0,0,0,0.68)", backdropFilter: "blur(10px)",
+              borderRadius: 20, padding: "3px 9px",
+              border: `1px solid ${matchScoreColor(profile.matchScore)}55`,
+            }}>
+              <span style={{ fontSize: 8 }}>✦</span>
+              <span style={{ fontSize: 9, fontWeight: 900, color: matchScoreColor(profile.matchScore) }}>
+                {profile.matchScore}%
+              </span>
             </div>
           )}
 

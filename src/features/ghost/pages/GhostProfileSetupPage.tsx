@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { ghostSupabase } from "../ghostSupabase";
 
 const BG_IMG     = "https://ik.imagekit.io/7grri5v7d/jjj.png";
 const BUTLER_IMG = "https://ik.imagekit.io/7grri5v7d/werwerwer-removebg-preview.png";
@@ -184,6 +185,24 @@ export default function GhostProfileSetupPage() {
         ?? languages.find(l => LANG_TO_LOCALE[l]);
       if (primary) localStorage.setItem("ghost_locale", LANG_TO_LOCALE[primary]);
       localStorage.setItem("ghost_profile_setup_done", "1");
+
+      // ── Referral processing ──────────────────────────────────────────────
+      const refCode = (() => { try { return localStorage.getItem("ghost_referral_code"); } catch { return null; } })();
+      if (refCode) {
+        const myId = (() => { try { return JSON.parse(localStorage.getItem("ghost_profile") || "{}").ghost_id || JSON.parse(localStorage.getItem("ghost_profile") || "{}").id; } catch { return null; } })();
+        if (myId && refCode !== myId) {
+          // Record referral row (fire-and-forget — never blocks signup)
+          ghostSupabase.from("ghost_referrals").insert({
+            inviter_ghost_id: refCode,
+            invited_ghost_id: myId,
+            status: "pending",
+            coins_awarded: 50,
+          }).then(null, () => null);
+          // Award 25 welcome coins to the new user via ghost_profiles
+          ghostSupabase.rpc("add_coins_to_ghost", { p_ghost_id: myId, p_amount: 25 }).then(null, () => null);
+          try { localStorage.removeItem("ghost_referral_code"); } catch {}
+        }
+      }
     } catch {}
     navigate("/ghost/gateway", { replace: true });
   }

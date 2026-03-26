@@ -90,6 +90,9 @@ import { subscribeToGameInvites, respondToInvite, type GameInvite } from "../uti
 import SendGameChallengeSheet, { type ChallengeTarget } from "../components/SendGameChallengeSheet";
 import { hasActiveWindowMode, getDaysConnected, getConciergeShown, whisperWillConvert, profileHasVideo, isProfileInWindow } from "../utils/featureGating";
 import { recordLike, loadMyMatches, getMyGhostId, syncTierToSupabase, loadTierFromSupabase, syncCoinsToSupabase, loadCoinsFromSupabase, loadGhostProfiles, type RealProfileRow } from "../ghostDataService";
+import { computeMatchScore, sortByMatchScore, type UserPreferences as MatchPreferences } from "../utils/matchScore";
+import VideoVerificationSheet from "../components/VideoVerificationSheet";
+import InviteFriendsSheet from "../components/InviteFriendsSheet";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 
@@ -446,6 +449,8 @@ export default function GhostModePage() {
   const [scoreProfile,     setScoreProfile]     = useState<GhostProfile | null>(null);
   const [showGhostClock,   setShowGhostClock]   = useState(false);
   const [showFloorWars,    setShowFloorWars]     = useState(false);
+  const [showGetVerified,  setShowGetVerified]   = useState(false);
+  const [showInviteFriends, setShowInviteFriends] = useState(false);
   const [showWhisper,      setShowWhisper]       = useState(false);
   const [whisperProfile,   setWhisperProfile]   = useState<GhostProfile | null>(null);
   const [showConcierge,    setShowConcierge]     = useState(false);
@@ -814,7 +819,9 @@ export default function GhostModePage() {
     if (action === "games") { navigate("/ghost/games"); return; }
     if (action === "video") { setShowVideoUpload(true); return; }
     if (action === "breakfastLounge") { if (loungeEnabled) setShowBreakfastPicker(true); return; }
-    if (action === "leaderboard") { setShowLeaderboard(true); return; }
+    if (action === "leaderboard")   { setShowLeaderboard(true);   return; }
+    if (action === "getVerified")   { setShowGetVerified(true);   return; }
+    if (action === "inviteFriends") { setShowInviteFriends(true); return; }
   };
 
   // Passed (refused) profiles — persisted so they never reappear
@@ -1035,36 +1042,45 @@ export default function GhostModePage() {
     if (showNewGuests && newGuestProfiles.length === 0) setShowNewGuests(false);
   }, [showNewGuests, newGuestProfiles.length]);
 
-  // Filtered + sorted profiles (excludes passed/refused)
+  // Current user preferences for match scoring
+  const matchPrefs = useMemo<MatchPreferences>(() => {
+    try {
+      const p = JSON.parse(localStorage.getItem("ghost_profile") || "{}");
+      return {
+        ageMin,
+        ageMax,
+        age: p.age ?? 25,
+        interests: Array.isArray(p.interests) ? p.interests : [],
+        likedIds,
+        inboundLikeIds: new Set<string>(), // populated from inbound likes if available
+      };
+    } catch { return { ageMin, ageMax, age: 25, interests: [], likedIds, inboundLikeIds: new Set() }; }
+  }, [ageMin, ageMax, likedIds]);
+
+  // Filtered + sorted profiles (excludes passed/refused) — sorted by match score
   const profiles = useMemo(() => {
-    return allProfiles
-      .filter((p) => {
-        if (passedIds.has(p.id)) return false;
-        if (lobbyMode && !p.isNewGuest) return false;
-        if (filterBadge && p.badge !== filterBadge) return false;
-        if (p.lastActiveHoursAgo !== undefined && p.lastActiveHoursAgo > 24) return false;
-        if (gender !== "all" && p.gender !== gender) return false;
-        if (p.age < ageMin || p.age > ageMax) return false;
-        if (maxKm !== 9999 && p.distanceKm !== undefined && p.distanceKm > maxKm) return false;
-        if (onlineOnly && !isOnline(p.last_seen_at)) return false;
-        if (browsingCountryCode) {
-          const cc = FLAG_TO_CODE[p.countryFlag ?? ""] ?? "";
-          if (cc !== browsingCountryCode) return false;
-        } else {
-          if (filterCountry && p.country !== filterCountry) return false;
-        }
-        return true;
-      })
-      .sort((a, b) => {
-        // Online-first: active guests always appear before inactive
-        const aOnline = isOnline(a.last_seen_at) ? 0 : 1;
-        const bOnline = isOnline(b.last_seen_at) ? 0 : 1;
-        if (aOnline !== bOnline) return aOnline - bOnline;
-        // Within same online status, sort by proximity
-        if (a.distanceKm !== undefined && b.distanceKm !== undefined) return a.distanceKm - b.distanceKm;
-        return 0;
-      });
-  }, [allProfiles, gender, ageMin, ageMax, maxKm, filterCountry, onlineOnly, passedIds, browsingCountryCode, lobbyMode, filterBadge]);
+    const filtered = allProfiles.filter((p) => {
+      if (passedIds.has(p.id)) return false;
+      if (lobbyMode && !p.isNewGuest) return false;
+      if (filterBadge && p.badge !== filterBadge) return false;
+      if (p.lastActiveHoursAgo !== undefined && p.lastActiveHoursAgo > 24) return false;
+      if (gender !== "all" && p.gender !== gender) return false;
+      if (p.age < ageMin || p.age > ageMax) return false;
+      if (maxKm !== 9999 && p.distanceKm !== undefined && p.distanceKm > maxKm) return false;
+      if (onlineOnly && !isOnline(p.last_seen_at)) return false;
+      if (browsingCountryCode) {
+        const cc = FLAG_TO_CODE[p.countryFlag ?? ""] ?? "";
+        if (cc !== browsingCountryCode) return false;
+      } else {
+        if (filterCountry && p.country !== filterCountry) return false;
+      }
+      return true;
+    });
+    // Compute match score for each profile then sort: online-first, then score desc
+    const scored = filtered.map(p => ({ p, score: computeMatchScore(p, matchPrefs) }));
+    scored.sort((a, b) => sortByMatchScore(a.p, b.p, a.score, b.score, isOnline));
+    return scored.map(({ p, score }) => ({ ...p, matchScore: score }));
+  }, [allProfiles, gender, ageMin, ageMax, maxKm, filterCountry, onlineOnly, passedIds, browsingCountryCode, lobbyMode, filterBadge, matchPrefs]);
 
   // ── Computed match-tab lists ───────────────────────────────────────────────
   // Profiles the user has liked
@@ -2190,6 +2206,33 @@ export default function GhostModePage() {
             onDismiss={dismissAccepted}
           />
         )}
+      </AnimatePresence>
+
+      {/* Video Verification Sheet */}
+      <AnimatePresence>
+        {showGetVerified && (() => {
+          const gp = (() => { try { return JSON.parse(localStorage.getItem("ghost_profile") || "{}"); } catch { return {}; } })();
+          return (
+            <VideoVerificationSheet
+              ghostId={gp.ghost_id || gp.id || "anon"}
+              onClose={() => setShowGetVerified(false)}
+              onVerified={() => setShowGetVerified(false)}
+            />
+          );
+        })()}
+      </AnimatePresence>
+
+      {/* Invite Friends Sheet */}
+      <AnimatePresence>
+        {showInviteFriends && (() => {
+          const gp = (() => { try { return JSON.parse(localStorage.getItem("ghost_profile") || "{}"); } catch { return {}; } })();
+          return (
+            <InviteFriendsSheet
+              ghostId={gp.ghost_id || gp.id || "anon"}
+              onClose={() => setShowInviteFriends(false)}
+            />
+          );
+        })()}
       </AnimatePresence>
 
     </div>

@@ -64,7 +64,8 @@ function RoomAvatars({ roomId }: { roomId: string }) {
 
 export type SettingsAction =
   | "dashboard" | "shield" | "rooms" | "roomVault"
-  | "ghostClock" | "floorWars" | "video" | "terms" | "checkout" | "games" | "breakfastLounge" | "leaderboard";
+  | "ghostClock" | "floorWars" | "video" | "terms" | "checkout" | "games" | "breakfastLounge" | "leaderboard"
+  | "getVerified" | "inviteFriends";
 
 type Props = {
   show: boolean;
@@ -187,6 +188,8 @@ export default function GhostSettingsDrawer({
   const gamesUnlocked  = (() => { try { return localStorage.getItem("games_room_unlocked") === "true"; } catch { return false; } })();
   const currentTier = getCurrentTier(progress);
   const tierColor   = TIER_COLORS[currentTier.id];
+  const verificationStatus = profile.verification_status as string | undefined;
+  const isVerifiedProfile  = profile.face_verified === true || verificationStatus === "verified";
 
   const go = (path: string) => { onClose(); navigate(path); };
   const act = (a: SettingsAction) => { onClose(); onAction(a); };
@@ -398,6 +401,19 @@ export default function GhostSettingsDrawer({
                 label="Video Introduction"
                 desc="Upload & manage your video intro"
                 onClick={() => act("video")}
+              />
+              <Row
+                icon={<span style={{ fontSize: 17 }}>{isVerifiedProfile ? "✅" : verificationStatus === "pending" ? "🕐" : "🎥"}</span>}
+                label={isVerifiedProfile ? "Verified Ghost" : verificationStatus === "pending" ? "Verification Pending" : "Get Verified"}
+                desc={isVerifiedProfile ? "Your verified badge is active" : verificationStatus === "pending" ? "Under review — within 24h" : "Record a 5s selfie to get your badge"}
+                onClick={() => !isVerifiedProfile && verificationStatus !== "pending" ? act("getVerified") : undefined}
+                dim={isVerifiedProfile || verificationStatus === "pending"}
+              />
+              <Row
+                icon={<span style={{ fontSize: 17 }}>🔗</span>}
+                label="Invite Friends"
+                desc="Earn 50 coins per friend who joins"
+                onClick={() => act("inviteFriends")}
               />
 
               {/* MY ACCOUNT */}

@@ -1,5 +1,6 @@
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const MR_BUTLAS_IMG = "https://ik.imagekit.io/7grri5v7d/sfsadfasdf.png?updatedAt=1774389915762";
 
@@ -20,6 +21,20 @@ const JUST_JOINED = [
 
 export default function GhostWelcomePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [showRefBanner, setShowRefBanner] = useState(false);
+
+  // Capture referral code from URL and persist for signup
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) {
+      try { localStorage.setItem("ghost_referral_code", ref); } catch {}
+      setShowRefBanner(true);
+      // Auto-hide banner after 4s
+      const t = setTimeout(() => setShowRefBanner(false), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [searchParams]);
 
   return (
     <div style={{
@@ -29,6 +44,29 @@ export default function GhostWelcomePage() {
       overflow: "hidden",
       fontFamily: "'Georgia', serif",
     }}>
+      {/* Referral welcome banner */}
+      <AnimatePresence>
+        {showRefBanner && (
+          <motion.div
+            initial={{ opacity: 0, y: -40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -40 }}
+            style={{
+              position: "absolute", top: 16, left: 16, right: 16, zIndex: 50,
+              background: "rgba(212,175,55,0.14)", backdropFilter: "blur(16px)",
+              border: "1px solid rgba(212,175,55,0.4)", borderRadius: 14,
+              padding: "12px 16px", display: "flex", alignItems: "center", gap: 10,
+            }}
+          >
+            <span style={{ fontSize: 20 }}>🎁</span>
+            <div>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#d4af37" }}>You've been invited!</p>
+              <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.6)" }}>Sign up now to claim your 25 free Ghost Coins</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Full-screen background image */}
       <img
         src={MR_BUTLAS_IMG}

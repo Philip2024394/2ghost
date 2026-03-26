@@ -28,6 +28,8 @@ export type GhostProfile = {
   contactPref?: "chat" | "video" | "outside" | null;
   invitedBy?: string | null;   // Ghost ID of referrer
   weeksSinceJoin?: number;     // for floor reputation
+  matchScore?: number;         // computed compatibility score 0–100
+  verificationStatus?: "none" | "pending" | "verified" | "rejected";
 };
 
 export type GhostMatch = {
