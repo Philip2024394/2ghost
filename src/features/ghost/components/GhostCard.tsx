@@ -5,6 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
 import type { GhostProfile } from "../types/ghostTypes";
 import { filterContent, addStrike, getStrikes, isAccountDeactivated } from "../utils/contentFilter";
+import MrButlasStaffPopup from "./MrButlasStaffPopup";
+import BreakfastChefInviteSheet from "./BreakfastChefInviteSheet";
+import MaidUpgradeSheet from "./MaidUpgradeSheet";
+import GamesRoomInviteSheet from "./GamesRoomInviteSheet";
+import JokerInviteSheet, { shouldShowJoker } from "./JokerInviteSheet";
 import { sendVideoRequest, getVideoRequestStatus, profileHasVideo, readCoins, spendCoins } from "../utils/featureGating";
 import {
   toGhostId,
@@ -77,6 +82,16 @@ function getMemberStars(profileId: string): number {
 
 function isFaceVerifiedSeeded(profileId: string): boolean {
   return (idHash(profileId + "fv") % 10) < 4;
+}
+
+// Seeded portrait deadline for unverified profiles — between 1h and 35h remaining
+function getSeededCountdown(profileId: string): string {
+  const h = Math.abs(idHash(profileId + "deadline"));
+  const msRemaining = (1 + (h % 35)) * 60 * 60 * 1000 + (h % 59) * 60 * 1000;
+  const totalMin = Math.floor(msRemaining / 60_000);
+  const hrs = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  return hrs === 0 ? `${mins}m` : `${hrs}h ${mins}m`;
 }
 
 function hasVoiceNote(profileId: string): boolean {
@@ -353,7 +368,7 @@ export function ProfileWhisperModal({
   const resolvedContactPref = (profile.contactPref as "chat" | "video" | "outside" | null | undefined) ?? fcSeeded;
 
   const FC_META = {
-    chat:    { emoji: "💬", label: "Ghost Chat First",   sub: "Anonymous in-app chat",          coinCost: 0,  color: "#4ade80" },
+    chat:    { emoji: "💬", label: "Guest Chat First",   sub: "Anonymous in-app chat",          coinCost: 0,  color: "#4ade80" },
     video:   { emoji: "🎬", label: "Video Intro First",  sub: "Short personal video first",      coinCost: 5,  color: "#e01010" },
     outside: { emoji: "📱", label: "Meet Outside First", sub: "WhatsApp + book a real date",     coinCost: 50, color: "#f59e0b" },
   } as const;
@@ -1072,18 +1087,55 @@ export default function GhostCard({
   const cardRef = useRef<HTMLDivElement>(null);
 
   const isVerified  = profile.isVerified || profile.faceVerified || isFaceVerifiedSeeded(profile.id);
-  const cardImage   = !isVerified
-    ? (getStaffPlaceholder(profile.gender) ?? profile.image)
+  const loungeDiscovered = (() => { try { return localStorage.getItem("breakfast_lounge_unlocked") === "true"; } catch { return false; } })();
+  const gamesDiscovered  = (() => { try { return localStorage.getItem("games_room_unlocked") === "true"; } catch { return false; } })();
+  const roomsDiscovered  = (() => { try { return localStorage.getItem("rooms_unlocked") === "true"; } catch { return false; } })();
+
+  const isMaleUnverified = !isVerified && profile.gender !== "Female";
+  // Once a persona's feature is discovered, that persona no longer appears in the feed
+  const isChefProfile  = isMaleUnverified && !loungeDiscovered && (idHash(profile.id + "persona") % 2 === 0);
+  const isGamesProfile = isMaleUnverified && !gamesDiscovered  && !isChefProfile;
+  // Joker: female unverified, timing/balance based — takes priority over Maid
+  const isJokerProfile = !isVerified && profile.gender === "Female" && shouldShowJoker(profile.id, readCoins());
+  const isMaidProfile  = !isVerified && profile.gender === "Female" && !isJokerProfile && !roomsDiscovered;
+
+  const GAMES_BOY_IMG = "https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdfasdasddsdssdfs.png?updatedAt=1774487538945";
+  const JOKER_CARD_IMG = "https://ik.imagekit.io/7grri5v7d/Untitleddsfsdfsdf.png";
+  const cardImage = !isVerified
+    ? (isJokerProfile  ? JOKER_CARD_IMG
+      : isGamesProfile ? GAMES_BOY_IMG
+      : getStaffPlaceholder(profile.gender) ?? profile.image)
     : profile.image;
   const heartColor  = "#e01010";
-  const genderColor = { ring: "rgba(220,20,20,0.85)", glow: "rgba(220,20,20,0.4)" };
+  // Online ring is green — universal live presence signal
+  const onlineRing  = { color: "rgba(74,222,128,0.85)", glow: "rgba(74,222,128,0.4)" };
+  // Staff persona frame — each role gets a distinctive color
+  const personaFrame = isChefProfile  ? { color: "#f97316", glow: "rgba(249,115,22,0.55)"  }
+                     : isGamesProfile ? { color: "#22d3ee", glow: "rgba(34,211,238,0.55)"  }
+                     : isMaidProfile  ? { color: "#c084fc", glow: "rgba(192,132,252,0.55)" }
+                     : isJokerProfile ? { color: "#ec4899", glow: "rgba(236,72,153,0.55)"  }
+                     : null;
 
   // Floating hearts
   const heartIdRef = useRef(0);
   const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number }[]>([]);
+  const [staffLimitedOpen, setStaffLimitedOpen] = useState(false);
+  const [chefInviteOpen,   setChefInviteOpen]   = useState(false);
+  const [maidUpgradeOpen,  setMaidUpgradeOpen]  = useState(false);
+  const [gamesInviteOpen,  setGamesInviteOpen]  = useState(false);
+  const [jokerOpen,        setJokerOpen]         = useState(false);
+
+  const handleUnverifiedTap = () => {
+    if (isJokerProfile)      { setJokerOpen(true); }
+    else if (isChefProfile)  { setChefInviteOpen(true); }
+    else if (isGamesProfile) { setGamesInviteOpen(true); }
+    else if (isMaidProfile)  { setMaidUpgradeOpen(true); }
+    else { setStaffLimitedOpen(true); }
+  };
 
   const triggerHearts = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isVerified) { handleUnverifiedTap(); return; }
     if (liked) return;
     onLike?.();
     const newHearts = Array.from({ length: 6 }, () => ({ id: ++heartIdRef.current, x: Math.random() * 60 - 30 }));
@@ -1093,6 +1145,7 @@ export default function GhostCard({
 
   const handleFingerprintClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isVerified) { handleUnverifiedTap(); return; }
     setExpanded(true);
   };
 
@@ -1101,13 +1154,23 @@ export default function GhostCard({
       {/* ── Card ── */}
       <div ref={cardRef} style={{ borderRadius: 18, position: "relative", aspectRatio: "3/4" }}>
 
-        {/* Online ring */}
-        {online && (
+        {/* Online ring — green, only for regular online guests (not staff personas) */}
+        {online && !personaFrame && (
           <>
             <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.4, repeat: Infinity }}
-              style={{ position: "absolute", inset: -4, borderRadius: 21, border: `2px solid ${genderColor.ring}`, boxShadow: `0 0 14px ${genderColor.glow}`, pointerEvents: "none", zIndex: 10 }} />
+              style={{ position: "absolute", inset: -4, borderRadius: 21, border: `2px solid ${onlineRing.color}`, boxShadow: `0 0 14px ${onlineRing.glow}`, pointerEvents: "none", zIndex: 10 }} />
             <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }}
-              style={{ position: "absolute", inset: -9, borderRadius: 25, border: `1.5px solid ${genderColor.ring}`, pointerEvents: "none", zIndex: 9 }} />
+              style={{ position: "absolute", inset: -9, borderRadius: 25, border: `1.5px solid ${onlineRing.color}`, pointerEvents: "none", zIndex: 9 }} />
+          </>
+        )}
+
+        {/* Staff persona frame — unique color per role, always visible */}
+        {personaFrame && (
+          <>
+            <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.1, repeat: Infinity }}
+              style={{ position: "absolute", inset: -4, borderRadius: 21, border: `2px solid ${personaFrame.color}`, boxShadow: `0 0 20px ${personaFrame.glow}`, pointerEvents: "none", zIndex: 10 }} />
+            <motion.div animate={{ opacity: [0.2, 0.55, 0.2] }} transition={{ duration: 1.1, repeat: Infinity, delay: 0.18 }}
+              style={{ position: "absolute", inset: -9, borderRadius: 25, border: `1.5px solid ${personaFrame.color}`, pointerEvents: "none", zIndex: 9 }} />
           </>
         )}
 
@@ -1120,7 +1183,7 @@ export default function GhostCard({
         {/* Card face */}
         <motion.div
           whileTap={{ scale: 0.98 }}
-          onClick={e => { e.stopPropagation(); setExpanded(true); }}
+          onClick={e => { e.stopPropagation(); if (!isVerified) { handleUnverifiedTap(); return; } setExpanded(true); }}
           style={{
             position: "absolute", inset: 0, borderRadius: 18, overflow: "hidden", cursor: "pointer",
             border: liked ? `1.5px solid ${heartColor}55` : "1px solid rgba(255,255,255,0.09)",
@@ -1144,6 +1207,14 @@ export default function GhostCard({
             </div>
           )}
 
+          {/* BOTTOM LEFT: portrait countdown — unverified non-persona profiles only */}
+          {!isVerified && !isChefProfile && !isGamesProfile && !isMaidProfile && !isJokerProfile && (
+            <div style={{ position: "absolute", bottom: 12, left: 10, zIndex: 5, display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "3px 9px", border: "1px solid rgba(212,175,55,0.35)" }}>
+              <span style={{ fontSize: 9 }}>⏱</span>
+              <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(212,175,55,0.9)" }}>{getSeededCountdown(profile.id)}</span>
+            </div>
+          )}
+
 
           {/* BOTTOM strip */}
           <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 11px 12px" }}>
@@ -1158,7 +1229,9 @@ export default function GhostCard({
                   <span style={{ fontSize: 7, color: "#fff", lineHeight: 1, marginLeft: 1 }}>▶</span>
                 </motion.div>
               )}
-              <span style={{ fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.5)", letterSpacing: "0.02em" }}>{ghostId}</span>
+              <span style={{ fontSize: 11, fontWeight: 900, color: (isChefProfile || isGamesProfile || isMaidProfile || isJokerProfile) ? "rgba(212,175,55,0.85)" : "rgba(255,255,255,0.5)", letterSpacing: "0.02em" }}>
+                {isChefProfile ? "Chef Armand" : isGamesProfile ? "Games Room" : isMaidProfile ? "Maid Eloise" : isJokerProfile ? "🃏 The Joker" : ghostId}
+              </span>
             </div>
             {/* Age + verified */}
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
@@ -1213,21 +1286,6 @@ export default function GhostCard({
           </motion.button>
 
 
-          {/* Staff badge — identity not yet confirmed */}
-          {!isVerified && (
-            <div style={{
-              position: "absolute", top: 10, left: 10, zIndex: 4,
-              background: "rgba(0,0,0,0.72)", backdropFilter: "blur(8px)",
-              border: "1px solid rgba(212,175,55,0.45)",
-              borderRadius: 8, padding: "3px 8px",
-              display: "flex", alignItems: "center", gap: 4,
-            }}>
-              <span style={{ fontSize: 10 }}>🔑</span>
-              <span style={{ fontSize: 9, fontWeight: 900,
-                color: "rgba(212,175,55,0.9)", letterSpacing: "0.08em" }}>STAFF</span>
-            </div>
-          )}
-
           {/* Special overlays */}
           {flaggedReason && (
             <div style={{ position: "absolute", inset: 0, zIndex: 5, borderRadius: 18, overflow: "hidden" }}>
@@ -1271,6 +1329,57 @@ export default function GhostCard({
             onLike={() => { onLike?.(); }}
             onClose={() => { setExpanded(false); onModalClose?.(); }}
             accentColor={accentColor}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Mr. Butlas — limited account popup ── */}
+      <AnimatePresence>
+        {staffLimitedOpen && (
+          <MrButlasStaffPopup
+            key="staff-limited"
+            profile={profile}
+            onClose={() => setStaffLimitedOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Breakfast Chef Invite ── */}
+      <AnimatePresence>
+        {chefInviteOpen && (
+          <BreakfastChefInviteSheet
+            key="chef-invite"
+            onClose={() => setChefInviteOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Maid Eloise — room upgrade sheet ── */}
+      <AnimatePresence>
+        {maidUpgradeOpen && (
+          <MaidUpgradeSheet
+            key="maid-upgrade"
+            onClose={() => setMaidUpgradeOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Games Room invite ── */}
+      <AnimatePresence>
+        {gamesInviteOpen && (
+          <GamesRoomInviteSheet
+            key="games-invite"
+            onClose={() => setGamesInviteOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── The Joker — coin reward ── */}
+      <AnimatePresence>
+        {jokerOpen && (
+          <JokerInviteSheet
+            key="joker"
+            onClose={() => setJokerOpen(false)}
           />
         )}
       </AnimatePresence>

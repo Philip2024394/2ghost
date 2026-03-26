@@ -411,3 +411,128 @@ export function subscribeToNewUsers(callback: (payload: any) => void) {
     .subscribe();
   return () => ghostSupabase.removeChannel(channel);
 }
+
+// ── Butler Admin Messaging ─────────────────────────────────────────────────────
+// Requires Supabase table (run once in SQL editor):
+//   create table ghost_admin_messages (
+//     id uuid primary key default gen_random_uuid(),
+//     to_user_id text,          -- null = broadcast to all users
+//     message text not null,
+//     type text default 'dm',   -- 'dm' | 'broadcast'
+//     active boolean default true,
+//     created_at timestamptz default now(),
+//     expires_at timestamptz
+//   );
+
+export interface AdminButlerMessage {
+  id: string;
+  to_user_id: string | null;
+  message: string;
+  type: "dm" | "broadcast";
+  active: boolean;
+  created_at: string;
+  expires_at: string;
+}
+
+/** Send a Mr. Butlas message to one user (DM) or all users (broadcast, toUserId = null) */
+export async function sendButlerMessage(
+  toUserId: string | null,
+  message: string,
+  expiresInHours = 48,
+): Promise<void> {
+  const payload: Omit<AdminButlerMessage, "id"> = {
+    to_user_id: toUserId,
+    message,
+    type: toUserId ? "dm" : "broadcast",
+    active: true,
+    created_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + expiresInHours * 3_600_000).toISOString(),
+  };
+
+  // Always write to localStorage so it works even without Supabase
+  if (toUserId) {
+    const key = `admin_butler_dm_${toUserId}`;
+    try {
+      const existing: AdminButlerMessage[] = JSON.parse(localStorage.getItem(key) || "[]");
+      existing.push({ ...payload, id: `local_${Date.now()}` });
+      localStorage.setItem(key, JSON.stringify(existing.slice(-30)));
+    } catch {}
+  } else {
+    try {
+      localStorage.setItem(
+        "admin_butler_broadcast",
+        JSON.stringify({ ...payload, id: `bc_${Date.now()}` }),
+      );
+    } catch {}
+  }
+
+  if (!isConnected()) return;
+  await ghostSupabase.from("ghost_admin_messages").insert(payload);
+}
+
+/** Fetch the most recent active broadcast (for all users to poll) */
+export async function fetchActiveButlerBroadcast(): Promise<AdminButlerMessage | null> {
+  // localStorage first
+  try {
+    const raw = localStorage.getItem("admin_butler_broadcast");
+    if (raw) {
+      const local: AdminButlerMessage = JSON.parse(raw);
+      if (local.active && new Date(local.expires_at) > new Date()) return local;
+    }
+  } catch {}
+
+  if (!isConnected()) return null;
+  const { data } = await ghostSupabase
+    .from("ghost_admin_messages")
+    .select("*")
+    .eq("type", "broadcast")
+    .eq("active", true)
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data ?? null;
+}
+
+/** Fetch DMs sent to a specific user by admin (userId = UserRow.id or ghost_id) */
+export async function fetchButlerDMsForUser(userId: string): Promise<AdminButlerMessage[]> {
+  // localStorage first
+  try {
+    const raw = localStorage.getItem(`admin_butler_dm_${userId}`);
+    if (raw) {
+      const local: AdminButlerMessage[] = JSON.parse(raw);
+      const now = new Date();
+      return local.filter((m) => m.active && new Date(m.expires_at) > now);
+    }
+  } catch {}
+
+  if (!isConnected()) return [];
+  const { data } = await ghostSupabase
+    .from("ghost_admin_messages")
+    .select("*")
+    .eq("to_user_id", userId)
+    .eq("type", "dm")
+    .eq("active", true)
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false })
+    .limit(20);
+  return data ?? [];
+}
+
+/** Mark a broadcast as dismissed (per-device) */
+export function dismissButlerBroadcast(id: string): void {
+  try {
+    const dismissed: string[] = JSON.parse(localStorage.getItem("admin_butler_dismissed") || "[]");
+    if (!dismissed.includes(id)) {
+      dismissed.push(id);
+      localStorage.setItem("admin_butler_dismissed", JSON.stringify(dismissed.slice(-50)));
+    }
+  } catch {}
+}
+
+export function isButlerBroadcastDismissed(id: string): boolean {
+  try {
+    const dismissed: string[] = JSON.parse(localStorage.getItem("admin_butler_dismissed") || "[]");
+    return dismissed.includes(id);
+  } catch { return false; }
+}

@@ -4,7 +4,6 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useCallback } from "react";
-import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
 import type { GhostProfile } from "../types/ghostTypes";
 import { getProfileFloor, FLOOR_LABELS, isProfileInvited } from "./FloorInviteSheet";
@@ -55,7 +54,6 @@ type Props = {
 };
 
 export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, userRoomTier: _userRoomTier, likedIds, onClose, onLike, onMatchAction, onFloorInvite: _onFloorInvite, onStartChat }: Props) {
-  const a = useGenderAccent();
   const [refreshKey, setRefreshKey] = useState(0);
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
   const [reportProfile, setReportProfile] = useState<GhostProfile | null>(null);
@@ -92,15 +90,15 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
             style={{ width: "100%", flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
             {/* Top stripe */}
-            <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${a.accent}, transparent)`, flexShrink: 0 }} />
+            <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #d4af37, transparent)", flexShrink: 0 }} />
 
             {/* Header */}
-            <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 12, padding: "14px 16px 12px", borderBottom: `1px solid ${a.glow(0.1)}`, background: a.gradientSubtle }}>
-              <div style={{ width: 38, height: 38, borderRadius: 11, background: a.glow(0.14), border: `1.5px solid ${a.glow(0.38)}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 12, padding: "14px 16px 12px", borderBottom: "1px solid rgba(212,175,55,0.1)", background: "rgba(212,175,55,0.04)" }}>
+              <div style={{ width: 38, height: 38, borderRadius: 11, background: "rgba(212,175,55,0.14)", border: "1.5px solid rgba(212,175,55,0.38)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <span style={{ fontSize: 19 }}>👁️</span>
               </div>
               <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: a.accent }}>Who Viewed Me</p>
+                <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#d4af37" }}>Who Viewed Me</p>
                 <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.35)", marginTop: 1 }}>
                   {viewedMeList.length} profiles · {viewedMeList.filter(p => p.viewCount >= 2).length} viewed you more than once
                 </p>
@@ -112,7 +110,7 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
 
             {/* Keen viewers callout */}
             {viewedMeList.some(p => p.viewCount >= 3) && (
-              <div style={{ flexShrink: 0, margin: "10px 14px 0", padding: "10px 14px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 12, display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ flexShrink: 0, margin: "10px 14px 0", padding: "10px 14px", background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.28)", borderRadius: 12, display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: 16 }}>🔥</span>
                 <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 700 }}>
                   {viewedMeList.filter(p => p.viewCount >= 3).length} {viewedMeList.filter(p => p.viewCount >= 3).length === 1 ? "person has" : "people have"} viewed your profile 3+ times — they're interested.
@@ -125,10 +123,10 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
               {viewedMeList.map((p, i) => {
                 const isKeen    = p.viewCount >= 3;
                 const isWarm    = p.viewCount === 2;
-                const cardBg    = isKeen ? "rgba(239,68,68,0.07)" : isWarm ? a.glow(0.07) : "rgba(255,255,255,0.03)";
-                const cardBdr   = isKeen ? "1px solid rgba(239,68,68,0.25)" : isWarm ? `1px solid ${a.glow(0.22)}` : "1px solid rgba(255,255,255,0.07)";
-                const badgeBg   = isKeen ? "rgba(239,68,68,0.18)" : isWarm ? a.glow(0.15) : "rgba(255,255,255,0.07)";
-                const badgeCol  = isKeen ? "#f87171" : isWarm ? a.accent : "rgba(255,255,255,0.35)";
+                const cardBg    = isKeen ? "rgba(212,175,55,0.09)" : isWarm ? "rgba(212,175,55,0.05)" : "rgba(255,255,255,0.03)";
+                const cardBdr   = isKeen ? "1px solid rgba(212,175,55,0.35)" : isWarm ? "1px solid rgba(212,175,55,0.2)" : "1px solid rgba(255,255,255,0.07)";
+                const badgeBg   = isKeen ? "rgba(212,175,55,0.2)" : isWarm ? "rgba(212,175,55,0.12)" : "rgba(255,255,255,0.07)";
+                const badgeCol  = isKeen ? "#facc15" : isWarm ? "#d4af37" : "rgba(255,255,255,0.35)";
                 const badgeTxt  = isKeen ? `🔥 Viewed ${p.viewCount}×` : isWarm ? `👀 Viewed twice` : "Viewed once";
                 const pFloor    = getProfileFloor(p.id);
                 const invited   = isProfileInvited(p.id);
@@ -156,7 +154,7 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
                       <div style={{ position: "relative", flexShrink: 0 }}>
                         <img
                           src={p.image} alt={p.name}
-                          style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: isKeen ? "2px solid rgba(239,68,68,0.5)" : isWarm ? `2px solid ${a.glow(0.5)}` : "2px solid rgba(255,255,255,0.12)", display: "block" }}
+                          style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: isKeen ? "2px solid rgba(212,175,55,0.7)" : isWarm ? "2px solid rgba(212,175,55,0.4)" : "2px solid rgba(255,255,255,0.12)", display: "block" }}
                           onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
                         />
                         {isOnline(p.last_seen_at) && (
@@ -177,10 +175,10 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
                           {FLOOR_LABELS[pFloor] ?? pFloor}
                         </p>
                         {invited && (
-                          <p style={{ margin: "3px 0 0", fontSize: 9, fontWeight: 800, color: a.accent }}>✓ Invited by {invited.invitedByName}</p>
+                          <p style={{ margin: "3px 0 0", fontSize: 9, fontWeight: 800, color: "#d4af37" }}>✓ Invited by {invited.invitedByName}</p>
                         )}
-                        {isKeen && !invited && <p style={{ margin: "3px 0 0", fontSize: 10, fontWeight: 700, color: "#f87171" }}>Keeps coming back — make a move</p>}
-                        {isWarm && !isKeen && !invited && <p style={{ margin: "3px 0 0", fontSize: 10, fontWeight: 700, color: a.accent }}>Viewed you twice — like back?</p>}
+                        {isKeen && !invited && <p style={{ margin: "3px 0 0", fontSize: 10, fontWeight: 700, color: "#facc15" }}>Keeps coming back — make a move</p>}
+                        {isWarm && !isKeen && !invited && <p style={{ margin: "3px 0 0", fontSize: 10, fontWeight: 700, color: "#d4af37" }}>Viewed you twice — like back?</p>}
                       </div>
 
                       {/* CTA buttons */}
@@ -188,7 +186,7 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
                         <motion.button
                           whileTap={{ scale: 0.92 }}
                           onClick={e => { e.stopPropagation(); if (!likedIds.has(p.id)) onLike(p); }}
-                          style={{ width: 36, height: 36, borderRadius: 10, border: "none", background: likedIds.has(p.id) ? a.glow(0.25) : isKeen ? "rgba(239,68,68,0.2)" : a.glow(0.12), display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                          style={{ width: 36, height: 36, borderRadius: 10, border: "none", background: likedIds.has(p.id) ? "rgba(212,175,55,0.3)" : "rgba(212,175,55,0.14)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                         >
                           <span style={{ fontSize: 16 }}>{likedIds.has(p.id) ? "💚" : "❤️"}</span>
                         </motion.button>
@@ -196,7 +194,7 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
                           <motion.button
                             whileTap={{ scale: 0.92 }}
                             onClick={e => { e.stopPropagation(); onClose(); onMatchAction(p); }}
-                            style={{ width: 36, height: 36, borderRadius: 10, border: "none", background: isKeen ? "rgba(239,68,68,0.2)" : a.glow(0.12), display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                            style={{ width: 36, height: 36, borderRadius: 10, border: "none", background: "rgba(212,175,55,0.14)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                           >
                             <span style={{ fontSize: 15 }}>👁️</span>
                           </motion.button>
@@ -230,7 +228,7 @@ export default function GhostViewedMeSheet({ show, viewedMeList, myProfileId, us
                               ✓ Accept
                             </motion.button>
                             <motion.button whileTap={{ scale: 0.97 }} onClick={e => { e.stopPropagation(); handleRefuse(p); }}
-                              style={{ flex: 1, height: 34, borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "#f87171", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
+                              style={{ flex: 1, height: 34, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
                               ✕ Decline
                             </motion.button>
                           </div>

@@ -417,7 +417,7 @@ export default function GhostFlashSection({
                         )}
                       </div>
                       <p style={{ fontSize: 8, color: a.accent, fontWeight: isActive ? 800 : 700, margin: 0, letterSpacing: "0.04em" }}>
-                        {isActive ? String(p.age) : toGhostId(p.id).replace("Ghost-", "")}
+                        {isActive ? String(p.age) : toGhostId(p.id).replace("Guest-", "")}
                       </p>
                     </div>
                   ))}

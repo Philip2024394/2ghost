@@ -28,7 +28,7 @@ const BADGES = [
 function toGhostId(id: string): string {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = Math.imul(31, h) + id.charCodeAt(i) | 0;
-  return `Ghost-${1000 + Math.abs(h) % 9000}`;
+  return `Guest-${1000 + Math.abs(h) % 9000}`;
 }
 function seedPos(i: number) {
   return {

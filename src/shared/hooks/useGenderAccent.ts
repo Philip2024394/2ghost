@@ -30,21 +30,21 @@ export function getStoredGender(): "Female" | "Male" {
 
 export function buildAccent(gender: "Female" | "Male"): GenderAccent {
   const f = gender === "Female";
-  // ── Unified app red palette ────────────────────────────────────────────────
-  // #e01010 — signature red           (main accent, text, borders)
-  // #c00000 — mid red                 (active / hover states)
-  // #900000 — deep red                (pressed states, dark borders)
-  // #600000 — shadow red              (deepest tones)
-  // #ff3b3b — bright red highlight    (gradient tops, shimmer)
+  // ── Unified hotel gold palette ─────────────────────────────────────────────
+  // #d4af37 — hotel gold              (main accent, text, borders)
+  // #c9a227 — active gold             (active / hover states)
+  // #a8892f — deep bronze             (pressed states, dark borders)
+  // #8a6f1e — shadow gold             (deepest tones)
+  // #f0d060 — bright champagne        (gradient tops, shimmer)
   return {
-    accent:         "#e01010",
-    accentMid:      "#c00000",
-    accentDark:     "#900000",
-    accentDeep:     "#600000",
-    glow:    (o)  => `rgba(220,20,20,${o})`,
-    glowMid: (o)  => `rgba(180,0,0,${o})`,
-    gradient:       "linear-gradient(to bottom, #ff3b3b 0%, #e01010 40%, #b80000 100%)",
-    gradientSubtle: "linear-gradient(135deg, rgba(220,20,20,0.14), rgba(180,0,0,0.05))",
+    accent:         "#d4af37",
+    accentMid:      "#c9a227",
+    accentDark:     "#a8892f",
+    accentDeep:     "#8a6f1e",
+    glow:    (o)  => `rgba(212,175,55,${o})`,
+    glowMid: (o)  => `rgba(180,148,35,${o})`,
+    gradient:       "linear-gradient(135deg, #92400e, #d4af37, #f0d060)",
+    gradientSubtle: "linear-gradient(135deg, rgba(212,175,55,0.14), rgba(180,148,35,0.05))",
     isFemale: f,
   };
 }

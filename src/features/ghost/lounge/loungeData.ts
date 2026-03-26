@@ -15,9 +15,6 @@ export const EXTRA_REC_COST    = 10;
 // ── Lounge schedule ────────────────────────────────────────────────────────────
 export const ROTATE_MIN    = 3 * 60 * 1000;
 export const ROTATE_MAX    = 6 * 60 * 1000;
-export const LOUNGE_OPEN_H = 7;
-export const LOUNGE_CLOSE_H = 11;
-export const DEV_OVERRIDE  = true;
 export const SWAP_PER_TICK = 3;
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -173,35 +170,23 @@ export function getLocalHour(country: string): number {
   return ((utcH + offset) % 24 + 24) % 24;
 }
 
-export function isOnlineHours(country: string): boolean {
-  if (DEV_OVERRIDE) return true;
-  const h = getLocalHour(country);
-  return h >= 7 && h < 23;
+export function isOnlineHours(_country: string): boolean {
+  return true; // all guests are considered available
 }
 
-export function isBreakfastHours(country: string): boolean {
-  if (DEV_OVERRIDE) return false;
-  const h = getLocalHour(country);
-  return h >= 7 && h < 11;
+export function isBreakfastHours(_country: string): boolean {
+  return true; // no time restriction
 }
 
 export function breakfastPriority(p: LoungeProfile): number {
-  if (DEV_OVERRIDE) return (p.seed % 10) / 10;
-  const h = getLocalHour(p.country);
-  if (h >= 7 && h < 9)   return 1.0;
-  if (h >= 9 && h < 11)  return 0.8;
-  if (h >= 11 && h < 13) return 0.4;
-  return 0.1;
+  return (p.seed % 10) / 10;
 }
 
 export function getBusiestBreakfastRegion(): { name: string; flag: string; count: number; example: string } | null {
   const scored = REGIONS.map(r => {
     const profiles = POOL.filter(p => r.countries.includes(p.country));
-    const count = DEV_OVERRIDE
-      ? profiles.length
-      : profiles.filter(p => isBreakfastHours(p.country)).length;
     const example = profiles[0]?.city ?? "";
-    return { ...r, count, example };
+    return { ...r, count: profiles.length, example };
   }).sort((a, b) => b.count - a.count);
   return scored[0]?.count > 0 ? scored[0] : null;
 }
@@ -230,21 +215,11 @@ export function pickInviteMsg(p: { ghostId: string; age: number; country: string
 }
 
 export function isLoungeOpen(): boolean {
-  if (DEV_OVERRIDE) return true;
-  const h = new Date().getHours();
-  return h >= LOUNGE_OPEN_H && h < LOUNGE_CLOSE_H;
+  return true; // The lounge is open 24/7
 }
 
 export function getOpenCountdown(): string {
-  const now = new Date();
-  const h = now.getHours();
-  const openAt = new Date(now);
-  if (h >= LOUNGE_CLOSE_H) openAt.setDate(openAt.getDate() + 1);
-  openAt.setHours(LOUNGE_OPEN_H, 0, 0, 0);
-  const diff = openAt.getTime() - now.getTime();
-  const hrs  = Math.floor(diff / 3_600_000);
-  const mins = Math.floor((diff % 3_600_000) / 60_000);
-  return `${hrs}h ${mins}m`;
+  return "Open now";
 }
 
 export function buildVisible(

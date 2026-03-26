@@ -61,12 +61,14 @@ import LateNightButlerPopup from "../components/LateNightButlerPopup";
 import ButlerWelcomePopup from "../components/ButlerWelcomePopup";
 import PushPermissionPrompt from "../components/PushPermissionPrompt";
 import CheckoutReminderPopup from "../components/CheckoutReminderPopup";
-import FloorChatPopup, { getChatUnread, setChatUnread } from "../components/FloorChatPopup";
+import FloorChatPopup from "../components/FloorChatPopup";
 import GhostFlashPaywallSheet from "../components/GhostFlashPaywallSheet";
 import DevPopupLauncher from "@/shared/components/DevPopupLauncher";
 import GhostButlerMessage from "../components/GhostButlerMessage";
 import { ProfileWhisperModal } from "../components/GhostCard";
 import GhostDevPanel from "../components/GhostDevPanel";
+import ButlerBroadcastPopup from "../components/ButlerBroadcastPopup";
+import { useButlerInbox } from "../hooks/useButlerInbox";
 
 const SHIELD_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdfsdsdsddsdf.png";
 
@@ -130,7 +132,6 @@ export interface GhostModePopupsProps {
   setShowButler: (v: boolean) => void;
   setShowButlerUnavailable: (v: boolean) => void;
   isFemale: boolean;
-  setButlerConnectProfile: (v: GhostProfile | null) => void;
   handleFoundBoo: (p: GhostProfile) => void;
   setConnectNowProfile: (v: GhostProfile | null) => void;
   setMatchPaywallProfile: (v: GhostProfile | null) => void;
@@ -202,6 +203,8 @@ export interface GhostModePopupsProps {
   loungeGuestCount: number;
   loungeEnabled: boolean;
   handleToggleLounge: () => void;
+  casinoEnabled: boolean;
+  handleToggleCasino: () => void;
 
   // Breakfast picker
   showBreakfastPicker: boolean;
@@ -356,7 +359,7 @@ export interface GhostModePopupsProps {
   toggleTonight: () => void;
   isFlashActive: boolean;
   exitFlash: () => void;
-  setHouseTier: (v: "gold" | "suite") => void;
+  setHouseTier: (v: "gold" | "suite" | null) => void;
   deactivate: () => void;
   profiles: GhostProfile[];
 
@@ -452,6 +455,8 @@ export default function GhostModePopups({
   loungeGuestCount,
   loungeEnabled,
   handleToggleLounge,
+  casinoEnabled,
+  handleToggleCasino,
   showBreakfastPicker,
   setShowBreakfastPicker,
   LOUNGE_COUNTRIES,
@@ -561,6 +566,29 @@ export default function GhostModePopups({
   likeRainHearts,
 }: GhostModePopupsProps) {
   const navigate = useNavigate();
+
+  // ── Admin butler inbox ─────────────────────────────────────────────────────
+  const { broadcast, dmMessages, dismissBroadcast } = useButlerInbox();
+
+  // DM notification: show the most recent unread DM as a butler message nudge
+  const [shownDmIds, setShownDmIds] = React.useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("butler_dm_shown") || "[]")); } catch { return new Set(); }
+  });
+  const pendingDm = dmMessages.find((m) => !shownDmIds.has(m.id)) ?? null;
+  const [dmPopupOpen, setDmPopupOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (pendingDm) setDmPopupOpen(true);
+  }, [pendingDm?.id]);
+
+  const dismissDm = () => {
+    if (!pendingDm) return;
+    const next = new Set(shownDmIds);
+    next.add(pendingDm.id);
+    setShownDmIds(next);
+    try { localStorage.setItem("butler_dm_shown", JSON.stringify([...next].slice(-50))); } catch {}
+    setDmPopupOpen(false);
+  };
 
   return (
     <>
@@ -933,6 +961,8 @@ export default function GhostModePopups({
         loungeGuestCount={loungeGuestCount}
         loungeEnabled={loungeEnabled}
         onToggleLounge={handleToggleLounge}
+        casinoEnabled={casinoEnabled}
+        onToggleCasino={handleToggleCasino}
       />
 
       {/* ── Breakfast Lounge Country Picker ── */}
@@ -1377,6 +1407,26 @@ export default function GhostModePopups({
               </motion.div>
             ))}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Admin Mr. Butlas DM (personal message to this user) ── */}
+      <AnimatePresence>
+        {dmPopupOpen && pendingDm && (
+          <ButlerBroadcastPopup
+            message={pendingDm.message}
+            onDismiss={dismissDm}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Admin Mr. Butlas Broadcast (live popup for ALL users) ── */}
+      <AnimatePresence>
+        {!dmPopupOpen && broadcast && (
+          <ButlerBroadcastPopup
+            message={broadcast.message}
+            onDismiss={dismissBroadcast}
+          />
         )}
       </AnimatePresence>
     </>

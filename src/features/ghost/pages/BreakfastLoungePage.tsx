@@ -4,20 +4,21 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import TableArrivalSequence, { assignTable } from "../components/TableArrivalSequence";
 import { useCoins } from "../hooks/useCoins";
 import CoinBalanceChip from "../components/CoinBalanceChip";
 import LoungeAvatar from "../lounge/LoungeAvatar";
 import BreakfastTableChat from "../lounge/BreakfastTableChat";
 import {
   NOTE_COST, COFFEE_COST, INTL_COST, EXTRA_REC_COST, TABLE_INVITE_COST,
-  ROTATE_MIN, ROTATE_MAX, LOUNGE_OPEN_H, LOUNGE_CLOSE_H, SWAP_PER_TICK,
+  ROTATE_MIN, ROTATE_MAX, SWAP_PER_TICK,
   UTC_OFFSETS, REGIONS, avCol,
   LoungeProfile, Phase,
   POOL, SEATING_TIMES, SOFT_DECLINES, REC_INTROS,
   isOnlineHours,
   getBusiestBreakfastRegion, loungePresence, approxDistance, pickInviteMsg,
-  isLoungeOpen, getOpenCountdown, buildVisible, pickRec, rnd,
+  isLoungeOpen, buildVisible, pickRec, rnd,
 } from "../lounge/loungeData";
 import { getWantedGenderLounge } from "../utils/ghostHelpers";
 
@@ -35,7 +36,16 @@ function getMorningTime() {
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function BreakfastLoungePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const arrivedFromInvite = !!(location.state as any)?.arrivedFromInvite;
+  const myProfileId = (() => { try { return JSON.parse(localStorage.getItem("ghost_profile") || "{}").id ?? "guest"; } catch { return "guest"; } })();
+  const [showArrivalSequence, setShowArrivalSequence] = useState(arrivedFromInvite);
   const { deductCoins, canAfford } = useCoins();
+
+  // Unlock the side drawer button the first time the user arrives
+  useEffect(() => {
+    try { localStorage.setItem("breakfast_lounge_unlocked", "true"); } catch {}
+  }, []);
 
   // Country selected from the lobby picker (sessionStorage)
   const pickedCountry = (() => { try { return sessionStorage.getItem("breakfast_country") ?? null; } catch { return null; } })();
@@ -357,37 +367,6 @@ export default function BreakfastLoungePage() {
     );
   }
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // CLOSED VIEW
-  // ════════════════════════════════════════════════════════════════════════════
-  if (!open) {
-    return (
-      <div style={{ minHeight: "100dvh", background: "#08080e", color: "#fff", fontFamily: "system-ui, sans-serif", display: "flex", flexDirection: "column" }}>
-        <div style={{ position: "relative", height: 220, overflow: "hidden", flexShrink: 0 }}>
-          <img src={LOUNGE_IMG} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.35 }} />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(8,8,14,0.4) 0%, rgba(8,8,14,0.95) 100%)" }} />
-          <motion.button whileTap={{ scale: 0.92 }} onClick={() => navigate(-1)}
-            style={{ position: "absolute", top: "calc(env(safe-area-inset-top,16px) + 10px)", left: 16, width: 34, height: 34, borderRadius: "50%", background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.7)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            ←
-          </motion.button>
-        </div>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 28px", textAlign: "center" }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🍳</div>
-          <p style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 900, color: "#fff" }}>Breakfast Lounge</p>
-          <p style={{ margin: "0 0 4px", fontSize: 14, color: "rgba(255,255,255,0.4)" }}>
-            The lounge is open daily
-          </p>
-          <p style={{ margin: "0 0 28px", fontSize: 13, color: "rgba(255,255,255,0.3)" }}>
-            {LOUNGE_OPEN_H}:00 AM — {LOUNGE_CLOSE_H}:00 AM
-          </p>
-          <div style={{ background: "rgba(220,20,20,0.08)", border: "1px solid rgba(220,20,20,0.2)", borderRadius: 16, padding: "16px 24px" }}>
-            <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#e01010", letterSpacing: "0.1em", textTransform: "uppercase" }}>Opens in</p>
-            <p style={{ margin: 0, fontSize: 28, fontWeight: 900, color: "#fff" }}>{getOpenCountdown()}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // ════════════════════════════════════════════════════════════════════════════
   // AT-TABLE VIEW
@@ -408,6 +387,16 @@ export default function BreakfastLoungePage() {
   // ════════════════════════════════════════════════════════════════════════════
   return (
     <div style={{ minHeight: "100dvh", background: "#08080e", color: "#fff", fontFamily: "system-ui, sans-serif", overflowX: "hidden" }}>
+
+      {/* Table arrival cinematic sequence */}
+      <AnimatePresence>
+        {showArrivalSequence && (
+          <TableArrivalSequence
+            assignedTableId={assignTable(myProfileId)}
+            onComplete={() => setShowArrivalSequence(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Hero */}
       <div style={{ position: "relative", height: 210, overflow: "hidden" }}>

@@ -13,7 +13,7 @@ const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,
 function toGhostId(id: string): string {
   let h = 0;
   for (let i = 0; i < id.length; i++) { h = Math.imul(31, h) + id.charCodeAt(i) | 0; }
-  return `Ghost-${1000 + Math.abs(h) % 9000}`;
+  return `Guest-${1000 + Math.abs(h) % 9000}`;
 }
 
 const MOCK_IMAGES = PROFILE_IMAGES;

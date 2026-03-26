@@ -21,6 +21,13 @@ export default function MrButlasEscortPage() {
     setLeaving(true);
     try {
       clearStaffDeadline();
+      // Remove from admin dismiss list so they can re-enter once portrait is uploaded
+      const profileId = JSON.parse(localStorage.getItem("ghost_profile") || "{}").id;
+      if (profileId) {
+        const dismissed = JSON.parse(localStorage.getItem("admin_portrait_dismissed") || "{}");
+        delete dismissed[profileId];
+        localStorage.setItem("admin_portrait_dismissed", JSON.stringify(dismissed));
+      }
       localStorage.removeItem("ghost_profile");
       localStorage.removeItem("ghost_profile_setup_done");
       localStorage.removeItem("ghost_onboarded");

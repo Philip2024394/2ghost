@@ -1,24 +1,30 @@
 // MrButlasStaffPopup — shown when a user taps a profile that hasn't uploaded their portrait
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { GhostProfile } from "../types/ghostTypes";
 import { sendStaffNudge } from "../services/ghostStaffNudgeService";
+import { toGhostId } from "../utils/ghostHelpers";
 
-const BUTLAS_IMG = "https://ik.imagekit.io/7grri5v7d/werwerwer-removebg-preview.png";
+const BUTLAS_IMG = "https://ik.imagekit.io/7grri5v7d/ewrwerwerwer-removebg-preview.png?updatedAt=1774288645920";
 
 interface Props {
   profile: GhostProfile;
   onClose: () => void;
 }
 
-export default function MrButlasStaffPopup({ profile, onClose }: Props) {
-  const [nudgeSent,    setNudgeSent]    = useState(false);
-  const [requestSent,  setRequestSent]  = useState(false);
+function seededCountdown(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = Math.imul(31, h) + id.charCodeAt(i) | 0;
+  h = Math.abs(h);
+  const hrs  = 1 + (h % 35);
+  const mins = h % 59;
+  return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+}
 
-  function sendNudge() {
-    sendStaffNudge(profile.id, "nudge").catch(() => {});
-    setNudgeSent(true);
-  }
+export default function MrButlasStaffPopup({ profile, onClose }: Props) {
+  const [requestSent, setRequestSent] = useState(false);
+  const guestId   = toGhostId(profile.id);
+  const countdown = useMemo(() => seededCountdown(profile.id), [profile.id]);
 
   function requestPortrait() {
     sendStaffNudge(profile.id, "portrait_request").catch(() => {});
@@ -33,7 +39,7 @@ export default function MrButlasStaffPopup({ profile, onClose }: Props) {
       onClick={onClose}
       style={{
         position: "fixed", inset: 0, zIndex: 9200,
-        background: "rgba(0,0,0,0.8)", backdropFilter: "blur(6px)",
+        background: "rgba(0,0,0,0.82)", backdropFilter: "blur(6px)",
         display: "flex", alignItems: "flex-end", justifyContent: "center",
       }}
     >
@@ -47,88 +53,62 @@ export default function MrButlasStaffPopup({ profile, onClose }: Props) {
           width: "100%", maxWidth: 480,
           background: "linear-gradient(180deg, #0c0608 0%, #060304 100%)",
           border: "1px solid rgba(255,255,255,0.07)",
-          borderTop: "1px solid rgba(212,175,55,0.2)",
+          borderTop: "1px solid rgba(212,175,55,0.25)",
           borderRadius: "24px 24px 0 0",
           padding: "8px 24px 44px",
         }}
       >
         {/* Drag handle */}
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)", margin: "12px auto 22px" }} />
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(220,20,20,0.7)", margin: "12px auto 20px" }} />
 
-        {/* Mr. Butlas header */}
-        <div style={{ display: "flex", gap: 12, marginBottom: 18, alignItems: "flex-start" }}>
+        {/* Mr. Butlas header row */}
+        {!requestSent && <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
           <img src={BUTLAS_IMG} alt="Mr. Butlas"
-            style={{ width: 48, height: 48, objectFit: "contain", flexShrink: 0 }} />
+            style={{ width: 62, height: 62, objectFit: "contain", flexShrink: 0 }} />
           <div>
-            <p style={{ margin: "0 0 4px", fontSize: 10, fontWeight: 900,
-              color: "rgba(212,175,55,0.85)", letterSpacing: "0.12em" }}>MR. BUTLAS</p>
-            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.6 }}>
-              I regret to inform you that{" "}
-              <span style={{ color: "#fff", fontWeight: 800 }}>{profile.name}</span>{" "}
-              has not yet confirmed their identity with the house.
-            </p>
+            <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 900,
+              color: "rgba(212,175,55,0.85)", letterSpacing: "0.14em" }}>MR. BUTLAS</p>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 600,
+              color: "rgba(255,255,255,0.3)", letterSpacing: "0.03em" }}>Profile Interaction</p>
           </div>
-        </div>
+          <div style={{ marginLeft: "auto", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+            <span style={{ fontSize: 8, fontWeight: 900, color: "rgba(220,20,20,0.65)", letterSpacing: "0.1em" }}>GUEST DEPARTURE</span>
+            <span style={{ fontSize: 18, fontWeight: 900, color: "#e01010", letterSpacing: "0.06em", fontFamily: "monospace", lineHeight: 1 }}>{countdown}</span>
+          </div>
+        </div>}
 
-        {/* Profile preview — blurred / staff */}
-        <div style={{
-          display: "flex", gap: 14, alignItems: "center",
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.07)",
-          borderRadius: 16, padding: "12px 16px", marginBottom: 16,
-        }}>
-          <div style={{ position: "relative", width: 52, height: 52, flexShrink: 0 }}>
-            <img src={profile.image} alt=""
-              style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover",
-                filter: "blur(9px) brightness(0.45)" }} />
-            <div style={{ position: "absolute", inset: 0, borderRadius: "50%",
-              display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: 20 }}>🔑</span>
-            </div>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-              <span style={{ fontSize: 9, fontWeight: 900, color: "rgba(212,175,55,0.8)",
-                letterSpacing: "0.1em", background: "rgba(212,175,55,0.1)",
-                border: "1px solid rgba(212,175,55,0.25)", borderRadius: 6,
-                padding: "2px 7px" }}>HOTEL STAFF</span>
-            </div>
-            <p style={{ margin: "0 0 2px", fontSize: 15, fontWeight: 800, color: "rgba(255,255,255,0.55)" }}>
-              {profile.name}, {profile.age}
-            </p>
-            <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
-              {profile.city} {profile.countryFlag}
-            </p>
-          </div>
-        </div>
-
-        {/* Hotel rule notice */}
-        <div style={{
-          background: "rgba(212,175,55,0.06)",
+        {/* Letter */}
+        {!requestSent && <div style={{
+          background: "rgba(255,255,255,0.025)",
           border: "1px solid rgba(212,175,55,0.18)",
-          borderRadius: 12, padding: "10px 14px", marginBottom: 20,
+          borderRadius: 16, padding: "18px 18px 16px", marginBottom: 20,
         }}>
-          <p style={{ margin: 0, fontSize: 12, color: "rgba(212,175,55,0.75)", lineHeight: 1.65 }}>
-            <span style={{ fontWeight: 900 }}>Hotel Rule §3 — </span>
-            Staff members may not be courted until they have presented their portrait and been formally welcomed as a guest of the house.
+          <p style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 800, color: "#fff" }}>
+            Dear Guest,
           </p>
-        </div>
+          <p style={{ margin: "0 0 11px", fontSize: 12, color: "rgba(255,255,255,0.58)", lineHeight: 1.75 }}>
+            You have recently shown interest in a profile within our hotel. However, I must inform you that the portrait you encountered does not belong to the guest themselves.
+          </p>
+          <p style={{ margin: "0 0 11px", fontSize: 12, color: "rgba(255,255,255,0.58)", lineHeight: 1.75 }}>
+            In the absence of their profile image, I have temporarily assigned one of our hotel staff to stand in their place — ensuring that all profiles maintain a sense of presence at all times.
+          </p>
+          <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.58)", lineHeight: 1.75 }}>
+            The guest in question —{" "}
+            <span style={{ color: "rgba(212,175,55,0.95)", fontWeight: 800 }}>{guestId}</span>
+            {" "} — has been granted a limited time frame to present their true portrait. Until such time, their profile remains under this provisional representation.
+          </p>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 800,
+            color: "rgba(212,175,55,0.65)", fontStyle: "italic" }}>
+            — Mr. Butlas
+          </p>
+        </div>}
 
         {/* Action buttons */}
         <AnimatePresence mode="wait">
-          {!nudgeSent && !requestSent ? (
+          {!requestSent ? (
             <motion.div key="actions" initial={{ opacity: 1 }} exit={{ opacity: 0 }}
               style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <motion.button whileTap={{ scale: 0.97 }} onClick={sendNudge}
-                style={{ width: "100%", height: 52, borderRadius: 14,
-                  background: "rgba(212,175,55,0.08)",
-                  border: "1px solid rgba(212,175,55,0.3)",
-                  color: "rgba(212,175,55,0.9)", fontSize: 14, fontWeight: 800,
-                  cursor: "pointer", display: "flex", alignItems: "center",
-                  justifyContent: "center", gap: 8 }}>
-                <span>👋</span> Send a Nudge
-              </motion.button>
-              <motion.button whileTap={{ scale: 0.97 }} onClick={requestPortrait}
+<motion.button whileTap={{ scale: 0.97 }} onClick={requestPortrait}
                 style={{ width: "100%", height: 52, borderRadius: 14, border: "none",
                   background: "linear-gradient(135deg, #b80000, #e01010)",
                   color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer",
@@ -138,7 +118,7 @@ export default function MrButlasStaffPopup({ profile, onClose }: Props) {
               </motion.button>
               <button onClick={onClose}
                 style={{ background: "none", border: "none",
-                  color: "rgba(255,255,255,0.28)", fontSize: 13,
+                  color: "rgba(255,255,255,0.25)", fontSize: 13,
                   cursor: "pointer", paddingTop: 4 }}>
                 Dismiss
               </button>
@@ -146,21 +126,37 @@ export default function MrButlasStaffPopup({ profile, onClose }: Props) {
           ) : (
             <motion.div key="sent"
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-              style={{ textAlign: "center", padding: "8px 0 12px" }}>
-              <p style={{ fontSize: 22, marginBottom: 10 }}>
-                {requestSent ? "📸" : "👋"}
-              </p>
-              <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 800, color: "#fff" }}>
-                {requestSent ? "Portrait Requested" : "Nudge Sent"}
-              </p>
-              <p style={{ margin: "0 0 22px", fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
-                {requestSent
-                  ? "Mr. Butlas will formally notify them. If they do not comply, they will be asked to leave the house."
-                  : "Mr. Butlas has passed your message along. They will be informed that a guest is waiting."}
-              </p>
+              style={{ padding: "4px 0 12px" }}>
+              {/* Header row — image + title */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                <img
+                  src="https://ik.imagekit.io/7grri5v7d/sdfasdfasdfrrrr-removebg-preview.png?updatedAt=1774275671975"
+                  alt=""
+                  style={{ width: 65, height: 65, objectFit: "contain", flexShrink: 0 }}
+                />
+                <div>
+                  <p style={{ margin: "0 0 3px", fontSize: 16, fontWeight: 900, color: "rgba(212,175,55,0.95)" }}>
+                    Portrait Request Noted
+                  </p>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>
+                    The profile owner has been notified.
+                  </p>
+                </div>
+              </div>
+
+              {/* Centred message */}
+              <div style={{ textAlign: "center", marginBottom: 24 }}>
+                <p style={{ margin: "0 0 8px", fontSize: 15, fontWeight: 800, color: "#fff" }}>
+                  Portrait Requested
+                </p>
+                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.7 }}>
+                  Mr. Butlas will formally notify them. If they do not comply, they will be asked to leave the house.
+                </p>
+              </div>
+
               <button onClick={onClose}
-                style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)",
-                  borderRadius: 12, padding: "10px 28px", color: "rgba(255,255,255,0.6)",
+                style={{ width: "100%", background: "rgba(220,20,20,0.12)", border: "1px solid rgba(220,20,20,0.4)",
+                  borderRadius: 12, padding: "13px 28px", color: "rgba(220,20,20,0.9)",
                   fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
                 Close
               </button>

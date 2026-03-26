@@ -19,7 +19,7 @@ type CallState = "idle" | "connecting" | "active" | "ended";
 type CallType  = "voice" | "video" | null;
 
 // ── Coin costs ────────────────────────────────────────────────────────────────
-const MSG_COST        = 1;    // coins per message
+// Text & media messages are free — coins are for gifts and calls only
 const GIFT_COST       = 10;   // base gift cost
 const VOICE_COST_MIN  = 15;   // coins per minute — voice call
 const VIDEO_COST_MIN  = 25;   // coins per minute — video call
@@ -183,8 +183,7 @@ export default function VaultPrivateChatPopup({
   function handleSend() {
     const text = input.trim();
     if (!text) return;
-    if (!deductCoins(MSG_COST)) return;
-    addMsg({ id: `vm-${Date.now()}`, text, timestamp: Date.now(), isOwn: true, coinCost: MSG_COST });
+    addMsg({ id: `vm-${Date.now()}`, text, timestamp: Date.now(), isOwn: true });
     setInput("");
     scheduleReply(false);
   }
@@ -199,10 +198,9 @@ export default function VaultPrivateChatPopup({
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!deductCoins(MSG_COST)) { e.target.value = ""; return; }
     const isVideo = file.type.startsWith("video/");
     const url = URL.createObjectURL(file);
-    addMsg({ id: `vmedia-${Date.now()}`, text: isVideo ? "🎬 Video" : "📸 Photo", mediaUrl: url, mediaType: isVideo ? "video" : "image", timestamp: Date.now(), isOwn: true, coinCost: MSG_COST });
+    addMsg({ id: `vmedia-${Date.now()}`, text: isVideo ? "🎬 Video" : "📸 Photo", mediaUrl: url, mediaType: isVideo ? "video" : "image", timestamp: Date.now(), isOwn: true });
     e.target.value = "";
     scheduleReply(false);
   }
@@ -289,7 +287,7 @@ export default function VaultPrivateChatPopup({
           {/* Avatar */}
           <div style={{ position: "relative", flexShrink: 0 }}>
             <div style={{ width: 40, height: 40, borderRadius: "50%", background: `${tierColor}22`, border: `2px solid ${tierColor}55`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: 18, fontWeight: 900, color: tierColor }}>{targetId.replace("Ghost-", "").charAt(0)}</span>
+              <span style={{ fontSize: 18, fontWeight: 900, color: tierColor }}>{targetId.replace("Guest-", "").charAt(0)}</span>
             </div>
             <motion.span animate={{ opacity: [1, 0.3, 1], scale: [1, 1.3, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
               style={{ position: "absolute", bottom: 1, right: 1, width: 9, height: 9, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px rgba(74,222,128,0.9)", display: "block" }} />
@@ -304,7 +302,7 @@ export default function VaultPrivateChatPopup({
               </span>
             </div>
             <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>
-              🔐 Secret Messages · disappearing · {MSG_COST}🪙/msg
+              🔐 Secret Messages · disappearing · private
             </p>
           </div>
 
@@ -374,7 +372,7 @@ export default function VaultPrivateChatPopup({
                   <>
                     {!msg.isOwn && (
                       <div style={{ width: 26, height: 26, borderRadius: "50%", background: `${tierColor}22`, border: `1.5px solid ${tierColor}45`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: tierColor }}>{targetId.replace("Ghost-", "").charAt(0)}</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: tierColor }}>{targetId.replace("Guest-", "").charAt(0)}</span>
                       </div>
                     )}
                     <div style={{ maxWidth: "75%", display: "flex", flexDirection: "column", gap: 2, alignItems: msg.isOwn ? "flex-end" : "flex-start" }}>
@@ -398,7 +396,7 @@ export default function VaultPrivateChatPopup({
                       )}
                       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                         <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.2)" }}>{timeLabel(msg.timestamp)}</p>
-                        {msg.isOwn && msg.coinCost && !msg.isGift && <p style={{ margin: 0, fontSize: 8, color: "rgba(255,215,0,0.35)" }}>−{msg.coinCost}🪙</p>}
+                        {msg.isOwn && msg.coinCost && msg.isGift && <p style={{ margin: 0, fontSize: 8, color: "rgba(255,215,0,0.35)" }}>−{msg.coinCost}🪙</p>}
                       </div>
                     </div>
                   </>
@@ -443,7 +441,7 @@ export default function VaultPrivateChatPopup({
           </motion.button>
           <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder={`Secret message… −${MSG_COST}🪙`} maxLength={280}
+            placeholder="Secret message…" maxLength={280}
             style={{ flex: 1, height: 40, borderRadius: 12, background: "rgba(255,255,255,0.06)", border: `1px solid ${input ? tierColor + "40" : "rgba(255,255,255,0.1)"}`, color: "#fff", fontSize: 13, padding: "0 14px", outline: "none", fontFamily: "inherit", transition: "border-color 0.2s" }}
           />
           <motion.button whileTap={{ scale: 0.9 }} onClick={handleSend} disabled={!input.trim()}
@@ -469,7 +467,7 @@ export default function VaultPrivateChatPopup({
                   {/* Fake remote avatar */}
                   <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <div style={{ width: 100, height: 100, borderRadius: "50%", background: `${tierColor}22`, border: `3px solid ${tierColor}55`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 44, fontWeight: 900, color: tierColor }}>{targetId.replace("Ghost-", "").charAt(0)}</span>
+                      <span style={{ fontSize: 44, fontWeight: 900, color: tierColor }}>{targetId.replace("Guest-", "").charAt(0)}</span>
                     </div>
                   </div>
                   {/* Self preview — bottom right */}
@@ -511,7 +509,7 @@ export default function VaultPrivateChatPopup({
               {callType === "voice" && (
                 <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
                   <div style={{ width: 90, height: 90, borderRadius: "50%", background: `${tierColor}22`, border: `3px solid ${tierColor}55`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
-                    <span style={{ fontSize: 40, fontWeight: 900, color: tierColor }}>{targetId.replace("Ghost-", "").charAt(0)}</span>
+                    <span style={{ fontSize: 40, fontWeight: 900, color: tierColor }}>{targetId.replace("Guest-", "").charAt(0)}</span>
                   </div>
                   {/* Waveform when active */}
                   {callState === "active" && (

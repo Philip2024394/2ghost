@@ -54,6 +54,13 @@ import GhostButlerSheet from "../components/GhostButlerSheet";
 import { isCitySupported } from "../data/butlerProviders";
 import MatchActionPopup, { type MatchActionContext } from "../components/MatchActionPopup";
 import GhostCoinShop from "../components/GhostCoinShop";
+import ButlerGameChallengeSheet from "../components/ButlerGameChallengeSheet";
+import DateIdeasFeed from "../components/DateIdeasFeed";
+import { useDateInvites } from "../hooks/useDateInvites";
+import { DateInviteReceivedPopup, DateInviteAcceptedPopup } from "../components/DateInvitePopup";
+import MsVeraPopup, { isDateIdeasUnlocked, recordFirstVisit, type NewPostInfo } from "../components/MsVeraPopup";
+import SendDateInviteSheet from "../components/SendDateInviteSheet";
+import { canShowAutoPopup, markAutoPopupShown } from "../utils/popupThrottle";
 import FloorChatPopup, { getChatUnread, setChatUnread } from "../components/FloorChatPopup";
 import GhostModePopups from "../components/GhostModePopups";
 import GhostModeMatchBar from "../components/GhostModeMatchBar";
@@ -72,14 +79,15 @@ import FloorWarsBoard from "../components/FloorWarsBoard";
 import GhostConciergeSheet from "../components/GhostConciergeSheet";
 import SeancePopup from "../components/SeancePopup";
 import MrButlasStaffPopup from "../components/MrButlasStaffPopup";
-import { useMrButlasCountdown, incrementRequestCount } from "../hooks/useMrButlasCountdown";
+import { useMrButlasCountdown, fmtCountdown } from "../hooks/useMrButlasCountdown";
 import VideoIntroPlayer from "../components/VideoIntroPlayer";
 import VideoIntroUploader from "../components/VideoIntroUploader";
 import GhostStreakBanner from "../components/GhostStreakBanner";
 import DevPopupLauncher from "@/shared/components/DevPopupLauncher";
 import GameInvitePopup from "../components/GameInvitePopup";
 import TonightGiftSheet from "../components/TonightGiftSheet";
-import { sendGameInvite, subscribeToGameInvites, respondToInvite, type GameInvite } from "../utils/gameInviteService";
+import { subscribeToGameInvites, respondToInvite, type GameInvite } from "../utils/gameInviteService";
+import SendGameChallengeSheet, { type ChallengeTarget } from "../components/SendGameChallengeSheet";
 import { hasActiveWindowMode, getDaysConnected, getConciergeShown, whisperWillConvert, profileHasVideo, isProfileInWindow } from "../utils/featureGating";
 import { recordLike, loadMyMatches, getMyGhostId, syncTierToSupabase, loadTierFromSupabase, syncCoinsToSupabase, loadCoinsFromSupabase, loadGhostProfiles, type RealProfileRow } from "../ghostDataService";
 
@@ -299,15 +307,17 @@ export default function GhostModePage() {
     return unsub;
   }, []);
 
-  // Send a game invite to a profile from the browse feed
-  const handleGameInvite = useCallback(async (profile: GhostProfile) => {
-    const myPhone = localStorage.getItem("ghost_phone") ?? "";
-    if (!myPhone) return;
-    const rawProfile = (() => { try { return JSON.parse(localStorage.getItem("ghost_profile") ?? "{}"); } catch { return {}; } })();
-    const myName = rawProfile.name ?? myPhone;
-    const myImage = rawProfile.photo ?? "";
-    await sendGameInvite(myPhone, myName, myImage, profile.id);
+  // Open game challenge sheet for a profile from the browse feed
+  const [challengeTarget, setChallengeTarget] = useState<ChallengeTarget | null>(null);
+  const handleGameInvite = useCallback((profile: GhostProfile) => {
     setSelectedProfile(null);
+    setChallengeTarget({
+      id:    profile.id,
+      name:  profile.name,
+      image: profile.image,
+      city:  profile.city,
+      flag:  profile.countryFlag,
+    });
   }, []);
 
   // Supabase: sync tier + coins on mount
@@ -413,6 +423,8 @@ export default function GhostModePage() {
   const [showLateNight,      setShowLateNight]      = useState(false);
   const [showPushPrompt,     setShowPushPrompt]     = useState(false);
   const [showCoinShop,       setShowCoinShop]       = useState(false);
+  const [showButlerChallenge, setShowButlerChallenge] = useState(false);
+  const challengeFiredRef = useRef(false);
   const [butlerMessage,      setButlerMessage]      = useState<ButlerMessage | null>(null);
   const [showEvents,         setShowEvents]         = useState(false);
   const [showStats,          setShowStats]          = useState(false);
@@ -445,16 +457,47 @@ export default function GhostModePage() {
   const [staffPopupProfile, setStaffPopupProfile] = useState<GhostProfile | null>(null);
 
   // Mr. Butlas staff enforcement
-  const { stage: butlasStage } = useMrButlasCountdown();
+  const { stage: butlasStage, msRemaining } = useMrButlasCountdown();
   const ownIsStaff = butlasStage !== "guest";
-  // Redirect if portrait deadline expired
+  // Redirect if portrait deadline expired OR admin has dismissed this user
   useEffect(() => {
-    if (butlasStage === "expired") navigate("/ghost/escorted-out", { replace: true });
+    if (butlasStage === "expired") { navigate("/ghost/escorted-out", { replace: true }); return; }
+    try {
+      const profileId = JSON.parse(localStorage.getItem("ghost_profile") || "{}").id;
+      const dismissed = JSON.parse(localStorage.getItem("admin_portrait_dismissed") || "{}");
+      if (profileId && dismissed[profileId]) navigate("/ghost/escorted-out", { replace: true });
+    } catch {}
   }, [butlasStage, navigate]);
   const [showVideoPlayer,  setShowVideoPlayer]   = useState(false);
   const [videoProfile,     setVideoProfile]      = useState<GhostProfile | null>(null);
   const [showVideoUpload,  setShowVideoUpload]   = useState(false);
   const [showLeaderboard,  setShowLeaderboard]   = useState(false);
+  const [showDateIdeas,    setShowDateIdeas]     = useState(false);
+  const [showVeraLocked,   setShowVeraLocked]    = useState(false);
+  const [veraNewPost,      setVeraNewPost]       = useState<NewPostInfo | null>(null);
+  const [veraInvitePost,   setVeraInvitePost]    = useState<NewPostInfo | null>(null);
+  const { pendingInvite, acceptedInvite, dismissPending, dismissAccepted } = useDateInvites();
+
+  // Record first visit for Ms. Vera unlock timer + check for new posts
+  useEffect(() => {
+    recordFirstVisit();
+    if (!isDateIdeasUnlocked()) return;
+    try {
+      const LAST_KEY = "ghost_date_ideas_last_seen";
+      const lastSeen = parseInt(localStorage.getItem(LAST_KEY) || "0", 10);
+      const posts: Array<{ id: string; title: string; mainImage: string; location: string; authorName: string; authorCity?: string; authorFlag?: string; createdAt: number }> =
+        JSON.parse(localStorage.getItem("ghost_date_ideas_posts") || "[]");
+      const newPost = posts.filter(p => p.createdAt > lastSeen && p.createdAt > Date.now() - 86400000 * 2)[0];
+      if (newPost) {
+        setTimeout(() => {
+          if (!canShowAutoPopup()) return;
+          setVeraNewPost({ id: newPost.id, title: newPost.title, image: newPost.mainImage, location: newPost.location, authorName: newPost.authorName, authorCity: newPost.authorCity, authorFlag: newPost.authorFlag });
+          markAutoPopupShown();
+        }, 2500);
+      }
+      localStorage.setItem(LAST_KEY, String(Date.now()));
+    } catch {}
+  }, []);
   const [showTonightSheet, setShowTonightSheet]  = useState(false);
   const [tonightGiftProfile, setTonightGiftProfile] = useState<GhostProfile | null>(null);
   // Revealed "liked me" avatars in hero tab
@@ -496,7 +539,10 @@ export default function GhostModePage() {
   // Checkout reminder — show 8s after load if within 3 days of plan expiry
   useEffect(() => {
     const t = setTimeout(() => {
-      if (shouldShowCheckout()) setShowCheckout(true);
+      if (shouldShowCheckout() && canShowAutoPopup()) {
+        setShowCheckout(true);
+        markAutoPopupShown();
+      }
     }, 8000);
     return () => clearTimeout(t);
   }, []);
@@ -508,17 +554,40 @@ export default function GhostModePage() {
   //   return () => clearTimeout(t);
   // }, []);
 
+  // Butler game challenge — shown randomly after 3–5 min if Games Room discovered
+  useEffect(() => {
+    const gamesUnlocked = localStorage.getItem("games_room_unlocked") === "true";
+    if (!gamesUnlocked || challengeFiredRef.current) return;
+    const delay = 180_000 + Math.random() * 120_000; // 3–5 min
+    const t = setTimeout(() => {
+      if (challengeFiredRef.current) return;
+      if (!canShowAutoPopup()) return;
+      challengeFiredRef.current = true;
+      setShowButlerChallenge(true);
+      markAutoPopupShown();
+    }, delay);
+    return () => clearTimeout(t);
+  }, []);
+
   // Push notification prompt — show 20s after load if not yet subscribed/dismissed
   useEffect(() => {
     if (!shouldShowPushPrompt()) return;
-    const t = setTimeout(() => setShowPushPrompt(true), 20000);
+    const t = setTimeout(() => {
+      if (!canShowAutoPopup()) return;
+      setShowPushPrompt(true);
+      markAutoPopupShown();
+    }, 20000);
     return () => clearTimeout(t);
   }, []);
 
   // Late-night butler — show 90s after load if time is 10pm–3:59am, once per day
   useEffect(() => {
     if (!shouldShowLateNight()) return;
-    const t = setTimeout(() => setShowLateNight(true), 90000);
+    const t = setTimeout(() => {
+      if (!canShowAutoPopup()) return;
+      setShowLateNight(true);
+      markAutoPopupShown();
+    }, 90000);
     return () => clearTimeout(t);
   }, []);
 
@@ -729,6 +798,15 @@ export default function GhostModePage() {
     try { localStorage.setItem("breakfast_lounge_enabled", next ? "true" : "false"); } catch {}
   };
 
+  const [casinoEnabled, setCasinoEnabled] = useState<boolean>(() => {
+    try { return localStorage.getItem("casino_enabled") === "true"; } catch { return false; }
+  });
+  const handleToggleCasino = () => {
+    const next = !casinoEnabled;
+    setCasinoEnabled(next);
+    try { localStorage.setItem("casino_enabled", next ? "true" : "false"); } catch {}
+  };
+
   const handleSettingsAction = (action: SettingsAction) => {
     if (action === "rooms") { setShowHouseModal(true); return; }
     if (action === "ghostClock") { setWindowActive(hasActiveWindowMode()); setShowGhostClock(true); return; }
@@ -736,6 +814,7 @@ export default function GhostModePage() {
     if (action === "games") { navigate("/ghost/games"); return; }
     if (action === "video") { setShowVideoUpload(true); return; }
     if (action === "breakfastLounge") { if (loungeEnabled) setShowBreakfastPicker(true); return; }
+    if (action === "leaderboard") { setShowLeaderboard(true); return; }
   };
 
   // Passed (refused) profiles — persisted so they never reappear
@@ -923,9 +1002,13 @@ export default function GhostModePage() {
       };
     });
     const intl = INTL_PROFILES.map((p) => ({ ...p, lastActiveHoursAgo: activeHoursAgo(p.id), isVerified: profileIsVerified(p.id) }));
-    // Real profiles go first, then mocks
+    // Real profiles go first, then mocks — mocks hidden once real count reaches threshold
+    const MOCK_THRESHOLD = 20;
+    const showMocks = real.length < MOCK_THRESHOLD;
     const realIds = new Set(real.map(r => r.id));
-    const merged = [...real, ...sea.filter(p => !realIds.has(p.id)), ...intl];
+    const merged = showMocks
+      ? [...real, ...sea.filter(p => !realIds.has(p.id)), ...intl]
+      : real;
 
     // ── Interest filter — only show genders the user is looking for ──────────
     const wantedGender = getWantedGender();
@@ -973,6 +1056,11 @@ export default function GhostModePage() {
         return true;
       })
       .sort((a, b) => {
+        // Online-first: active guests always appear before inactive
+        const aOnline = isOnline(a.last_seen_at) ? 0 : 1;
+        const bOnline = isOnline(b.last_seen_at) ? 0 : 1;
+        if (aOnline !== bOnline) return aOnline - bOnline;
+        // Within same online status, sort by proximity
         if (a.distanceKm !== undefined && b.distanceKm !== undefined) return a.distanceKm - b.distanceKm;
         return 0;
       });
@@ -1158,9 +1246,9 @@ export default function GhostModePage() {
         }}
         style={{
           position: "fixed", bottom: 12, right: 12, zIndex: 9999,
-          background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
+          background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)",
           borderRadius: 8, cursor: "pointer",
-          color: "rgba(239,68,68,0.6)", fontSize: 9,
+          color: "rgba(212,175,55,0.6)", fontSize: 9,
           fontWeight: 700, letterSpacing: "0.1em",
           textTransform: "uppercase", padding: "5px 10px",
         }}
@@ -1203,11 +1291,14 @@ export default function GhostModePage() {
         paddingTop: `max(12px, env(safe-area-inset-top, 12px))`,
       }}>
         {/* Top row: title + primary actions */}
-        <div style={{ padding: "0 16px 6px", display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ padding: "0 16px 4px", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 1 }}>
             <h1 style={{ fontSize: 17, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
               Mr.Butlas
             </h1>
+            <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: userRoomTier ? tierColor : "rgba(255,255,255,0.35)", letterSpacing: "0.04em" }}>
+              {userRoomTier ? `${tierIcon} ${tierLabel}` : "🏨 Arrivals · Ground Floor"}
+            </p>
           </div>
           {/* Coin balance pill */}
           <button
@@ -1231,68 +1322,16 @@ export default function GhostModePage() {
             onClick={() => { setSettingsGateFeature(null); setShowSettingsSheet(true); }}
             style={{
               width: 38, height: 38, borderRadius: 12, flexShrink: 0,
-              background: a.glow(0.1), border: `1.5px solid ${a.glow(0.3)}`,
+              background: a.glow(0.07), border: `1px solid ${a.glow(0.22)}`,
               display: "flex", alignItems: "center", justifyContent: "center",
               cursor: "pointer", color: a.accent,
-              boxShadow: `0 0 12px ${a.glow(0.2)}`,
             }}
           >
             <Settings size={17} />
           </button>
         </div>
 
-      </div>
-
-
-      {/* ── Mr. Butlas staff banner — own user hasn't uploaded portrait ── */}
-      {ownIsStaff && (
-        <div style={{
-          margin: "8px 14px 0",
-          background: butlasStage === "final"  ? "rgba(220,20,20,0.12)"
-                    : butlasStage === "urgent" ? "rgba(220,120,0,0.10)"
-                    : "rgba(212,175,55,0.07)",
-          border: `1px solid ${
-            butlasStage === "final"  ? "rgba(220,20,20,0.4)"
-          : butlasStage === "urgent" ? "rgba(220,120,0,0.35)"
-          : "rgba(212,175,55,0.25)"}`,
-          borderRadius: 14, padding: "10px 14px",
-          display: "flex", alignItems: "center", gap: 10,
-        }}>
-          <span style={{ fontSize: 18, flexShrink: 0 }}>
-            {butlasStage === "final" ? "🚨" : butlasStage === "urgent" ? "⚠️" : "🔑"}
-          </span>
-          <div style={{ flex: 1 }}>
-            <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 900,
-              color: butlasStage === "final" ? "rgba(220,20,20,0.9)"
-                   : butlasStage === "urgent" ? "rgba(220,150,0,0.9)"
-                   : "rgba(212,175,55,0.85)" }}>
-              {butlasStage === "final"  ? "Final Warning — Mr. Butlas"
-             : butlasStage === "urgent" ? "Mr. Butlas is waiting"
-             : "You are currently Hotel Staff"}
-            </p>
-            <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.4)", lineHeight: 1.4 }}>
-              {butlasStage === "final"
-                ? "Upload your portrait immediately or you will be asked to leave"
-                : butlasStage === "urgent"
-                ? "Your deadline is approaching — submit your portrait soon"
-                : "Upload your portrait to become a full guest of the house"}
-            </p>
-          </div>
-          <button
-            onClick={() => navigate("/ghost/profile-setup")}
-            style={{
-              background: butlasStage === "final" ? "rgba(220,20,20,0.2)" : "rgba(212,175,55,0.12)",
-              border: `1px solid ${butlasStage === "final" ? "rgba(220,20,20,0.5)" : "rgba(212,175,55,0.4)"}`,
-              borderRadius: 9, padding: "6px 11px",
-              color: butlasStage === "final" ? "rgba(220,20,20,0.9)" : "rgba(212,175,55,0.9)",
-              fontSize: 11, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap",
-            }}>
-            Submit Portrait
-          </button>
-        </div>
-      )}
-
-      {/* ── Matches container ── */}
+      {/* Match bar lives inside the sticky header — one cohesive zone */}
       <GhostModeMatchBar
         savedMatches={savedMatches}
         connectedMatchIds={connectedMatchIds}
@@ -1319,7 +1358,6 @@ export default function GhostModePage() {
         setButlerMatchName={setButlerMatchName}
         setShowButler={setShowButler}
         setShowButlerUnavailable={setShowButlerUnavailable}
-        setShowLobbyWelcome={setShowLobbyWelcome}
         setConciergeProfile={setConciergeProfile}
         setConciergeMatchId={setConciergeMatchId}
         setConciergeDays={setConciergeDays}
@@ -1327,53 +1365,49 @@ export default function GhostModePage() {
         a={a}
       />
 
+      </div>
 
 
 
-      {/* ── Quick-action buttons — row 1 ── */}
-      <div style={{ margin: "12px 14px 0", display: "flex", gap: 8 }}>
+
+      {/* ── Quick-action icon strip (replaces 2 rows → 1 compact row) ── */}
+      <div style={{ margin: "10px 14px 0", display: "flex", gap: 6 }}>
+
         {/* Vault */}
-        <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => navigate("/ghost/room"))}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer" }}
+        <motion.button whileTap={{ scale: 0.93 }} onClick={() => requireAuth(() => navigate("/ghost/room"))}
+          style={{ flex: 1, height: 44, borderRadius: 12, background: a.glow(0.07), border: `1px solid ${a.glow(0.22)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, cursor: "pointer" }}
         >
-          <Lock size={20} style={{ color: "#fff", flexShrink: 0 }} />
-          <div style={{ textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Vault</p>
-            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Private</p>
-          </div>
+          <span style={{ fontSize: 16, lineHeight: 1 }}>🔒</span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: a.accent, letterSpacing: "0.02em" }}>Vault</span>
         </motion.button>
 
         {/* Tonight */}
-        <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => setShowTonightSheet(true))}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: lobbyList.length > 0 ? "rgba(220,20,20,0.12)" : "rgba(220,20,20,0.08)", border: `1px solid ${lobbyList.length > 0 ? "rgba(220,20,20,0.5)" : "rgba(220,20,20,0.25)"}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
+        <motion.button whileTap={{ scale: 0.93 }} onClick={() => requireAuth(() => setShowTonightSheet(true))}
+          style={{ flex: 1, height: 44, borderRadius: 12, background: lobbyList.length > 0 ? "rgba(212,175,55,0.12)" : "rgba(212,175,55,0.07)", border: `1px solid ${lobbyList.length > 0 ? "rgba(212,175,55,0.45)" : "rgba(212,175,55,0.2)"}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, cursor: "pointer", position: "relative" }}
         >
           {lobbyList.length > 0 && (
             <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.4, repeat: Infinity }}
-              style={{ position: "absolute", top: 7, right: 8, width: 7, height: 7, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 8px rgba(34,197,94,0.9)" }} />
+              style={{ position: "absolute", top: 6, right: 6, width: 6, height: 6, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 6px rgba(34,197,94,0.9)" }} />
           )}
-          <Moon size={20} style={{ color: "#fff", flexShrink: 0 }} />
-          <div style={{ textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#e01010" }}>Tonight</p>
-            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Available</p>
-          </div>
+          <span style={{ fontSize: 16, lineHeight: 1 }}>🌙</span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: "#d4af37", letterSpacing: "0.02em" }}>Tonight</span>
         </motion.button>
 
-        {/* Rooms */}
-        <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => navigate("/ghost/rooms"))}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer" }}
+        {/* Date Idea */}
+        <motion.button whileTap={{ scale: 0.93 }} onClick={() => requireAuth(() => {
+          if (isDateIdeasUnlocked()) { setShowDateIdeas(true); }
+          else { setShowVeraLocked(true); }
+        })}
+          style={{ flex: 1, height: 44, borderRadius: 12, background: a.glow(0.07), border: `1px solid ${a.glow(0.22)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, cursor: "pointer" }}
         >
-          <KeyRound size={20} style={{ color: "#fff", flexShrink: 0 }} />
-          <div style={{ textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Rooms</p>
-            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Upgrade</p>
-          </div>
+          <span style={{ fontSize: 16, lineHeight: 1 }}>💝</span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: a.accent, letterSpacing: "0.02em" }}>
+            {isDateIdeasUnlocked() ? "Date" : "🔒 Date"}
+          </span>
         </motion.button>
-      </div>
 
-      {/* ── Quick-action buttons — row 2 ── */}
-      <div style={{ margin: "8px 14px 0", display: "flex", gap: 8 }}>
-        {/* Floor Chat */}
-        <motion.button whileTap={{ scale: 0.95 }}
+        {/* Chat */}
+        <motion.button whileTap={{ scale: 0.93 }}
           onClick={() => requireAuth(() => {
             const tier = userRoomTier ?? "standard";
             setFloorChatTier(tier);
@@ -1381,35 +1415,30 @@ export default function GhostModePage() {
             setChatUnreadState(0);
             setChatUnread("standard", 0);
           })}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
+          style={{ flex: 1, height: 44, borderRadius: 12, background: a.glow(0.07), border: `1px solid ${a.glow(0.22)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, cursor: "pointer", position: "relative" }}
         >
-          <span style={{ fontSize: 18, flexShrink: 0 }}>💬</span>
-          <div style={{ textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Chat</p>
-            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Members live</p>
-          </div>
+          <span style={{ fontSize: 16, lineHeight: 1 }}>💬</span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: a.accent, letterSpacing: "0.02em" }}>Chat</span>
           {chatUnread > 0 && (
-            <div style={{ position: "absolute", top: 6, right: 8, minWidth: 16, height: 16, borderRadius: 8, background: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
-              <span style={{ fontSize: 8, fontWeight: 900, color: "#fff" }}>{chatUnread > 9 ? "9+" : chatUnread}</span>
+            <div style={{ position: "absolute", top: 5, right: 5, minWidth: 14, height: 14, borderRadius: 7, background: "#d4af37", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>
+              <span style={{ fontSize: 7, fontWeight: 900, color: "#000" }}>{chatUnread > 9 ? "9+" : chatUnread}</span>
             </div>
           )}
         </motion.button>
 
         {/* Viewed Me */}
-        <motion.button whileTap={{ scale: 0.95 }} onClick={() => requireAuth(() => setShowViewedMe(true))}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: a.glow(0.08), border: `1px solid ${a.glow(0.28)}`, borderRadius: 14, cursor: "pointer", position: "relative" }}
+        <motion.button whileTap={{ scale: 0.93 }} onClick={() => requireAuth(() => setShowViewedMe(true))}
+          style={{ flex: 1, height: 44, borderRadius: 12, background: a.glow(0.07), border: `1px solid ${a.glow(0.22)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, cursor: "pointer", position: "relative" }}
         >
-          <span style={{ fontSize: 18, flexShrink: 0 }}>👁️</span>
-          <div style={{ textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: a.accent }}>Viewed</p>
-            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>{viewedMeList.length} profiles</p>
-          </div>
+          <span style={{ fontSize: 16, lineHeight: 1 }}>👁️</span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: a.accent, letterSpacing: "0.02em" }}>Viewed</span>
           {viewedMeList.some(p => p.viewCount >= 2) && (
-            <div style={{ position: "absolute", top: 6, right: 8, minWidth: 16, height: 16, borderRadius: 8, background: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
-              <span style={{ fontSize: 8, fontWeight: 900, color: "#fff" }}>{viewedMeList.filter(p => p.viewCount >= 2).length}</span>
+            <div style={{ position: "absolute", top: 5, right: 5, minWidth: 14, height: 14, borderRadius: 7, background: "#d4af37", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>
+              <span style={{ fontSize: 7, fontWeight: 900, color: "#000" }}>{viewedMeList.filter(p => p.viewCount >= 2).length}</span>
             </div>
           )}
         </motion.button>
+
       </div>
 
       {/* Filter slide-up sheet */}
@@ -1692,17 +1721,17 @@ export default function GhostModePage() {
 
       {/* ── Country + Filter floating bar ── */}
       <div style={{ margin: "10px 14px 6px", display: "flex", alignItems: "center", gap: 8 }}>
-        {/* Trophy — leaderboard */}
+        {/* Block */}
         <button
-          onClick={() => setShowLeaderboard(true)}
+          onClick={() => requireAuth(() => navigate("/ghost/block"))}
           style={{
             width: 36, height: 36, borderRadius: 10, flexShrink: 0,
             background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", fontSize: 16,
+            cursor: "pointer",
           }}
         >
-          🏆
+          <img src={SHIELD_LOGO} alt="Block" style={{ width: 20, height: 20, objectFit: "contain" }} />
         </button>
         {/* Country dropdown — left */}
         <div style={{ position: "relative", flex: 1 }}>
@@ -1809,9 +1838,9 @@ export default function GhostModePage() {
       {/* ── Ready to Meet Tonight ── */}
       {lobbyList.length > 0 && (
         <div style={{ padding: "20px 14px 0" }}>
-          <div style={{ background: "rgba(220,20,20,0.06)", border: "1px solid rgba(220,20,20,0.22)", borderRadius: 16, overflow: "hidden", marginBottom: 0 }}>
-            {/* Red top stripe */}
-            <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #e01010, transparent)" }} />
+          <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.22)", borderRadius: 16, overflow: "hidden", marginBottom: 0 }}>
+            {/* Gold top stripe */}
+            <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #d4af37, transparent)" }} />
             <div style={{ padding: "12px 14px 0" }}>
           {/* Header */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
@@ -1893,9 +1922,9 @@ export default function GhostModePage() {
           </div>
 
           {/* Divider */}
-          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(220,20,20,0.2), transparent)", margin: "14px 0 0" }} />
+          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent)", margin: "14px 0 0" }} />
             </div>{/* close inner padding div */}
-          </div>{/* close red container */}
+          </div>{/* close gold container */}
         </div>
       )}
 
@@ -1978,6 +2007,8 @@ export default function GhostModePage() {
         loungeGuestCount={loungeGuestCount}
         loungeEnabled={loungeEnabled}
         handleToggleLounge={handleToggleLounge}
+        casinoEnabled={casinoEnabled}
+        handleToggleCasino={handleToggleCasino}
         showBreakfastPicker={showBreakfastPicker}
         setShowBreakfastPicker={setShowBreakfastPicker}
         LOUNGE_COUNTRIES={LOUNGE_COUNTRIES}
@@ -2089,6 +2120,78 @@ export default function GhostModePage() {
 
 
     </div>
+
+      {/* Butler game challenge — fires 3–5 min after load if Games Room discovered */}
+      <AnimatePresence>
+        {showButlerChallenge && (
+          <ButlerGameChallengeSheet onClose={() => setShowButlerChallenge(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* Send game challenge to any guest */}
+      <AnimatePresence>
+        {challengeTarget && (
+          <SendGameChallengeSheet
+            target={challengeTarget}
+            onClose={() => setChallengeTarget(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Date Ideas — Hotel Information Center */}
+      <AnimatePresence>
+        {showDateIdeas && (
+          <DateIdeasFeed key="date-ideas" onBack={() => setShowDateIdeas(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* Ms. Vera — locked gate */}
+      {showVeraLocked && (
+        <MsVeraPopup mode="locked" onClose={() => setShowVeraLocked(false)} />
+      )}
+
+      {/* Ms. Vera — new post announcement */}
+      {veraNewPost && !veraInvitePost && (
+        <MsVeraPopup
+          mode="new_post"
+          post={veraNewPost}
+          onClose={() => setVeraNewPost(null)}
+          onInvite={post => { setVeraNewPost(null); setVeraInvitePost(post); }}
+          onBrowse={() => { setVeraNewPost(null); setShowDateIdeas(true); }}
+        />
+      )}
+
+      {/* Ms. Vera → invite flow (from new post announcement) */}
+      {veraInvitePost && (
+        <SendDateInviteSheet
+          show={!!veraInvitePost}
+          post={{ id: veraInvitePost.id, title: veraInvitePost.title, image: veraInvitePost.image, location: veraInvitePost.location, authorId: "", authorName: veraInvitePost.authorName }}
+          onClose={() => setVeraInvitePost(null)}
+        />
+      )}
+
+      {/* Date Invite — incoming (recipient side) */}
+      <AnimatePresence>
+        {pendingInvite && (
+          <DateInviteReceivedPopup
+            key={pendingInvite.id}
+            invite={pendingInvite}
+            onDismiss={dismissPending}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Date Invite — accepted notification (sender side) */}
+      <AnimatePresence>
+        {acceptedInvite && (
+          <DateInviteAcceptedPopup
+            key={acceptedInvite.id}
+            invite={acceptedInvite}
+            onDismiss={dismissAccepted}
+          />
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

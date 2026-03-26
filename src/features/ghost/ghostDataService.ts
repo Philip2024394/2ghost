@@ -60,22 +60,38 @@ export async function loadTierFromSupabase(ghostId: string): Promise<string | nu
 export async function recordLike(fromGhostId: string, toGhostId: string): Promise<void> {
   if (!fromGhostId || !toGhostId) return;
   await ghostSupabase.from("ghost_likes").upsert(
-    { from_ghost_id: fromGhostId, to_ghost_id: toGhostId },
-    { onConflict: "from_ghost_id,to_ghost_id" }
+    { from_id: fromGhostId, to_id: toGhostId },
+    { onConflict: "from_id,to_id" }
   );
   // Check for mutual like → create match
   const { data } = await ghostSupabase
     .from("ghost_likes")
     .select("id")
-    .eq("from_ghost_id", toGhostId)
-    .eq("to_ghost_id", fromGhostId)
+    .eq("from_id", toGhostId)
+    .eq("to_id", fromGhostId)
     .maybeSingle();
   if (data) {
-    const [id1, id2] = [fromGhostId, toGhostId].sort();
-    await ghostSupabase.from("ghost_matches").upsert(
-      { ghost_id_1: id1, ghost_id_2: id2 },
-      { onConflict: "ghost_id_1,ghost_id_2" }
-    );
+    const [a, b] = [fromGhostId, toGhostId].sort();
+    const { data: newMatch } = await ghostSupabase.from("ghost_matches").upsert(
+      { user_a: a, user_b: b },
+      { onConflict: "user_a,user_b" }
+    ).select("user_a").maybeSingle();
+
+    // Notify both users via push (fire-and-forget, non-blocking)
+    if (newMatch !== undefined) {
+      const notify = (ghostId: string) =>
+        ghostSupabase.functions.invoke("send-push", {
+          body: {
+            ghostId,
+            title: "💘 You have a new match!",
+            body: "Someone in the hotel likes you back. Go see who.",
+            url: "/ghost/mode",
+            type: "match",
+          },
+        }).then(null, () => null);
+      notify(fromGhostId);
+      notify(toGhostId);
+    }
   }
 }
 
@@ -83,13 +99,13 @@ export async function loadMyMatches(ghostId: string): Promise<{ matchedAt: strin
   if (!ghostId) return [];
   const { data } = await ghostSupabase
     .from("ghost_matches")
-    .select("ghost_id_1, ghost_id_2, matched_at")
-    .or(`ghost_id_1.eq.${ghostId},ghost_id_2.eq.${ghostId}`)
+    .select("user_a, user_b, matched_at")
+    .or(`user_a.eq.${ghostId},user_b.eq.${ghostId}`)
     .order("matched_at", { ascending: false });
   if (!data) return [];
   return data.map(row => ({
     matchedAt: row.matched_at,
-    partnerId: row.ghost_id_1 === ghostId ? row.ghost_id_2 : row.ghost_id_1,
+    partnerId: row.user_a === ghostId ? row.user_b : row.user_a,
   }));
 }
 
@@ -371,10 +387,32 @@ export interface RealProfileRow {
 export async function loadGhostProfiles(): Promise<RealProfileRow[]> {
   const { data } = await ghostSupabase
     .from("ghost_profiles")
-    .select("*")
-    .order("created_at", { ascending: false })
+    .select("ghost_id, display_name, age, city, country, country_flag, gender, photo_url, bio, interests, religion, connect_phone, connect_alt, connect_alt_handle, is_verified, face_verified, latitude, longitude, last_seen_at, contact_pref")
+    .eq("is_blocked", false)
+    .not("display_name", "is", null)
+    .order("last_seen_at", { ascending: false })
     .limit(100);
-  return data ?? [];
+  return (data ?? []).map((r: any) => ({
+    id:                 r.ghost_id,
+    name:               r.display_name,
+    age:                r.age,
+    city:               r.city,
+    country:            r.country,
+    country_flag:       r.country_flag,
+    gender:             r.gender,
+    photo_url:          r.photo_url,
+    bio:                r.bio,
+    interests:          r.interests,
+    first_date_idea:    null,
+    religion:           r.religion,
+    connect_phone:      r.connect_phone,
+    connect_alt:        r.connect_alt,
+    connect_alt_handle: r.connect_alt_handle,
+    is_verified:        r.is_verified,
+    face_verified:      r.face_verified,
+    latitude:           r.latitude,
+    longitude:          r.longitude,
+  }));
 }
 
 // ── Ghost Clock / Window Mode ─────────────────────────────────────────────────

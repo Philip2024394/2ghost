@@ -47,7 +47,10 @@ export default function BreakfastTableChat({ partner, seatingTime, available, on
 
   // ── Chat ─────────────────────────────────────────────────────────────────────
   const [chatMsgs, setChatMsgs]           = useState<ChatMsg[]>([
-    { id: 1, from: "butler", text: `Your table is set. ${partner.ghostId} is now live in chat. 🍳`, showTip: true },
+    {
+      id: 1, from: "butler", showTip: true,
+      text: `Good morning, guests — what a delight to see you both at the table. A few gentle reminders before you begin: please refrain from sharing any contact details within this chat window, for the comfort and safety of all our guests. Smoking is not permitted at breakfast, and of course, coffee is entirely on the house. I shall be in the lobby shortly for today's activities — you are both most welcome to join, along with anyone else at the table. Enjoy your morning. — Mr. Butlas`,
+    },
   ]);
   const [chatInput, setChatInput]         = useState("");
   const [msgId, setMsgId]                 = useState(2);

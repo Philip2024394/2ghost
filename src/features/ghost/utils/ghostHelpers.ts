@@ -145,7 +145,7 @@ export function profileActivity(id: string): { label: string; pct: number; color
 export function toGhostId(id: string): string {
   let h = 0;
   for (let i = 0; i < id.length; i++) { h = Math.imul(31, h) + id.charCodeAt(i) | 0; }
-  return `Ghost-${1000 + Math.abs(h) % 9000}`;
+  return `Guest-${1000 + Math.abs(h) % 9000}`;
 }
 
 export function fmtKm(km: number): string {
@@ -181,7 +181,7 @@ export function getWantedGenderLounge(): "f" | "m" | null {
 
 // ── Staff placeholder images (shown when user has no uploaded photo) ──────────
 export const STAFF_IMG_FEMALE = "https://ik.imagekit.io/7grri5v7d/Untitledasdasdasdasdasdsdfsdf.png";
-export const STAFF_IMG_MALE   = ""; // placeholder until male staff image is provided
+export const STAFF_IMG_MALE   = "https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdfasdasd.png";
 
 /** Returns the staff placeholder image for a given gender, or null if male placeholder not set */
 export function getStaffPlaceholder(gender: string): string | null {

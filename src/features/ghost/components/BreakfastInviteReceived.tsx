@@ -114,7 +114,7 @@ export default function BreakfastInviteReceived({ invite, onAccept, onDecline }:
                   const avatarUrl  = invite.fromPhoto
                     ? invite.fromPhoto
                     : `https://api.dicebear.com/7.x/thumbs/svg?seed=${avatarSeed}`;
-                  const ghostId    = `Ghost-${String(invite.fromUserId).replace(/\D/g,"").slice(0,5).padStart(4,"0")}`;
+                  const ghostId    = `Guest-${String(invite.fromUserId).replace(/\D/g,"").slice(0,5).padStart(4,"0")}`;
                   return (
                     <div style={{ display: "flex", gap: 14, alignItems: "center",
                       background: glow(0.07), border: `1px solid ${glow(0.22)}`,

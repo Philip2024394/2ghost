@@ -37,10 +37,13 @@ const PenthouseVaultPage       = lazyWithRetry(() => import("./features/ghost/pa
 const HotelCheckoutPage        = lazyWithRetry(() => import("./features/ghost/pages/HotelCheckoutPage"));
 const Connect4Page             = lazyWithRetry(() => import("./features/ghost/pages/Connect4Page"));
 const MemoryMatchPage          = lazyWithRetry(() => import("./features/ghost/pages/MemoryMatchPage"));
+const WordDuelPage             = lazyWithRetry(() => import("./features/ghost/pages/WordDuelPage"));
+const GamesRoomLandingPage     = lazyWithRetry(() => import("./features/ghost/pages/GamesRoomLandingPage"));
 const GamesRoomPage            = lazyWithRetry(() => import("./features/ghost/pages/GamesRoomPage"));
 const HotelRulesPage           = lazyWithRetry(() => import("./features/ghost/pages/HotelRulesPage"));
 const BreakfastLoungePage      = lazyWithRetry(() => import("./features/ghost/pages/BreakfastLoungePage"));
-const HotelActivitiesPage      = lazyWithRetry(() => import("./features/ghost/pages/HotelActivitiesPage"));
+const HotelActivitiesPage        = lazyWithRetry(() => import("./features/ghost/pages/HotelActivitiesPage"));
+const HotelRoomDetailPage        = lazyWithRetry(() => import("./features/ghost/pages/HotelRoomDetailPage"));
 
 // Affiliate
 const AffiliateJoinPage      = lazyWithRetry(() => import("./features/affiliate/pages/AffiliateJoinPage"));
@@ -63,6 +66,10 @@ const AdminTrafficPage      = lazyWithRetry(() => import("./features/admin/pages
 const AdminUserControlPage  = lazyWithRetry(() => import("./features/admin/pages/AdminUserControlPage"));
 const AdminGiftsPage        = lazyWithRetry(() => import("./features/admin/pages/AdminGiftsPage"));
 const AdminActivitiesPage   = lazyWithRetry(() => import("./features/admin/pages/AdminActivitiesPage"));
+const PrivacyPolicyPage     = lazyWithRetry(() => import("./features/ghost/pages/PrivacyPolicyPage"));
+const TermsOfServicePage    = lazyWithRetry(() => import("./features/ghost/pages/TermsOfServicePage"));
+const SupportPage           = lazyWithRetry(() => import("./features/ghost/pages/SupportPage"));
+const MrButlasTermsPage     = lazyWithRetry(() => import("./features/ghost/pages/MrButlasTermsPage"));
 
 // Request push notification permission and subscribe to push
 async function requestPushPermission() {
@@ -134,11 +141,18 @@ export default function App() {
           <Route path="/ghost/how-it-works"           element={<GhostHowItWorksPage />} />
           <Route path="/hotel-rules"                 element={<HotelRulesPage />} />
           <Route path="/ghost/checkout"              element={<HotelCheckoutPage />} />
-          <Route path="/ghost/games"                  element={<GamesRoomPage />} />
+          <Route path="/ghost/games"                  element={<GamesRoomLandingPage />} />
+          <Route path="/ghost/games/lobby"            element={<GamesRoomPage />} />
           <Route path="/ghost/games/connect4"        element={<Connect4Page />} />
           <Route path="/ghost/games/memory"          element={<MemoryMatchPage />} />
+          <Route path="/ghost/games/wordduel"       element={<WordDuelPage />} />
           <Route path="/ghost/breakfast-lounge"     element={<BreakfastLoungePage />} />
           <Route path="/ghost/activities"           element={<HotelActivitiesPage />} />
+          <Route path="/ghost/room-detail/:roomId"  element={<HotelRoomDetailPage />} />
+          <Route path="/privacy-policy"             element={<PrivacyPolicyPage />} />
+          <Route path="/terms"                      element={<TermsOfServicePage />} />
+          <Route path="/support"                    element={<SupportPage />} />
+          <Route path="/mrbutlas/terms"             element={<MrButlasTermsPage />} />
 
           {/* Affiliate */}
           <Route path="/affiliate/join"          element={<AffiliateJoinPage />} />

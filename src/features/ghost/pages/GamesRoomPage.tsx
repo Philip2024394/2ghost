@@ -1,11 +1,19 @@
-// ── Games Room · Landing ───────────────────────────────────────────────────────
+// ── Games Room ─────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import SendGameChallengeSheet from "../components/SendGameChallengeSheet";
+import type { GameType } from "../utils/gameInviteService";
 
-const HERO_BG     = "https://ik.imagekit.io/7grri5v7d/Untitledsdaddfsadf.png";
-const BUTLER_FLIP = "https://ik.imagekit.io/7grri5v7d/Skeleton%20in%20tuxedo%20flips%20Connect%204%20disc.png";
+const HERO_BG = "https://ik.imagekit.io/7grri5v7d/asddsasddSDFASDFASDFSASDFdsfsdfdsdfsdfdsfsdsdxxxxdsfsd.png";
+
+// ── 3 game tiles ──────────────────────────────────────────────────────────────
+const GAMES: { type: GameType | "soon"; emoji?: string; img?: string; label: string; route?: string }[] = [
+  { type: "connect4", img: "https://ik.imagekit.io/7grri5v7d/asddsasddSDFASDFASDFSASDFdsfsdfdsdfsdfdsfsd.png", label: "Connect 4",    route: "/ghost/games/connect4" },
+  { type: "memory",   img: "https://ik.imagekit.io/7grri5v7d/asddsasddSDFASDFASDFSASDFdsfsdfdsdfsdfdsfsdsd.png", label: "Memory Match", route: "/ghost/games/memory"   },
+  { type: "wordduel", img: "https://ik.imagekit.io/7grri5v7d/asddsasddSDFASDFASDFSASDFdsfsdfdsdfsdfdsfsdsdxxxx.png", label: "Word Duel", route: "/ghost/games/wordduel" },
+];
 
 const LEADERBOARD = [
   { rank: 1, name: "Aria K.",   wins: 47, losses: 8,  streak: 9,  coins: 2840, isChampion: true,  isRunnerUp: false },
@@ -18,446 +26,237 @@ const LEADERBOARD = [
   { rank: 8, name: "Mia C.",    wins: 12, losses: 13, streak: 0,  coins: 560,  isChampion: false, isRunnerUp: false },
 ];
 
-export default function GamesRoomPage() {
-  const navigate      = useNavigate();
-  const [imgLoaded,      setImgLoaded]      = useState(false);
-  const [showHowItWorks, setShowHowItWorks] = useState(false);
+// ── Game invite confirmation popup ───────────────────────────────────────────
+function GameOptionsSheet({ game, onClose, onPlay, onInvite }: {
+  game: typeof GAMES[0];
+  onClose: () => void;
+  onPlay: () => void;
+  onInvite: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(14px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+      <motion.div
+        initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+        transition={{ type: "spring", stiffness: 320, damping: 30 }}
+        onClick={e => e.stopPropagation()}
+        style={{ width: "100%", maxWidth: 480, background: "rgba(5,3,10,0.99)", borderRadius: "22px 22px 0 0", border: "1px solid rgba(212,175,55,0.2)", borderBottom: "none", overflow: "hidden" }}>
+        <div style={{ height: 3, background: "linear-gradient(90deg,#92400e,#d4af37,#f0d060)" }} />
+        <div style={{ padding: "18px 22px max(36px,env(safe-area-inset-bottom,36px))" }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)", margin: "0 auto 18px" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(212,175,55,0.12)", border: "1.5px solid rgba(212,175,55,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, flexShrink: 0, overflow: "hidden" }}>
+              {game.img
+                ? <img src={game.img} alt={game.label} style={{ width: "80%", height: "80%", objectFit: "contain" }} />
+                : game.emoji}
+            </div>
+            <div>
+              <p style={{ margin: "0 0 3px", fontSize: 19, fontWeight: 900, color: "#fff" }}>{game.label}</p>
+              <p style={{ margin: 0, fontSize: 11, color: "rgba(212,175,55,0.6)", fontWeight: 700 }}>Best of 3 · Win coins</p>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <motion.button whileTap={{ scale: 0.97 }} onClick={onPlay}
+              style={{ width: "100%", height: 54, borderRadius: 16, border: "none", background: "linear-gradient(135deg,#92400e,#d4af37,#f0d060)", color: "#000", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 20px rgba(212,175,55,0.3)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <span>🎩</span> Play vs Mr. Butlas
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.97 }} onClick={onInvite}
+              style={{ width: "100%", height: 50, borderRadius: 16, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.07)", color: "#d4af37", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <span>💌</span> Invite a Guest
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
-  const champion = LEADERBOARD[0];
-  const runnerUp = LEADERBOARD[1];
+// ── Main page ─────────────────────────────────────────────────────────────────
+export default function GamesRoomPage() {
+  const navigate = useNavigate();
+  const [imgLoaded,       setImgLoaded]       = useState(false);
+  const [activeGame,      setActiveGame]       = useState<typeof GAMES[0] | null>(null);
+  const [challengeSheet,  setChallengeSheet]   = useState(false);
+  const [showLeaderboard, setShowLeaderboard]  = useState(false);
+
+  function handleGameTap(g: typeof GAMES[0]) {
+    if (g.type === "soon") return;
+    setActiveGame(g);
+  }
+
+  function handlePlay() {
+    if (!activeGame?.route) return;
+    setActiveGame(null);
+    navigate(activeGame.route);
+  }
+
+  function handleInvite() {
+    setActiveGame(null);
+    setChallengeSheet(true);
+  }
 
   return (
-    <div style={{
-      minHeight: "100dvh",
-      background: "#05030a",
-      color: "#fff",
-      display: "flex", flexDirection: "column", alignItems: "center",
-      overflowX: "hidden",
-    }}>
+    <div style={{ minHeight: "100dvh", background: "#05030a", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", overflowX: "hidden" }}>
+      <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column" }}>
 
-      {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* ── HERO ── */}
-      {/* ══════════════════════════════════════════════════════════════════════ */}
-      <div style={{
-        position: "relative", width: "100%", maxWidth: 480,
-        minHeight: "100dvh",
-        display: "flex", flexDirection: "column",
-        overflow: "hidden",
-      }}>
+        {/* ── Hero image ── */}
+        <div style={{ position: "relative", width: "100%", aspectRatio: "9/7" }}>
+          <img
+            src={HERO_BG}
+            alt=""
+            onLoad={() => setImgLoaded(true)}
+            style={{
+              position: "absolute", inset: 0,
+              width: "100%", height: "100%",
+              objectFit: "cover", objectPosition: "center center",
+              opacity: imgLoaded ? 1 : 0,
+              transition: "opacity 0.9s ease",
+            }}
+          />
+          {/* Bottom fade into page bg */}
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "40%", background: "linear-gradient(to top, #05030a, transparent)", zIndex: 1 }} />
 
-        {/* Background room image */}
-        <img
-          src={HERO_BG}
-          alt=""
-          onLoad={() => setImgLoaded(true)}
-          style={{
-            position: "absolute", inset: 0, width: "100%", height: "100%",
-            objectFit: "cover", objectPosition: "center top",
-            opacity: imgLoaded ? 0.78 : 0,
-            transition: "opacity 1.2s ease",
-            zIndex: 0,
-          }}
-        />
-
-        {/* Dark gradient overlay — heavy at bottom so text is readable */}
-        <div style={{
-          position: "absolute", inset: 0, zIndex: 1,
-          background: "linear-gradient(180deg, rgba(4,3,8,0.45) 0%, rgba(4,3,8,0.1) 30%, rgba(10,6,2,0.55) 60%, rgba(4,3,8,0.97) 100%)",
-        }} />
-        {/* Warm amber chandelier glow overlay — matches the room's lighting */}
-        <div style={{
-          position: "absolute", inset: 0, zIndex: 1,
-          background: "radial-gradient(ellipse 80% 50% at 50% 20%, rgba(212,140,20,0.12) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }} />
-
-        {/* ── Header ── */}
-        <div style={{
-          position: "relative", zIndex: 2, flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "max(env(safe-area-inset-top,16px),16px) 16px 12px",
-        }}>
-          <button onClick={() => navigate(-1)}
-            style={{ width: 34, height: 34, borderRadius: 10,
-              background: "rgba(0,0,0,0.45)", backdropFilter: "blur(12px)",
-              border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)",
-              fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            ←
-          </button>
+          {/* Header nav */}
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "max(env(safe-area-inset-top,16px),16px) 16px 0" }}>
+            <motion.button whileTap={{ scale: 0.92 }} onClick={() => navigate("/ghost/games")}
+              style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.18)", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              ←
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/ghost/mode")}
+              style={{ height: 32, padding: "0 12px", borderRadius: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+              <span style={{ fontSize: 13 }}>🏠</span> Home
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.92 }} onClick={() => setShowLeaderboard(v => !v)}
+              style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(10px)", border: "1px solid rgba(212,175,55,0.3)", color: "#d4af37", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              👑
+            </motion.button>
+          </div>
         </div>
 
-        {/* ── Hero content ── */}
-        <div style={{
-          position: "relative", zIndex: 2,
-          flex: 1, display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "flex-end",
-          padding: "0 24px max(env(safe-area-inset-bottom,32px),32px)",
-          textAlign: "center",
-        }}>
-
-          {/* Butler flipping coin — animated */}
+        {/* ── Slogan + game buttons ── */}
+        <div style={{ padding: "18px 20px 0", background: "#05030a" }}>
+          {/* Slogan */}
           <motion.div
-            animate={{ y: [0, -10, 0], rotate: [0, 2, -1, 0] }}
-            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-            style={{ marginBottom: 24 }}>
-            <motion.img
-              src={BUTLER_FLIP}
-              alt="butler"
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              style={{ width: 200, height: 200, objectFit: "contain",
-                filter: "drop-shadow(0 8px 32px rgba(250,204,21,0.38))" }}
-            />
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+            style={{ marginBottom: 18 }}>
+            <p style={{ margin: "0 0 4px", fontSize: 10, fontWeight: 800, color: "rgba(212,175,55,0.6)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
+              Heartsway Hotel
+            </p>
+            <p style={{ margin: "0 0 2px", fontSize: 26, fontWeight: 900, color: "#fff", lineHeight: 1.15, letterSpacing: "-0.01em" }}>
+              Play. Win. Collect.
+            </p>
+            <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>
+              Challenge Mr. Butlas or invite a guest — coins on the line.
+            </p>
           </motion.div>
 
-          {/* Title */}
-          <motion.p
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700,
-              letterSpacing: "0.22em", textTransform: "uppercase",
-              color: "rgba(212,175,55,0.75)" }}>
-            The 2Ghost Hotel
-          </motion.p>
-
-          <motion.p
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.55 }}
-            style={{ margin: "0 0 10px", fontSize: 40, fontWeight: 900,
-              letterSpacing: "-0.02em", lineHeight: 1,
-              background: "linear-gradient(135deg, #fff 15%, #fde68a 45%, #facc15 70%, #fef08a 100%)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              backgroundClip: "text" }}>
-            Games Room
-          </motion.p>
-
-          {/* Tagline */}
-          <motion.p
-            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.65 }}
-            style={{ margin: "0 0 32px", fontSize: 15, fontWeight: 600, lineHeight: 1.6,
-              color: "rgba(255,255,255,0.58)", maxWidth: 280 }}>
-            Connect 4 · Icebreakers · Challenges
-            <br />
-            <span style={{ color: "rgba(255,255,255,0.88)", fontWeight: 800 }}>
-              The butler has never lost. Will you be the first?
-            </span>
-          </motion.p>
-
-          {/* This Week's Game banner */}
-          {(() => {
-            const weekNum = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
-            const isMemoryWeek = weekNum % 2 === 0;
-            return (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.75 }}
-                style={{ width: "100%", marginBottom: 16, padding: "10px 14px", borderRadius: 14, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.28)", borderTop: "1px solid rgba(212,175,55,0.5)", boxShadow: "inset 0 1px 0 rgba(212,175,55,0.15)", display: "flex", alignItems: "center", gap: 10 }}
-              >
-                <motion.span animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.6, repeat: Infinity }} style={{ fontSize: 20, flexShrink: 0 }}>
-                  {isMemoryWeek ? "🃏" : "🔴"}
-                </motion.span>
-                <div style={{ flex: 1, textAlign: "left" }}>
-                  <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "rgba(212,175,55,0.6)", textTransform: "uppercase", letterSpacing: "0.12em" }}>The Butler's Weekly Game</p>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#fff" }}>{isMemoryWeek ? "Memory Match" : "Connect 4"} — This Week</p>
+          {/* ── 3 square game buttons in a row ── */}
+          <div style={{ display: "flex", gap: 10, marginBottom: 6 }}>
+            {GAMES.map((g, i) => {
+              const isSoon = g.type === "soon";
+              return (
+                <div key={g.type} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}>
+                  <motion.button
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + i * 0.08, duration: 0.38 }}
+                    whileTap={isSoon ? {} : { scale: 0.92 }}
+                    onClick={() => handleGameTap(g)}
+                    style={{
+                      width: "100%",
+                      aspectRatio: "1 / 1",
+                      borderRadius: 16,
+                      border: isSoon
+                        ? "1px solid rgba(255,255,255,0.08)"
+                        : "1.5px solid rgba(212,175,55,0.45)",
+                      background: isSoon ? "rgba(10,8,14,0.6)" : "rgba(10,6,2,0.9)",
+                      cursor: isSoon ? "default" : "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      boxShadow: isSoon ? "none" : "0 4px 24px rgba(212,175,55,0.2), inset 0 1px 0 rgba(212,175,55,0.1)",
+                      opacity: isSoon ? 0.45 : 1,
+                      padding: 0, overflow: "hidden",
+                    }}
+                  >
+                    {g.img ? (
+                      <img src={g.img} alt={g.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <span style={{ fontSize: 22, lineHeight: 1 }}>{g.emoji}</span>
+                    )}
+                  </motion.button>
+                  <span style={{
+                    fontSize: 10, fontWeight: 900, letterSpacing: "0.03em", textAlign: "center",
+                    color: isSoon ? "rgba(255,255,255,0.2)" : "rgba(212,175,55,0.9)",
+                    lineHeight: 1.2,
+                  }}>
+                    {g.label}{isSoon ? " · Soon" : ""}
+                  </span>
                 </div>
-                <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(212,175,55,0.5)", flexShrink: 0 }}>LIVE ●</span>
-              </motion.div>
-            );
-          })()}
-
-          {/* Game buttons */}
-          <motion.button
-            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            whileTap={{ scale: 0.96 }}
-            onClick={() => navigate("/ghost/games/connect4")}
-            style={{
-              width: "100%", height: 56, borderRadius: 18, cursor: "pointer",
-              background: "linear-gradient(135deg, #facc15, #f59e0b 55%, #d97706)",
-              border: "none",
-              color: "#1a0f00", fontSize: 16, fontWeight: 900, letterSpacing: "0.02em",
-              boxShadow: "0 8px 32px rgba(250,204,21,0.45), 0 2px 0 rgba(255,255,255,0.18) inset",
-              marginBottom: 10,
-            }}>
-            🔴 Play Connect 4
-          </motion.button>
-
-          <motion.button
-            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.88 }}
-            whileTap={{ scale: 0.96 }}
-            onClick={() => navigate("/ghost/games/memory")}
-            style={{
-              width: "100%", height: 56, borderRadius: 18, cursor: "pointer",
-              background: "linear-gradient(135deg, rgba(212,175,55,0.15), rgba(180,140,30,0.1))",
-              border: "1px solid rgba(212,175,55,0.4)",
-              color: "#d4af37", fontSize: 16, fontWeight: 900, letterSpacing: "0.02em",
-              boxShadow: "inset 0 1px 0 rgba(212,175,55,0.2)",
-            }}>
-            🃏 Play Memory Match
-          </motion.button>
-
-          {/* How it works link */}
-          <motion.button
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            transition={{ delay: 1.0 }}
-            onClick={() => setShowHowItWorks(true)}
-            style={{ marginTop: 14, background: "none", border: "none", cursor: "pointer",
-              fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.32)",
-              letterSpacing: "0.06em", textDecoration: "underline", textUnderlineOffset: 3 }}>
-            How it works
-          </motion.button>
-
-          {/* Scroll hint */}
-          <motion.p
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            transition={{ delay: 1.4 }}
-            style={{ margin: "12px 0 0", fontSize: 10, color: "rgba(255,255,255,0.25)",
-              fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            Scroll for champions & leaderboard ↓
-          </motion.p>
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* ── BELOW FOLD ── */}
-      {/* ══════════════════════════════════════════════════════════════════════ */}
-      <div style={{
-        width: "100%", maxWidth: 480,
-        padding: "0 14px",
-        paddingBottom: "max(40px,env(safe-area-inset-bottom,40px))",
-        display: "flex", flexDirection: "column", gap: 20,
-      }}>
 
-        {/* ── Monthly Champions ── */}
-        <div>
-          <p style={{ margin: "24px 0 10px", fontSize: 10, color: "rgba(255,255,255,0.28)",
-            fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>
-            👑 Monthly Champions
-          </p>
-          <div style={{ display: "flex", gap: 8 }}>
-
-            {/* Champion */}
-            <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              style={{ flex: 3, borderRadius: 18, padding: "16px 14px",
-                background: "linear-gradient(135deg,rgba(250,204,21,0.12),rgba(250,204,21,0.04))",
-                border: "1px solid rgba(250,204,21,0.28)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 13,
-                  background: "rgba(250,204,21,0.12)", border: "1.5px solid rgba(250,204,21,0.3)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 22, flexShrink: 0 }}>
-                  👑
-                </div>
-                <div>
-                  <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#facc15" }}>
-                    {champion.name}
-                  </p>
-                  <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.4)" }}>
-                    {champion.wins}W · {champion.losses}L · 🔥{champion.streak} streak
-                  </p>
-                  <p style={{ margin: "2px 0 0", fontSize: 10, fontWeight: 700,
-                    color: "#facc1599" }}>
-                    {champion.coins.toLocaleString()} 🪙
-                  </p>
-                </div>
+        {/* ── Leaderboard (collapsible) ── */}
+        <AnimatePresence>
+          {showLeaderboard && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              style={{ overflow: "hidden", padding: "0 18px", background: "#05030a" }}
+            >
+              <p style={{ margin: "0 0 10px", fontSize: 10, color: "rgba(255,255,255,0.28)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                👑 March 2026 Leaderboard
+              </p>
+              <div style={{ borderRadius: 18, overflow: "hidden", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 24 }}>
+                {LEADERBOARD.map((p, i) => (
+                  <div key={p.rank} style={{
+                    display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
+                    background: p.isChampion ? "rgba(250,204,21,0.06)" : p.isRunnerUp ? "rgba(255,255,255,0.03)" : "transparent",
+                    borderBottom: i < LEADERBOARD.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                  }}>
+                    <span style={{ width: 22, textAlign: "center", fontSize: p.isChampion || p.isRunnerUp ? 14 : 12, fontWeight: 900, color: p.isChampion ? "#facc15" : p.isRunnerUp ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.2)" }}>
+                      {p.isChampion ? "👑" : p.isRunnerUp ? "🥈" : p.rank}
+                    </span>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: p.isChampion ? "#facc15" : "rgba(255,255,255,0.8)" }}>{p.name}</p>
+                      <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{p.wins}W · {p.losses}L{p.streak > 0 ? ` · 🔥${p.streak}` : ""}</p>
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 900, color: p.isChampion ? "#facc15" : "rgba(255,255,255,0.38)" }}>
+                      {p.coins.toLocaleString()}🪙
+                    </span>
+                  </div>
+                ))}
               </div>
-              <motion.button whileTap={{ scale: 0.96 }}
-                onClick={() => navigate("/ghost/games/connect4")}
-                style={{ width: "100%", height: 36, borderRadius: 11, cursor: "pointer",
-                  background: "rgba(250,204,21,0.14)", border: "1px solid rgba(250,204,21,0.4)",
-                  color: "#facc15", fontSize: 13, fontWeight: 900 }}>
-                Challenge Champion
-              </motion.button>
-              <p style={{ margin: "7px 0 0", fontSize: 9, color: "rgba(255,255,255,0.22)",
-                textAlign: "center" }}>
-                Max 25🪙 wager · Best of 3
+              <p style={{ margin: "0 0 20px", fontSize: 9, color: "rgba(255,255,255,0.18)", textAlign: "center" }}>
+                Resets 1st of every month · Top 2 earn Champion titles
               </p>
             </motion.div>
+          )}
+        </AnimatePresence>
 
-            {/* Runner-up */}
-            <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ delay: 0.06 }}
-              style={{ flex: 2, borderRadius: 18, padding: "16px 12px",
-                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)" }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
-                gap: 4, marginBottom: 10 }}>
-                <span style={{ fontSize: 20 }}>🥈</span>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 900,
-                  color: "rgba(255,255,255,0.8)" }}>
-                  {runnerUp.name}
-                </p>
-                <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
-                  {runnerUp.wins}W · {runnerUp.losses}L
-                </p>
-              </div>
-              <motion.button whileTap={{ scale: 0.96 }}
-                onClick={() => navigate("/ghost/games/connect4")}
-                style={{ width: "100%", height: 32, borderRadius: 10, cursor: "pointer",
-                  background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
-                  color: "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 700 }}>
-                Challenge
-              </motion.button>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* ── Leaderboard ── */}
-        <div>
-          <p style={{ margin: "0 0 10px", fontSize: 10, color: "rgba(255,255,255,0.28)",
-            fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>
-            March 2026 Leaderboard
-          </p>
-          <div style={{ borderRadius: 18, overflow: "hidden",
-            border: "1px solid rgba(255,255,255,0.07)" }}>
-            {LEADERBOARD.map((p, i) => (
-              <motion.div key={p.rank}
-                initial={{ opacity: 0, x: -8 }} whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.04 }}
-                style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  padding: "12px 16px",
-                  background: p.isChampion
-                    ? "rgba(250,204,21,0.06)"
-                    : p.isRunnerUp
-                      ? "rgba(255,255,255,0.03)"
-                      : "transparent",
-                  borderBottom: i < LEADERBOARD.length - 1
-                    ? "1px solid rgba(255,255,255,0.04)" : "none",
-                }}>
-                <span style={{ width: 22, textAlign: "center",
-                  fontSize: p.isChampion || p.isRunnerUp ? 14 : 12, fontWeight: 900,
-                  color: p.isChampion ? "#facc15"
-                    : p.isRunnerUp ? "rgba(255,255,255,0.5)"
-                    : "rgba(255,255,255,0.2)" }}>
-                  {p.isChampion ? "👑" : p.isRunnerUp ? "🥈" : p.rank}
-                </span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 800,
-                    color: p.isChampion ? "#facc15" : "rgba(255,255,255,0.8)" }}>
-                    {p.name}
-                  </p>
-                  <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.3)" }}>
-                    {p.wins}W · {p.losses}L{p.streak > 0 ? ` · 🔥${p.streak}` : ""}
-                  </p>
-                </div>
-                <span style={{ fontSize: 12, fontWeight: 900,
-                  color: p.isChampion ? "#facc15" : "rgba(255,255,255,0.38)" }}>
-                  {p.coins.toLocaleString()}🪙
-                </span>
-              </motion.div>
-            ))}
-          </div>
-          <p style={{ margin: "10px 0 0", fontSize: 9, color: "rgba(255,255,255,0.18)",
-            textAlign: "center" }}>
-            Resets 1st of every month · Top 2 earn Champion & Runner-up titles
-          </p>
-        </div>
+        <div style={{ paddingBottom: "max(32px,env(safe-area-inset-bottom,32px))" }} />
       </div>
 
-      {/* ── How It Works popup ── */}
+      {/* ── Game options sheet ── */}
       <AnimatePresence>
-        {showHowItWorks && (
-          <motion.div
-            key="hiw-backdrop"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: "fixed", inset: 0, zIndex: 9800,
-              background: "rgba(0,0,0,0.75)", backdropFilter: "blur(14px)",
-              WebkitBackdropFilter: "blur(14px)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              padding: "24px 20px" }}>
+        {activeGame && (
+          <GameOptionsSheet
+            game={activeGame}
+            onClose={() => setActiveGame(null)}
+            onPlay={handlePlay}
+            onInvite={handleInvite}
+          />
+        )}
+      </AnimatePresence>
 
-            <motion.div
-              key="hiw-panel"
-              initial={{ scale: 0.88, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.88, opacity: 0, y: 20 }}
-              transition={{ type: "spring", stiffness: 320, damping: 26 }}
-              style={{ width: "100%", maxWidth: 360,
-                background: "rgba(6,6,20,0.99)",
-                borderRadius: 24,
-                border: "1px solid rgba(250,204,21,0.18)",
-                overflow: "hidden" }}>
-
-              {/* Gold line */}
-              <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #facc15, transparent)" }} />
-
-              <div style={{ padding: "24px 22px 28px" }}>
-
-                {/* Title */}
-                <p style={{ margin: "0 0 3px", fontSize: 18, fontWeight: 900, color: "#fff" }}>Connect 4</p>
-                <p style={{ margin: "0 0 22px", fontSize: 11, fontWeight: 700, color: "#facc15", letterSpacing: "0.05em" }}>
-                  The Icebreaker
-                </p>
-
-                {/* Mini boards — 4 win directions */}
-                {(() => {
-                  const S = 10, G = 3, COLS4 = 4, ROWS4 = 4;
-                  type Dir = { label: string; cells: [number,number][] };
-                  const dirs: Dir[] = [
-                    { label: "Horizontal →", cells: [[3,0],[3,1],[3,2],[3,3]] },
-                    { label: "Vertical ↓",   cells: [[0,1],[1,1],[2,1],[3,1]] },
-                    { label: "Diagonal ↘",   cells: [[0,0],[1,1],[2,2],[3,3]] },
-                    { label: "Diagonal ↙",   cells: [[0,3],[1,2],[2,1],[3,0]] },
-                  ];
-                  return (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
-                      {dirs.map(dir => {
-                        const winSet = new Set(dir.cells.map(([r,c]) => `${r},${c}`));
-                        return (
-                          <div key={dir.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}>
-                            <div style={{ background: "#0b0d26", borderRadius: 10, padding: 8,
-                              border: "1px solid rgba(255,255,255,0.06)" }}>
-                              {Array.from({ length: ROWS4 }, (_, r) => (
-                                <div key={r} style={{ display: "flex", gap: G, marginBottom: r < ROWS4-1 ? G : 0 }}>
-                                  {Array.from({ length: COLS4 }, (_, c) => {
-                                    const hit = winSet.has(`${r},${c}`);
-                                    return (
-                                      <div key={c} style={{ width: S, height: S, borderRadius: "50%", flexShrink: 0,
-                                        background: hit
-                                          ? "radial-gradient(circle at 35% 30%, #fef08a, #facc15 55%, #b45309)"
-                                          : "rgba(255,255,255,0.07)",
-                                        boxShadow: hit ? "0 0 6px rgba(250,204,21,0.65)" : "none" }} />
-                                    );
-                                  })}
-                                </div>
-                              ))}
-                            </div>
-                            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.32)", fontWeight: 700,
-                              textAlign: "center", letterSpacing: "0.03em" }}>
-                              {dir.label}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-
-                {/* Icebreaker text */}
-                <p style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 900, color: "rgba(255,255,255,0.9)", lineHeight: 1.5 }}>
-                  Drop a disc. Connect four. Break the ice.
-                </p>
-                <p style={{ margin: "0 0 22px", fontSize: 12.5, color: "rgba(255,255,255,0.42)", lineHeight: 1.8 }}>
-                  Challenge a house ghost or invite that someone special. Take turns, think ahead, and let the game do what introductions never quite manage. Connect 4 isn't just a move — it's the start of a conversation.
-                </p>
-
-                {/* CTA — only way to close */}
-                <motion.button whileTap={{ scale: 0.97 }}
-                  onClick={() => setShowHowItWorks(false)}
-                  style={{ width: "100%", height: 52, borderRadius: 16, cursor: "pointer",
-                    background: "linear-gradient(135deg, #facc15, #f59e0b 55%, #d97706)",
-                    border: "none",
-                    color: "#1a0f00", fontSize: 15, fontWeight: 900,
-                    boxShadow: "0 6px 24px rgba(250,204,21,0.35)" }}>
-                  Got it — let's play
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
+      {/* ── Invite / challenge sheet ── */}
+      <AnimatePresence>
+        {challengeSheet && (
+          <SendGameChallengeSheet onClose={() => setChallengeSheet(false)} />
         )}
       </AnimatePresence>
     </div>

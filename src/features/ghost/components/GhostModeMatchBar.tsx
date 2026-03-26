@@ -5,7 +5,6 @@ import type { GhostProfile, GhostMatch } from "../types/ghostTypes";
 import { MATCH_EXPIRY_MS, INTL_PROFILES } from "../types/ghostTypes";
 import { getDaysConnected, getConciergeShown } from "../utils/featureGating";
 import { isCitySupported } from "../data/butlerProviders";
-import { incrementRequestCount } from "../hooks/useMrButlasCountdown";
 import type { MatchActionContext } from "../components/MatchActionPopup";
 
 export interface GhostModeMatchBarProps {
@@ -34,7 +33,6 @@ export interface GhostModeMatchBarProps {
   setButlerMatchName: (v: string | undefined) => void;
   setShowButler: (v: boolean) => void;
   setShowButlerUnavailable: (v: boolean) => void;
-  setShowLobbyWelcome: (v: boolean) => void;
   setConciergeProfile: (v: GhostProfile | null) => void;
   setConciergeMatchId: (v: string) => void;
   setConciergeDays: (v: number) => void;
@@ -74,7 +72,7 @@ export default function GhostModeMatchBar({
   setButlerMatchName,
   setShowButler,
   setShowButlerUnavailable,
-  setShowLobbyWelcome,
+
   setConciergeProfile,
   setConciergeMatchId,
   setConciergeDays,
@@ -150,14 +148,13 @@ export default function GhostModeMatchBar({
                 onClick={() => {
                   if (likedIsMock) return;
                   if (!p.isVerified && !p.faceVerified) {
-                    incrementRequestCount();
                     setStaffPopupProfile(p);
                     return;
                   }
                   if (revealed) { setExpandedLikedProfile(p); return; }
                   const current = coinBalance;
-                  if (current < 20) { setShowCoinShop(true); return; }
-                  updateCoins(current - 20);
+                  if (current < 5) { setShowCoinShop(true); return; }
+                  updateCoins(current - 5);
                   setRevealedInbound(prev => new Set([...prev, p.id]));
                   setExpandedLikedProfile(p);
                 }}
@@ -167,15 +164,15 @@ export default function GhostModeMatchBar({
                   <motion.div
                     animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0, 0.5] }}
                     transition={{ duration: 2, repeat: Infinity, delay: i * 0.18 }}
-                    style={{ position: "absolute", inset: -4, borderRadius: "50%", border: "2px solid rgba(220,20,20,0.65)", pointerEvents: "none" }}
+                    style={{ position: "absolute", inset: -4, borderRadius: "50%", border: "2px solid rgba(212,175,55,0.65)", pointerEvents: "none" }}
                   />
                   <img src={p.image} alt=""
-                    style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(220,20,20,0.45)", display: "block", filter: (!likedIsMock && !revealed) ? "blur(7px) brightness(0.65)" : "none", transition: "filter 0.4s" }}
+                    style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.45)", display: "block", filter: (!likedIsMock && !revealed) ? "blur(7px) brightness(0.65)" : "none", transition: "filter 0.4s" }}
                     onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
                   />
                   {!likedIsMock && !revealed && (
                     <div style={{ position: "absolute", inset: 0, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.15)" }}>
-                      <span style={{ fontSize: 8, fontWeight: 900, color: "#d4af37", textAlign: "center", lineHeight: 1.3 }}>20🪙</span>
+                      <span style={{ fontSize: 8, fontWeight: 900, color: "#d4af37", textAlign: "center", lineHeight: 1.3 }}>5🪙</span>
                     </div>
                   )}
                   {likedIsMock && (
@@ -187,7 +184,7 @@ export default function GhostModeMatchBar({
                     <span style={{ position: "absolute", bottom: -1, right: -1, fontSize: 12, lineHeight: 1 }}>{p.countryFlag}</span>
                   )}
                 </div>
-                <p style={{ fontSize: 8, color: "rgba(220,20,20,0.85)", fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
+                <p style={{ fontSize: 8, color: "rgba(212,175,55,0.85)", fontWeight: 700, margin: 0, textAlign: "center", width: avatarSize, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
                   {likedIsMock || (!revealed) ? "???" : p.name}
                 </p>
               </div>
@@ -361,10 +358,10 @@ export default function GhostModeMatchBar({
         {/* Butler — right side */}
         <div
           onClick={() => { if (isCitySupported(userCity)) { setButlerMatchName(undefined); setShowButler(true); } else setShowButlerUnavailable(true); }}
-          style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", flexShrink: 0, padding: "6px 0 6px 10px" }}
+          style={{ display: "flex", alignItems: "center", gap: 5, cursor: "pointer", flexShrink: 0, padding: "5px 9px", borderRadius: 20, background: "rgba(212,175,55,0.07)", border: "1px solid rgba(212,175,55,0.22)" }}
         >
-          <img src="https://ik.imagekit.io/7grri5v7d/butlers%20tray.png" alt="butler" style={{ width: 16, height: 16, objectFit: "contain" }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap" }}>Butler Service</span>
+          <img src="https://ik.imagekit.io/7grri5v7d/butlers%20tray.png" alt="butler" style={{ width: 14, height: 14, objectFit: "contain" }} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(212,175,55,0.75)", whiteSpace: "nowrap" }}>Butler</span>
         </div>
       </div>
       {/* Main row: scroll area + tab buttons */}
@@ -379,9 +376,9 @@ export default function GhostModeMatchBar({
           <button
             onClick={() => setMatchTab(matchTab === "ilike" ? "matches" : "ilike")}
             style={{
-              width: 52, height: 44, borderRadius: 10,
-              background: matchTab === "ilike" ? a.gradient : "rgba(255,255,255,0.07)",
-              border: matchTab === "ilike" ? "none" : "1.5px solid rgba(255,255,255,0.15)",
+              width: 52, height: 44, borderRadius: 12,
+              background: matchTab === "ilike" ? a.gradient : a.glow(0.07),
+              border: matchTab === "ilike" ? "none" : `1px solid ${a.glow(0.22)}`,
               cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
               boxShadow: matchTab === "ilike" ? `0 0 14px ${a.glow(0.5)}` : "none",
             }}
@@ -392,11 +389,11 @@ export default function GhostModeMatchBar({
           <button
             onClick={() => setMatchTab(matchTab === "liked" ? "matches" : "liked")}
             style={{
-              width: 52, height: 44, borderRadius: 10,
-              background: matchTab === "liked" ? "linear-gradient(to bottom, #ff3b3b 0%, #e01010 40%, #b80000 100%)" : "rgba(255,255,255,0.07)",
-              border: matchTab === "liked" ? "none" : "1.5px solid rgba(255,255,255,0.15)",
+              width: 52, height: 44, borderRadius: 12,
+              background: matchTab === "liked" ? "linear-gradient(135deg, #92400e, #d4af37, #f0d060)" : a.glow(0.07),
+              border: matchTab === "liked" ? "none" : `1px solid ${a.glow(0.22)}`,
               cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
-              boxShadow: matchTab === "liked" ? "0 0 14px rgba(220,20,20,0.5)" : "none",
+              boxShadow: matchTab === "liked" ? "0 0 14px rgba(212,175,55,0.5)" : "none",
             }}
           >
             <span style={{ fontSize: 15 }}>❤️</span>

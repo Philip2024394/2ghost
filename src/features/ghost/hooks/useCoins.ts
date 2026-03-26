@@ -37,14 +37,16 @@ function appendTransaction(tx: Omit<CoinTransaction, "id" | "ts">) {
       if (raw) {
         const profile = JSON.parse(raw);
         if (profile.ghost_id) {
-          ghostSupabase.from("ghost_coin_transactions").insert({
-            id:          entry.id,
-            ghost_id:    profile.ghost_id,
-            type:        entry.type,
-            amount:      entry.amount,
-            description: entry.description,
-            ts:          entry.ts,
-          }).then(() => {}).catch(() => {});
+          Promise.resolve(
+            ghostSupabase.from("ghost_coin_transactions").insert({
+              id:          entry.id,
+              ghost_id:    profile.ghost_id,
+              type:        entry.type,
+              amount:      entry.amount,
+              description: entry.description,
+              ts:          entry.ts,
+            })
+          ).catch(() => {});
         }
       }
     } catch {}

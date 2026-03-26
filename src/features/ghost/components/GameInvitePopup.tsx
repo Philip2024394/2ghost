@@ -1,19 +1,13 @@
 // ── Game Invite Popup ──────────────────────────────────────────────────────────
-// Butler delivers a weekly game challenge. Accept/decline with countdown timer.
+// Shows when another guest challenges you to a coin-stake game.
+// Format: Best of 3 — first to win 2 rounds wins the coin pot.
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { GameInvite } from "../utils/gameInviteService";
-import { DECLINE_REASONS } from "../utils/gameInviteService";
+import { DECLINE_REASONS, GAME_LABELS, GAME_EMOJIS } from "../utils/gameInviteService";
 
-const BUTLER_IMG   = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdfccc-removebg-preview.png";
-const GAMES_IMG    = "https://ik.imagekit.io/7grri5v7d/Skeleton%20in%20tuxedo%20flips%20Connect%204%20disc.png";
-const MEMORY_EMOJI = "🃏";
-
-// Derive this week's game (alternates weekly)
-function getThisWeeksGame(): "connect4" | "memory" {
-  return Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % 2 === 0 ? "memory" : "connect4";
-}
+const BUTLER_IMG = "https://ik.imagekit.io/7grri5v7d/asdfasdfasdfccc-removebg-preview.png";
 
 const ACCEPT_WINDOW = 30; // seconds to accept before auto-decline
 
@@ -27,9 +21,11 @@ export default function GameInvitePopup({ invite, onAccept, onDecline }: Props) 
   const [showReasons,    setShowReasons]    = useState(false);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [timeLeft,       setTimeLeft]       = useState(ACCEPT_WINDOW);
-  const thisWeeksGame = getThisWeeksGame();
-  const gameLabel = thisWeeksGame === "memory" ? "Memory Match" : "Connect 4";
-  const gameEmoji = thisWeeksGame === "memory" ? MEMORY_EMOJI : "🔴";
+
+  const gameLabel = GAME_LABELS[invite.game_type] ?? invite.game_type;
+  const gameEmoji = GAME_EMOJIS[invite.game_type] ?? "🎮";
+  const stake     = invite.coin_stake ?? 20;
+  const pot       = stake * 2;
 
   // Countdown timer — auto-decline on expiry
   useEffect(() => {
@@ -54,7 +50,6 @@ export default function GameInvitePopup({ invite, onAccept, onDecline }: Props) 
         background: "rgba(0,0,0,0.72)", backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
         display: "flex", alignItems: "flex-end", justifyContent: "center",
-        padding: "0 0 0",
       }}
     >
       <motion.div
@@ -83,7 +78,7 @@ export default function GameInvitePopup({ invite, onAccept, onDecline }: Props) 
             <div style={{ flex: 1 }}>
               <p style={{ margin: 0, fontSize: 10, fontWeight: 700,
                 color: "rgba(250,204,21,0.7)", letterSpacing: "0.06em" }}>
-                THE BUTLER · THIS WEEK'S GAME
+                GAME CHALLENGE · BEST OF 3
               </p>
               <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
                 A challenge has arrived at your door
@@ -94,9 +89,12 @@ export default function GameInvitePopup({ invite, onAccept, onDecline }: Props) 
               <motion.div
                 animate={{ opacity: timeLeft <= 5 ? [1, 0.3, 1] : 1 }}
                 transition={{ duration: 0.5, repeat: timeLeft <= 5 ? Infinity : 0 }}
-                style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 1, padding: "6px 10px", borderRadius: 10, background: "rgba(0,0,0,0.4)", border: `1px solid ${timerColor}40` }}
+                style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center",
+                  gap: 1, padding: "6px 10px", borderRadius: 10,
+                  background: "rgba(0,0,0,0.4)", border: `1px solid ${timerColor}40` }}
               >
-                <span style={{ fontSize: 20, fontWeight: 900, color: timerColor, lineHeight: 1, textShadow: timeLeft <= 5 ? `0 0 10px ${timerColor}` : "none" }}>{timeLeft}</span>
+                <span style={{ fontSize: 20, fontWeight: 900, color: timerColor, lineHeight: 1,
+                  textShadow: timeLeft <= 5 ? `0 0 10px ${timerColor}` : "none" }}>{timeLeft}</span>
                 <span style={{ fontSize: 7, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>secs</span>
               </motion.div>
             )}
@@ -105,7 +103,7 @@ export default function GameInvitePopup({ invite, onAccept, onDecline }: Props) 
           {/* Invite card */}
           <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px",
             borderRadius: 16, background: "rgba(250,204,21,0.06)",
-            border: "1px solid rgba(250,204,21,0.2)", marginBottom: 16 }}>
+            border: "1px solid rgba(250,204,21,0.2)", marginBottom: 14 }}>
             {invite.from_image ? (
               <img src={invite.from_image} alt={invite.from_name}
                 style={{ width: 52, height: 52, borderRadius: 14,
@@ -121,16 +119,13 @@ export default function GameInvitePopup({ invite, onAccept, onDecline }: Props) 
               <p style={{ margin: "0 0 3px", fontSize: 16, fontWeight: 900, color: "#fff" }}>
                 {invite.from_name}
               </p>
-              <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                has challenged you to this week's game
+              <p style={{ margin: "0 0 6px", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                challenges you to a game
               </p>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 5,
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6,
                 padding: "3px 10px", borderRadius: 8,
                 background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.25)" }}>
-                {thisWeeksGame === "connect4"
-                  ? <img src={GAMES_IMG} alt={gameLabel} style={{ width: 16, height: 16, objectFit: "contain" }} />
-                  : <span style={{ fontSize: 14 }}>{gameEmoji}</span>
-                }
+                <span style={{ fontSize: 14 }}>{gameEmoji}</span>
                 <span style={{ fontSize: 11, fontWeight: 800, color: "#d4af37" }}>
                   {gameLabel}
                 </span>
@@ -138,18 +133,50 @@ export default function GameInvitePopup({ invite, onAccept, onDecline }: Props) 
             </div>
           </div>
 
-          {/* Butler ranking warning */}
-          <motion.div
-            animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 2.5, repeat: Infinity }}
-            style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 12px",
-              borderRadius: 12, background: "rgba(251,146,60,0.07)",
-              border: "1px solid rgba(251,146,60,0.2)", marginBottom: 20 }}>
+          {/* Coin stake + format */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+            {/* Pot */}
+            <div style={{
+              flex: 1, borderRadius: 14,
+              background: "rgba(250,204,21,0.07)",
+              border: "1px solid rgba(250,204,21,0.25)",
+              padding: "12px 14px", textAlign: "center",
+            }}>
+              <p style={{ margin: "0 0 2px", fontSize: 22, fontWeight: 900, color: "#facc15" }}>
+                {pot} 🪙
+              </p>
+              <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.35)",
+                letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                Winner takes all
+              </p>
+            </div>
+            {/* Format */}
+            <div style={{
+              flex: 1, borderRadius: 14,
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.09)",
+              padding: "12px 14px", textAlign: "center",
+            }}>
+              <p style={{ margin: "0 0 2px", fontSize: 18, fontWeight: 900, color: "#fff" }}>
+                Best of 3
+              </p>
+              <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.35)",
+                letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                First to win 2
+              </p>
+            </div>
+          </div>
+
+          {/* Your stake note */}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 12px",
+            borderRadius: 12, background: "rgba(251,146,60,0.07)",
+            border: "1px solid rgba(251,146,60,0.2)", marginBottom: 20 }}>
             <span style={{ fontSize: 14, flexShrink: 0 }}>🎩</span>
             <p style={{ margin: 0, fontSize: 11, color: "rgba(251,146,60,0.85)", lineHeight: 1.6 }}>
-              The butler notes: declining challenges may affect your position on the leaderboard and
-              could cost you your country title.
+              Accepting puts up your <strong style={{ color: "#fff" }}>{stake} coins</strong> as stake.
+              Win 2 rounds and collect <strong style={{ color: "#facc15" }}>{pot} coins</strong> total.
             </p>
-          </motion.div>
+          </div>
 
           {/* Actions */}
           <AnimatePresence mode="wait">
@@ -171,7 +198,7 @@ export default function GameInvitePopup({ invite, onAccept, onDecline }: Props) 
                     background: "linear-gradient(135deg, #facc15, #f59e0b 55%, #d97706)",
                     border: "none", color: "#1a0f00", fontSize: 15, fontWeight: 900,
                     boxShadow: "0 6px 24px rgba(250,204,21,0.35)" }}>
-                  🎮 Accept Challenge
+                  🎮 Accept — {stake} 🪙
                 </motion.button>
               </motion.div>
             ) : (

@@ -29,7 +29,8 @@ export default function ConnectNowPopup({ profile, onDone }: { profile: GhostPro
   // Resolve contact preference
   const myGender: string = (() => { try { return localStorage.getItem("ghost_gender") ?? ""; } catch { return ""; } })();
   const myPref: "video" | "connect" = (() => { try { return (localStorage.getItem("ghost_contact_pref") as "video" | "connect") || "connect"; } catch { return "connect"; } })();
-  const theirPref: "video" | "connect" = profile.contactPref ?? seededContactPref(profile.id, profile.gender);
+  const rawContactPref = profile.contactPref ?? seededContactPref(profile.id, profile.gender);
+  const theirPref: "video" | "connect" = rawContactPref === "video" ? "video" : "connect";
 
   // Female preference wins — if either party is female and wants video, video goes first
   const femaleWantsVideo =

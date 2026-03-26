@@ -1,7 +1,16 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
+import { getMyGhostId } from "../ghostDataService";
+import StripeCheckoutSheet from "./StripeCheckoutSheet";
+
+const PRICE_IDS: Record<number, string> = {
+  50:   import.meta.env.VITE_STRIPE_PRICE_COINS_50   as string ?? "",
+  150:  import.meta.env.VITE_STRIPE_PRICE_COINS_150  as string ?? "",
+  400:  import.meta.env.VITE_STRIPE_PRICE_COINS_400  as string ?? "",
+  1000: import.meta.env.VITE_STRIPE_PRICE_COINS_1000 as string ?? "",
+};
 
 const COIN_PACKS = [
   { coins: 50,   price: "$4.99",  label: "Starter",    badge: null,           popular: false },
@@ -65,6 +74,7 @@ export default function GhostCoinShop({
   const [buying, setBuying] = useState<string | null>(null);
   const [justBought, setJustBought] = useState<string | null>(null);
   const [powerUpStates, setPowerUpStates] = useState<Record<string, "idle" | "buying" | "done">>({});
+  const [checkoutPack, setCheckoutPack] = useState<{ priceId: string; coins: number; price: string } | null>(null);
 
   const isFirstBuyer = (() => {
     try { return !localStorage.getItem("ghost_first_purchase_done"); } catch { return true; }
@@ -72,6 +82,12 @@ export default function GhostCoinShop({
 
   const handleBuy = (pack: typeof COIN_PACKS[number]) => {
     if (buying !== null) return;
+    const priceId = PRICE_IDS[pack.coins];
+    if (priceId) {
+      setCheckoutPack({ priceId, coins: pack.coins, price: pack.price });
+      return;
+    }
+    // Fallback: no price ID configured (dev/preview mode)
     setBuying(pack.label);
     setTimeout(() => {
       const bonus = isFirstBuyer ? pack.coins : 0;
@@ -103,6 +119,7 @@ export default function GhostCoinShop({
   };
 
   return (
+    <>
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       onClick={onClose}
@@ -279,10 +296,16 @@ export default function GhostCoinShop({
               const [subDone, setSubDone] = useState(false);
               const handleSubscribe = () => {
                 if (subBuying || isActive) return;
+                const ghostId = getMyGhostId();
+                const subLink = import.meta.env.VITE_STRIPE_GHOST_BLACK_LINK as string | undefined;
+                if (subLink && ghostId) {
+                  window.location.href = `${subLink}?client_reference_id=${encodeURIComponent(ghostId)}`;
+                  return;
+                }
+                // Fallback for dev/preview
                 setSubBuying(true);
                 setTimeout(() => {
                   try {
-                    // Grant 200 coins + mark subscription for 30 days
                     const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
                     localStorage.setItem("ghost_black_sub_until", String(expiry));
                     const today = new Date().toISOString().slice(0, 7);
@@ -417,5 +440,24 @@ export default function GhostCoinShop({
         </div>
       </motion.div>
     </motion.div>
+
+    {/* Embedded Stripe checkout sheet */}
+    <AnimatePresence>
+      {checkoutPack && (
+        <StripeCheckoutSheet
+          priceId={checkoutPack.priceId}
+          ghostId={getMyGhostId()}
+          label={`${checkoutPack.coins.toLocaleString()} Coins — ${checkoutPack.price}`}
+          returnPath={`/ghost/payment-success?plan=coins&amount=${checkoutPack.coins}`}
+          onClose={() => setCheckoutPack(null)}
+          onSuccess={() => {
+            setCheckoutPack(null);
+            setJustBought(String(checkoutPack.coins));
+            setTimeout(() => setJustBought(null), 3000);
+          }}
+        />
+      )}
+    </AnimatePresence>
+    </>
   );
 }

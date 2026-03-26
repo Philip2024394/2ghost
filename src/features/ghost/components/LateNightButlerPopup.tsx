@@ -29,7 +29,7 @@ function loadMatchNames(): Array<{ id: string; ghostId: string; avatar: string }
       const pid = m.profile?.id || m.id;
       let h = 0;
       for (let i = 0; i < pid.length; i++) { h = Math.imul(31, h) + pid.charCodeAt(i) | 0; }
-      const ghostId = `Ghost-${1000 + Math.abs(h) % 9000}`;
+      const ghostId = `Guest-${1000 + Math.abs(h) % 9000}`;
       const avatar  = m.profile?.images?.[0] ?? `https://i.pravatar.cc/60?u=${pid}`;
       return { id: pid, ghostId, avatar };
     });

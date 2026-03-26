@@ -5,9 +5,35 @@
  */
 
 export const STRIPE_LINKS = {
-  suite: import.meta.env.VITE_STRIPE_SUITE_LINK as string | undefined,
-  gold:  import.meta.env.VITE_STRIPE_GOLD_LINK  as string | undefined,
+  suite:     import.meta.env.VITE_STRIPE_SUITE_LINK     as string | undefined,
+  gold:      import.meta.env.VITE_STRIPE_GOLD_LINK      as string | undefined,
+  kings:     import.meta.env.VITE_STRIPE_KINGS_LINK     as string | undefined,
+  penthouse: import.meta.env.VITE_STRIPE_PENTHOUSE_LINK as string | undefined,
+  cellar:    import.meta.env.VITE_STRIPE_CELLAR_LINK    as string | undefined,
+  garden:    import.meta.env.VITE_STRIPE_GARDEN_LINK    as string | undefined,
 };
+
+export const STRIPE_COIN_LINKS = {
+  50:   import.meta.env.VITE_STRIPE_COINS_50_LINK   as string | undefined,
+  150:  import.meta.env.VITE_STRIPE_COINS_150_LINK  as string | undefined,
+  400:  import.meta.env.VITE_STRIPE_COINS_400_LINK  as string | undefined,
+  1000: import.meta.env.VITE_STRIPE_COINS_1000_LINK as string | undefined,
+} as const;
+
+/** Build the Stripe coin pack link with ghost_id + first-purchase flag pre-attached */
+export function buildCoinLink(
+  amount: 50 | 150 | 400 | 1000,
+  ghostId: string,
+  isFirstPurchase: boolean
+): string | null {
+  const base = STRIPE_COIN_LINKS[amount];
+  if (!base) return null;
+  const params = new URLSearchParams({
+    client_reference_id: ghostId,
+    ...(isFirstPurchase ? { prefilled_promo_code: "" } : {}),
+  });
+  return `${base}?${params.toString()}`;
+}
 
 // ── Local currency pricing display ────────────────────────────────────────────
 // Stripe charges in your account's base currency (USD).
@@ -115,7 +141,7 @@ export function getLocalPrice(countryCode: string): LocalPrice {
 }
 
 /** Build the Stripe payment link URL with ghost_id pre-attached */
-export function buildStripeLink(plan: "suite" | "gold", ghostId: string): string | null {
+export function buildStripeLink(plan: keyof typeof STRIPE_LINKS, ghostId: string): string | null {
   const base = STRIPE_LINKS[plan];
   if (!base) return null;
   return `${base}?client_reference_id=${encodeURIComponent(ghostId)}`;

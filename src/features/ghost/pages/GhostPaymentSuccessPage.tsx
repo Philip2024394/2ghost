@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ghostSupabase } from "../ghostSupabase";
 import { recordConversion } from "../../affiliate/affiliateStorage";
-import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
+
 
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
@@ -28,36 +28,74 @@ const TIER_META: Record<string, { label: string; icon: string; color: string; gr
 };
 
 export default function GhostPaymentSuccessPage() {
-  const a = useGenderAccent();
   const navigate        = useNavigate();
   const [params]        = useSearchParams();
   const [done, setDone] = useState(false);
   const [particles, setParticles] = useState<{ id: number; x: number; y: number; color: string; delay: number }[]>([]);
 
   const VALID_PLANS = ["standard", "suite", "kings", "penthouse", "cellar", "garden", "gold"];
-  const plan = VALID_PLANS.includes(params.get("plan") || "") ? params.get("plan")! : "suite";
+  const planParam = params.get("plan") ?? "";
+  const isCoins   = planParam === "coins";
+  const coinsAmount = isCoins ? Number(params.get("amount") ?? 0) : 0;
+  const plan = VALID_PLANS.includes(planParam) ? planParam : "suite";
   const meta = TIER_META[plan] ?? TIER_META.suite;
 
   useEffect(() => {
-    // Mark tier in localStorage immediately
-    try {
-      localStorage.setItem("ghost_house_tier", plan);
-      const raw = localStorage.getItem("ghost_profile");
-      if (raw) {
-        const profile = JSON.parse(raw);
-        profile.tier = plan;
-        localStorage.setItem("ghost_profile", JSON.stringify(profile));
-        if (profile.ghost_id) {
-          ghostSupabase
-            .from("ghost_profiles")
-            .update({ tier: plan, updated_at: new Date().toISOString() })
-            .eq("ghost_id", profile.ghost_id)
-            .then(null, () => null);
-        }
-      }
-    } catch {}
+    if (isCoins && coinsAmount > 0) {
+      // ── Coin purchase fulfillment ──────────────────────────────────────────
+      // Webhook is authoritative, but we also update locally as instant feedback.
+      // Supabase balance is polled until it reflects the new amount (webhook race).
+      try {
+        const raw = localStorage.getItem("ghost_profile");
+        const profile = raw ? JSON.parse(raw) : {};
+        const ghostId: string = profile.ghost_id || profile.phone || profile.whatsapp || "";
+        const firstDone = !!localStorage.getItem("ghost_first_purchase_done");
+        const bonus = firstDone ? 0 : coinsAmount;
+        const current = Number(localStorage.getItem("ghost_coins") || "0");
+        const next = current + coinsAmount + bonus;
+        localStorage.setItem("ghost_coins", String(next));
+        if (!firstDone) localStorage.setItem("ghost_first_purchase_done", "1");
 
-    recordConversion(plan as "suite" | "gold");
+        if (ghostId) {
+          // Poll Supabase until the webhook-fulfilled balance appears (max 10s)
+          let attempts = 0;
+          const poll = setInterval(async () => {
+            attempts++;
+            const { data } = await ghostSupabase
+              .from("ghost_coins")
+              .select("balance")
+              .eq("ghost_id", ghostId)
+              .maybeSingle();
+            if (data?.balance && data.balance > current) {
+              localStorage.setItem("ghost_coins", String(data.balance));
+              clearInterval(poll);
+            }
+            if (attempts >= 10) clearInterval(poll);
+          }, 1000);
+        }
+      } catch {}
+
+    } else {
+      // ── Tier purchase fulfillment ──────────────────────────────────────────
+      try {
+        localStorage.setItem("ghost_house_tier", plan);
+        const raw = localStorage.getItem("ghost_profile");
+        if (raw) {
+          const profile = JSON.parse(raw);
+          profile.tier = plan;
+          localStorage.setItem("ghost_profile", JSON.stringify(profile));
+          if (profile.ghost_id) {
+            ghostSupabase
+              .from("ghost_profiles")
+              .update({ tier: plan, updated_at: new Date().toISOString() })
+              .eq("ghost_id", profile.ghost_id)
+              .then(null, () => null);
+          }
+        }
+      } catch {}
+
+      recordConversion(plan as "suite" | "gold");
+    }
 
     // Spawn particle burst
     const ps = Array.from({ length: 18 }, (_, i) => ({
@@ -73,7 +111,7 @@ export default function GhostPaymentSuccessPage() {
     const t = setTimeout(() => setDone(true), 2400);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plan]);
+  }, [plan, isCoins, coinsAmount]);
 
   // Deterministic ghost ID from profile
   const ghostIdSuffix = (() => {
@@ -117,21 +155,23 @@ export default function GhostPaymentSuccessPage() {
         style={{ width: 64, height: 64, objectFit: "contain", marginBottom: 8, position: "relative", zIndex: 1 }}
       />
 
-      {/* Tier badge */}
+      {/* Badge */}
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 280, damping: 22, delay: 0.25 }}
         style={{
           width: 80, height: 80, borderRadius: "50%",
-          background: `radial-gradient(circle, ${meta.color}22, transparent)`,
-          border: `2px solid ${meta.color}`,
+          background: `radial-gradient(circle, ${isCoins ? "rgba(212,175,55,0.22)" : meta.color + "22"}, transparent)`,
+          border: `2px solid ${isCoins ? "#d4af37" : meta.color}`,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 36, marginBottom: 24, position: "relative", zIndex: 1,
-          boxShadow: `0 0 48px ${meta.color}44, 0 0 80px ${meta.color}22`,
+          boxShadow: isCoins
+            ? "0 0 48px rgba(212,175,55,0.44), 0 0 80px rgba(212,175,55,0.22)"
+            : `0 0 48px ${meta.color}44, 0 0 80px ${meta.color}22`,
         }}
       >
-        {meta.icon}
+        {isCoins ? "🪙" : meta.icon}
       </motion.div>
 
       {/* Header text */}
@@ -141,15 +181,18 @@ export default function GhostPaymentSuccessPage() {
         transition={{ delay: 0.4, duration: 0.5 }}
         style={{ position: "relative", zIndex: 1 }}
       >
-        <p style={{ fontSize: 10, fontWeight: 800, color: meta.color, letterSpacing: "0.18em", textTransform: "uppercase", margin: "0 0 10px" }}>
-          Check-In Confirmed
+        <p style={{ fontSize: 10, fontWeight: 800, color: isCoins ? "#d4af37" : meta.color, letterSpacing: "0.18em", textTransform: "uppercase", margin: "0 0 10px" }}>
+          {isCoins ? "Coins Delivered" : "Check-In Confirmed"}
         </p>
         <h1 style={{ fontSize: 28, fontWeight: 900, margin: "0 0 8px", lineHeight: 1.2 }}>
-          Welcome to the<br />
-          <span style={{ color: meta.color }}>{meta.floor}</span>
+          {isCoins ? (
+            <><span style={{ color: "#d4af37" }}>{coinsAmount.toLocaleString()} Coins</span><br />added to your wallet</>
+          ) : (
+            <>Welcome to the<br /><span style={{ color: meta.color }}>{meta.floor}</span></>
+          )}
         </h1>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.38)", margin: "0 0 6px" }}>
-          Ghost-{ghostIdSuffix} · {meta.label}
+          Ghost-{ghostIdSuffix} · {isCoins ? "Coin Top-Up" : meta.label}
         </p>
       </motion.div>
 
@@ -209,17 +252,17 @@ export default function GhostPaymentSuccessPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: done ? 1 : 0, y: done ? 0 : 10 }}
         whileTap={{ scale: 0.97 }}
-        onClick={() => navigate(ROOM_ROUTES[plan] ?? "/ghost/mode", { replace: true })}
+        onClick={() => navigate(isCoins ? "/ghost/mode" : (ROOM_ROUTES[plan] ?? "/ghost/mode"), { replace: true })}
         style={{
           width: "100%", maxWidth: 320, height: 54, borderRadius: 50, border: "none",
-          background: meta.gradient,
-          color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
-          boxShadow: `0 8px 32px ${meta.color}44`,
+          background: isCoins ? "linear-gradient(135deg, #92400e, #d4af37, #f0d060)" : meta.gradient,
+          color: isCoins ? "#000" : "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
+          boxShadow: isCoins ? "0 8px 32px rgba(212,175,55,0.44)" : `0 8px 32px ${meta.color}44`,
           position: "relative", zIndex: 1, overflow: "hidden",
         }}
       >
         <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "45%", background: "linear-gradient(to bottom,rgba(255,255,255,0.2),transparent)", borderRadius: "50px 50px 60% 60%", pointerEvents: "none" }} />
-        {`Enter ${meta.floor} →`}
+        {isCoins ? "Back to Hotel →" : `Enter ${meta.floor} →`}
       </motion.button>
 
       <motion.p
@@ -228,7 +271,7 @@ export default function GhostPaymentSuccessPage() {
         transition={{ delay: 0.2 }}
         style={{ marginTop: 14, fontSize: 10, color: "rgba(255,255,255,0.2)", position: "relative", zIndex: 1 }}
       >
-        Your subscription is active · Cancel anytime
+        {isCoins ? `🪙 ${coinsAmount.toLocaleString()} coins · ready to spend` : "Your subscription is active · Cancel anytime"}
       </motion.p>
 
     </div>
