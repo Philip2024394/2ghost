@@ -46,7 +46,7 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 400,
-    minify: 'esbuild',
+    minify: true,
     sourcemap: false,
     assetsInlineLimit: 4096,
   },
@@ -56,9 +56,5 @@ export default defineConfig({
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify('production'),
-  },
-  esbuild: {
-    target: 'es2015',
-    drop: ['console', 'debugger'],  // strip all console.* and debugger in production
   },
 })
