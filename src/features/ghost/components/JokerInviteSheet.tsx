@@ -85,13 +85,18 @@ export default function JokerInviteSheet({ onClose }: Props) {
     return () => clearTimeout(t);
   }, []);
 
-  // Preload video — fade in once first frame is ready
+  // Play video — if already buffered (preloaded), start immediately; otherwise wait for canplay
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
     const onReady = () => { setVideoReady(true); vid.play().catch(() => {}); };
-    vid.addEventListener("canplay", onReady, { once: true });
-    vid.load();
+    if (vid.readyState >= 3) {
+      // Already buffered from background preload — play right away
+      onReady();
+    } else {
+      vid.addEventListener("canplay", onReady, { once: true });
+      vid.load();
+    }
     return () => vid.removeEventListener("canplay", onReady);
   }, []);
 

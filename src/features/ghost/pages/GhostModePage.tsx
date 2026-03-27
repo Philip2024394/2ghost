@@ -446,6 +446,23 @@ export default function GhostModePage() {
   const [showMaidSheet, setShowMaidSheet] = useState(false);
   const [showGamesSheet, setShowGamesSheet] = useState(false);
 
+  // Preload character videos in the background so they're cached before the sheet opens
+  useEffect(() => {
+    const CHAR_VIDEOS = [
+      "https://ik.imagekit.io/7grri5v7d/joker%20woman.mp4",
+    ];
+    const els = CHAR_VIDEOS.map(url => {
+      const v = document.createElement("video");
+      v.src = url;
+      v.preload = "auto";
+      v.muted = true;
+      v.playsInline = true;
+      v.load();
+      return v;
+    });
+    return () => { els.forEach(v => { v.src = ""; }); };
+  }, []);
+
   // Ghost Flash — 60-minute live pool
   const FLASH_CONTACT_LIMIT = 3;
   const [flashUntil, setFlashUntil] = useState<number>(() => {
