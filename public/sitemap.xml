@@ -12,7 +12,7 @@
 
   <!-- Main app entry -->
   <url>
-    <loc>https://mrbutlas.com/ghost</loc>
+    <loc>https://mrbutlas.com/welcome</loc>
     <lastmod>2026-03-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -20,7 +20,7 @@
 
   <!-- Ghost Feed / Mode -->
   <url>
-    <loc>https://mrbutlas.com/ghost/mode</loc>
+    <loc>https://mrbutlas.com/mode</loc>
     <lastmod>2026-03-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
@@ -28,7 +28,7 @@
 
   <!-- Ghost Rooms -->
   <url>
-    <loc>https://mrbutlas.com/ghost/rooms</loc>
+    <loc>https://mrbutlas.com/rooms</loc>
     <lastmod>2026-03-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -36,7 +36,7 @@
 
   <!-- Ghost Room (My Room) -->
   <url>
-    <loc>https://mrbutlas.com/ghost/room</loc>
+    <loc>https://mrbutlas.com/room</loc>
     <lastmod>2026-03-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -44,7 +44,7 @@
 
   <!-- Dashboard -->
   <url>
-    <loc>https://mrbutlas.com/ghost/dashboard</loc>
+    <loc>https://mrbutlas.com/dashboard</loc>
     <lastmod>2026-03-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -52,7 +52,7 @@
 
   <!-- Pricing / Coin Shop -->
   <url>
-    <loc>https://mrbutlas.com/ghost/pricing</loc>
+    <loc>https://mrbutlas.com/pricing</loc>
     <lastmod>2026-03-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -60,7 +60,7 @@
 
   <!-- Activities -->
   <url>
-    <loc>https://mrbutlas.com/ghost/activities</loc>
+    <loc>https://mrbutlas.com/activities</loc>
     <lastmod>2026-03-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -68,7 +68,7 @@
 
   <!-- Breakfast Lounge -->
   <url>
-    <loc>https://mrbutlas.com/ghost/breakfast-lounge</loc>
+    <loc>https://mrbutlas.com/breakfast-lounge</loc>
     <lastmod>2026-03-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -76,7 +76,7 @@
 
   <!-- Ghost Map -->
   <url>
-    <loc>https://mrbutlas.com/ghost/map</loc>
+    <loc>https://mrbutlas.com/map</loc>
     <lastmod>2026-03-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -84,7 +84,7 @@
 
   <!-- Games Room -->
   <url>
-    <loc>https://mrbutlas.com/ghost/games</loc>
+    <loc>https://mrbutlas.com/games</loc>
     <lastmod>2026-03-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>

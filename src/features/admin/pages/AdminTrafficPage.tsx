@@ -130,13 +130,13 @@ function buildMockSessions(): Session[] {
 function buildMockPageviews(): PageView[] {
   const pages = [
     { path: "/ghost",           label: "Landing" },
-    { path: "/ghost/auth",      label: "Sign Up / Login" },
-    { path: "/ghost/setup",     label: "Profile Setup" },
-    { path: "/ghost/mode",      label: "Ghost Mode" },
-    { path: "/ghost/mock",      label: "Browse Profiles" },
-    { path: "/ghost/pricing",   label: "Pricing" },
-    { path: "/ghost/room",      label: "Ghost Room" },
-    { path: "/ghost/dashboard", label: "Dashboard" },
+    { path: "/auth",      label: "Sign Up / Login" },
+    { path: "/setup",     label: "Profile Setup" },
+    { path: "/mode",      label: "Ghost Mode" },
+    { path: "/mock",      label: "Browse Profiles" },
+    { path: "/pricing",   label: "Pricing" },
+    { path: "/room",      label: "Ghost Room" },
+    { path: "/dashboard", label: "Dashboard" },
   ];
   const now = Date.now();
   return Array.from({ length: 220 }, (_, i) => {

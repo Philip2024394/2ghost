@@ -34,7 +34,7 @@ const PREVIEW_MAP: Record<string, string> = {
   "/admin/profiles":  "/ghost",
   "/admin/users":     "/ghost",
   "/admin/payments":  "/ghost",
-  "/admin/services":  "/ghost/butler",
+  "/admin/services":  "/butler",
 };
 
 const MIN_WIDTH = 1024;

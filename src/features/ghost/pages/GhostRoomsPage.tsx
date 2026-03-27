@@ -625,7 +625,7 @@ export default function GhostRoomsPage() {
   // Auto-redirect first-time visitors to the how-it-works explainer
   useEffect(() => {
     if (!hasSeenHowItWorks() && !currentTier) {
-      navigate("/ghost/how-it-works", { replace: true });
+      navigate("/how-it-works", { replace: true });
     }
   }, []);
 
@@ -663,7 +663,7 @@ export default function GhostRoomsPage() {
           </div>
           {/* Close — right */}
           <button
-            onClick={() => navigate("/ghost/mode")}
+            onClick={() => navigate("/mode")}
             title="Close"
             style={{
               width: 36, height: 36, borderRadius: 10, flexShrink: 0,
@@ -683,7 +683,7 @@ export default function GhostRoomsPage() {
           </p>
           <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>
             <button
-              onClick={() => navigate("/ghost/how-it-works")}
+              onClick={() => navigate("/how-it-works")}
               style={{
                 background: accentBg, border: `1px solid ${accentBorder}`,
                 borderRadius: 20, padding: "6px 18px", cursor: "pointer",
@@ -995,7 +995,7 @@ export default function GhostRoomsPage() {
                           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                             <motion.button
                               whileTap={{ scale: 0.97 }}
-                              onClick={() => navigate("/ghost/floor/garden")}
+                              onClick={() => navigate("/floor/garden")}
                               style={{
                                 width: "100%", height: 48, borderRadius: 12, border: "none", cursor: "pointer",
                                 background: room.gradient, color: "#0a0700",
@@ -1034,7 +1034,7 @@ export default function GhostRoomsPage() {
                           <div style={{ display: "flex", gap: 8 }}>
                             <motion.button
                               whileTap={{ scale: 0.97 }}
-                              onClick={() => room.key === "standard" ? navigate("/ghost/checkout") : setCheckoutRoom(room.key)}
+                              onClick={() => room.key === "standard" ? navigate("/checkout") : setCheckoutRoom(room.key)}
                               style={{
                                 flex: 1, height: 48, borderRadius: 12, border: "none", cursor: "pointer",
                                 background: "linear-gradient(135deg, #c8a84b, #e0ddd8, #c8a84b)",
@@ -1051,11 +1051,11 @@ export default function GhostRoomsPage() {
                               onClick={() => {
                                 const routes: Record<string, string> = {
                                   standard:  "/",
-                                  suite:     "/ghost/floor/suite",
-                                  kings:     "/ghost/floor/kings",
-                                  penthouse: "/ghost/floor/penthouse-floor",
-                                  loft:      "/ghost/floor/loft-floor",
-                                  cellar:    "/ghost/floor/cellar-floor",
+                                  suite:     "/floor/suite",
+                                  kings:     "/floor/kings",
+                                  penthouse: "/floor/penthouse-floor",
+                                  loft:      "/floor/loft-floor",
+                                  cellar:    "/floor/cellar-floor",
                                 };
                                 navigate(routes[room.key] ?? "/");
                               }}

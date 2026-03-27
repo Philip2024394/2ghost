@@ -107,7 +107,7 @@ export default function GhostLandingPage() {
         localStorage.setItem("ghost_password", password);
         localStorage.removeItem("ghost_house_welcomed");
       } catch {}
-      navigate("/ghost/gateway", { replace: true });
+      navigate("/gateway", { replace: true });
     }, 1200);
   };
 
@@ -446,7 +446,7 @@ export default function GhostLandingPage() {
                         photo: "https://i.pravatar.cc/400?img=14",
                       }));
                     } catch {}
-                    navigate("/ghost/gateway");
+                    navigate("/gateway");
                   }}
                   style={{
                     display: "block", margin: "0 auto",

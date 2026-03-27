@@ -124,13 +124,13 @@ export default function GhostPricingPage() {
   })();
 
   const handlePlanCta = (planKey: string) => {
-    if (planKey === "free") { navigate("/ghost/setup"); return; }
+    if (planKey === "free") { navigate("/setup"); return; }
     const link = buildStripeLink(planKey as "suite" | "gold", ghostId);
     if (link) {
       window.location.href = link;
     } else {
       // Stripe not configured yet — fall through to setup
-      navigate("/ghost/setup");
+      navigate("/setup");
     }
   };
 

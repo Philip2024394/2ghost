@@ -204,7 +204,7 @@ export default function GhostProfileSetupPage() {
         }
       }
     } catch {}
-    navigate("/ghost/gateway", { replace: true });
+    navigate("/gateway", { replace: true });
   }
 
   const canStep1  = name.trim().length >= 2;

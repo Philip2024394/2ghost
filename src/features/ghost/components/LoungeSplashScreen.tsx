@@ -111,7 +111,7 @@ export default function LoungeSplashScreen({ floorLabel, floorColor, floorIcon, 
         {/* Breakfast Lounge CTA */}
         <motion.button
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.8 }}
-          onClick={() => navigate("/ghost/breakfast-lounge")}
+          onClick={() => navigate("/breakfast-lounge")}
           style={{
             marginTop: 28, padding: "13px 28px", borderRadius: 14, cursor: "pointer",
             background: `linear-gradient(135deg, ${floorColor}, ${glow(0.8)})`,

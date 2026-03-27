@@ -466,11 +466,11 @@ export default function GhostModePage() {
   const ownIsStaff = butlasStage !== "guest";
   // Redirect if portrait deadline expired OR admin has dismissed this user
   useEffect(() => {
-    if (butlasStage === "expired") { navigate("/ghost/escorted-out", { replace: true }); return; }
+    if (butlasStage === "expired") { navigate("/escorted-out", { replace: true }); return; }
     try {
       const profileId = JSON.parse(localStorage.getItem("ghost_profile") || "{}").id;
       const dismissed = JSON.parse(localStorage.getItem("admin_portrait_dismissed") || "{}");
-      if (profileId && dismissed[profileId]) navigate("/ghost/escorted-out", { replace: true });
+      if (profileId && dismissed[profileId]) navigate("/escorted-out", { replace: true });
     } catch {}
   }, [butlasStage, navigate]);
   const [showVideoPlayer,  setShowVideoPlayer]   = useState(false);
@@ -816,7 +816,7 @@ export default function GhostModePage() {
     if (action === "rooms") { setShowHouseModal(true); return; }
     if (action === "ghostClock") { setWindowActive(hasActiveWindowMode()); setShowGhostClock(true); return; }
     if (action === "floorWars") { setShowFloorWars(true); return; }
-    if (action === "games") { navigate("/ghost/games"); return; }
+    if (action === "games") { navigate("/games"); return; }
     if (action === "video") { setShowVideoUpload(true); return; }
     if (action === "breakfastLounge") { if (loungeEnabled) setShowBreakfastPicker(true); return; }
     if (action === "leaderboard")   { setShowLeaderboard(true);   return; }
@@ -1258,7 +1258,7 @@ export default function GhostModePage() {
         onClick={() => {
           localStorage.removeItem("ghost_profile_setup_done");
           localStorage.removeItem("ghost_phone");
-          navigate("/ghost/welcome");
+          navigate("/welcome");
         }}
         style={{
           position: "fixed", bottom: 12, right: 12, zIndex: 9999,
@@ -1274,7 +1274,7 @@ export default function GhostModePage() {
 
       {/* DEV — view escort page */}
       <button
-        onClick={() => navigate("/ghost/escorted-out")}
+        onClick={() => navigate("/escorted-out")}
         style={{
           position: "fixed", bottom: 12, right: 100, zIndex: 9999,
           background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)",
@@ -1390,7 +1390,7 @@ export default function GhostModePage() {
       <div style={{ margin: "10px 14px 0", display: "flex", gap: 6 }}>
 
         {/* Vault */}
-        <motion.button whileTap={{ scale: 0.93 }} onClick={() => requireAuth(() => navigate("/ghost/room"))}
+        <motion.button whileTap={{ scale: 0.93 }} onClick={() => requireAuth(() => navigate("/room"))}
           style={{ flex: 1, height: 44, borderRadius: 12, background: a.glow(0.07), border: `1px solid ${a.glow(0.22)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, cursor: "pointer" }}
         >
           <span style={{ fontSize: 16, lineHeight: 1 }}>🔒</span>
@@ -1629,7 +1629,7 @@ export default function GhostModePage() {
                 whileTap={{ scale: 0.97 }}
                 onClick={() => {
                   const ghostId = (() => { try { const p = JSON.parse(localStorage.getItem("ghost_profile") || "{}"); return toGhostId(p.id || "anon"); } catch { return toGhostId("anon"); } })();
-                  const url = `${window.location.origin}/ghost/auth?ref=${ghostId}`;
+                  const url = `${window.location.origin}/auth?ref=${ghostId}`;
                   if (navigator.share) {
                     navigator.share({ title: "Join Ghost Rooms", text: "I'm on Ghost — come join me 👻", url });
                   } else {
@@ -1715,7 +1715,7 @@ export default function GhostModePage() {
           if (pct >= 100) return null;
           return (
             <div
-              onClick={() => navigate("/ghost/setup")}
+              onClick={() => navigate("/setup")}
               style={{ margin: "8px 14px 0", cursor: "pointer" }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
@@ -1739,7 +1739,7 @@ export default function GhostModePage() {
       <div style={{ margin: "10px 14px 6px", display: "flex", alignItems: "center", gap: 8 }}>
         {/* Block */}
         <button
-          onClick={() => requireAuth(() => navigate("/ghost/block"))}
+          onClick={() => requireAuth(() => navigate("/block"))}
           style={{
             width: 36, height: 36, borderRadius: 10, flexShrink: 0,
             background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)",

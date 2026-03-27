@@ -482,7 +482,7 @@ export default function PenthouseFloorPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: 480, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <button
-              onClick={() => navigate("/ghost/mode")}
+              onClick={() => navigate("/mode")}
               style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 18, cursor: "pointer", padding: 0, lineHeight: 1 }}
             >←</button>
             <div>

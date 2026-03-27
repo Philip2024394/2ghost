@@ -44,14 +44,14 @@
       "name": "Ghost Feed",
       "short_name": "Feed",
       "description": "Go straight to the Ghost feed",
-      "url": "/ghost/mode",
+      "url": "/mode",
       "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
     },
     {
       "name": "My Room",
       "short_name": "My Room",
       "description": "Open your private Ghost Room",
-      "url": "/ghost/room",
+      "url": "/room",
       "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
     }
   ],

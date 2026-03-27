@@ -10,9 +10,9 @@ const HERO_BG = "https://ik.imagekit.io/7grri5v7d/asddsasddSDFASDFASDFSASDFdsfsd
 
 // ── 3 game tiles ──────────────────────────────────────────────────────────────
 const GAMES: { type: GameType | "soon"; emoji?: string; img?: string; label: string; route?: string }[] = [
-  { type: "connect4", img: "https://ik.imagekit.io/7grri5v7d/asddsasddSDFASDFASDFSASDFdsfsdfdsdfsdfdsfsd.png", label: "Connect 4",    route: "/ghost/games/connect4" },
-  { type: "memory",   img: "https://ik.imagekit.io/7grri5v7d/asddsasddSDFASDFASDFSASDFdsfsdfdsdfsdfdsfsdsd.png", label: "Memory Match", route: "/ghost/games/memory"   },
-  { type: "wordduel", img: "https://ik.imagekit.io/7grri5v7d/asddsasddSDFASDFASDFSASDFdsfsdfdsdfsdfdsfsdsdxxxx.png", label: "Word Duel", route: "/ghost/games/wordduel" },
+  { type: "connect4", img: "https://ik.imagekit.io/7grri5v7d/asddsasddSDFASDFASDFSASDFdsfsdfdsdfsdfdsfsd.png", label: "Connect 4",    route: "/games/connect4" },
+  { type: "memory",   img: "https://ik.imagekit.io/7grri5v7d/asddsasddSDFASDFASDFSASDFdsfsdfdsdfsdfdsfsdsd.png", label: "Memory Match", route: "/games/memory"   },
+  { type: "wordduel", img: "https://ik.imagekit.io/7grri5v7d/asddsasddSDFASDFASDFSASDFdsfsdfdsdfsdfdsfsdsdxxxx.png", label: "Word Duel", route: "/games/wordduel" },
 ];
 
 const LEADERBOARD = [
@@ -120,11 +120,11 @@ export default function GamesRoomPage() {
 
           {/* Header nav */}
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "max(env(safe-area-inset-top,16px),16px) 16px 0" }}>
-            <motion.button whileTap={{ scale: 0.92 }} onClick={() => navigate("/ghost/games")}
+            <motion.button whileTap={{ scale: 0.92 }} onClick={() => navigate("/games")}
               style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.18)", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               ←
             </motion.button>
-            <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/ghost/mode")}
+            <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/mode")}
               style={{ height: 32, padding: "0 12px", borderRadius: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
               <span style={{ fontSize: 13 }}>🏠</span> Home
             </motion.button>

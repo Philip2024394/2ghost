@@ -912,7 +912,7 @@ export default function Connect4Page() {
         padding: "max(env(safe-area-inset-top,14px),14px) 14px 10px",
         borderBottom: "1px solid rgba(255,255,255,0.05)",
       }}>
-        <button onClick={() => navigate("/ghost/mode")}
+        <button onClick={() => navigate("/mode")}
           style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.07)",
             border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)",
             fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>

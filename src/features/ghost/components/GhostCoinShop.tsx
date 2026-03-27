@@ -448,7 +448,7 @@ export default function GhostCoinShop({
           priceId={checkoutPack.priceId}
           ghostId={getMyGhostId()}
           label={`${checkoutPack.coins.toLocaleString()} Coins — ${checkoutPack.price}`}
-          returnPath={`/ghost/payment-success?plan=coins&amount=${checkoutPack.coins}`}
+          returnPath={`/payment-success?plan=coins&amount=${checkoutPack.coins}`}
           onClose={() => setCheckoutPack(null)}
           onSuccess={() => {
             setCheckoutPack(null);

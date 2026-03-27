@@ -33,7 +33,7 @@ export default function MrButlasEscortPage() {
       localStorage.removeItem("ghost_onboarded");
       localStorage.removeItem("staff_nudges_received");
     } catch {}
-    setTimeout(() => navigate("/ghost/welcome", { replace: true }), 600);
+    setTimeout(() => navigate("/welcome", { replace: true }), 600);
   }
 
   return (

@@ -735,7 +735,7 @@ export default function GhostRoomPage() {
     granted.forEach((gId) => {
       try { localStorage.removeItem(`ghost_room_grant_${gId}`); } catch {}
     });
-    navigate("/ghost/auth", { replace: true });
+    navigate("/auth", { replace: true });
   };
 
   // ── Styles ─────────────────────────────────────────────────────────────────
@@ -1140,7 +1140,7 @@ export default function GhostRoomPage() {
           </button>
           {/* Log out — clears session and returns to home */}
           <button
-            onClick={() => { clearSession(); navigate("/ghost/mode"); }}
+            onClick={() => { clearSession(); navigate("/mode"); }}
             title="Lock Vault"
             style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#f87171" }}
           >
@@ -1219,7 +1219,7 @@ export default function GhostRoomPage() {
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={() => {
-                  const link = `${window.location.origin}/ghost/room?code=${roomCode}`;
+                  const link = `${window.location.origin}/room?code=${roomCode}`;
                   navigator.clipboard.writeText(link).catch(() => {});
                   setCodeCopied(true);
                   setTimeout(() => setCodeCopied(false), 2000);

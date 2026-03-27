@@ -183,7 +183,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
               <motion.button
                 key={p.key}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => navigate("/ghost/auth")}
+                onClick={() => navigate("/auth")}
                 style={{
                   width: "100%", borderRadius: 14, padding: "12px 16px",
                   background: p.bg, border: `1px solid ${p.border}`,
@@ -232,7 +232,7 @@ function MembersPopup({ onClose }: { onClose: () => void }) {
           <p style={{ textAlign: "center", fontSize: 12, color: "rgba(255,255,255,0.25)", margin: 0 }}>
             <span>Already a member? </span>
             <button
-              onClick={() => navigate("/ghost/auth")}
+              onClick={() => navigate("/auth")}
               style={{ background: "none", border: "none", cursor: "pointer", color: a.accent, fontWeight: 700, fontSize: 12, padding: 0 }}
             >
               <span>Sign in</span>
@@ -472,7 +472,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
       {/* ── Action strip: Ghost Vault · VIP Profile · Flash Date · Filter ── */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px 0", overflowX: "auto", scrollbarWidth: "none" }}>
         {[
-          { icon: "🚪", label: "Ghost Vault", color: a.glow(0.9), border: a.glow(0.25), bg: a.glow(0.08), action: () => navigate("/ghost/room") },
+          { icon: "🚪", label: "Ghost Vault", color: a.glow(0.9), border: a.glow(0.25), bg: a.glow(0.08), action: () => navigate("/room") },
           { icon: "👻", label: "Ghosted", color: "rgba(168,85,247,0.9)", border: "rgba(168,85,247,0.25)", bg: "rgba(168,85,247,0.08)", action: lock },
           { icon: "⚡", label: "Flash Date",  color: "rgba(251,191,36,0.9)", border: "rgba(251,191,36,0.25)", bg: "rgba(251,191,36,0.08)", action: lock },
         ].map(({ icon, label, color, border, bg, action }) => (
@@ -585,7 +585,7 @@ export default function GhostMockFeedPage({ onUnlock: _onUnlock }: { onUnlock?: 
       }}>
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => hasWhatsApp ? lock() : navigate("/ghost/setup")}
+          onClick={() => hasWhatsApp ? lock() : navigate("/setup")}
           animate={ctaSecs === 0 ? { scale: [1, 1.03, 1] } : {}}
           transition={ctaSecs === 0 ? { duration: 1.2, repeat: Infinity } : {}}
           style={{

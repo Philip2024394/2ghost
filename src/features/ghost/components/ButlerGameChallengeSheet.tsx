@@ -123,7 +123,7 @@ export default function ButlerGameChallengeSheet({ onClose }: Props) {
 
   function goToGames() {
     onClose();
-    navigate("/ghost/games");
+    navigate("/games");
   }
 
   // ── STEP: pick players ──────────────────────────────────────────────────────

@@ -241,7 +241,7 @@ export default function PenthouseVaultPage() {
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: "0 0 8px" }}>
             {isClosed ? "This connection has been closed" : "Archived after 30 days of inactivity"}
           </p>
-          <button onClick={() => navigate("/ghost/penthouse")} style={{ background: "none", border: "none", color: "rgba(212,175,55,0.5)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+          <button onClick={() => navigate("/penthouse")} style={{ background: "none", border: "none", color: "rgba(212,175,55,0.5)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
             Return to the floor →
           </button>
         </div>

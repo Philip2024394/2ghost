@@ -71,7 +71,7 @@ export default function GamesRoomLandingPage() {
             style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.18)", color: "#fff", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             ←
           </motion.button>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/ghost/mode")}
+          <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/mode")}
             style={{ height: 36, padding: "0 14px", borderRadius: 10, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 14 }}>🏠</span> Home
           </motion.button>
@@ -153,7 +153,7 @@ export default function GamesRoomLandingPage() {
           <motion.button
             initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.58, duration: 0.5 }}
             whileTap={{ scale: 0.96 }}
-            onClick={() => navigate("/ghost/games/lobby")}
+            onClick={() => navigate("/games/lobby")}
             style={{
               width: "100%", height: 58, borderRadius: 18, border: "none",
               background: "linear-gradient(135deg, #92400e, #d4af37, #f0d060)",

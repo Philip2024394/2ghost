@@ -98,7 +98,7 @@ export default function MaidUpgradeSheet({ onClose }: Props) {
     setConfirmed(true);
     setTimeout(() => {
       onClose();
-      navigate("/ghost/rooms");
+      navigate("/rooms");
     }, 1800);
   }
 

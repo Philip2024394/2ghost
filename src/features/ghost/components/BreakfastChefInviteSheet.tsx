@@ -25,7 +25,7 @@ export default function BreakfastChefInviteSheet({ onClose }: Props) {
     setConfirmed(true);
     setTimeout(() => {
       onClose();
-      navigate("/ghost/breakfast-lounge", { state: { arrivedFromInvite: true } });
+      navigate("/breakfast-lounge", { state: { arrivedFromInvite: true } });
     }, 1800);
   }
 

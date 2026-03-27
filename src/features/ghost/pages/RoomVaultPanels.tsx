@@ -104,7 +104,7 @@ export function SendMediaPanel({
           Send photos, videos and memory notes directly into someone's private vault. Upgrade to unlock.
         </p>
         <button
-          onClick={() => navigate("/ghost/pricing")}
+          onClick={() => navigate("/pricing")}
           style={{
             width: "100%", background: `linear-gradient(135deg, ${a.accentDark}, ${a.accent})`,
             border: "none", borderRadius: 12, padding: "11px 0",

@@ -39,7 +39,7 @@ export default function PenthouseApplyPage() {
       // Stripe not configured — simulate for now
       simulatePenthouseSubscription();
       setConfirmed(true);
-      setTimeout(() => navigate("/ghost/penthouse"), 2000);
+      setTimeout(() => navigate("/penthouse"), 2000);
     }
   }
 
@@ -66,7 +66,7 @@ export default function PenthouseApplyPage() {
           </p>
           <motion.button
             whileTap={{ scale: 0.96 }}
-            onClick={() => navigate("/ghost/penthouse")}
+            onClick={() => navigate("/penthouse")}
             style={{
               width: "100%", maxWidth: 280, height: 52, borderRadius: 16, border: "none",
               background: "linear-gradient(135deg, #92400e, #d4af37, #f0d060)",

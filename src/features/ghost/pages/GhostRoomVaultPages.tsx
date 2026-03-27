@@ -461,7 +461,7 @@ export default function GhostRoomVaultPages(props: Props) {
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => { const url = `${window.location.origin}/ghost/room?code=${roomCode}`; navigator.clipboard.writeText(url).catch(() => {}); }}
+                  <button onClick={() => { const url = `${window.location.origin}/room?code=${roomCode}`; navigator.clipboard.writeText(url).catch(() => {}); }}
                     style={{ flex: 1, height: 44, borderRadius: 12, background: a.glow(0.08), border: `1px solid ${a.glow(0.2)}`, color: a.glow(0.9), fontSize: 12, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                     <Link size={13} /> Copy Share Link
                   </button>
@@ -1197,7 +1197,7 @@ export default function GhostRoomVaultPages(props: Props) {
                       <p style={{ margin: 0, fontSize: 28, fontWeight: 900, color: COIN_COLOR, fontVariantNumeric: "tabular-nums" }}>{coinBalance.toLocaleString()}</p>
                     </div>
                     <motion.button whileTap={{ scale: 0.95 }}
-                      onClick={() => navigate("/ghost/mode")}
+                      onClick={() => navigate("/mode")}
                       style={{ padding: "8px 14px", background: "rgba(212,175,55,0.14)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 10, color: COIN_COLOR, fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
                       Get Coins
                     </motion.button>

@@ -247,7 +247,7 @@ export default function GhostSetupPage() {
     const isLoftGuest = orientation === "gay" || orientation === "lesbian" || orientation === "bisexual";
     const isGardenGuest = orientation === "straight" && floorPreference === "garden" && ageNum >= 40;
     const isPenthouseWoman = floorPreference === "penthouse" && gender === "Female";
-    const dest = isLoftGuest ? "/ghost/loft" : isPenthouseWoman ? "/ghost/penthouse" : isGardenGuest ? "/ghost/rooms" : "/ghost/mode";
+    const dest = isLoftGuest ? "/loft" : isPenthouseWoman ? "/penthouse" : isGardenGuest ? "/rooms" : "/mode";
     navigate(dest, { replace: true });
   };
 
@@ -287,7 +287,7 @@ export default function GhostSetupPage() {
 
         {/* X close — navigates to home */}
         <button
-          onClick={() => { setDrawerOpen(false); navigate("/ghost/mode", { replace: true }); }}
+          onClick={() => { setDrawerOpen(false); navigate("/mode", { replace: true }); }}
           style={{
             width: 36, height: 36, borderRadius: 10,
             background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.18)",
@@ -337,10 +337,10 @@ export default function GhostSetupPage() {
               {/* Drawer nav */}
               <nav style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
                 {[
-                  { icon: LayoutDashboard, label: "My Dashboard",  path: "/ghost/dashboard" },
-                  { icon: User,            label: "My Profile",     path: "/ghost/setup"     },
-                  { icon: KeyRound,        label: "Hotel Rooms",    path: "/ghost/rooms"     },
-                  { icon: Map,             label: "Ghost Map",      path: "/ghost/map"       },
+                  { icon: LayoutDashboard, label: "My Dashboard",  path: "/dashboard" },
+                  { icon: User,            label: "My Profile",     path: "/setup"     },
+                  { icon: KeyRound,        label: "Hotel Rooms",    path: "/rooms"     },
+                  { icon: Map,             label: "Ghost Map",      path: "/map"       },
                 ].map(({ icon: Icon, label: lbl, path }) => (
                   <button
                     key={path}
@@ -362,7 +362,7 @@ export default function GhostSetupPage() {
               {/* Close drawer + go home */}
               <div style={{ padding: "12px 12px max(20px, env(safe-area-inset-bottom, 20px))", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <button
-                  onClick={() => { setDrawerOpen(false); navigate("/ghost/mode", { replace: true }); }}
+                  onClick={() => { setDrawerOpen(false); navigate("/mode", { replace: true }); }}
                   style={{
                     width: "100%", height: 46, borderRadius: 12,
                     background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",

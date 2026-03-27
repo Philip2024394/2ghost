@@ -228,7 +228,7 @@ export function GhostRoomAuthGate({ onVerified }: { onVerified: () => void }) {
       display: "flex", flexDirection: "column",
     }}>
       <div style={{ position: "relative", zIndex: 2, padding: "max(16px, env(safe-area-inset-top,16px)) 16px 0", display: "flex", justifyContent: "flex-end" }}>
-        <button onClick={() => navigate("/ghost/mode")}
+        <button onClick={() => navigate("/mode")}
           style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.7)" }}>
           <X size={16} />
         </button>

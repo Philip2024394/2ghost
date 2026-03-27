@@ -5,9 +5,9 @@ Allow: /
 Disallow: /admin/
 Disallow: /admin
 Disallow: /affiliate/admin
-Disallow: /ghost/mock
-Disallow: /ghost/setup
-Disallow: /ghost/vault/
+Disallow: /mock
+Disallow: /setup
+Disallow: /vault/
 
 # Crawl delay (be polite)
 Crawl-delay: 10

@@ -841,7 +841,7 @@ export function ProfileWhisperModal({
 
             {/* Connect 4 — standard game on every profile */}
             <Link
-              to="/ghost/games/connect4"
+              to="/games/connect4"
               style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 11, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", textDecoration: "none", marginBottom: 10 }}
             >
               <span style={{ fontSize: 20, flexShrink: 0 }}>🔴</span>

@@ -25,7 +25,7 @@ export default function GamesRoomInviteSheet({ onClose }: Props) {
     setConfirmed(true);
     setTimeout(() => {
       onClose();
-      navigate("/ghost/games");
+      navigate("/games");
     }, 1800);
   }
 

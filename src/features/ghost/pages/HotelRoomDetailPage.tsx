@@ -38,7 +38,7 @@ const ROOMS: Record<string, RoomDef> = {
     ],
     access: { type: "free" },
     memberCount: 124,
-    route: "/ghost/floor/standard",
+    route: "/floor/standard",
   },
   suite: {
     id: "suite",
@@ -55,7 +55,7 @@ const ROOMS: Record<string, RoomDef> = {
     ],
     access: { type: "coins", amount: 10 },
     memberCount: 71,
-    route: "/ghost/floor/suite",
+    route: "/floor/suite",
   },
   kings: {
     id: "kings",
@@ -72,7 +72,7 @@ const ROOMS: Record<string, RoomDef> = {
     ],
     access: { type: "coins", amount: 30 },
     memberCount: 38,
-    route: "/ghost/floor/kings",
+    route: "/floor/kings",
   },
   penthouse: {
     id: "penthouse",
@@ -89,7 +89,7 @@ const ROOMS: Record<string, RoomDef> = {
     ],
     access: { type: "membership", label: "Ghost Black membership required" },
     memberCount: 14,
-    route: "/ghost/penthouse",
+    route: "/penthouse",
   },
   loft: {
     id: "loft",
@@ -106,7 +106,7 @@ const ROOMS: Record<string, RoomDef> = {
     ],
     access: { type: "coins", amount: 15 },
     memberCount: 49,
-    route: "/ghost/loft",
+    route: "/loft",
   },
   cellar: {
     id: "cellar",
@@ -123,7 +123,7 @@ const ROOMS: Record<string, RoomDef> = {
     ],
     access: { type: "coins", amount: 25 },
     memberCount: 26,
-    route: "/ghost/cellar",
+    route: "/cellar",
   },
   garden: {
     id: "garden",
@@ -140,7 +140,7 @@ const ROOMS: Record<string, RoomDef> = {
     ],
     access: { type: "free" },
     memberCount: 58,
-    route: "/ghost/floor/garden",
+    route: "/floor/garden",
   },
 };
 
@@ -363,7 +363,7 @@ export default function HotelRoomDetailPage() {
             {!canAfford && (
               <motion.button
                 whileTap={{ scale: 0.97 }}
-                onClick={() => navigate("/ghost/pricing")}
+                onClick={() => navigate("/pricing")}
                 style={{
                   width: "100%", marginTop: 10, padding: "12px 0",
                   background: "rgba(180,150,40,0.12)", border: "1px solid rgba(180,150,40,0.3)",
@@ -404,7 +404,7 @@ export default function HotelRoomDetailPage() {
             <p style={{ textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: 11, fontFamily: "Georgia, serif", marginTop: 10 }}>
               Requires Ghost Black membership · <span
                 style={{ color: "rgba(180,150,40,0.6)", cursor: "pointer", textDecoration: "underline" }}
-                onClick={() => navigate("/ghost/pricing")}
+                onClick={() => navigate("/pricing")}
               >upgrade here</span>
             </p>
           )}

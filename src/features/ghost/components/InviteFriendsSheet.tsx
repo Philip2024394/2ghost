@@ -2,7 +2,7 @@
  * InviteFriendsSheet — Viral referral loop.
  *
  * How it works:
- *  - Each user gets a unique invite link: https://2ghost.app/ghost/welcome?ref=GHOSTID
+ *  - Each user gets a unique invite link: https://2ghost.app/welcome?ref=GHOSTID
  *  - When a referred user completes signup, the referrer earns 50 Ghost Coins
  *  - The new user gets 25 bonus coins on first login (handled at welcome/setup)
  *  - Referral count + coins earned shown inside this sheet
@@ -33,7 +33,7 @@ export default function InviteFriendsSheet({ ghostId, onClose }: Props) {
   const [stats, setStats]         = useState<ReferralStats>({ totalReferred: 0, coinsEarned: 0, pendingCount: 0 });
   const [loadingStats, setLoadingStats] = useState(true);
 
-  const inviteLink = `${APP_URL}/ghost/welcome?ref=${ghostId}`;
+  const inviteLink = `${APP_URL}/welcome?ref=${ghostId}`;
 
   // Lock body scroll
   useEffect(() => {

@@ -599,7 +599,7 @@ export default function GhostModePopups({
             onAccept={async () => {
               await respondToInvite(pendingGameInvite.id, "accepted");
               setPendingGameInvite(null);
-              navigate("/ghost/games/connect4");
+              navigate("/games/connect4");
             }}
             onDecline={async (reason) => {
               await respondToInvite(pendingGameInvite.id, "declined", reason);
@@ -1019,7 +1019,7 @@ export default function GhostModePopups({
                         onClick={() => {
                           try { sessionStorage.setItem("breakfast_country", c.name); } catch {}
                           setShowBreakfastPicker(false);
-                          navigate("/ghost/breakfast-lounge");
+                          navigate("/breakfast-lounge");
                         }}
                         style={{
                           width: "100%", display: "flex", alignItems: "center", gap: 14,
@@ -1286,7 +1286,7 @@ export default function GhostModePopups({
             onExtend={() => {
               markCheckoutShown();
               setShowCheckout(false);
-              navigate("/ghost/rooms");
+              navigate("/rooms");
             }}
             onDismiss={() => {
               markCheckoutShown();
@@ -1380,7 +1380,7 @@ export default function GhostModePopups({
       <GhostButlerMessage
         message={butlerMessage}
         onClose={() => { setButlerMessage(null); setPendingChatInviteProfileId(null); }}
-        onCreateProfile={() => { setButlerMessage(null); navigate("/ghost/setup"); }}
+        onCreateProfile={() => { setButlerMessage(null); navigate("/setup"); }}
         onAction={pendingChatInviteProfileId ? () => {
           if (myProfileId) saveInvite(myProfileId, pendingChatInviteProfileId);
           setPendingChatInviteProfileId(null);

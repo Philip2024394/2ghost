@@ -98,7 +98,7 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) ? event.notification.data.url : "/ghost/mode";
+  const url = (event.notification.data && event.notification.data.url) ? event.notification.data.url : "/mode";
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
       const existing = clients.find((c) => c.url.includes(self.location.origin));

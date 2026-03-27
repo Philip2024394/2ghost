@@ -51,14 +51,14 @@ export default function GhostAuthGateSheet({ show, onClose }: Props) {
             <div style={{ padding: "0 20px", display: "flex", flexDirection: "column", gap: 10 }}>
               <motion.button
                 whileTap={{ scale: 0.97 }}
-                onClick={() => { onClose(); navigate("/ghost/auth"); }}
+                onClick={() => { onClose(); navigate("/auth"); }}
                 style={{ width: "100%", height: 52, borderRadius: 16, border: "none", cursor: "pointer", background: `linear-gradient(135deg, ${a.accentDark}, ${a.accent})`, fontSize: 15, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em", boxShadow: `0 0 24px ${a.glow(0.35)}` }}
               >
                 Create Free Account 👻
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.97 }}
-                onClick={() => { onClose(); navigate("/ghost/auth"); }}
+                onClick={() => { onClose(); navigate("/auth"); }}
                 style={{ width: "100%", height: 46, borderRadius: 16, border: `1px solid rgba(255,255,255,0.15)`, cursor: "pointer", background: "rgba(255,255,255,0.05)", fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}
               >
                 Sign In

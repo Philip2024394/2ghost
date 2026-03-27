@@ -105,17 +105,17 @@ const SECTIONS = [
 ];
 
 const NAVIGATE_ITEMS = [
-  { label: "🏠 Ghost Mode",    path: "/ghost/mode"                  },
-  { label: "🏨 Checkout",      path: "/ghost/checkout"              },
-  { label: "🛋 Suite Room",    path: "/ghost/floor/suite"           },
-  { label: "👑 Kings Room",    path: "/ghost/floor/kings"           },
-  { label: "🌆 Penthouse",     path: "/ghost/floor/penthouse-floor" },
-  { label: "🎨 Loft",          path: "/ghost/floor/loft-floor"      },
-  { label: "🍷 Cellar",        path: "/ghost/floor/cellar-floor"    },
-  { label: "📊 Dashboard",     path: "/ghost/dashboard"             },
+  { label: "🏠 Ghost Mode",    path: "/mode"                  },
+  { label: "🏨 Checkout",      path: "/checkout"              },
+  { label: "🛋 Suite Room",    path: "/floor/suite"           },
+  { label: "👑 Kings Room",    path: "/floor/kings"           },
+  { label: "🌆 Penthouse",     path: "/floor/penthouse-floor" },
+  { label: "🎨 Loft",          path: "/floor/loft-floor"      },
+  { label: "🍷 Cellar",        path: "/floor/cellar-floor"    },
+  { label: "📊 Dashboard",     path: "/dashboard"             },
   { label: "⚙️ Admin",         path: "/admin"                       },
-  { label: "🎮 Games Room",    path: "/ghost/games"                 },
-  { label: "🔴 Connect 4",     path: "/ghost/games/connect4"        },
+  { label: "🎮 Games Room",    path: "/games"                 },
+  { label: "🔴 Connect 4",     path: "/games/connect4"        },
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────────

@@ -127,10 +127,10 @@ export const UNLOCK_TIERS: UnlockTier[] = [
     isUnlocked: () => true,
     progressValue: () => 100,
     features: [
-      { icon: "👤", name: "Browse Profiles",      description: "View and like guest profiles in the feed",         route: "/ghost/mode" },
-      { icon: "🌙", name: "Tonight Mode",          description: "Signal you are available to meet tonight",         route: "/ghost/mode" },
-      { icon: "🪙", name: "Coin Wallet",           description: "Earn and spend Hotel coins",                       route: "/ghost/dashboard" },
-      { icon: "🕵️", name: "Mr. Butlas Report",    description: "Request a guest background check · 🪙 20",        route: "/ghost/mode" },
+      { icon: "👤", name: "Browse Profiles",      description: "View and like guest profiles in the feed",         route: "/mode" },
+      { icon: "🌙", name: "Tonight Mode",          description: "Signal you are available to meet tonight",         route: "/mode" },
+      { icon: "🪙", name: "Coin Wallet",           description: "Earn and spend Hotel coins",                       route: "/dashboard" },
+      { icon: "🕵️", name: "Mr. Butlas Report",    description: "Request a guest background check · 🪙 20",        route: "/mode" },
     ],
   },
   {
@@ -142,9 +142,9 @@ export const UNLOCK_TIERS: UnlockTier[] = [
     isUnlocked: (p) => p.photoUploaded,
     progressValue: (p) => p.photoUploaded ? 100 : 0,
     features: [
-      { icon: "👁️", name: "Who Viewed Me",        description: "See every guest who visited your profile",         route: "/ghost/mode" },
-      { icon: "🎩", name: "Send Chat Invite",      description: "Invite guests to open a conversation",             route: "/ghost/mode" },
-      { icon: "🌙", name: "Tonight Slider",        description: "Browse all guests available to meet tonight",      route: "/ghost/mode" },
+      { icon: "👁️", name: "Who Viewed Me",        description: "See every guest who visited your profile",         route: "/mode" },
+      { icon: "🎩", name: "Send Chat Invite",      description: "Invite guests to open a conversation",             route: "/mode" },
+      { icon: "🌙", name: "Tonight Slider",        description: "Browse all guests available to meet tonight",      route: "/mode" },
     ],
   },
   {
@@ -156,9 +156,9 @@ export const UNLOCK_TIERS: UnlockTier[] = [
     isUnlocked: (p) => p.likesSent >= 3,
     progressValue: (p) => Math.min(100, Math.round((p.likesSent / 3) * 100)),
     features: [
-      { icon: "☕", name: "Breakfast Lounge",      description: "Join the social lounge and meet fellow guests",    route: "/ghost/breakfast-lounge" },
-      { icon: "💬", name: "Floor Chat",            description: "Open conversation on your hotel floor",            route: "/ghost/mode" },
-      { icon: "🎁", name: "Send Gifts",            description: "Send virtual gifts to guests you admire",          route: "/ghost/mode" },
+      { icon: "☕", name: "Breakfast Lounge",      description: "Join the social lounge and meet fellow guests",    route: "/breakfast-lounge" },
+      { icon: "💬", name: "Floor Chat",            description: "Open conversation on your hotel floor",            route: "/mode" },
+      { icon: "🎁", name: "Send Gifts",            description: "Send virtual gifts to guests you admire",          route: "/mode" },
     ],
   },
   {
@@ -170,9 +170,9 @@ export const UNLOCK_TIERS: UnlockTier[] = [
     isUnlocked: (p) => p.chatInvitesAccepted >= 1,
     progressValue: (p) => p.chatInvitesAccepted >= 1 ? 100 : Math.min(80, p.chatInvitesSent * 25),
     features: [
-      { icon: "🎮", name: "Games Room",            description: "Challenge guests to Connect 4 and memory games",   route: "/ghost/games" },
-      { icon: "❤️", name: "Who Liked Me",          description: "See every guest who liked your profile",           route: "/ghost/mode" },
-      { icon: "🏆", name: "Leaderboard",           description: "See the most admired guests in the Hotel",         route: "/ghost/mode" },
+      { icon: "🎮", name: "Games Room",            description: "Challenge guests to Connect 4 and memory games",   route: "/games" },
+      { icon: "❤️", name: "Who Liked Me",          description: "See every guest who liked your profile",           route: "/mode" },
+      { icon: "🏆", name: "Leaderboard",           description: "See the most admired guests in the Hotel",         route: "/mode" },
     ],
   },
   {
@@ -184,9 +184,9 @@ export const UNLOCK_TIERS: UnlockTier[] = [
     isUnlocked: (p) => p.firstPurchaseMade,
     progressValue: (p) => p.firstPurchaseMade ? 100 : 0,
     features: [
-      { icon: "👑", name: "Kings Room",            description: "Access the exclusive Kings floor",                 route: "/ghost/floor/kings" },
-      { icon: "🔐", name: "Vault Private Chat",    description: "Private encrypted chat with your matches",         route: "/ghost/room" },
-      { icon: "⚡", name: "Profile Boost",         description: "Place your profile at the top of every feed",      route: "/ghost/dashboard" },
+      { icon: "👑", name: "Kings Room",            description: "Access the exclusive Kings floor",                 route: "/floor/kings" },
+      { icon: "🔐", name: "Vault Private Chat",    description: "Private encrypted chat with your matches",         route: "/room" },
+      { icon: "⚡", name: "Profile Boost",         description: "Place your profile at the top of every feed",      route: "/dashboard" },
     ],
   },
   {
@@ -204,9 +204,9 @@ export const UNLOCK_TIERS: UnlockTier[] = [
       return score;
     },
     features: [
-      { icon: "🏨", name: "Penthouse Access",      description: "The most exclusive floor in the Hotel",            route: "/ghost/penthouse" },
-      { icon: "🌍", name: "Global Listing",        description: "Be visible to guests in other countries",           route: "/ghost/dashboard" },
-      { icon: "🎩", name: "Butler Gift Pack",       description: "Real-world gift delivery through Mr. Butlas",      route: "/ghost/dashboard" },
+      { icon: "🏨", name: "Penthouse Access",      description: "The most exclusive floor in the Hotel",            route: "/penthouse" },
+      { icon: "🌍", name: "Global Listing",        description: "Be visible to guests in other countries",           route: "/dashboard" },
+      { icon: "🎩", name: "Butler Gift Pack",       description: "Real-world gift delivery through Mr. Butlas",      route: "/dashboard" },
     ],
   },
 ];

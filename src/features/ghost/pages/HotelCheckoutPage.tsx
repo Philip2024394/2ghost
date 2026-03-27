@@ -534,7 +534,7 @@ export default function HotelCheckoutPage() {
             <motion.div key="with_match"
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
             >
-              <PathWithMatch stats={stats} accent={a} onDone={() => navigate("/ghost/mode")} />
+              <PathWithMatch stats={stats} accent={a} onDone={() => navigate("/mode")} />
             </motion.div>
           )}
 
@@ -543,7 +543,7 @@ export default function HotelCheckoutPage() {
             <motion.div key="without_match"
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
             >
-              <PathWithoutMatch stats={stats} accent={a} onDone={() => navigate("/ghost/mode")} />
+              <PathWithoutMatch stats={stats} accent={a} onDone={() => navigate("/mode")} />
             </motion.div>
           )}
 

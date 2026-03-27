@@ -128,7 +128,7 @@ export default function GhostHowItWorksPage() {
 
   function finish() {
     markHowItWorksSeen();
-    navigate("/ghost/rooms");
+    navigate("/rooms");
   }
 
   return (

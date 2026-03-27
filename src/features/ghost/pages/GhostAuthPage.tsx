@@ -142,7 +142,7 @@ export default function GhostAuthPage() {
       localStorage.removeItem("ghost_house_welcomed");
     } catch {}
     const isNewUser = !localStorage.getItem("ghost_profile_setup_done");
-    navigate(isNewUser ? "/ghost/profile-setup" : "/ghost/gateway", { replace: true });
+    navigate(isNewUser ? "/profile-setup" : "/gateway", { replace: true });
   };
 
   const inputBase: React.CSSProperties = {
@@ -553,7 +553,7 @@ export default function GhostAuthPage() {
                         photo: "https://i.pravatar.cc/400?img=14",
                       }));
                     } catch {}
-                    navigate("/ghost/gateway");
+                    navigate("/gateway");
                   }}
                   style={{
                     display: "block", margin: "2px auto 0",
@@ -569,7 +569,7 @@ export default function GhostAuthPage() {
                 <button
                   onClick={() => {
                     localStorage.removeItem("ghost_profile_setup_done");
-                    navigate("/ghost/welcome");
+                    navigate("/welcome");
                   }}
                   style={{
                     display: "block", margin: "6px auto 0",

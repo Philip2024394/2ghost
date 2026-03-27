@@ -18,19 +18,19 @@ export default function GhostGatewayPage() {
     // Profile setup not done yet — always show it first
     const profileSetupDone = (() => { try { return !!localStorage.getItem("ghost_profile_setup_done"); } catch { return false; } })();
     if (!profileSetupDone) {
-      navigate("/ghost/profile-setup", { replace: true });
+      navigate("/profile-setup", { replace: true });
       return;
     }
 
     // First-time user — show feature intro before anything else
     if (!onboarded) {
-      navigate("/ghost/onboarding", { replace: true });
+      navigate("/onboarding", { replace: true });
       return;
     }
 
     if (localProfile) {
       // Returning user who already saw onboarding
-      navigate("/ghost/mode", { replace: true });
+      navigate("/mode", { replace: true });
       return;
     }
 
@@ -41,7 +41,7 @@ export default function GhostGatewayPage() {
 
     if (!phone) {
       // No phone = brand new user — go to mode, welcome popup will greet them
-      navigate("/ghost/mode", { replace: true });
+      navigate("/mode", { replace: true });
       return;
     }
 
@@ -55,11 +55,11 @@ export default function GhostGatewayPage() {
           } catch {}
         }
         // Whether profile found or not — go to mode (welcome popup handles new users)
-        navigate("/ghost/mode", { replace: true });
+        navigate("/mode", { replace: true });
       })
       .catch(() => {
         // Network/Supabase error — don't block returning users at setup
-        navigate("/ghost/mode", { replace: true });
+        navigate("/mode", { replace: true });
       })
       .finally(() => setChecking(false));
   }, [navigate]);

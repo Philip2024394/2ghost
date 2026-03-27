@@ -96,7 +96,7 @@ export async function unsubscribeFromPush(): Promise<void> {
 }
 
 // ── Local test notification (no server needed) ────────────────────────────────
-export async function sendLocalNotification(title: string, body: string, url = "/ghost/mode"): Promise<void> {
+export async function sendLocalNotification(title: string, body: string, url = "/mode"): Promise<void> {
   if (getPushPermission() !== "granted") return;
   try {
     const reg = await navigator.serviceWorker.ready;
@@ -115,7 +115,7 @@ export function notifyNewMatch(matchName: string) {
   sendLocalNotification(
     "💘 New Match — Hearts Way Hotel",
     `${matchName} liked you back. Open your vault before they move on.`,
-    "/ghost/mode"
+    "/mode"
   );
 }
 
@@ -123,7 +123,7 @@ export function notifyNewMessage(senderName: string) {
   sendLocalNotification(
     "💬 New Message",
     `${senderName} sent you a message in the floor chat.`,
-    "/ghost/mode"
+    "/mode"
   );
 }
 
@@ -131,7 +131,7 @@ export function notifyVaultMessage(senderName: string) {
   sendLocalNotification(
     "🔐 Secret Message",
     `${senderName} sent you a secret message in your vault.`,
-    "/ghost/room"
+    "/room"
   );
 }
 
@@ -139,7 +139,7 @@ export function notifyGiftReceived(senderName: string, giftName: string) {
   sendLocalNotification(
     "🎁 Gift Received",
     `${senderName} sent you a ${giftName}!`,
-    "/ghost/mode"
+    "/mode"
   );
 }
 
@@ -147,6 +147,6 @@ export function notifyButlerReady() {
   sendLocalNotification(
     "🎩 Mr Butlas",
     "Your butler has a curated match ready for you. Come see.",
-    "/ghost/mode"
+    "/mode"
   );
 }

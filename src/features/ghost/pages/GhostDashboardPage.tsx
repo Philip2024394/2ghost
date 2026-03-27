@@ -183,15 +183,15 @@ const TABS: { id: TabId; label: string; Icon: typeof Home }[] = [
 
 // ── Drawer app links ───────────────────────────────────────────────────────────
 const DRAWER_LINKS = [
-  { label: "Ghost Mode",       emoji: "👻", to: "/ghost/mode"            },
-  { label: "Hotel Rooms",      emoji: "🏨", to: "/ghost/rooms"           },
-  { label: "Ghost Map",        emoji: "🗺️",  to: "/ghost/map"            },
-  { label: "Games Room",       emoji: "🎮", to: "/ghost/games"           },
-  { label: "Breakfast Lounge", emoji: "🍳", to: "/ghost/breakfast-lounge"},
-  { label: "Activities",       emoji: "✨", to: "/ghost/activities"      },
-  { label: "Coin Shop",        emoji: "🪙", to: "/ghost/pricing"         },
-  { label: "Edit Profile",     emoji: "✏️",  to: "/ghost/setup"          },
-  { label: "Hotel Room Info",  emoji: "🛎️",  to: "/ghost/room"           },
+  { label: "Ghost Mode",       emoji: "👻", to: "/mode"            },
+  { label: "Hotel Rooms",      emoji: "🏨", to: "/rooms"           },
+  { label: "Ghost Map",        emoji: "🗺️",  to: "/map"            },
+  { label: "Games Room",       emoji: "🎮", to: "/games"           },
+  { label: "Breakfast Lounge", emoji: "🍳", to: "/breakfast-lounge"},
+  { label: "Activities",       emoji: "✨", to: "/activities"      },
+  { label: "Coin Shop",        emoji: "🪙", to: "/pricing"         },
+  { label: "Edit Profile",     emoji: "✏️",  to: "/setup"          },
+  { label: "Hotel Room Info",  emoji: "🛎️",  to: "/room"           },
 ];
 
 // ── TX badge color ─────────────────────────────────────────────────────────────
@@ -602,10 +602,10 @@ export default function GhostDashboardPage() {
           <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>Quick Actions</p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {[
-              { label: "Edit Profile", emoji: "✏️",  to: "/ghost/setup" },
-              { label: "My Room",      emoji: "🚪", to: "/ghost/room"  },
-              { label: "Activities",   emoji: "🏨", to: "/ghost/activities" },
-              { label: "Back to Feed", emoji: "👻", to: "/ghost/mode"  },
+              { label: "Edit Profile", emoji: "✏️",  to: "/setup" },
+              { label: "My Room",      emoji: "🚪", to: "/room"  },
+              { label: "Activities",   emoji: "🏨", to: "/activities" },
+              { label: "Back to Feed", emoji: "👻", to: "/mode"  },
             ].map((action) => (
               <motion.button key={action.label} whileTap={{ scale: 0.96 }} onClick={() => navigate(action.to)}
                 style={{ flex: "1 0 calc(25% - 8px)", ...CARD, border: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", padding: "14px 8px" }}>
@@ -642,7 +642,7 @@ export default function GhostDashboardPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>{t("dash.howIConnect")}</p>
-            <button onClick={() => navigate("/ghost/setup")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: a.glow(0.7), fontSize: 11, fontWeight: 700, padding: 0 }}>
+            <button onClick={() => navigate("/setup")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: a.glow(0.7), fontSize: 11, fontWeight: 700, padding: 0 }}>
               <Edit2 size={11} /> Change
             </button>
           </div>
@@ -660,7 +660,7 @@ export default function GhostDashboardPage() {
                 </div>
               </>
             ) : (
-              <p style={{ fontSize: 12, color: "rgba(255,165,0,0.7)", margin: 0 }}>No phone set — <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => navigate("/ghost/setup")}>add one in Setup</span></p>
+              <p style={{ fontSize: 12, color: "rgba(255,165,0,0.7)", margin: 0 }}>No phone set — <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => navigate("/setup")}>add one in Setup</span></p>
             )}
 
             {altPlatform && connectAltHandle && (
@@ -845,7 +845,7 @@ export default function GhostDashboardPage() {
             {coinBalance}
           </motion.p>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: 0 }}>🪙 available balance</p>
-          <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate("/ghost/pricing")}
+          <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate("/pricing")}
             style={{ marginTop: 16, height: 44, borderRadius: 50, border: "none", padding: "0 32px", background: "linear-gradient(135deg, #92660a, #d4af37)", color: "#000", fontSize: 13, fontWeight: 900, cursor: "pointer" }}>
             Buy More Coins
           </motion.button>
@@ -902,7 +902,7 @@ export default function GhostDashboardPage() {
         </div>
 
         {/* Coin shop CTA */}
-        <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate("/ghost/pricing")}
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate("/pricing")}
           style={{ width: "100%", height: 52, borderRadius: 50, border: "1px solid rgba(212,175,55,0.35)", background: "rgba(212,175,55,0.08)", color: "#d4af37", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
           🪙 Visit Coin Shop
         </motion.button>

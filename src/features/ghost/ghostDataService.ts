@@ -85,7 +85,7 @@ export async function recordLike(fromGhostId: string, toGhostId: string): Promis
             ghostId,
             title: "💘 You have a new match!",
             body: "Someone in the hotel likes you back. Go see who.",
-            url: "/ghost/mode",
+            url: "/mode",
             type: "match",
           },
         }).then(null, () => null);

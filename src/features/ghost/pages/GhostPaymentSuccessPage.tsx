@@ -8,13 +8,13 @@ import { recordConversion } from "../../affiliate/affiliateStorage";
 const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/ChatGPT%20Image%20Mar%2020,%202026,%2002_03_38%20AM.png";
 
 const ROOM_ROUTES: Record<string, string> = {
-  suite:     "/ghost/rooms",
-  kings:     "/ghost/rooms",
-  penthouse: "/ghost/rooms",
-  cellar:    "/ghost/rooms",
-  garden:    "/ghost/rooms",
-  gold:      "/ghost/rooms",
-  standard:  "/ghost/mode",
+  suite:     "/rooms",
+  kings:     "/rooms",
+  penthouse: "/rooms",
+  cellar:    "/rooms",
+  garden:    "/rooms",
+  gold:      "/rooms",
+  standard:  "/mode",
 };
 
 const TIER_META: Record<string, { label: string; icon: string; color: string; gradient: string; floor: string; welcome: string }> = {
@@ -252,7 +252,7 @@ export default function GhostPaymentSuccessPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: done ? 1 : 0, y: done ? 0 : 10 }}
         whileTap={{ scale: 0.97 }}
-        onClick={() => navigate(isCoins ? "/ghost/mode" : (ROOM_ROUTES[plan] ?? "/ghost/mode"), { replace: true })}
+        onClick={() => navigate(isCoins ? "/mode" : (ROOM_ROUTES[plan] ?? "/mode"), { replace: true })}
         style={{
           width: "100%", maxWidth: 320, height: 54, borderRadius: 50, border: "none",
           background: isCoins ? "linear-gradient(135deg, #92400e, #d4af37, #f0d060)" : meta.gradient,

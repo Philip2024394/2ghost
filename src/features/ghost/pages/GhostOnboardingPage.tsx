@@ -172,7 +172,7 @@ export default function GhostOnboardingPage() {
     try { localStorage.setItem("ghost_onboarded", "1"); } catch {}
     // Better flow: setup profile first, then browse, paywall hits naturally
     const hasProfile = !!localStorage.getItem("ghost_profile");
-    navigate(hasProfile ? "/ghost/mode" : "/ghost/setup", { replace: true });
+    navigate(hasProfile ? "/mode" : "/setup", { replace: true });
   };
 
   const _s = SLIDES[slide];

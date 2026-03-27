@@ -8,7 +8,7 @@
  *     ghostId="..."
  *     label="150 Coins — $9.99"
  *     onClose={() => setOpen(false)}
- *     onSuccess={() => navigate('/ghost/payment-success?plan=coins&amount=150')}
+ *     onSuccess={() => navigate('/payment-success?plan=coins&amount=150')}
  *   />
  */
 
@@ -31,7 +31,7 @@ interface Props {
   priceId:    string;
   ghostId:    string;
   label:      string;          // e.g. "150 Coins — $9.99"
-  returnPath: string;          // e.g. "/ghost/payment-success?plan=coins&amount=150"
+  returnPath: string;          // e.g. "/payment-success?plan=coins&amount=150"
   onClose:    () => void;
   onSuccess?: () => void;      // called when Stripe reports complete (optional)
 }

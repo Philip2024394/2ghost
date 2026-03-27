@@ -103,17 +103,17 @@ async function closeCurrentPage() {
 function getPageLabel(path: string): string {
   const map: Record<string, string> = {
     "/ghost":            "Landing",
-    "/ghost/auth":       "Sign Up / Login",
-    "/ghost/gateway":    "Gateway",
-    "/ghost/setup":      "Profile Setup",
-    "/ghost/mode":       "Ghost Mode",
-    "/ghost/mock":       "Browse Profiles",
-    "/ghost/pricing":    "Pricing",
-    "/ghost/block":      "Blocked",
-    "/ghost/room":       "Ghost Room",
-    "/ghost/map":        "Map",
-    "/ghost/dashboard":  "Dashboard",
-    "/ghost/butler":     "Butler",
+    "/auth":       "Sign Up / Login",
+    "/gateway":    "Gateway",
+    "/setup":      "Profile Setup",
+    "/mode":       "Ghost Mode",
+    "/mock":       "Browse Profiles",
+    "/pricing":    "Pricing",
+    "/block":      "Blocked",
+    "/room":       "Ghost Room",
+    "/map":        "Map",
+    "/dashboard":  "Dashboard",
+    "/butler":     "Butler",
   };
   return map[path] || path;
 }

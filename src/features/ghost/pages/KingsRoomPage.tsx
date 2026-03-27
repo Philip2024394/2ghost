@@ -288,7 +288,7 @@ export default function KingsRoomPage() {
 
       {/* ── Quick actions row 1 ── */}
       <div style={{ margin: "12px 14px 0", display: "flex", gap: 8 }}>
-        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate("/ghost/room")}
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate("/room")}
           style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: C_GLOW(0.14), border: `1px solid ${C_GLOW(0.45)}`, borderRadius: 14, cursor: "pointer" }}>
           <Lock size={20} style={{ color: "#fff", flexShrink: 0 }} />
           <div style={{ textAlign: "left" }}>
@@ -306,7 +306,7 @@ export default function KingsRoomPage() {
           </div>
         </motion.button>
 
-        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate("/ghost/rooms")}
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate("/rooms")}
           style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: C_GLOW(0.14), border: `1px solid ${C_GLOW(0.45)}`, borderRadius: 14, cursor: "pointer" }}>
           <KeyRound size={20} style={{ color: "#fff", flexShrink: 0 }} />
           <div style={{ textAlign: "left" }}>
@@ -354,7 +354,7 @@ export default function KingsRoomPage() {
       {/* ── Country + Filter floating bar — exact same as GhostModePage ── */}
       <div style={{ margin: "10px 14px 6px", display: "flex", alignItems: "center", gap: 8 }}>
         {/* Trophy */}
-        <button onClick={() => navigate("/ghost/dashboard")}
+        <button onClick={() => navigate("/dashboard")}
           style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 16 }}>
           🏆
         </button>
@@ -498,10 +498,10 @@ export default function KingsRoomPage() {
               {/* Nav items */}
               <div style={{ flex: 1, overflowY: "auto", padding: "0 12px" }}>
                 {[
-                  { icon: "📊", label: "Dashboard",         desc: "Your stats & activity",            action: () => { setShowSettingsSheet(false); navigate("/ghost/dashboard"); } },
-                  { icon: null, label: "Shield",             desc: "Block & privacy controls", isShield: true, action: () => { setShowSettingsSheet(false); navigate("/ghost/block"); } },
-                  { icon: "🏨", label: "Rooms",              desc: "Ghost Hotel floor",                action: () => { setShowSettingsSheet(false); navigate("/ghost/rooms"); } },
-                  { icon: null, label: "Room Vault",         desc: "Your private ghost room", isRoom: true, action: () => { setShowSettingsSheet(false); navigate("/ghost/room"); } },
+                  { icon: "📊", label: "Dashboard",         desc: "Your stats & activity",            action: () => { setShowSettingsSheet(false); navigate("/dashboard"); } },
+                  { icon: null, label: "Shield",             desc: "Block & privacy controls", isShield: true, action: () => { setShowSettingsSheet(false); navigate("/block"); } },
+                  { icon: "🏨", label: "Rooms",              desc: "Ghost Hotel floor",                action: () => { setShowSettingsSheet(false); navigate("/rooms"); } },
+                  { icon: null, label: "Room Vault",         desc: "Your private ghost room", isRoom: true, action: () => { setShowSettingsSheet(false); navigate("/room"); } },
                   { icon: "⚔️", label: "Floor Wars",         desc: "Weekly floor gift leaderboard",    action: () => { setShowSettingsSheet(false); setShowFloorWars(true); } },
                   { icon: "📄", label: "Terms & Conditions", desc: "Privacy & usage policy",           action: () => { setShowSettingsSheet(false); window.open("https://2ghost.com/terms", "_blank"); } },
                 ].map(({ icon, label, desc, isShield, isRoom, action }) => (

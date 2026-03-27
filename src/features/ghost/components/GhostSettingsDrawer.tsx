@@ -280,55 +280,55 @@ export default function GhostSettingsDrawer({
                 icon={<span style={{ fontSize: 17 }}>🏛️</span>}
                 label="Hotel Feed"
                 desc="Browse all guests"
-                onClick={() => go("/ghost/mode")}
+                onClick={() => go("/mode")}
               />
               <Row
                 icon={<span style={{ fontSize: 17 }}>🛏️</span>}
                 label="Standard Room"
                 desc="Ground floor guests"
-                onClick={() => go("/ghost/room-detail/standard")}
+                onClick={() => go("/room-detail/standard")}
                 roomId="standard"
               />
               <Row
                 icon={<span style={{ fontSize: 17 }}>🛎️</span>}
                 label="Ensuite"
                 desc="Suite floor guests"
-                onClick={() => go("/ghost/room-detail/suite")}
+                onClick={() => go("/room-detail/suite")}
                 roomId="suite"
               />
               <Row
                 icon={<span style={{ fontSize: 17 }}>👑</span>}
                 label="Kings Room"
                 desc="Exclusive Kings floor"
-                onClick={() => go("/ghost/room-detail/kings")}
+                onClick={() => go("/room-detail/kings")}
                 roomId="kings"
               />
               <Row
                 icon={<span style={{ fontSize: 17 }}>🏙️</span>}
                 label="Penthouse"
                 desc="The most exclusive floor"
-                onClick={() => go("/ghost/room-detail/penthouse")}
+                onClick={() => go("/room-detail/penthouse")}
                 roomId="penthouse"
               />
               <Row
                 icon={<span style={{ fontSize: 17 }}>🌆</span>}
                 label="Loft"
                 desc="Loft floor guests"
-                onClick={() => go("/ghost/room-detail/loft")}
+                onClick={() => go("/room-detail/loft")}
                 roomId="loft"
               />
               <Row
                 icon={<span style={{ fontSize: 17 }}>🕯️</span>}
                 label="The Cellar"
                 desc="Underground members"
-                onClick={() => go("/ghost/room-detail/cellar")}
+                onClick={() => go("/room-detail/cellar")}
                 roomId="cellar"
               />
               <Row
                 icon={<span style={{ fontSize: 17 }}>🌿</span>}
                 label="Garden Lodge"
                 desc="Garden floor guests"
-                onClick={() => go("/ghost/room-detail/garden")}
+                onClick={() => go("/room-detail/garden")}
                 roomId="garden"
               />
               {loungeUnlocked && (
@@ -365,7 +365,7 @@ export default function GhostSettingsDrawer({
                   icon={<span style={{ fontSize: 17 }}>🎮</span>}
                   label="Games Room"
                   desc="Connect 4 & memory games"
-                  onClick={() => go("/ghost/games")}
+                  onClick={() => go("/games")}
                 />
               )}
 
@@ -376,7 +376,7 @@ export default function GhostSettingsDrawer({
                 icon={<img src={ROOM_IMG} alt="room" style={{ width: 20, height: 20, objectFit: "contain" }} />}
                 label="Room Vault"
                 desc="Your private ghost room"
-                onClick={() => go("/ghost/room")}
+                onClick={() => go("/room")}
               />
               <Row
                 icon={<span style={{ fontSize: 17 }}>🕐</span>}
@@ -423,14 +423,14 @@ export default function GhostSettingsDrawer({
                 icon={<span style={{ fontSize: 17 }}>📊</span>}
                 label="Dashboard"
                 desc="Your stats & activity"
-                onClick={() => go("/ghost/dashboard")}
+                onClick={() => go("/dashboard")}
               />
               {roomsUnlocked && (
                 <Row
                   icon={<span style={{ fontSize: 17 }}>🏨</span>}
                   label="Hotel Vacancy"
                   desc="Room availability & booking"
-                  onClick={() => go("/ghost/rooms")}
+                  onClick={() => go("/rooms")}
                 />
               )}
               <Row
@@ -443,7 +443,7 @@ export default function GhostSettingsDrawer({
                 icon={<span style={{ fontSize: 17 }}>🏨</span>}
                 label="Check Out"
                 desc="Leave a calling card or check out"
-                onClick={() => go("/ghost/checkout")}
+                onClick={() => go("/checkout")}
                 isCheckout
               />
             </div>

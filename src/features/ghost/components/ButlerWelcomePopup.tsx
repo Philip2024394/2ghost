@@ -51,7 +51,7 @@ export default function ButlerWelcomePopup({ onDismiss }: { onDismiss: () => voi
   function handleRooms() {
     markButlerGreeted();
     onDismiss();
-    navigate("/ghost/rooms");
+    navigate("/rooms");
   }
 
   function handleDismiss() {

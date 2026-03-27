@@ -230,7 +230,7 @@ export default function GhostProfilePopup({
                 <p style={{ margin: 0, fontSize: 12, fontWeight: 900, color: "rgba(250,204,21,0.9)" }}>Hotel Games Room</p>
                 <p style={{ margin: "1px 0 0", fontSize: 9, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>Connect 4 · Chat open at every level</p>
               </div>
-              <Link to="/ghost/games" style={{ fontSize: 9, fontWeight: 800, color: "rgba(250,204,21,0.65)", textDecoration: "none", background: "rgba(250,204,21,0.1)", border: "1px solid rgba(250,204,21,0.25)", borderRadius: 8, padding: "4px 8px" }}>
+              <Link to="/games" style={{ fontSize: 9, fontWeight: 800, color: "rgba(250,204,21,0.65)", textDecoration: "none", background: "rgba(250,204,21,0.1)", border: "1px solid rgba(250,204,21,0.25)", borderRadius: 8, padding: "4px 8px" }}>
                 Enter →
               </Link>
             </div>

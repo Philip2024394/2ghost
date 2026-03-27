@@ -108,48 +108,48 @@ export default function App() {
         <Routes>
           <Route path="/" element={
             localStorage.getItem("ghost_profile_setup_done")
-              ? <Navigate to="/ghost/mode" replace />
-              : <Navigate to="/ghost/welcome" replace />
+              ? <Navigate to="/mode" replace />
+              : <Navigate to="/welcome" replace />
           } />
-          <Route path="/ghost"         element={<GhostLandingPage />} />
-          <Route path="/ghost/auth"    element={<GhostAuthPage />} />
-          <Route path="/ghost/gateway" element={<GhostGatewayPage />} />
-          <Route path="/ghost/setup" element={<GhostSetupPage />} />
-          <Route path="/ghost/mode"  element={<GhostModePage />} />
-          <Route path="/ghost/mock"  element={<GhostMockFeedPage />} />
-          <Route path="/ghost/pricing" element={<GhostPricingPage />} />
-          <Route path="/ghost/block" element={<GhostBlockPage />} />
-          <Route path="/ghost/room"  element={<GhostRoomPage />} />
-          <Route path="/ghost/rooms" element={<GhostRoomsPage />} />
-          <Route path="/ghost/map"   element={<GhostMapPage />} />
-          <Route path="/ghost/dashboard"       element={<GhostDashboardPage />} />
-          <Route path="/ghost/payment-success" element={<GhostPaymentSuccessPage />} />
-          <Route path="/ghost/onboarding"      element={<GhostOnboardingPage />} />
-          <Route path="/ghost/profile-setup"  element={<GhostProfileSetupPage />} />
-          <Route path="/ghost/escorted-out"   element={<MrButlasEscortPage />} />
-          <Route path="/ghost/penthouse"       element={<PenthouseFloorPage />} />
-          <Route path="/ghost/penthouse/apply" element={<PenthouseApplyPage />} />
-          <Route path="/ghost/penthouse/vault/:matchId" element={<PenthouseVaultPage />} />
-          <Route path="/ghost/loft"                   element={<LoftFloorPage />} />
-          <Route path="/ghost/cellar"                 element={<CellarFloorPage />} />
-          <Route path="/ghost/floor/suite"             element={<FloorRoomPage tier="suite" />} />
-          <Route path="/ghost/floor/kings"            element={<FloorRoomPage tier="kings" />} />
-          <Route path="/ghost/floor/penthouse-floor"  element={<FloorRoomPage tier="penthouse" />} />
-          <Route path="/ghost/floor/loft-floor"       element={<FloorRoomPage tier="loft" />} />
-          <Route path="/ghost/floor/cellar-floor"     element={<FloorRoomPage tier="cellar" />} />
-          <Route path="/ghost/floor/standard"         element={<FloorRoomPage tier="standard" />} />
-          <Route path="/ghost/floor/garden"           element={<FloorRoomPage tier="garden" />} />
-          <Route path="/ghost/how-it-works"           element={<GhostHowItWorksPage />} />
+          <Route path="/ghost"         element={<Navigate to="/welcome" replace />} />
+          <Route path="/auth"    element={<GhostAuthPage />} />
+          <Route path="/gateway" element={<GhostGatewayPage />} />
+          <Route path="/setup" element={<GhostSetupPage />} />
+          <Route path="/mode"  element={<GhostModePage />} />
+          <Route path="/mock"  element={<GhostMockFeedPage />} />
+          <Route path="/pricing" element={<GhostPricingPage />} />
+          <Route path="/block" element={<GhostBlockPage />} />
+          <Route path="/room"  element={<GhostRoomPage />} />
+          <Route path="/rooms" element={<GhostRoomsPage />} />
+          <Route path="/map"   element={<GhostMapPage />} />
+          <Route path="/dashboard"       element={<GhostDashboardPage />} />
+          <Route path="/payment-success" element={<GhostPaymentSuccessPage />} />
+          <Route path="/onboarding"      element={<GhostOnboardingPage />} />
+          <Route path="/profile-setup"  element={<GhostProfileSetupPage />} />
+          <Route path="/escorted-out"   element={<MrButlasEscortPage />} />
+          <Route path="/penthouse"       element={<PenthouseFloorPage />} />
+          <Route path="/penthouse/apply" element={<PenthouseApplyPage />} />
+          <Route path="/penthouse/vault/:matchId" element={<PenthouseVaultPage />} />
+          <Route path="/loft"                   element={<LoftFloorPage />} />
+          <Route path="/cellar"                 element={<CellarFloorPage />} />
+          <Route path="/floor/suite"             element={<FloorRoomPage tier="suite" />} />
+          <Route path="/floor/kings"            element={<FloorRoomPage tier="kings" />} />
+          <Route path="/floor/penthouse-floor"  element={<FloorRoomPage tier="penthouse" />} />
+          <Route path="/floor/loft-floor"       element={<FloorRoomPage tier="loft" />} />
+          <Route path="/floor/cellar-floor"     element={<FloorRoomPage tier="cellar" />} />
+          <Route path="/floor/standard"         element={<FloorRoomPage tier="standard" />} />
+          <Route path="/floor/garden"           element={<FloorRoomPage tier="garden" />} />
+          <Route path="/how-it-works"           element={<GhostHowItWorksPage />} />
           <Route path="/hotel-rules"                 element={<HotelRulesPage />} />
-          <Route path="/ghost/checkout"              element={<HotelCheckoutPage />} />
-          <Route path="/ghost/games"                  element={<GamesRoomLandingPage />} />
-          <Route path="/ghost/games/lobby"            element={<GamesRoomPage />} />
-          <Route path="/ghost/games/connect4"        element={<Connect4Page />} />
-          <Route path="/ghost/games/memory"          element={<MemoryMatchPage />} />
-          <Route path="/ghost/games/wordduel"       element={<WordDuelPage />} />
-          <Route path="/ghost/breakfast-lounge"     element={<BreakfastLoungePage />} />
-          <Route path="/ghost/activities"           element={<HotelActivitiesPage />} />
-          <Route path="/ghost/room-detail/:roomId"  element={<HotelRoomDetailPage />} />
+          <Route path="/checkout"              element={<HotelCheckoutPage />} />
+          <Route path="/games"                  element={<GamesRoomLandingPage />} />
+          <Route path="/games/lobby"            element={<GamesRoomPage />} />
+          <Route path="/games/connect4"        element={<Connect4Page />} />
+          <Route path="/games/memory"          element={<MemoryMatchPage />} />
+          <Route path="/games/wordduel"       element={<WordDuelPage />} />
+          <Route path="/breakfast-lounge"     element={<BreakfastLoungePage />} />
+          <Route path="/activities"           element={<HotelActivitiesPage />} />
+          <Route path="/room-detail/:roomId"  element={<HotelRoomDetailPage />} />
           <Route path="/privacy-policy"             element={<PrivacyPolicyPage />} />
           <Route path="/terms"                      element={<TermsOfServicePage />} />
           <Route path="/support"                    element={<SupportPage />} />
@@ -180,8 +180,8 @@ export default function App() {
             <Route path="activities" element={<AdminActivitiesPage />} />
           </Route>
 
-          <Route path="/ghost/welcome" element={<GhostWelcomePage />} />
-          <Route path="*" element={<Navigate to="/ghost/welcome" replace />} />
+          <Route path="/welcome" element={<GhostWelcomePage />} />
+          <Route path="*" element={<Navigate to="/welcome" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
