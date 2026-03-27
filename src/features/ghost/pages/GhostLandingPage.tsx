@@ -48,7 +48,6 @@ const INTRO_VIDEO_URL = "https://ik.imagekit.io/7grri5v7d/hotel_intro.mp4";
 
 export default function GhostLandingPage() {
   const navigate = useNavigate();
-  const [showManifesto, setShowManifesto]   = useState(false);
   const [showVideoFull, setShowVideoFull]   = useState(false);
   const [videoFailed,   setVideoFailed]     = useState(false);
   const [showA2HS, setShowA2HS]             = useState(false);
@@ -92,16 +91,6 @@ export default function GhostLandingPage() {
     }, 1200);
   };
 
-  // ── Manifesto popup ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    const alreadySeen = sessionStorage.getItem("ghost_manifesto_seen");
-    if (alreadySeen) return;
-    const t = setTimeout(() => {
-      setShowManifesto(true);
-      sessionStorage.setItem("ghost_manifesto_seen", "1");
-    }, 5000);
-    return () => clearTimeout(t);
-  }, []);
 
   // ── A2HS ─────────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -460,116 +449,6 @@ export default function GhostLandingPage() {
               style={{ width: "100%", height: "100%", objectFit: "contain" }}
               onClick={(e) => e.stopPropagation()}
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── Manifesto popup — fires after 3s ── */}
-      <AnimatePresence>
-        {showManifesto && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowManifesto(false)}
-            style={{
-              position: "fixed", inset: 0, zIndex: 100,
-              background: "rgba(0,0,0,0.72)",
-              backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
-              display: "flex", alignItems: "flex-end", justifyContent: "center",
-            }}
-          >
-            <motion.div
-              initial={{ y: "100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "100%", opacity: 0 }}
-              transition={{ type: "spring", stiffness: 280, damping: 28 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: "100%", maxWidth: 480,
-                background: "rgba(4,6,4,0.97)",
-                borderRadius: "24px 24px 0 0",
-                border: `1px solid ${a.glow(0.2)}`, borderBottom: "none",
-                padding: "0 22px max(36px, env(safe-area-inset-bottom, 36px))",
-                boxShadow: "0 -24px 80px rgba(0,0,0,0.7)",
-                overflow: "hidden",
-              }}
-            >
-              <div style={{ height: 3, background: `linear-gradient(90deg, ${a.accentDeep}, ${a.accent}, ${a.accentMid})`, marginLeft: -22, marginRight: -22 }} />
-              <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 20px" }}>
-                <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
-              </div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, duration: 0.4 }}
-                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 0 18px", gap: 12 }}
-              >
-                <h2 style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.2, letterSpacing: "-0.02em", margin: 0, flex: 1 }}>
-                  Dating without<br />the noise —<br /><span style={{ color: a.accent }}>finally.</span>
-                </h2>
-                <img
-                  src="https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasdasdasd.png"
-                  alt=""
-                  style={{ width: "auto", height: 250, objectFit: "contain", flexShrink: 0 }}
-                />
-              </motion.div>
-
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28, duration: 0.45 }}
-                style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, margin: "0 0 12px" }}>
-                I am Mr Butlas, your host for the dating experience of 2026. Within my hotel, connections are formed unlike anywhere else. I keep dating simple — no long profiles, no credit cards to begin, and most importantly, my purpose is to help you find your soulmate as quickly as possible… so you may leave my halls together.
-              </motion.p>
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.32, duration: 0.45 }}
-                style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, margin: "0 0 12px" }}>
-                Every guest under my care is granted strict privacy, carefully managed introductions, and protection from unwanted distractions through refined filtering and attentive oversight. I personally ensure the atmosphere remains… suitable for meaningful encounters.
-              </motion.p>
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.34, duration: 0.45 }}
-                style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, margin: "0 0 12px" }}>
-                Each day, I arrange activities, subtle opportunities, and curated moments designed to bring the right people together at the right time. Here, you will not wander endlessly — you will be guided.
-              </motion.p>
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.36, duration: 0.45 }}
-                style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, margin: "0 0 18px" }}>
-                My ambition is simple: to redefine the future of dating. Less effort, less cost… and far more real connections.
-              </motion.p>
-
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.38, duration: 0.4 }}
-                style={{ fontSize: 14, color: a.glow(0.9), fontWeight: 900, margin: "0 0 20px", letterSpacing: "0.01em", fontStyle: "italic" }}>
-                Now let's get you checked in — your soulmate awaits. 🎩
-              </motion.p>
-
-              <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.18)}, transparent)`, marginBottom: 20 }} />
-
-
-              <motion.button
-                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.55, duration: 0.35 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setShowManifesto(false)}
-                style={{
-                  width: "100%", height: 54, borderRadius: 50, border: "none",
-                  background: "linear-gradient(to bottom, #ff3b3b 0%, #e01010 40%, #b80000 100%)",
-                  color: "#fff", fontSize: 16, fontWeight: 900,
-                  cursor: "pointer", letterSpacing: "0.03em",
-                  boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 28px rgba(220,20,20,0.55)",
-                  position: "relative", overflow: "hidden",
-                  marginBottom: 14,
-                }}
-              >
-                <div style={{
-                  position: "absolute", top: 0, left: "10%", right: "10%", height: "45%",
-                  background: "linear-gradient(to bottom, rgba(255,255,255,0.2), transparent)",
-                  borderRadius: "50px 50px 60% 60%", pointerEvents: "none",
-                }} />
-                Join Free Now →
-              </motion.button>
-
-              <button
-                onClick={() => setShowManifesto(false)}
-                style={{ width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 12, fontWeight: 600, cursor: "pointer", padding: "4px 0" }}
-              >
-                Maybe another time
-              </button>
-            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
