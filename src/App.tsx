@@ -11,12 +11,10 @@ function lazyWithRetry<T extends { default: any }>(factory: () => Promise<T>) {
 }
 
 const GhostWelcomePage  = lazyWithRetry(() => import("./features/ghost/pages/GhostWelcomePage"));
-const GhostLandingPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostLandingPage"));
 const GhostGatewayPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostGatewayPage"));
 const GhostAuthPage     = lazyWithRetry(() => import("./features/ghost/pages/GhostAuthPage"));
 const GhostSetupPage    = lazyWithRetry(() => import("./features/ghost/pages/GhostSetupPage"));
 const GhostModePage     = lazyWithRetry(() => import("./features/ghost/pages/GhostModePage"));
-const GhostMockFeedPage = lazyWithRetry(() => import("./features/ghost/pages/GhostMockFeedPage"));
 const GhostPricingPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostPricingPage"));
 const GhostBlockPage    = lazyWithRetry(() => import("./features/ghost/pages/GhostBlockPage"));
 const GhostRoomPage     = lazyWithRetry(() => import("./features/ghost/pages/GhostRoomPage"));
@@ -111,12 +109,10 @@ export default function App() {
               ? <Navigate to="/mode" replace />
               : <Navigate to="/welcome" replace />
           } />
-          <Route path="/ghost"         element={<Navigate to="/welcome" replace />} />
           <Route path="/auth"    element={<GhostAuthPage />} />
           <Route path="/gateway" element={<GhostGatewayPage />} />
           <Route path="/setup" element={<GhostSetupPage />} />
           <Route path="/mode"  element={<GhostModePage />} />
-          <Route path="/mock"  element={<GhostMockFeedPage />} />
           <Route path="/pricing" element={<GhostPricingPage />} />
           <Route path="/block" element={<GhostBlockPage />} />
           <Route path="/room"  element={<GhostRoomPage />} />
