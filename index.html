@@ -206,5 +206,24 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Force mobile browser address bar to auto-hide on load -->
+    <script>
+      (function () {
+        // Only run in a real browser (not PWA standalone or Capacitor)
+        var isStandalone =
+          window.matchMedia("(display-mode: standalone)").matches ||
+          window.navigator.standalone === true;
+        if (isStandalone) return;
+        // Scroll 1px down then immediately back — triggers address-bar hide
+        // on iOS Safari and Android Chrome without visible jump
+        document.addEventListener("DOMContentLoaded", function () {
+          setTimeout(function () {
+            if (document.documentElement.scrollTop === 0) {
+              window.scrollTo(0, 1);
+            }
+          }, 300);
+        });
+      })();
+    </script>
   </body>
 </html>

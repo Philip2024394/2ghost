@@ -125,7 +125,8 @@
 
   #root {
     width: 100%;
-    min-height: 100dvh;
+    height: 100dvh;
+    height: -webkit-fill-available;
     overflow-x: hidden;
     overflow-y: auto;
     margin: 0;
