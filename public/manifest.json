@@ -1,18 +1,18 @@
 {
-  "name": "Hearts Way Hotel",
-  "short_name": "HeartsWay",
-  "description": "Hearts Way Hotel — the world's most discreet dating experience. Anonymous profiles. Private vault. Curated connections.",
-  "start_url": "/ghost/mock",
+  "name": "Mr Butlas",
+  "short_name": "Mr Butlas",
+  "description": "The world's most discreet dating experience. Anonymous ghost profiles, private vault chats, and real connections — no real name required.",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "any",
   "background_color": "#050508",
-  "theme_color": "#e01010",
+  "theme_color": "#050508",
   "categories": ["social", "lifestyle", "entertainment"],
   "lang": "en",
   "dir": "ltr",
-  "id": "heartswayhotel-app",
+  "id": "mrbutlas-app",
   "icons": [
     { "src": "/icons/icon-72.png",  "sizes": "72x72",   "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-96.png",  "sizes": "96x96",   "type": "image/png", "purpose": "any" },
@@ -29,14 +29,14 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Hearts Way Hotel — discreet dating experience"
+      "label": "Mr Butlas — anonymous dating experience"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Hearts Way Hotel — desktop experience"
+      "label": "Mr Butlas — desktop experience"
     }
   ],
   "shortcuts": [
@@ -44,11 +44,11 @@
       "name": "Ghost Feed",
       "short_name": "Feed",
       "description": "Go straight to the Ghost feed",
-      "url": "/ghost",
+      "url": "/ghost/mode",
       "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
     },
     {
-      "name": "Ghost Room",
+      "name": "My Room",
       "short_name": "My Room",
       "description": "Open your private Ghost Room",
       "url": "/ghost/room",

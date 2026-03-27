@@ -1,9 +1,9 @@
-// 2Ghost Service Worker
+// Mr Butlas Service Worker
 // Enables PWA install prompt, offline capability, and auto-update.
 // Bump CACHE_VERSION on each deploy so returning users get the new app.
 
 const CACHE_VERSION = "ghost-v1";
-const CACHE_NAME = `2ghost-${CACHE_VERSION}`;
+const CACHE_NAME = `mrbutlas-${CACHE_VERSION}`;
 
 // Assets to cache on install for offline use
 const PRECACHE_ASSETS = [
@@ -80,7 +80,7 @@ self.addEventListener("fetch", (event) => {
 // ── Push Notifications ────────────────────────────────────────────────────────
 
 self.addEventListener("push", (event) => {
-  let data = { title: "2Ghost Hotel", body: "You have a new notification 👻", icon: "/icon-192.png", badge: "/icon-192.png", tag: "ghost-default" };
+  let data = { title: "Mr Butlas", body: "You have a new notification 👻", icon: "/icon-192.png", badge: "/icon-192.png", tag: "ghost-default" };
   try {
     if (event.data) data = { ...data, ...event.data.json() };
   } catch {}

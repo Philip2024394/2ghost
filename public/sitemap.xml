@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Landing page -->
+  <url>
+    <loc>https://mrbutlas.com/</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Main app entry -->
+  <url>
+    <loc>https://mrbutlas.com/ghost</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Ghost Feed / Mode -->
+  <url>
+    <loc>https://mrbutlas.com/ghost/mode</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Ghost Rooms -->
+  <url>
+    <loc>https://mrbutlas.com/ghost/rooms</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Ghost Room (My Room) -->
+  <url>
+    <loc>https://mrbutlas.com/ghost/room</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Dashboard -->
+  <url>
+    <loc>https://mrbutlas.com/ghost/dashboard</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Pricing / Coin Shop -->
+  <url>
+    <loc>https://mrbutlas.com/ghost/pricing</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Activities -->
+  <url>
+    <loc>https://mrbutlas.com/ghost/activities</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Breakfast Lounge -->
+  <url>
+    <loc>https://mrbutlas.com/ghost/breakfast-lounge</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Ghost Map -->
+  <url>
+    <loc>https://mrbutlas.com/ghost/map</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Games Room -->
+  <url>
+    <loc>https://mrbutlas.com/ghost/games</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Support -->
+  <url>
+    <loc>https://mrbutlas.com/support</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://mrbutlas.com/privacy-policy</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <!-- Terms of Service -->
+  <url>
+    <loc>https://mrbutlas.com/terms</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <!-- Hotel Rules -->
+  <url>
+    <loc>https://mrbutlas.com/hotel-rules</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <!-- Affiliate Programme -->
+  <url>
+    <loc>https://mrbutlas.com/affiliate/how-it-works</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://mrbutlas.com/affiliate/join</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://mrbutlas.com/affiliate/dashboard</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+</urlset>
