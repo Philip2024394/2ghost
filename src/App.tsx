@@ -12,6 +12,7 @@ function lazyWithRetry<T extends { default: any }>(factory: () => Promise<T>) {
 
 const GhostWelcomePage  = lazyWithRetry(() => import("./features/ghost/pages/GhostWelcomePage"));
 const GhostGatewayPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostGatewayPage"));
+const GhostLandingPage  = lazyWithRetry(() => import("./features/ghost/pages/GhostLandingPage"));
 const GhostAuthPage     = lazyWithRetry(() => import("./features/ghost/pages/GhostAuthPage"));
 const GhostSetupPage    = lazyWithRetry(() => import("./features/ghost/pages/GhostSetupPage"));
 const GhostModePage     = lazyWithRetry(() => import("./features/ghost/pages/GhostModePage"));
@@ -109,7 +110,8 @@ export default function App() {
               ? <Navigate to="/mode" replace />
               : <Navigate to="/welcome" replace />
           } />
-          <Route path="/auth"    element={<GhostAuthPage />} />
+          <Route path="/auth"       element={<GhostLandingPage />} />
+          <Route path="/auth/phone" element={<GhostAuthPage />} />
           <Route path="/gateway" element={<GhostGatewayPage />} />
           <Route path="/setup" element={<GhostSetupPage />} />
           <Route path="/mode"  element={<GhostModePage />} />

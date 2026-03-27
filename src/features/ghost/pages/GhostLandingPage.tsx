@@ -41,24 +41,6 @@ const HEARTS = [
 ];
 
 
-function getDeadline(): number {
-  try {
-    const stored = localStorage.getItem("ghost_beta_deadline");
-    if (stored) return Number(stored);
-    const d = Date.now() + 72 * 60 * 60 * 1000;
-    localStorage.setItem("ghost_beta_deadline", String(d));
-    return d;
-  } catch {
-    return Date.now() + 72 * 60 * 60 * 1000;
-  }
-}
-function formatCountdown(ms: number): string {
-  if (ms <= 0) return "00:00:00";
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
-}
 
 
 // ── Video intro URL — replace with your actual promo video ────────────────────
@@ -74,14 +56,13 @@ export default function GhostLandingPage() {
     try { return !!localStorage.getItem("ghost_a2hs_dismissed"); } catch { return false; }
   });
   const deferredPromptRef = useRef<any>(null);
-  const [countdown, setCountdown]     = useState(() => Math.max(0, getDeadline() - Date.now()));
   const [newProfiles, setNewProfiles] = useState(getNewProfilesToday);
   const [countryName] = useState(() => getCachedIpCountry()?.countryName ?? "Indonesia");
   const [countryFlag] = useState(() => {
     const code = getCachedIpCountry()?.countryCode ?? "ID";
     return [...code.toUpperCase()].map((c) => String.fromCodePoint(c.charCodeAt(0) + 127397)).join("");
   });
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null); // profiles ticker
 
   // ── Auth form state ──────────────────────────────────────────────────────────
   const [gender, setGender]   = useState<"Female" | "Male">("Female");
@@ -156,9 +137,8 @@ export default function GhostLandingPage() {
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
-      setCountdown(Math.max(0, getDeadline() - Date.now()));
       setNewProfiles(getNewProfilesToday());
-    }, 1000);
+    }, 60000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
@@ -559,24 +539,6 @@ export default function GhostLandingPage() {
 
               <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${a.glow(0.18)}, transparent)`, marginBottom: 20 }} />
 
-              {/* Countdown */}
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.4 }}
-                style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-                <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
-                  style={{ width: 8, height: 8, borderRadius: "50%", background: a.accent, boxShadow: `0 0 8px ${a.glow(0.8)}`, flexShrink: 0 }} />
-                <div>
-                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: "0 0 2px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                    Free membership closes in
-                  </p>
-                  <p style={{ fontSize: 24, fontWeight: 900, color: a.accent, margin: 0, letterSpacing: "0.05em", fontVariantNumeric: "tabular-nums" }}>
-                    {formatCountdown(countdown)}
-                  </p>
-                </div>
-              </motion.div>
-
-              <p style={{ margin: "0 0 18px", fontSize: 13, fontWeight: 900, color: "#ef4444", textAlign: "center" }}>
-                After this closes, it's paid membership only
-              </p>
 
               <motion.button
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
