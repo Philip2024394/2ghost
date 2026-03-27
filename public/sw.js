@@ -2,7 +2,7 @@
 // Enables PWA install prompt, offline capability, and auto-update.
 // Bump CACHE_VERSION on each deploy so returning users get the new app.
 
-const CACHE_VERSION = "ghost-v1";
+const CACHE_VERSION = "ghost-v2";
 const CACHE_NAME = `mrbutlas-${CACHE_VERSION}`;
 
 // Assets to cache on install for offline use
