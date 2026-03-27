@@ -2,6 +2,14 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 
+// Deterministic daily count 470–640 (changes each calendar day)
+function getDailyGuestCount(): number {
+  const d = new Date();
+  const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  const x = Math.sin(seed) * 10000;
+  return Math.floor(470 + (x - Math.floor(x)) * 171); // 470 + 0..170
+}
+
 const MR_BUTLAS_IMG = "https://ik.imagekit.io/7grri5v7d/sfsadfasdf.png?updatedAt=1774389915762";
 
 const JUST_JOINED = [
@@ -197,24 +205,7 @@ export default function GhostWelcomePage() {
         }}
       >
         {/* Just joined row */}
-        <div style={{ width: "100%", maxWidth: 400 }}>
-          {/* Header row */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <motion.div
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 6px rgba(34,197,94,0.9)" }}
-              />
-              <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.75)", letterSpacing: "0.04em" }}>
-                Just joined
-              </span>
-            </div>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>
-              {JUST_JOINED.length} countries today
-            </span>
-          </div>
-
+        <div style={{ width: "100%", maxWidth: 400, position: "relative" }}>
           {/* Overlapping avatars */}
           <div style={{ display: "flex", alignItems: "center" }}>
             {JUST_JOINED.slice(0, 9).map((g, i) => (
@@ -228,7 +219,6 @@ export default function GhostWelcomePage() {
                 <img
                   src={g.img}
                   alt={g.name}
-                  title={`${g.flag} ${g.name}`}
                   style={{
                     width: 34, height: 34,
                     borderRadius: "50%",
@@ -237,30 +227,37 @@ export default function GhostWelcomePage() {
                     display: "block",
                   }}
                 />
-                <span style={{ position: "absolute", bottom: -1, right: -2, fontSize: 9, lineHeight: 1 }}>{g.flag}</span>
               </motion.div>
             ))}
-            {JUST_JOINED.length > 9 && (
-              <div style={{
-                marginLeft: -9, zIndex: 0,
-                width: 34, height: 34, borderRadius: "50%",
-                background: "rgba(255,255,255,0.12)",
-                border: "2px solid rgba(255,255,255,0.22)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <span style={{ fontSize: 9, fontWeight: 900, color: "#fff" }}>+{JUST_JOINED.length - 9}</span>
-              </div>
-            )}
-            <div style={{ marginLeft: 11, display: "flex", flexDirection: "column", gap: 1 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#fff" }}>{JUST_JOINED.length} new today</span>
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>join them now</span>
-            </div>
           </div>
+
+          {/* Count overlay — top-left, sitting over the avatars */}
+          <motion.div
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 1.1, duration: 0.5 }}
+            style={{
+              position: "absolute",
+              top: -22,
+              left: 0,
+              display: "flex", alignItems: "center", gap: 5,
+              zIndex: 20,
+            }}
+          >
+            <motion.div
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              style={{ width: 5, height: 5, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 6px rgba(34,197,94,0.9)", flexShrink: 0 }}
+            />
+            <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.82)", letterSpacing: "0.03em", textShadow: "0 1px 8px rgba(0,0,0,0.8)" }}>
+              {getDailyGuestCount()} New Guests Today
+            </span>
+          </motion.div>
         </div>
 
         {/* Find Now button */}
         <button
-          onClick={() => navigate("/ghost")}
+          onClick={() => navigate("/auth")}
           style={{
             width: "100%",
             maxWidth: 400,
