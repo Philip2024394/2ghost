@@ -248,6 +248,28 @@ export default function GhostDashboardPage() {
   const [butlerAddressEdit, setButlerAddressEdit] = useState(false);
   const [profileSaved,      setProfileSaved]      = useState(false);
 
+  // ── Profile images (up to 3) ──
+  const [profileImages, setProfileImages] = useState<(string | null)[]>(() => {
+    try { return JSON.parse(localStorage.getItem("ghost_profile_images") ?? "null") || [null, null, null]; } catch { return [null, null, null]; }
+  });
+  const handleImageUpload = (idx: number, file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      const next = [...profileImages];
+      next[idx] = dataUrl;
+      setProfileImages(next);
+      try { localStorage.setItem("ghost_profile_images", JSON.stringify(next)); } catch {}
+    };
+    reader.readAsDataURL(file);
+  };
+  const handleImageRemove = (idx: number) => {
+    const next = [...profileImages];
+    next[idx] = null;
+    setProfileImages(next);
+    try { localStorage.setItem("ghost_profile_images", JSON.stringify(next)); } catch {}
+  };
+
   // ── Face Verify / Referral modals ──
   const [faceVerified,   setFaceVerified]   = useState<boolean>(() => {
     try { return localStorage.getItem("ghost_face_verified") === "1"; } catch { return false; }
@@ -637,6 +659,42 @@ export default function GhostDashboardPage() {
       <motion.div key="profile" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}
         style={{ padding: "16px 14px", display: "flex", flexDirection: "column", gap: 16 }}
       >
+
+        {/* ── Profile Photos ── */}
+        <div>
+          <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>Profile Photos</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+            {([0, 1, 2] as const).map((idx) => {
+              const img = profileImages[idx];
+              return (
+                <div key={idx} style={{ position: "relative", aspectRatio: "3/4", borderRadius: 14, overflow: "hidden", background: "rgba(255,255,255,0.04)", border: `1.5px ${img ? "solid rgba(251,191,36,0.4)" : "dashed rgba(255,255,255,0.12)"}`, cursor: "pointer" }}
+                  onClick={() => { if (!img) document.getElementById(`img-upload-${idx}`)?.click(); }}>
+                  {img ? (
+                    <>
+                      <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                      {/* Main badge on first slot */}
+                      {idx === 0 && <div style={{ position: "absolute", top: 6, left: 6, background: "rgba(251,191,36,0.9)", borderRadius: 6, padding: "2px 6px", fontSize: 8, fontWeight: 800, color: "#000" }}>MAIN</div>}
+                      {/* Remove button */}
+                      <button onClick={e => { e.stopPropagation(); handleImageRemove(idx); }}
+                        style={{ position: "absolute", top: 5, right: 5, width: 22, height: 22, borderRadius: "50%", border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✕</button>
+                      {/* Replace tap */}
+                      <div onClick={e => { e.stopPropagation(); document.getElementById(`img-upload-${idx}`)?.click(); }}
+                        style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.55)", padding: "5px 0", textAlign: "center", fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>Change</div>
+                    </>
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5 }}>
+                      <div style={{ fontSize: 22, opacity: 0.3 }}>📷</div>
+                      <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.25)", fontWeight: 600 }}>{idx === 0 ? "Main photo" : `Photo ${idx + 1}`}</p>
+                    </div>
+                  )}
+                  <input id={`img-upload-${idx}`} type="file" accept="image/*" style={{ display: "none" }}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(idx, f); e.target.value = ""; }} />
+                </div>
+              );
+            })}
+          </div>
+          <p style={{ margin: "8px 0 0", fontSize: 9, color: "rgba(255,255,255,0.2)", lineHeight: 1.5 }}>First photo is your main profile image. Tap a slot to upload.</p>
+        </div>
 
         {/* How I Connect */}
         <div>

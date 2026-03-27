@@ -1,13 +1,12 @@
 // ── Ghost Profile Setup ────────────────────────────────────────────────────────
 // 5-second butler intro → red-themed slider gathers name/country, languages, intent.
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ghostSupabase } from "../ghostSupabase";
 
 const BG_IMG     = "https://ik.imagekit.io/7grri5v7d/jjj.png";
-const BUTLER_IMG = "https://ik.imagekit.io/7grri5v7d/werwerwer-removebg-preview.png";
 
 const R      = "#e01010";
 const R_GLOW = "rgba(220,20,20,0.22)";
@@ -101,14 +100,8 @@ const SEEKING = [
   "Just exploring",
 ];
 
-const INTRO_DURATION = 10; // seconds
-
 export default function GhostProfileSetupPage() {
   const navigate  = useNavigate();
-
-  // Phase: "intro" shows 5s butler screen, "form" shows the slider
-  const [phase,    setPhase]    = useState<"intro" | "form">("intro");
-  const [progress, setProgress] = useState(0); // 0–100
 
   // Form state
   const [step,     setStep]     = useState(0);
@@ -117,24 +110,24 @@ export default function GhostProfileSetupPage() {
   const [languages, setLanguages] = useState<string[]>([]);
   const [seeking,   setSeeking]  = useState<string>("");
 
-  // ── 5-second progress bar ────────────────────────────────────────────────
+  // Background video — starts playing on entry, visible as soon as first frame is ready
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoVisible, setVideoVisible] = useState(false);
+
   useEffect(() => {
-    if (phase !== "intro") return;
-    const interval = 50; // ms tick
-    const step_val  = 100 / ((INTRO_DURATION * 1000) / interval);
-    const t = setInterval(() => {
-      setProgress(p => {
-        const next = p + step_val;
-        if (next >= 100) {
-          clearInterval(t);
-          setTimeout(() => setPhase("form"), 100);
-          return 100;
-        }
-        return next;
-      });
-    }, interval);
-    return () => clearInterval(t);
-  }, [phase]);
+    const vid = videoRef.current;
+    if (!vid) return;
+    const onReady = () => {
+      setVideoVisible(true);
+      vid.play().catch(() => {});
+    };
+    vid.addEventListener("canplay", onReady, { once: true });
+    vid.load();
+    return () => vid.removeEventListener("canplay", onReady);
+  }, []);
+
+  // Form slides up only after the video finishes
+  const [showForm, setShowForm] = useState(false);
 
   // Language label → app locale (all 16 supported languages)
   const LANG_TO_LOCALE: Record<string, string> = {
@@ -156,20 +149,6 @@ export default function GhostProfileSetupPage() {
     "Filipino":   "tl",
   };
 
-  function toggleLang(lang: string) {
-    setLanguages(prev => {
-      const next = prev.includes(lang) ? prev.filter(x => x !== lang) : [...prev, lang];
-      // Pick best locale from selection — prefer first non-English supported language
-      const primary = next.find(l => LANG_TO_LOCALE[l] && l !== "English")
-        ?? next.find(l => LANG_TO_LOCALE[l])
-        ?? null;
-      if (primary) {
-        try { localStorage.setItem("ghost_locale", LANG_TO_LOCALE[primary]); } catch {}
-      }
-      return next;
-    });
-  }
-
   function pickSeeking(label: string) {
     setSeeking(label);
   }
@@ -185,6 +164,7 @@ export default function GhostProfileSetupPage() {
         ?? languages.find(l => LANG_TO_LOCALE[l]);
       if (primary) localStorage.setItem("ghost_locale", LANG_TO_LOCALE[primary]);
       localStorage.setItem("ghost_profile_setup_done", "1");
+      localStorage.setItem("ghost_onboarded", "1");
 
       // ── Referral processing ──────────────────────────────────────────────
       const refCode = (() => { try { return localStorage.getItem("ghost_referral_code"); } catch { return null; } })();
@@ -204,23 +184,85 @@ export default function GhostProfileSetupPage() {
         }
       }
     } catch {}
-    navigate("/gateway", { replace: true });
+    navigate("/mode", { replace: true });
   }
 
   const canStep1  = name.trim().length >= 2;
   const canFinish = seeking.length > 0; // works for both string and array
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "#000", overflow: "hidden" }}>
+    <div style={{ position: "fixed", inset: 0, background: "#000", overflow: "hidden", touchAction: "none", overscrollBehavior: "none" }}>
 
-      {/* Background image */}
+      {/* Background image — shown before video starts and after it ends */}
       <img src={BG_IMG} alt=""
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%",
-          objectFit: "cover", objectPosition: "center top" }} />
+          objectFit: "cover", objectPosition: "center 30px",
+          opacity: videoVisible ? 0 : 1, transition: "opacity 0.8s" }} />
+
+      {/* Background video — fades in 3s after load, plays once behind all slides */}
+      <video
+        ref={videoRef}
+        src="https://ik.imagekit.io/7grri5v7d/good%20for%20stage%203.mp4"
+        muted
+        playsInline
+        preload="auto"
+        onEnded={() => setShowForm(true)}
+        style={{
+          position: "absolute", inset: 0, width: "100%", height: "100%",
+          objectFit: "cover",
+          opacity: videoVisible ? 1 : 0,
+          transition: "opacity 0.8s",
+          pointerEvents: "none",
+        }}
+      />
 
       {/* Overlay */}
       <div style={{ position: "absolute", inset: 0,
         background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.95) 85%)" }} />
+
+      {/* ── Intro text — fades out when form slides up ─────────────────────── */}
+      <AnimatePresence>
+        {!showForm && (
+          <motion.div
+            key="intro"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            style={{
+              position: "absolute", inset: 0, zIndex: 5,
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              gap: 16, padding: "0 32px", pointerEvents: "none",
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.55 }}
+              style={{ textAlign: "center" }}
+            >
+              <p style={{ margin: "0 0 10px", fontSize: 28, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", textShadow: "0 2px 24px rgba(0,0,0,0.8)" }}>
+                Mr.Butlas
+              </p>
+              <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.6)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                Your Soulmate Awaits
+              </p>
+              <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
+                Anonymous. Exclusive. Yours.
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.5, 0] }}
+              transition={{ delay: 2.5, duration: 1.2, repeat: Infinity }}
+              style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase" }}
+            >
+              Your SoulMate Is Waiting
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Mist / smoke rising behind slider ─────────────────────────────── */}
       <style>{`
@@ -230,6 +272,9 @@ export default function GhostProfileSetupPage() {
           80%  { opacity: var(--mist-op); }
           100% { transform: translateY(-55vh) scaleX(1.35); opacity: 0; }
         }
+        * { -webkit-tap-highlight-color: transparent; }
+        input, select, button { -webkit-appearance: none; }
+        input:focus, select:focus { outline: none; }
       `}</style>
       {[
         { left: "5%",  w: 180, h: 120, dur: 7.2, delay: 0,    op: 0.13 },
@@ -257,89 +302,23 @@ export default function GhostProfileSetupPage() {
         }} />
       ))}
 
-      {/* ── INTRO PHASE ───────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {phase === "intro" && (
-          <motion.div
-            key="intro"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.6 } }}
-            style={{ position: "absolute", inset: 0, display: "flex",
-              flexDirection: "column", alignItems: "center", justifyContent: "flex-end",
-              padding: "0 28px max(56px,env(safe-area-inset-bottom,56px))" }}
-          >
-            {/* Butler + quote */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.7 }}
-              style={{ width: "100%", maxWidth: 420, marginBottom: 32 }}
-            >
-              <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 24 }}>
-                <img src={BUTLER_IMG} alt="Butler"
-                  style={{ width: 52, height: 52, objectFit: "contain", flexShrink: 0,
-                    filter: "drop-shadow(0 0 10px rgba(220,20,20,0.4))" }} />
-                <div>
-                  <p style={{ margin: "0 0 5px", fontSize: 10, fontWeight: 800,
-                    color: "rgba(220,20,20,0.8)", letterSpacing: "0.12em",
-                    textTransform: "uppercase" }}>The Butler</p>
-                  <p style={{ margin: 0, fontSize: 17, color: "rgba(255,255,255,0.9)",
-                    lineHeight: 1.65, fontStyle: "italic",
-                    textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}>
-                    "Before I can admit you among my guests…
-                    <br />I must prepare your presence."
-                  </p>
-                </div>
-              </div>
-
-              {/* Animated loading dots */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-                {[0, 1, 2].map(i => (
-                  <motion.div key={i}
-                    animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.15, 0.8] }}
-                    transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.22 }}
-                    style={{ width: 8, height: 8, borderRadius: "50%", background: R,
-                      boxShadow: `0 0 8px ${R}` }} />
-                ))}
-                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.4)",
-                  fontStyle: "italic" }}>Preparing your welcome…</p>
-              </div>
-
-              {/* Progress bar */}
-              <div style={{ height: 3, borderRadius: 2,
-                background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                <motion.div
-                  style={{ height: "100%", borderRadius: 2,
-                    background: `linear-gradient(90deg, #b80000, ${R}, #ff4444)`,
-                    boxShadow: `0 0 8px ${R}`,
-                    width: `${progress}%` }}
-                  transition={{ duration: 0.05 }}
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── FORM PHASE — red slider ────────────────────────────────────────── */}
-      <AnimatePresence>
-        {phase === "form" && (
-          <motion.div
-            key="form"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 32 }}
-            style={{ position: "absolute", bottom: 0, left: 0, right: 0,
-              display: "flex", justifyContent: "center" }}
-          >
-            <div style={{ width: "100%", maxWidth: 480,
-              background: "rgba(6,2,2,0.98)",
-              borderRadius: "26px 26px 0 0",
-              paddingBottom: "max(32px,env(safe-area-inset-bottom,32px))",
-              overflow: "hidden",
-              boxShadow: `0 -8px 40px rgba(220,20,20,0.18)` }}>
+      {/* ── FORM — slides up after intro text ──────────────────────────────── */}
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: showForm ? 0 : "100%" }}
+        transition={{ type: "tween", duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
+        drag={false}
+        style={{ position: "absolute", bottom: 0, left: 0, right: 0,
+          display: "flex", justifyContent: "center" }}
+      >
+        <div style={{ width: "100%", maxWidth: 480,
+          maxHeight: "92dvh",
+          background: "rgba(6,2,2,0.98)",
+          borderRadius: "26px 26px 0 0",
+          paddingBottom: "max(28px,env(safe-area-inset-bottom,28px))",
+          overflow: "hidden",
+          boxShadow: `0 -8px 40px rgba(220,20,20,0.18)`,
+          touchAction: "pan-y" }}>
 
               {/* Red top stripe */}
               <div style={{ height: 3, background: `linear-gradient(90deg,transparent,${R},transparent)` }} />
@@ -379,12 +358,16 @@ export default function GhostProfileSetupPage() {
                       onChange={e => setName(e.target.value)}
                       placeholder="Your name or alias…"
                       maxLength={32}
-                      style={{ width: "100%", height: 50, borderRadius: 14,
+                      inputMode="text"
+                      autoCapitalize="words"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      style={{ width: "100%", height: 52, borderRadius: 14,
                         padding: "0 14px", boxSizing: "border-box",
                         background: "rgba(220,20,20,0.07)",
                         border: `1px solid ${R_EDGE}`,
-                        color: "#fff", fontSize: 15, outline: "none",
-                        marginBottom: 14 }} />
+                        color: "#fff", fontSize: 16, outline: "none",
+                        marginBottom: 14, touchAction: "manipulation" }} />
 
                     <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 700,
                       color: "rgba(255,255,255,0.3)", textTransform: "uppercase",
@@ -392,12 +375,13 @@ export default function GhostProfileSetupPage() {
 
                     <div style={{ position: "relative", marginBottom: 22 }}>
                       <select value={country} onChange={e => setCountry(e.target.value)}
-                        style={{ width: "100%", height: 50, borderRadius: 14,
+                        style={{ width: "100%", height: 52, borderRadius: 14,
                           padding: "0 36px 0 14px", boxSizing: "border-box",
                           background: "rgba(220,20,20,0.07)",
                           border: `1px solid ${R_EDGE}`,
-                          color: "#fff", fontSize: 14, outline: "none",
-                          appearance: "none", WebkitAppearance: "none", cursor: "pointer" }}>
+                          color: "#fff", fontSize: 16, outline: "none",
+                          appearance: "none", WebkitAppearance: "none", cursor: "pointer",
+                          touchAction: "manipulation" }}>
                         {COUNTRIES.map(c => (
                           <option key={c.name} value={c.name} style={{ background: "#0a0a0a" }}>
                             {c.flag}  {c.name}
@@ -417,7 +401,8 @@ export default function GhostProfileSetupPage() {
                           : "rgba(255,255,255,0.07)",
                         color: canStep1 ? "#fff" : "rgba(255,255,255,0.2)",
                         fontSize: 15, fontWeight: 900, cursor: canStep1 ? "pointer" : "default",
-                        boxShadow: canStep1 ? `0 4px 20px ${R_GLOW}` : "none" }}>
+                        boxShadow: canStep1 ? `0 4px 20px ${R_GLOW}` : "none",
+                        touchAction: "manipulation" }}>
                       Continue →
                     </motion.button>
                   </motion.div>
@@ -431,11 +416,11 @@ export default function GhostProfileSetupPage() {
                     style={{ padding: "20px 20px 0" }}>
 
                     <p style={{ margin: "0 0 4px", fontSize: 19, fontWeight: 900, color: "#fff" }}>
-                      Which languages do you speak?
+                      Which language do you speak?
                     </p>
                     <p style={{ margin: "0 0 16px", fontSize: 12,
                       color: "rgba(255,255,255,0.35)", lineHeight: 1.55 }}>
-                      Select all you're comfortable with — we'll match you with guests who speak your language
+                      Scroll and tap to select your primary language
                     </p>
 
                     {/* Vertical scrollable language list */}
@@ -457,6 +442,8 @@ export default function GhostProfileSetupPage() {
                         scrollbarWidth: "none",
                         padding: "56px 20px",
                         boxSizing: "border-box",
+                        touchAction: "pan-y",
+                        overscrollBehavior: "contain",
                       }}>
                         {[
                           { flag: "🇬🇧", lang: "English",    code: "EN" },
@@ -476,10 +463,14 @@ export default function GhostProfileSetupPage() {
                           { flag: "🇵🇹", lang: "Portuguese", code: "PT" },
                           { flag: "🇷🇺", lang: "Russian",    code: "RU" },
                         ].map(({ flag, lang, code }) => {
-                          const sel = languages.includes(lang);
+                          const sel = languages[0] === lang;
                           return (
                             <motion.div key={lang}
-                              onClick={() => toggleLang(lang)}
+                              onClick={() => {
+                                setLanguages([lang]);
+                                const locale = LANG_TO_LOCALE[lang];
+                                if (locale) try { localStorage.setItem("ghost_locale", locale); } catch {}
+                              }}
                               animate={{ scale: sel ? 1.03 : 1 }}
                               transition={{ duration: 0.15 }}
                               style={{
@@ -492,6 +483,7 @@ export default function GhostProfileSetupPage() {
                                 background: sel ? "rgba(220,20,20,0.10)" : "transparent",
                                 borderRadius: 14,
                                 transition: "background 0.18s",
+                                touchAction: "manipulation",
                               }}>
                               {sel && (
                                 <motion.span
@@ -534,7 +526,8 @@ export default function GhostProfileSetupPage() {
                         color: languages.length > 0 ? "#fff" : "rgba(255,255,255,0.2)",
                         fontSize: 15, fontWeight: 900,
                         cursor: languages.length > 0 ? "pointer" : "default",
-                        boxShadow: languages.length > 0 ? `0 4px 20px ${R_GLOW}` : "none" }}>
+                        boxShadow: languages.length > 0 ? `0 4px 20px ${R_GLOW}` : "none",
+                        touchAction: "manipulation" }}>
                       Continue →
                     </motion.button>
                   </motion.div>
@@ -581,6 +574,8 @@ export default function GhostProfileSetupPage() {
                         scrollbarWidth: "none",
                         padding: "56px 20px",
                         boxSizing: "border-box",
+                        touchAction: "pan-y",
+                        overscrollBehavior: "contain",
                       }}>
                         {SEEKING.map(label => {
                           const sel = seeking === label;
@@ -600,6 +595,7 @@ export default function GhostProfileSetupPage() {
                                 cursor: "pointer", userSelect: "none",
                                 letterSpacing: sel ? "0.02em" : "0",
                                 position: "relative", zIndex: 3,
+                                touchAction: "manipulation",
                               }}>
                               {sel && (
                                 <motion.span
@@ -631,17 +627,16 @@ export default function GhostProfileSetupPage() {
                           : "rgba(255,255,255,0.07)",
                         color: canFinish ? "#fff" : "rgba(255,255,255,0.2)",
                         fontSize: 15, fontWeight: 900,
-                        cursor: canFinish ? "pointer" : "default" }}>
+                        cursor: canFinish ? "pointer" : "default",
+                        touchAction: "manipulation" }}>
                       Enter the Hotel 🏨
                     </motion.button>
                   </motion.div>
                 )}
 
               </AnimatePresence>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      </motion.div>
     </div>
   );
 }

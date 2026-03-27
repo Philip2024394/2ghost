@@ -87,7 +87,8 @@ export default function GhostLandingPage() {
         localStorage.setItem("ghost_password", password);
         localStorage.removeItem("ghost_house_welcomed");
       } catch {}
-      navigate("/gateway", { replace: true });
+      const setupDone = (() => { try { return !!localStorage.getItem("ghost_profile_setup_done"); } catch { return false; } })();
+      navigate(setupDone ? "/mode" : "/profile-setup", { replace: true });
     }, 1200);
   };
 
@@ -415,7 +416,7 @@ export default function GhostLandingPage() {
                         photo: "https://i.pravatar.cc/400?img=14",
                       }));
                     } catch {}
-                    navigate("/gateway");
+                    navigate("/mode");
                   }}
                   style={{
                     display: "block", margin: "0 auto",
@@ -479,11 +480,12 @@ export default function GhostLandingPage() {
               <div style={{ height: 3, background: `linear-gradient(90deg,${a.accentDark},${a.accent})`, borderRadius: "3px 3px 0 0", margin: "-16px -16px 14px" }} />
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
                 <div style={{
-                  width: 48, height: 48, borderRadius: 12, flexShrink: 0,
-                  background: `linear-gradient(135deg,${a.accentDark},${a.accent})`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 26, boxShadow: `0 0 16px ${a.glow(0.3)}`,
-                }}>👻</div>
+                  width: 52, height: 52, borderRadius: 12, flexShrink: 0,
+                  overflow: "hidden",
+                }}>
+                  <img src="https://ik.imagekit.io/7grri5v7d/Untitleddgsdg.png" alt="App icon"
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                </div>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>Add Mr Butlas to your Home Screen</p>
                   <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0 }}>One tap to open — always ready when you are</p>

@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Moon, Settings, Gift, SlidersHorizontal, Lock, KeyRound, Swords } from "lucide-react";
+import { Moon, Settings, Gift, SlidersHorizontal, Lock, KeyRound, Swords, Fingerprint } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { isOnline } from "@/shared/hooks/useOnlineStatus";
@@ -26,6 +26,7 @@ import {
 import GhostParticles from "../components/GhostParticles";
 import GhostDevPanel from "../components/GhostDevPanel";
 import GhostButlerMessage, { BUTLER_MESSAGES, type ButlerMessageKey, type ButlerMessage } from "../components/GhostButlerMessage";
+import GhostProfileDetailOverlay from "../components/GhostProfileDetailOverlay";
 import HouseRulesModal from "../components/HouseRulesModal";
 import GhostFlashPaywallSheet from "../components/GhostFlashPaywallSheet";
 import GhostLobbySheet from "../components/GhostLobbySheet";
@@ -66,7 +67,6 @@ import GhostModePopups from "../components/GhostModePopups";
 import GhostModeMatchBar from "../components/GhostModeMatchBar";
 import CheckoutReminderPopup, { shouldShowCheckout, markCheckoutShown } from "../components/CheckoutReminderPopup";
 import ButlerWelcomePopup, { shouldShowButlerWelcome, markButlerGreeted } from "../components/ButlerWelcomePopup";
-import PushPermissionPrompt, { shouldShowPushPrompt } from "../components/PushPermissionPrompt";
 import LateNightButlerPopup, { shouldShowLateNight, markLateNightShown } from "../components/LateNightButlerPopup";
 import HotelEventsBoard from "../components/HotelEventsBoard";
 import GhostStatsDashboard from "../components/GhostStatsDashboard";
@@ -376,7 +376,6 @@ export default function GhostModePage() {
     } catch {}
     setHouseRulesAgreed(true);
     setShowHouseRules(false);
-    setTimeout(() => setButlerMessage(BUTLER_MESSAGES["room_ready"]), 5000);
   };
 
   // Filter button randomly cycling glow
@@ -401,6 +400,43 @@ export default function GhostModePage() {
   }, []);
   const [_settingsGateFeature, setSettingsGateFeature] = useState<string | null>(null);
 
+  // 3-panel browse layout
+  const [topCardIdx, setTopCardIdx] = useState(0);
+  const [bottomCardIdx, setBottomCardIdx] = useState(2);
+  const [topCardDir, setTopCardDir] = useState<"left" | "right">("left");
+  const [bottomCardDir, setBottomCardDir] = useState<"left" | "right">("left");
+  const [browseTab, setBrowseTab] = useState<"new" | "iliked" | "likesme" | "unlock" | "gifts">("new");
+  const [isBottomPackageView, setIsBottomPackageView] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<{ emoji: string; label: string; sub: string; coins: number; path: string; locked: boolean } | null>(null);
+
+  const UNLOCK_PACKAGES = [
+    { emoji: "💬", label: "1 Unlock",     sub: "Connect now",      coins: 10,  path: "/pricing", locked: coinBalance < 10 },
+    { emoji: "💬", label: "3 Pack",        sub: "3 connections",    coins: 25,  path: "/pricing", locked: coinBalance < 25 },
+    { emoji: "👑", label: "Ghost Black",   sub: "Unlimited",        coins: 200, path: "/pricing", locked: coinBalance < 200 },
+    { emoji: "⭐", label: "Super Like",    sub: "Priority match",   coins: 20,  path: "/pricing", locked: coinBalance < 20 },
+    { emoji: "🚀", label: "Boost",         sub: "Top of stack",     coins: 15,  path: "/pricing", locked: coinBalance < 15 },
+    { emoji: "✅", label: "Verified",      sub: "Trust badge",      coins: 30,  path: "/pricing", locked: coinBalance < 30 },
+    { emoji: "👻", label: "Incognito",     sub: "Browse hidden",    coins: 40,  path: "/pricing", locked: coinBalance < 40 },
+    { emoji: "🌟", label: "Spotlight",     sub: "Featured 24h",     coins: 50,  path: "/pricing", locked: coinBalance < 50 },
+  ];
+
+  const GIFT_OPTIONS = [
+    { emoji: "🌹", label: "Rose",      coins: 5  },
+    { emoji: "💐", label: "Bouquet",   coins: 15 },
+    { emoji: "🍷", label: "Wine",      coins: 10 },
+    { emoji: "🍫", label: "Chocolate", coins: 8  },
+    { emoji: "💎", label: "Diamond",   coins: 50 },
+    { emoji: "🎁", label: "Gift Box",  coins: 20 },
+  ];
+
+  // Profile view mode
+  const [ghostProfileView, setGhostProfileView] = useState<GhostProfile | null>(null);
+  const [profileTab, setProfileTab] = useState<"profile" | "dateideas" | "treat" | "gifts">("profile");
+  const [pvImageIdx, setPvImageIdx] = useState(0);
+  const isProfileView = ghostProfileView !== null;
+  useEffect(() => { setPvImageIdx(0); }, [ghostProfileView?.id]);
+  const [showProfileDetail, setShowProfileDetail] = useState(false);
+
   // Ghost Flash — 60-minute live pool
   const FLASH_CONTACT_LIMIT = 3;
   const [flashUntil, setFlashUntil] = useState<number>(() => {
@@ -424,7 +460,6 @@ export default function GhostModePage() {
   const [showCheckout,       setShowCheckout]       = useState(false);
   const [showButlerWelcome,  setShowButlerWelcome]  = useState(false);
   const [showLateNight,      setShowLateNight]      = useState(false);
-  const [showPushPrompt,     setShowPushPrompt]     = useState(false);
   const [showCoinShop,       setShowCoinShop]       = useState(false);
   const [showButlerChallenge, setShowButlerChallenge] = useState(false);
   const challengeFiredRef = useRef(false);
@@ -574,16 +609,6 @@ export default function GhostModePage() {
     return () => clearTimeout(t);
   }, []);
 
-  // Push notification prompt — show 20s after load if not yet subscribed/dismissed
-  useEffect(() => {
-    if (!shouldShowPushPrompt()) return;
-    const t = setTimeout(() => {
-      if (!canShowAutoPopup()) return;
-      setShowPushPrompt(true);
-      markAutoPopupShown();
-    }, 20000);
-    return () => clearTimeout(t);
-  }, []);
 
   // Late-night butler — show 90s after load if time is 10pm–3:59am, once per day
   useEffect(() => {
@@ -1146,6 +1171,11 @@ export default function GhostModePage() {
     return arr;
   }, [allProfiles, likedIds, shuffleSeed]);
 
+
+  const centerProfiles = useMemo(() => {
+    return newGuestProfiles.length > 0 ? newGuestProfiles : profiles.slice(0, 12);
+  }, [profiles, newGuestProfiles]);
+
   const saveMatch = (profile: GhostProfile) => {
     const next = [
       ...savedMatches.filter((m) => m.id !== profile.id && Date.now() - m.matchedAt < MATCH_EXPIRY_MS),
@@ -1157,6 +1187,11 @@ export default function GhostModePage() {
 
   const handleLike = (profile: GhostProfile) => {
     const newLiked = new Set(likedIds);
+    if (newLiked.has(profile.id)) {
+      newLiked.delete(profile.id);
+      setLikedIds(newLiked);
+      return;
+    }
     newLiked.add(profile.id);
     setLikedIds(newLiked);
     // Persist like to Supabase (fire and forget)
@@ -1288,7 +1323,7 @@ export default function GhostModePage() {
       </button>
 
     <div
-      style={{ width: "100%", maxWidth: 480, minHeight: "100dvh", background: "#050508", color: "#fff", display: "flex", flexDirection: "column", position: "relative" }}
+      style={{ width: "100%", maxWidth: 480, minHeight: "100dvh", background: "#000", color: "#fff", display: "flex", flexDirection: "column", position: "relative" }}
     >
       {/* Blocking overlay — sits above cards/content but below house rules modal and install banner */}
       {!houseRulesAgreed && (
@@ -1386,76 +1421,6 @@ export default function GhostModePage() {
 
 
 
-      {/* ── Quick-action icon strip (replaces 2 rows → 1 compact row) ── */}
-      <div style={{ margin: "10px 14px 0", display: "flex", gap: 6 }}>
-
-        {/* Vault */}
-        <motion.button whileTap={{ scale: 0.93 }} onClick={() => requireAuth(() => navigate("/room"))}
-          style={{ flex: 1, height: 44, borderRadius: 12, background: a.glow(0.07), border: `1px solid ${a.glow(0.22)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, cursor: "pointer" }}
-        >
-          <span style={{ fontSize: 16, lineHeight: 1 }}>🔒</span>
-          <span style={{ fontSize: 9, fontWeight: 800, color: a.accent, letterSpacing: "0.02em" }}>Vault</span>
-        </motion.button>
-
-        {/* Tonight */}
-        <motion.button whileTap={{ scale: 0.93 }} onClick={() => requireAuth(() => setShowTonightSheet(true))}
-          style={{ flex: 1, height: 44, borderRadius: 12, background: lobbyList.length > 0 ? "rgba(212,175,55,0.12)" : "rgba(212,175,55,0.07)", border: `1px solid ${lobbyList.length > 0 ? "rgba(212,175,55,0.45)" : "rgba(212,175,55,0.2)"}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, cursor: "pointer", position: "relative" }}
-        >
-          {lobbyList.length > 0 && (
-            <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.4, repeat: Infinity }}
-              style={{ position: "absolute", top: 6, right: 6, width: 6, height: 6, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 6px rgba(34,197,94,0.9)" }} />
-          )}
-          <span style={{ fontSize: 16, lineHeight: 1 }}>🌙</span>
-          <span style={{ fontSize: 9, fontWeight: 800, color: "#d4af37", letterSpacing: "0.02em" }}>Tonight</span>
-        </motion.button>
-
-        {/* Date Idea */}
-        <motion.button whileTap={{ scale: 0.93 }} onClick={() => requireAuth(() => {
-          if (isDateIdeasUnlocked()) { setShowDateIdeas(true); }
-          else { setShowVeraLocked(true); }
-        })}
-          style={{ flex: 1, height: 44, borderRadius: 12, background: a.glow(0.07), border: `1px solid ${a.glow(0.22)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, cursor: "pointer" }}
-        >
-          <span style={{ fontSize: 16, lineHeight: 1 }}>💝</span>
-          <span style={{ fontSize: 9, fontWeight: 800, color: a.accent, letterSpacing: "0.02em" }}>
-            {isDateIdeasUnlocked() ? "Date" : "🔒 Date"}
-          </span>
-        </motion.button>
-
-        {/* Chat */}
-        <motion.button whileTap={{ scale: 0.93 }}
-          onClick={() => requireAuth(() => {
-            const tier = userRoomTier ?? "standard";
-            setFloorChatTier(tier);
-            setShowFloorChat(true);
-            setChatUnreadState(0);
-            setChatUnread("standard", 0);
-          })}
-          style={{ flex: 1, height: 44, borderRadius: 12, background: a.glow(0.07), border: `1px solid ${a.glow(0.22)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, cursor: "pointer", position: "relative" }}
-        >
-          <span style={{ fontSize: 16, lineHeight: 1 }}>💬</span>
-          <span style={{ fontSize: 9, fontWeight: 800, color: a.accent, letterSpacing: "0.02em" }}>Chat</span>
-          {chatUnread > 0 && (
-            <div style={{ position: "absolute", top: 5, right: 5, minWidth: 14, height: 14, borderRadius: 7, background: "#d4af37", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>
-              <span style={{ fontSize: 7, fontWeight: 900, color: "#000" }}>{chatUnread > 9 ? "9+" : chatUnread}</span>
-            </div>
-          )}
-        </motion.button>
-
-        {/* Viewed Me */}
-        <motion.button whileTap={{ scale: 0.93 }} onClick={() => requireAuth(() => setShowViewedMe(true))}
-          style={{ flex: 1, height: 44, borderRadius: 12, background: a.glow(0.07), border: `1px solid ${a.glow(0.22)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, cursor: "pointer", position: "relative" }}
-        >
-          <span style={{ fontSize: 16, lineHeight: 1 }}>👁️</span>
-          <span style={{ fontSize: 9, fontWeight: 800, color: a.accent, letterSpacing: "0.02em" }}>Viewed</span>
-          {viewedMeList.some(p => p.viewCount >= 2) && (
-            <div style={{ position: "absolute", top: 5, right: 5, minWidth: 14, height: 14, borderRadius: 7, background: "#d4af37", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>
-              <span style={{ fontSize: 7, fontWeight: 900, color: "#000" }}>{viewedMeList.filter(p => p.viewCount >= 2).length}</span>
-            </div>
-          )}
-        </motion.button>
-
-      </div>
 
       {/* Filter slide-up sheet */}
       <AnimatePresence>
@@ -1702,108 +1667,13 @@ export default function GhostModePage() {
         )}
       </AnimatePresence>
 
-      {/* ── Profile completion nudge ── */}
-      {(() => {
-        try {
-          const p = JSON.parse(localStorage.getItem("ghost_profile") || "{}");
-          let pct = 0;
-          if (p.photo || p.image) pct += 25;
-          if (p.bio) pct += 25;
-          if (localStorage.getItem("ghost_voice_note")) pct += 20;
-          if (p.photo2 || p.secondPhoto) pct += 15;
-          if (p.firstDateIdea) pct += 15;
-          if (pct >= 100) return null;
-          return (
-            <div
-              onClick={() => navigate("/setup")}
-              style={{ margin: "8px 14px 0", cursor: "pointer" }}
-            >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>
-                  Profile {pct}% complete — complete it for 3× more matches
-                </span>
-                <span style={{ fontSize: 10, color: a.accent, fontWeight: 700 }}>Edit →</span>
-              </div>
-              <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)" }}>
-                <div style={{ height: "100%", width: `${pct}%`, borderRadius: 2, background: `linear-gradient(90deg,${a.accentDark},${a.accent})`, transition: "width 0.5s" }} />
-              </div>
-            </div>
-          );
-        } catch { return null; }
-      })()}
 
       {/* ── Daily Login Streak Banner ── */}
       <GhostStreakBanner />
 
-      {/* ── Country + Filter floating bar ── */}
-      <div style={{ margin: "10px 14px 6px", display: "flex", alignItems: "center", gap: 8 }}>
-        {/* Block */}
-        <button
-          onClick={() => requireAuth(() => navigate("/block"))}
-          style={{
-            width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-            background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer",
-          }}
-        >
-          <img src={SHIELD_LOGO} alt="Block" style={{ width: 20, height: 20, objectFit: "contain" }} />
-        </button>
-        {/* Country dropdown — left */}
-        <div style={{ position: "relative", flex: 1 }}>
-          <select
-            value={browsingCountryCode ?? ""}
-            onChange={(e) => setBrowsingCountryCode(e.target.value || null)}
-            style={{
-              width: "100%", height: 36, borderRadius: 10,
-              background: browsingCountryCode ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.05)",
-              border: browsingCountryCode ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.1)",
-              color: browsingCountryCode ? "#818cf8" : "rgba(255,255,255,0.6)",
-              fontSize: 12, fontWeight: 700, padding: "0 10px",
-              appearance: "none", WebkitAppearance: "none", cursor: "pointer",
-              outline: "none",
-            }}
-          >
-            <option value="">{homeFlag} {homeCountryName}</option>
-            {SEA_COUNTRY_LIST.filter((c) => c.code !== homeCountryCode).map((c) => (
-              <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
-            ))}
-          </select>
-          <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>▾</span>
-        </div>
-        {/* Filter button — right */}
-        <button onClick={() => setShowFilters(true)} title="Filter"
-          style={{
-            width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-            background: a.glow(0.12),
-            border: `1.5px solid ${a.glow(0.6)}`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer",
-          }}
-        >
-          <SlidersHorizontal size={15} color={a.accent} />
-        </button>
-      </div>
 
 
-      {/* ── Section header ── */}
-      {(() => {
-        const displayCountry = browsingCountryCode
-          ? (SEA_COUNTRY_LIST.find((c) => c.code === browsingCountryCode)?.name ?? homeCountryName)
-          : homeCountryName;
-        return (
-          <div style={{ margin: "14px 14px 4px" }}>
-            <p style={{ margin: "0 0 2px", fontSize: 20, fontWeight: 900, color: "#fff", lineHeight: 1.15 }}>
-              {displayCountry}'s
-            </p>
-            <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.38)", fontWeight: 500, letterSpacing: "0.01em" }}>
-              Real Connections waiting for you
-            </p>
-          </div>
-        );
-      })()}
-
-      {/* Profile grid */}
+      {/* ── 3-Panel Browse Layout ── */}
       {profiles.length === 0 ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", gap: 14 }}>
           <span style={{ fontSize: 64 }}>👻</span>
@@ -1829,118 +1699,773 @@ export default function GhostModePage() {
           </motion.button>
         </div>
       ) : (
-        <div style={{ flex: 1, padding: "12px 14px 24px", paddingBottom: `max(24px, env(safe-area-inset-bottom, 24px))`, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {profiles.map((profile) => (
-            <GhostCard
-              key={profile.id}
-              profile={profile}
-              liked={likedIds.has(profile.id)}
-              onClick={() => requireAuth(() => setSelectedProfile(profile))}
-              onLike={() => handleLike(profile)}
-              isRevealed={revealedIds.has(profile.id)}
-              onReveal={() => handleReveal(profile.id)}
-              canReveal={isGhost || isFemale}
-              isTonight={isProfileTonight(profile.id)}
-              houseTier={profileHouseTier(profile.id)}
-              flaggedReason={flaggedProfiles[profile.id]?.reason}
-              onFlagOpen={() => { const gId = toGhostId(profile.id); setFlagSheet({ profileId: profile.id, ghostId: gId }); }}
-              isFoundBoo={!!(isProfilePaused && foundBoo?.matchProfileId === profile.id)}
-              onGameInvite={isOnline(profile.last_seen_at) ? () => handleGameInvite(profile) : undefined}
-            />
-          ))}
-        </div>
-      )}
+        <div style={{
+          flex: 1, display: "flex", flexDirection: "column", minHeight: 0,
+          padding: "6px 16px",
+          paddingBottom: `max(16px, env(safe-area-inset-bottom, 16px))`,
+          gap: 10,
+        }}>
 
-      {/* ── Ready to Meet Tonight ── */}
-      {lobbyList.length > 0 && (
-        <div style={{ padding: "20px 14px 0" }}>
-          <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.22)", borderRadius: 16, overflow: "hidden", marginBottom: 0 }}>
-            {/* Gold top stripe */}
-            <div style={{ height: 3, background: "linear-gradient(90deg, transparent, #d4af37, transparent)" }} />
-            <div style={{ padding: "12px 14px 0" }}>
-          {/* Header */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <motion.img
-                src="https://ik.imagekit.io/7grri5v7d/SADFASDFASDFASDFSdsfasdf.png"
-                alt="tonight"
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 1.6, repeat: Infinity }}
-                style={{ width: 28, height: 28, objectFit: "contain", flexShrink: 0 }}
-              />
-              <div>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em" }}>Ready to Meet Tonight</p>
-                <p style={{ margin: 0, fontSize: 10, color: a.glow(0.6), fontWeight: 600 }}>{lobbyList.length} ghost{lobbyList.length !== 1 ? "s" : ""} available now</p>
-              </div>
-            </div>
-            <motion.div
-              animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 1.8, repeat: Infinity }}
-              style={{ width: 8, height: 8, borderRadius: "50%", background: a.accent, boxShadow: `0 0 8px ${a.glow(0.9)}` }}
-            />
-          </div>
+          {/* ── Profile view top card ── */}
+          {isProfileView && ghostProfileView && (() => {
+            const p = ghostProfileView;
+            const online = isOnline(p.last_seen_at);
+            const isLiked = likedIds.has(p.id);
+            // Simulate multiple images — real app will supply p.images[]
+            const pvImages = [p.image, p.image, p.image];
+            const pvTotal = pvImages.length;
+            return (
+              <motion.div
+                key={`pv-${p.id}`}
+                initial={{ opacity: 0, flexGrow: 1.8 }}
+                animate={{ opacity: 1, flexGrow: 3.5 }}
+                transition={{ type: "spring", stiffness: 280, damping: 30 }}
+                onClick={() => { setGhostProfileView(null); setProfileTab("profile"); }}
+                style={{
+                  flex: "0 0 0px", minHeight: 150,
+                  position: "relative", borderRadius: 28, overflow: "hidden",
+                  boxShadow: "0 14px 36px rgba(0,0,0,0.5)", cursor: "pointer",
+                }}
+              >
+                {/* Current photo */}
+                <motion.img
+                  key={`pv-img-${pvImageIdx}`}
+                  src={pvImages[pvImageIdx]} alt=""
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
+                  onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)" }} />
 
-          {/* Horizontal scroll row of cards */}
-          <div style={{ overflowX: "auto", scrollbarWidth: "none", marginLeft: -14, marginRight: -14 } as React.CSSProperties}>
-            <style>{`.tonight-row::-webkit-scrollbar{display:none}`}</style>
-            <div className="tonight-row" style={{ display: "flex", gap: 10, padding: "4px 14px 8px" }}>
-              {lobbyList.slice(0, 12).map((p, i) => (
-                <motion.div
-                  key={p.id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05, type: "spring", stiffness: 300, damping: 26 }}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={() => setSelectedProfile(p)}
-                  style={{ flexShrink: 0, width: 110, cursor: "pointer" }}
+                {/* Image indicator lines — top center */}
+                <div style={{ position: "absolute", top: 10, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 4, zIndex: 10 }}>
+                  {pvImages.map((_, i) => (
+                    <div key={i} style={{
+                      width: 28, height: 3, borderRadius: 2,
+                      background: i === pvImageIdx ? "#fff" : "rgba(255,255,255,0.35)",
+                      transition: "background 0.25s",
+                    }} />
+                  ))}
+                </div>
+
+                {/* Distance badge — top-left */}
+                <div style={{ position: "absolute", top: 24, left: 14, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.85)", whiteSpace: "nowrap" }}>
+                  📍 {p.distanceKm !== undefined ? `${p.distanceKm < 1 ? "<1" : Math.round(p.distanceKm)} km` : "Nearby"}
+                </div>
+
+                {/* Heart button — top-right */}
+                <motion.button whileTap={{ scale: 0.84 }}
+                  onClick={e => { e.stopPropagation(); handleLike(p); if (!likedIds.has(p.id)) { setShowLikeRain(true); setTimeout(() => setShowLikeRain(false), 2500); } }}
+                  style={{ position: "absolute", top: 18, right: 14, width: 44, height: 44, borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.22)", background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", touchAction: "manipulation", fontSize: 21 }}>
+                  {isLiked ? "❤️" : "🤍"}
+                </motion.button>
+
+                {/* Info overlay — bottom-left */}
+                <div style={{ position: "absolute", bottom: 14, left: 14, display: "flex", flexDirection: "column", gap: 3 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{toGhostId(p.id)}</p>
+                    <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.4, repeat: Infinity }}
+                      style={{ width: 8, height: 8, borderRadius: "50%", background: online ? "#22c55e" : "#f59e0b", boxShadow: online ? "0 0 6px rgba(34,197,94,0.9)" : "0 0 6px rgba(245,158,11,0.9)", flexShrink: 0 }} />
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    {p.isVerified && <span style={{ fontSize: 13, lineHeight: 1 }}>✅</span>}
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{p.age}</span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.6)" }}>{p.city.split(",")[0]}</p>
+                </div>
+
+                {/* Fingerprint button — bottom-right, cycles through images */}
+                <motion.button
+                  whileTap={{ scale: 0.84 }}
+                  onClick={e => { e.stopPropagation(); setPvImageIdx(i => (i + 1) % pvTotal); }}
+                  style={{ position: "absolute", bottom: 14, right: 14, width: 48, height: 48, borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.28)", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", touchAction: "manipulation" }}
                 >
-                  <div style={{ position: "relative", width: 110, height: 140, borderRadius: 14, overflow: "hidden", border: `1.5px solid ${a.glow(0.4)}`, boxShadow: `0 0 12px ${a.glow(0.18)}` }}>
-                    <img src={p.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                      onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%)" }} />
+                  <Fingerprint size={24} color="rgba(255,255,255,0.8)" />
+                </motion.button>
+              </motion.div>
+            );
+          })()}
 
-                    {/* Online / Busy status */}
-                    {(() => {
-                      const online = isOnline(p.last_seen_at);
-                      const dotColor = online ? "#4ade80" : "#fb923c";
-                      const dotGlow  = online ? "rgba(74,222,128,0.9)" : "rgba(251,146,60,0.9)";
-                      const label    = online ? "Online" : "Busy";
-                      return (
-                        <div style={{ position: "absolute", top: 7, left: 7, display: "flex", alignItems: "center", gap: 4, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "3px 8px" }}>
-                          <motion.div
-                            animate={{ opacity: [0.4, 1, 0.4] }}
-                            transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.18 }}
-                            style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, boxShadow: `0 0 5px ${dotGlow}`, flexShrink: 0 }}
-                          />
-                          <span style={{ fontSize: 8, fontWeight: 800, color: dotColor, letterSpacing: "0.04em" }}>{label}</span>
+          {/* ── Top profile card (home mode only) ── */}
+          {!isProfileView && (() => {
+            const profile = profiles[topCardIdx % profiles.length];
+            const online = isOnline(profile.last_seen_at);
+            const isLiked = likedIds.has(profile.id);
+            return (
+              <motion.div
+                key={`top-${profile.id}`}
+                initial={{ x: topCardDir === "left" ? 260 : -260, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.18}
+                dragTransition={{ bounceStiffness: 500, bounceDamping: 40 }}
+                onDragEnd={(_, info) => {
+                  const triggered = Math.abs(info.offset.x) > 80 || Math.abs(info.velocity.x) > 500;
+                  if (triggered) {
+                    if (info.offset.x > 0) {
+                      setTopCardDir("right");
+                      setTopCardIdx(i => (i - 1 + profiles.length) % profiles.length);
+                    } else {
+                      setTopCardDir("left");
+                      setTopCardIdx(i => (i + 1) % profiles.length);
+                    }
+                  } else if (info.offset.y < -60) {
+                    requireAuth(() => setGhostProfileView(profile));
+                  }
+                }}
+                style={{
+                  flex: "0 0 0px", flexGrow: 1.8, minHeight: 150,
+                  position: "relative", borderRadius: 28, overflow: "hidden",
+                  boxShadow: "0 14px 36px rgba(0,0,0,0.5)",
+                  cursor: "pointer", touchAction: "pan-y",
+                }}
+                onClick={() => requireAuth(() => setGhostProfileView(profile))}
+              >
+                {/* Full-bleed image */}
+                <img
+                  src={profile.image} alt=""
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
+                  onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                />
+                {/* Gradient overlay */}
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)" }} />
+
+                {/* Distance badge — top-left */}
+                <div style={{ position: "absolute", top: 14, left: 14, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>
+                  📍 {profile.distanceKm !== undefined ? `${profile.distanceKm < 1 ? "<1" : Math.round(profile.distanceKm)} km` : "Nearby"}
+                </div>
+
+                {/* Info overlay — bottom-left */}
+                <div style={{ position: "absolute", bottom: 14, left: 14, display: "flex", flexDirection: "column", gap: 3 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{toGhostId(profile.id)}</p>
+                    <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.4, repeat: Infinity }}
+                      style={{ width: 8, height: 8, borderRadius: "50%", background: online ? "#22c55e" : "#f59e0b", boxShadow: online ? "0 0 6px rgba(34,197,94,0.9)" : "0 0 6px rgba(245,158,11,0.9)", flexShrink: 0 }} />
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    {profile.isVerified && <span style={{ fontSize: 13, lineHeight: 1 }}>✅</span>}
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{profile.age}</span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.6)" }}>{profile.city.split(",")[0]}</p>
+                </div>
+
+                {/* Heart button — top-right */}
+                <motion.button
+                  whileTap={{ scale: 0.84 }}
+                  onClick={e => { e.stopPropagation(); handleLike(profile); requireAuth(() => setGhostProfileView(profile)); if (!likedIds.has(profile.id)) { setShowLikeRain(true); setTimeout(() => setShowLikeRain(false), 2500); } }}
+                  style={{
+                    position: "absolute", top: 14, right: 14,
+                    width: 44, height: 44, borderRadius: "50%",
+                    border: "1.5px solid rgba(255,255,255,0.22)",
+                    background: "rgba(0,0,0,0.45)",
+                    backdropFilter: "blur(8px)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    cursor: "pointer", touchAction: "manipulation", fontSize: 21,
+                    transition: "none",
+                  }}
+                >
+                  {isLiked ? "❤️" : "🤍"}
+                </motion.button>
+
+                {/* Fingerprint button — bottom-right */}
+                <motion.button
+                  whileTap={{ scale: 0.84 }}
+                  onClick={e => {
+                    e.stopPropagation();
+                    setTopCardDir("left");
+                    setTopCardIdx(cur => {
+                      const n = profiles.length;
+                      if (n <= 1) return cur;
+                      let next = (cur + 1) % n;
+                      if (next === bottomCardIdx) next = (next + 1) % n;
+                      return next;
+                    });
+                  }}
+                  style={{
+                    position: "absolute", bottom: 14, right: 14,
+                    width: 48, height: 48, borderRadius: "50%",
+                    border: "1.5px solid rgba(255,255,255,0.22)",
+                    background: "rgba(0,0,0,0.55)",
+                    backdropFilter: "blur(8px)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    cursor: "pointer", touchAction: "manipulation",
+                  }}
+                >
+                  <Fingerprint size={24} color="rgba(255,255,255,0.75)" />
+                </motion.button>
+
+              </motion.div>
+            );
+          })()}
+
+
+          {/* ── Center panel (home mode only) ── */}
+          {!isProfileView && <div style={{
+            flex: "0 0 0px", flexGrow: 1.6, minHeight: 0,
+            background: "#000",
+            borderRadius: 28,
+            border: "1.5px solid #d4af37",
+            boxShadow: "0 0 0 1px rgba(212,175,55,0.18), 0 0 18px rgba(212,175,55,0.22), inset 0 0 12px rgba(212,175,55,0.06)",
+            display: "flex", flexDirection: "column", padding: "12px 14px 10px", gap: 8,
+            overflowY: "auto", scrollbarWidth: "none",
+            position: "relative", overflowX: "hidden",
+          }}>
+
+            {/* Floating hearts — decorative, always visible */}
+            <style>{`
+              @keyframes floatHeart{0%{transform:translateY(0) scale(0.7);opacity:0.7}100%{transform:translateY(-90px) scale(0.3);opacity:0}}
+              .fh{position:absolute;bottom:10px;pointer-events:none;animation:floatHeart 2.8s ease-in infinite;font-size:14px;z-index:0}
+            `}</style>
+            {[14, 26, 40, 56, 70, 82].map((left, i) => (
+              <div key={i} className="fh" style={{ left: `${left}%`, animationDelay: `${i * 0.45}s`, animationDuration: `${2.4 + i * 0.3}s` }}>❤️</div>
+            ))}
+
+            {/* Header row */}
+            {isProfileView && ghostProfileView ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, position: "relative", zIndex: 1 }}>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#d4af37" }}>
+                  {toGhostId(ghostProfileView.id)}
+                </p>
+                <div style={{ display: "flex", background: "rgba(212,175,55,0.1)", borderRadius: 30, padding: 3, gap: 1, border: "1px solid rgba(212,175,55,0.25)" }}>
+                  {(["profile", "dateideas", "treat", "gifts"] as const).map(tab => (
+                    <motion.button key={tab} whileTap={{ scale: 0.93 }}
+                      onClick={() => setProfileTab(tab)}
+                      style={{ padding: "4px 7px", borderRadius: 26, border: "none", background: profileTab === tab ? "#e11d48" : "transparent", color: profileTab === tab ? "#fff" : "rgba(255,255,255,0.5)", fontSize: 8, fontWeight: 700, cursor: "pointer", touchAction: "manipulation", transition: "background 0.15s, color 0.15s", whiteSpace: "nowrap" }}>
+                      {tab === "profile" ? "Profile" : tab === "dateideas" ? "Date" : tab === "treat" ? "Treat" : "Gifts"}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, position: "relative", zIndex: 1 }}>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#d4af37" }}>
+                  {browseTab === "new" ? "New Guests" : browseTab === "iliked" ? "I Liked" : browseTab === "likesme" ? "Likes Me" : browseTab === "unlock" ? "Unlock" : "Gifts"}
+                </p>
+                {/* 5-tab segmented toggle */}
+                <div style={{ display: "flex", background: "rgba(212,175,55,0.1)", borderRadius: 30, padding: 3, gap: 1, border: "1px solid rgba(212,175,55,0.25)" }}>
+                  {(["new", "iliked", "likesme", "unlock", "gifts"] as const).map(tab => (
+                    <motion.button key={tab} whileTap={{ scale: 0.93 }}
+                      onClick={() => {
+                        setBrowseTab(tab);
+                        if (tab === "unlock") {
+                          setSelectedPackage(UNLOCK_PACKAGES[0]);
+                          setIsBottomPackageView(true);
+                        } else {
+                          setIsBottomPackageView(false);
+                          setSelectedPackage(null);
+                        }
+                      }}
+                      style={{
+                        padding: "4px 7px", borderRadius: 26, border: "none",
+                        background: browseTab === tab ? "#e11d48" : "transparent",
+                        color: browseTab === tab ? "#fff" : "rgba(255,255,255,0.5)",
+                        fontSize: 8, fontWeight: 700, cursor: "pointer", touchAction: "manipulation",
+                        transition: "background 0.15s, color 0.15s", whiteSpace: "nowrap",
+                      }}
+                    >
+                      {tab === "new" ? "New" : tab === "iliked" ? "Liked" : tab === "likesme" ? "Fans" : tab === "unlock" ? "Unlock" : "Gifts"}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <style>{`.c-scroll::-webkit-scrollbar{display:none}`}</style>
+
+            {/* ── New Guests ── */}
+            {!isProfileView && browseTab === "new" && (
+              <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", flex: 1, minHeight: 0, paddingBottom: 4, display: "flex", gap: 10, alignItems: "stretch", position: "relative", zIndex: 1, WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
+                  {centerProfiles.slice(0, 12).map((p, i) => (
+                    <motion.div key={p.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }} whileTap={{ scale: 0.92 }}
+                      onClick={() => requireAuth(() => setGhostProfileView(p))}
+                      style={{ flexShrink: 0, width: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(212,175,55,0.08)", borderRadius: 18, padding: "12px 6px", cursor: "pointer", border: "1px solid rgba(212,175,55,0.2)", touchAction: "manipulation", position: "relative", gap: 6 }}
+                    >
+                      <div style={{ position: "relative" }}>
+                        {/* Gold ring around avatar */}
+                        <div style={{ width: 66, height: 66, borderRadius: "50%", padding: 2, background: "linear-gradient(135deg, #d4af37, #f5e47a, #d4af37)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <img src={p.image} alt="" style={{ width: 62, height: 62, borderRadius: "50%", objectFit: "cover", display: "block" }} onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
                         </div>
-                      );
-                    })()}
+                        {/* Status dot — always shown, green=online orange=busy */}
+                        <motion.div
+                          animate={{ opacity: [0.5, 1, 0.5], scale: [0.9, 1.15, 0.9] }}
+                          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                          style={{ position: "absolute", bottom: 2, right: 2, width: 12, height: 12, borderRadius: "50%", background: isOnline(p.last_seen_at) ? "#22c55e" : "#f59e0b", border: "2px solid #0d1422", boxShadow: isOnline(p.last_seen_at) ? "0 0 7px rgba(34,197,94,0.9)" : "0 0 7px rgba(245,158,11,0.9)" }} />
+                        {i < 4 && <div style={{ position: "absolute", top: -5, right: -8, background: "gold", borderRadius: 20, padding: "2px 6px", fontSize: 7, fontWeight: 900, color: "#1f1a0a", boxShadow: "0 0 6px gold", zIndex: 2 }}>NEW</div>}
+                      </div>
+                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#fff", textAlign: "center", width: "100%", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name.split(" ")[0]}</p>
+                      <p style={{ margin: 0, fontSize: 8, color: "#a5b3d4" }}>{p.age} · {p.city.split(",")[0].split(" ")[0]}</p>
+                    </motion.div>
+                  ))}
+              </div>
+            )}
 
-                    {/* Name + age */}
-                    <div style={{ position: "absolute", bottom: 7, left: 8, right: 8 }}>
-                      <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#fff", lineHeight: 1.2, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name.split(" ")[0]}</p>
-                      <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.55)", fontWeight: 600 }}>{p.age} · {p.city}</p>
+            {/* ── I Liked ── */}
+            {!isProfileView && browseTab === "iliked" && (
+              <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", flex: 1, minHeight: 0, paddingBottom: 4, display: "flex", gap: 10, alignItems: "stretch", position: "relative", zIndex: 1, WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
+                  {iLikeList.length === 0 ? (
+                    <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)", fontStyle: "italic", padding: "10px 0" }}>No likes yet — tap a heart!</p>
+                  ) : iLikeList.slice(0, 12).map((p, i) => (
+                    <motion.div key={p.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }} whileTap={{ scale: 0.92 }}
+                      onClick={() => requireAuth(() => setGhostProfileView(p))}
+                      style={{ flexShrink: 0, width: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(212,175,55,0.08)", borderRadius: 18, padding: "12px 6px", cursor: "pointer", border: "1px solid rgba(212,175,55,0.25)", touchAction: "manipulation", position: "relative", gap: 6 }}
+                    >
+                      <div style={{ position: "relative" }}>
+                        <img src={p.image} alt="" style={{ width: 62, height: 62, borderRadius: "50%", objectFit: "cover", display: "block" }} onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
+                        {isOnline(p.last_seen_at) && <div style={{ position: "absolute", bottom: 2, right: 2, width: 11, height: 11, borderRadius: "50%", background: "#22c55e", border: "2px solid #0d1422" }} />}
+                      </div>
+                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#fff", textAlign: "center", width: "100%", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name.split(" ")[0]}</p>
+                      <p style={{ margin: 0, fontSize: 8, color: "#a5b3d4" }}>{p.age} · {p.city.split(",")[0].split(" ")[0]}</p>
+                      <div style={{ position: "absolute", top: 8, right: 8, fontSize: 10 }}>❤️</div>
+                    </motion.div>
+                  ))}
+              </div>
+            )}
+
+            {/* ── Likes Me (Fans) ── */}
+            {!isProfileView && browseTab === "likesme" && (
+              <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", flex: 1, minHeight: 0, paddingBottom: 4, display: "flex", gap: 10, alignItems: "stretch", position: "relative", zIndex: 1 } as React.CSSProperties}>
+                  {likedMeList.length === 0 ? (
+                    <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)", fontStyle: "italic", padding: "10px 0" }}>No fans yet — keep swiping!</p>
+                  ) : likedMeList.slice(0, 12).map((p, i) => (
+                    <motion.div key={p.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }} whileTap={{ scale: 0.92 }}
+                      onClick={() => requireAuth(() => setGhostProfileView(p))}
+                      style={{ flexShrink: 0, width: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(212,175,55,0.08)", borderRadius: 18, padding: "12px 6px", cursor: "pointer", border: "1px solid rgba(236,72,153,0.3)", touchAction: "manipulation", position: "relative", gap: 6 }}
+                    >
+                      <div style={{ position: "relative", filter: likedIds.has(p.id) ? "none" : "blur(4px)" }}>
+                        <img src={p.image} alt="" style={{ width: 62, height: 62, borderRadius: "50%", objectFit: "cover", display: "block" }} onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
+                        {isOnline(p.last_seen_at) && <div style={{ position: "absolute", bottom: 2, right: 2, width: 11, height: 11, borderRadius: "50%", background: "#22c55e", border: "2px solid #0d1422" }} />}
+                      </div>
+                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#fff", textAlign: "center", width: "100%", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{likedIds.has(p.id) ? p.name.split(" ")[0] : "Ghost"}</p>
+                      <p style={{ margin: 0, fontSize: 8, color: "#a5b3d4" }}>{p.age} · {likedIds.has(p.id) ? p.city.split(",")[0].split(" ")[0] : "???"}</p>
+                      <div style={{ position: "absolute", top: 8, right: 8, fontSize: 10 }}>🩷</div>
+                    </motion.div>
+                  ))}
+              </div>
+            )}
+
+            {/* ── Unlock ── */}
+            {!isProfileView && browseTab === "unlock" && (
+              <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", flex: 1, minHeight: 0, paddingBottom: 4, display: "flex", gap: 10, alignItems: "stretch", position: "relative", zIndex: 1 } as React.CSSProperties}>
+                  {UNLOCK_PACKAGES.map((pkg, i) => (
+                    <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }} whileTap={{ scale: 0.92 }}
+                      onClick={() => { setSelectedPackage(pkg); setIsBottomPackageView(true); }}
+                      style={{ flexShrink: 0, width: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: selectedPackage?.label === pkg.label ? "rgba(212,175,55,0.18)" : "rgba(212,175,55,0.08)", borderRadius: 18, padding: "10px 6px", cursor: "pointer", border: `1px solid ${selectedPackage?.label === pkg.label ? "#d4af37" : pkg.locked ? "rgba(212,175,55,0.1)" : "rgba(212,175,55,0.3)"}`, touchAction: "manipulation", position: "relative", overflow: "hidden", gap: 5 }}
+                    >
+                      <div style={{ fontSize: 28, lineHeight: 1 }}>{pkg.emoji}</div>
+                      <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: pkg.locked ? "rgba(255,255,255,0.4)" : "#fff", textAlign: "center", width: "100%", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{pkg.label}</p>
+                      <div style={{ background: "rgba(44,62,102,0.9)", padding: "1px 8px", borderRadius: 20, fontSize: 8, fontWeight: 700, color: "#ffd966" }}>🪙 {pkg.coins > 0 ? pkg.coins : "Free"}</div>
+                      {pkg.locked && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", borderRadius: 18, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, backdropFilter: "blur(2px)" }}>🔒</div>}
+                    </motion.div>
+                  ))}
+              </div>
+            )}
+
+            {/* ── Gifts (browse mode) ── */}
+            {!isProfileView && browseTab === "gifts" && (
+              <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", flex: 1, minHeight: 0, paddingBottom: 4, display: "flex", gap: 10, alignItems: "stretch", position: "relative", zIndex: 1 } as React.CSSProperties}>
+                  {GIFT_OPTIONS.map((gift, i) => (
+                    <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }} whileTap={{ scale: 0.92 }}
+                      onClick={() => requireAuth(() => {
+                        if (coinBalance < gift.coins) { setShowCoinShop(true); return; }
+                        handleSendGift(gift.emoji, gift.coins);
+                        setShowLikeRain(true);
+                        setTimeout(() => setShowLikeRain(false), 2500);
+                      })}
+                      style={{ flexShrink: 0, width: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(212,175,55,0.08)", borderRadius: 18, padding: "12px 6px", cursor: "pointer", border: `1px solid ${coinBalance >= gift.coins ? "rgba(212,175,55,0.3)" : "rgba(212,175,55,0.1)"}`, touchAction: "manipulation", gap: 6 }}
+                    >
+                      <div style={{ fontSize: 32, lineHeight: 1 }}>{gift.emoji}</div>
+                      <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: "#fff", textAlign: "center" }}>{gift.label}</p>
+                      <div style={{ background: "rgba(44,62,102,0.9)", padding: "1px 8px", borderRadius: 20, fontSize: 8, fontWeight: 700, color: coinBalance >= gift.coins ? "#ffd966" : "rgba(255,100,100,0.8)" }}>🪙 {gift.coins}</div>
+                    </motion.div>
+                  ))}
+              </div>
+            )}
+
+            {/* ── Profile view: Profile tab — About Me / Images / Video containers ── */}
+            {isProfileView && ghostProfileView && profileTab === "profile" && (
+              <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", flex: 1, minHeight: 0, paddingBottom: 4, display: "flex", gap: 10, alignItems: "stretch", position: "relative", zIndex: 1 } as React.CSSProperties}>
+
+                  {/* About Me */}
+                  <div style={{ flexShrink: 0, width: 100, borderRadius: 18, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.22)", padding: "12px 10px", display: "flex", flexDirection: "column", gap: 6, overflow: "hidden" }}>
+                    <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "#d4af37", letterSpacing: 0.5, textTransform: "uppercase", flexShrink: 0 }}>About Me</p>
+                    {ghostProfileView.bio ? (
+                      <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.8)", lineHeight: 1.5, overflow: "hidden", flex: 1 }}>{ghostProfileView.bio}</p>
+                    ) : (
+                      <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)", fontStyle: "italic" }}>No bio yet 👻</p>
+                    )}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 3, flexShrink: 0 }}>
+                      {[
+                        ghostProfileView.religion && ghostProfileView.religion,
+                        ghostProfileView.gender,
+                        ghostProfileView.contactPref && ghostProfileView.contactPref,
+                      ].filter(Boolean).map((val, i) => (
+                        <span key={i} style={{ fontSize: 7, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 20, padding: "2px 6px", color: "#d4af37", fontWeight: 600 }}>{val}</span>
+                      ))}
+                    </div>
+                    {ghostProfileView.interests && ghostProfileView.interests.length > 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 3, flexShrink: 0 }}>
+                        {ghostProfileView.interests.slice(0, 3).map((interest, i) => (
+                          <span key={i} style={{ fontSize: 7, background: "rgba(255,255,255,0.06)", borderRadius: 20, padding: "2px 6px", color: "rgba(255,255,255,0.55)" }}>{interest}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Images */}
+                  <div style={{ flexShrink: 0, width: 100, borderRadius: 18, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.22)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                    <div style={{ padding: "10px 10px 6px", flexShrink: 0 }}>
+                      <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "#d4af37", letterSpacing: 0.5, textTransform: "uppercase" }}>Images</p>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3, padding: "0 6px 6px", flex: 1, minHeight: 0 }}>
+                      {[ghostProfileView.image, ghostProfileView.image, ghostProfileView.image, ghostProfileView.image].map((img, i) => (
+                        <div key={i} style={{ borderRadius: 8, overflow: "hidden", background: "rgba(255,255,255,0.05)", minHeight: 0 }}>
+                          <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", opacity: i === 0 ? 1 : 0.4 }} onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Like / Gift button below card */}
-                  <motion.button
-                    whileTap={{ scale: 0.88 }}
-                    onClick={e => { e.stopPropagation(); if (likedIds.has(p.id)) return; setTonightGiftProfile(p); }}
-                    style={{ width: "100%", marginTop: 6, height: 30, borderRadius: 9, border: likedIds.has(p.id) ? `1.5px solid ${a.accent}` : "1px solid rgba(255,255,255,0.12)", background: likedIds.has(p.id) ? a.glowMid(0.2) : "rgba(255,255,255,0.05)", color: likedIds.has(p.id) ? a.accent : "rgba(255,255,255,0.6)", fontSize: 11, fontWeight: 800, cursor: likedIds.has(p.id) ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
-                  >
-                    {likedIds.has(p.id) ? "❤️ Liked" : "🎁 Like + Gift"}
-                  </motion.button>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+                  {/* Video */}
+                  <div style={{ flexShrink: 0, width: 100, borderRadius: 18, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.22)", display: "flex", flexDirection: "column", padding: "12px 10px", gap: 8, overflow: "hidden" }}>
+                    <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "#d4af37", letterSpacing: 0.5, textTransform: "uppercase", flexShrink: 0 }}>Video</p>
+                    <div style={{ flex: 1, borderRadius: 12, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(212,175,55,0.15)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", minHeight: 0 }}>
+                      <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(212,175,55,0.15)", border: "1.5px solid rgba(212,175,55,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>▶</div>
+                      <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.4)", textAlign: "center" }}>No video yet</p>
+                    </div>
+                  </div>
 
-          {/* Divider */}
-          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent)", margin: "14px 0 0" }} />
-            </div>{/* close inner padding div */}
-          </div>{/* close gold container */}
+              </div>
+            )}
+
+            {/* ── Profile view: Date Ideas tab — cards in center ── */}
+            {isProfileView && ghostProfileView && profileTab === "dateideas" && (
+              <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", flex: 1, minHeight: 0, paddingBottom: 4, display: "flex", gap: 10, alignItems: "stretch", position: "relative", zIndex: 1 } as React.CSSProperties}>
+                  {[
+                    ghostProfileView.firstDateIdea || "Dinner Date",
+                    "Coffee & Walk", "Movie Night", "Sunset Drive", "Live Music", "Cooking Together",
+                  ].map((idea, i) => (
+                    <motion.div key={i} whileTap={{ scale: 0.93 }} onClick={() => setShowDateIdeas(true)}
+                      style={{ flexShrink: 0, width: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(212,175,55,0.08)", borderRadius: 18, padding: "12px 6px", cursor: "pointer", border: "1px solid rgba(212,175,55,0.22)", touchAction: "manipulation", gap: 8 }}>
+                      <span style={{ fontSize: 28 }}>{["🌙","☕","🎬","🌅","🎵","👨‍🍳"][i] || "💡"}</span>
+                      <p style={{ margin: 0, fontSize: 9, fontWeight: 700, color: "#fff", textAlign: "center", lineHeight: 1.3 }}>{idea}</p>
+                    </motion.div>
+                  ))}
+              </div>
+            )}
+
+            {/* ── Profile view: Treat — horizontal scroll in center, full height ── */}
+            {isProfileView && profileTab === "treat" && (
+              <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", flex: 1, minHeight: 0, paddingBottom: 4, display: "flex", gap: 10, alignItems: "stretch", position: "relative", zIndex: 1 } as React.CSSProperties}>
+                  {[
+                    { emoji: "💆", label: "Massage",   sub: "From Rp 250k", img: "https://ik.imagekit.io/7grri5v7d/massage%20therapsy.png" },
+                    { emoji: "💅", label: "Beautician", sub: "From Rp 200k", img: "https://ik.imagekit.io/7grri5v7d/beauty%20woman.png" },
+                    { emoji: "💐", label: "Flowers",    sub: "From Rp 350k", img: "https://ik.imagekit.io/7grri5v7d/flowers%20nice.png" },
+                    { emoji: "💎", label: "Jewelry",    sub: "From Rp 250k", img: "https://ik.imagekit.io/7grri5v7d/jewerlysss.png" },
+                    { emoji: "🍷", label: "Wine Night",  sub: "From Rp 300k", img: "https://ik.imagekit.io/7grri5v7d/flowers%20nice.png" },
+                    { emoji: "🎁", label: "Surprise",   sub: "From Rp 400k", img: "https://ik.imagekit.io/7grri5v7d/jewerlysss.png" },
+                  ].map((t, i) => (
+                    <motion.div key={i} whileTap={{ scale: 0.93 }}
+                      style={{ flexShrink: 0, width: 100, borderRadius: 18, overflow: "hidden", cursor: "pointer", border: "1px solid rgba(212,175,55,0.25)", background: "rgba(212,175,55,0.06)", display: "flex", flexDirection: "column" }}>
+                      <img src={t.img} alt={t.label} style={{ width: "100%", flex: 1, objectFit: "cover", display: "block", minHeight: 0 }} onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
+                      <div style={{ padding: "7px 9px", flexShrink: 0 }}>
+                        <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: "#fff" }}>{t.emoji} {t.label}</p>
+                        <p style={{ margin: "2px 0 0", fontSize: 8, color: "rgba(212,175,55,0.7)" }}>{t.sub}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+              </div>
+            )}
+
+            {/* ── Profile view: Gifts — horizontal scroll in center ── */}
+            {isProfileView && profileTab === "gifts" && (
+              <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", flex: 1, minHeight: 0, paddingBottom: 4, display: "flex", gap: 10, alignItems: "stretch", position: "relative", zIndex: 1 } as React.CSSProperties}>
+                  {GIFT_OPTIONS.map((gift, i) => (
+                    <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }} whileTap={{ scale: 0.92 }}
+                      onClick={() => requireAuth(() => {
+                        if (coinBalance < gift.coins) { setShowCoinShop(true); return; }
+                        handleSendGift(gift.emoji, gift.coins);
+                        setShowLikeRain(true);
+                        setTimeout(() => setShowLikeRain(false), 2500);
+                      })}
+                      style={{ flexShrink: 0, width: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(212,175,55,0.08)", borderRadius: 18, padding: "12px 6px", cursor: "pointer", border: `1px solid ${coinBalance >= gift.coins ? "rgba(212,175,55,0.3)" : "rgba(212,175,55,0.1)"}`, touchAction: "manipulation", gap: 6 }}
+                    >
+                      <div style={{ fontSize: 32, lineHeight: 1 }}>{gift.emoji}</div>
+                      <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: "#fff", textAlign: "center" }}>{gift.label}</p>
+                      <div style={{ background: "rgba(44,62,102,0.9)", padding: "1px 8px", borderRadius: 20, fontSize: 8, fontWeight: 700, color: coinBalance >= gift.coins ? "#ffd966" : "rgba(255,100,100,0.8)" }}>🪙 {gift.coins}</div>
+                    </motion.div>
+                  ))}
+              </div>
+            )}
+
+          </div>}
+
+          {/* ── Bottom card (profile or package detail) ── */}
+          <motion.div
+            key={isProfileView ? `pv-bottom-${ghostProfileView?.id}` : isBottomPackageView ? `pkg-${selectedPackage?.label}` : `bottom-${profiles[bottomCardIdx % Math.max(profiles.length,1)]?.id}`}
+            initial={{ x: bottomCardDir === "left" ? 260 : -260, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 420, damping: 34 }}
+            drag={isProfileView || isBottomPackageView ? false : "x"}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.18}
+            dragTransition={{ bounceStiffness: 500, bounceDamping: 40 }}
+            onDragEnd={isProfileView || isBottomPackageView ? undefined : (_, info) => {
+              if (profiles.length < 2) return;
+              const triggered = Math.abs(info.offset.x) > 80 || Math.abs(info.velocity.x) > 500;
+              if (triggered) {
+                if (info.offset.x > 0) {
+                  setBottomCardDir("right");
+                  setBottomCardIdx(i => (i - 1 + profiles.length) % profiles.length);
+                } else {
+                  setBottomCardDir("left");
+                  setBottomCardIdx(i => (i + 1) % profiles.length);
+                }
+              }
+            }}
+            style={{
+              flex: "0 0 0px", flexGrow: 1.8, minHeight: 150,
+              position: "relative",
+              borderRadius: 28, overflow: "hidden",
+              boxShadow: "0 14px 36px rgba(0,0,0,0.5)",
+              cursor: isProfileView || isBottomPackageView ? "default" : "grab",
+              touchAction: isProfileView || isBottomPackageView ? "manipulation" : "pan-y",
+            }}
+          >
+            {isProfileView && ghostProfileView ? (
+              /* ── Profile detail view in bottom card ── */
+              (() => {
+                const p = ghostProfileView;
+                const isLiked = likedIds.has(p.id);
+                return (
+                  <>
+                    {/* Solid dark background — no image, top card already shows the image */}
+                    <div style={{ position: "absolute", inset: 0, background: "#0a0a0a" }} />
+
+                    {/* Header: ghost ID + tab toggle */}
+                    <div style={{ position: "absolute", top: 12, left: 12, right: 12, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: "#d4af37" }}>{toGhostId(p.id)}</p>
+                      <div style={{ display: "flex", background: "rgba(212,175,55,0.12)", borderRadius: 30, padding: 3, gap: 1, border: "1px solid rgba(212,175,55,0.28)" }}>
+                        {(["profile","dateideas","treat","gifts"] as const).map(tab => (
+                          <motion.button key={tab} whileTap={{ scale: 0.93 }}
+                            onClick={e => { e.stopPropagation(); setProfileTab(tab); }}
+                            style={{ padding: "4px 8px", borderRadius: 26, border: "none", background: profileTab === tab ? "#e11d48" : "transparent", color: profileTab === tab ? "#fff" : "rgba(255,255,255,0.5)", fontSize: 8, fontWeight: 700, cursor: "pointer", touchAction: "manipulation", transition: "background 0.15s, color 0.15s", whiteSpace: "nowrap" }}>
+                            {tab === "profile" ? "Profile" : tab === "dateideas" ? "Date" : tab === "treat" ? "Treat" : "Gifts"}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Tab content — horizontal scroll at bottom */}
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "8px 10px 10px", height: 130 }}>
+
+                      {/* Profile */}
+                      {profileTab === "profile" && (
+                        <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", display: "flex", gap: 8, alignItems: "stretch", height: "100%" } as React.CSSProperties}>
+                          <div onClick={e => { e.stopPropagation(); setShowProfileDetail(true); }}
+                            style={{ flexShrink: 0, width: 80, borderRadius: 14, background: "rgba(0,0,0,0.65)", border: "1px solid rgba(212,175,55,0.22)", padding: "8px 8px", display: "flex", flexDirection: "column", gap: 4, overflow: "hidden", cursor: "pointer" }}>
+                            <p style={{ margin: 0, fontSize: 8, fontWeight: 800, color: "#d4af37", textTransform: "uppercase", letterSpacing: 0.5, flexShrink: 0 }}>About Me</p>
+                            <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.8)", lineHeight: 1.4, overflow: "hidden", flex: 1 }}>{p.bio || "No bio yet 👻"}</p>
+                          </div>
+                          <div style={{ flexShrink: 0, width: 80, borderRadius: 14, background: "rgba(0,0,0,0.65)", border: "1px solid rgba(212,175,55,0.22)", padding: "8px 8px", display: "flex", flexDirection: "column", gap: 4, overflow: "hidden" }}>
+                            <p style={{ margin: 0, fontSize: 8, fontWeight: 800, color: "#d4af37", textTransform: "uppercase", letterSpacing: 0.5, flexShrink: 0 }}>Details</p>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 2, overflow: "hidden", flex: 1 }}>
+                              {[p.gender, p.religion, p.contactPref, `${p.countryFlag} ${p.country}`].filter(Boolean).map((v, i) => (
+                                <span key={i} style={{ fontSize: 7, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.22)", borderRadius: 20, padding: "2px 5px", color: "#d4af37", fontWeight: 600 }}>{v}</span>
+                              ))}
+                            </div>
+                          </div>
+                          {p.interests?.length > 0 && (
+                            <div style={{ flexShrink: 0, width: 80, borderRadius: 14, background: "rgba(0,0,0,0.65)", border: "1px solid rgba(212,175,55,0.22)", padding: "8px 8px", display: "flex", flexDirection: "column", gap: 4, overflow: "hidden" }}>
+                              <p style={{ margin: 0, fontSize: 8, fontWeight: 800, color: "#d4af37", textTransform: "uppercase", letterSpacing: 0.5, flexShrink: 0 }}>Interests</p>
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: 2, overflow: "hidden", flex: 1 }}>{p.interests.slice(0, 5).map((x, i) => <span key={i} style={{ fontSize: 7, background: "rgba(255,255,255,0.07)", borderRadius: 20, padding: "2px 5px", color: "rgba(255,255,255,0.6)" }}>{x}</span>)}</div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Date */}
+                      {profileTab === "dateideas" && (
+                        <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", display: "flex", gap: 8, alignItems: "stretch", height: "100%" } as React.CSSProperties}>
+                          {[p.firstDateIdea || "Dinner Date","Coffee & Walk","Movie Night","Sunset Drive","Live Music","Cooking Together"].map((idea, i) => (
+                            <motion.div key={i} whileTap={{ scale: 0.93 }} onClick={() => setShowDateIdeas(true)}
+                              style={{ flexShrink: 0, width: 80, borderRadius: 14, background: "rgba(0,0,0,0.65)", border: "1px solid rgba(212,175,55,0.22)", padding: "8px 8px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5, cursor: "pointer" }}>
+                              <span style={{ fontSize: 22 }}>{["🌙","☕","🎬","🌅","🎵","👨‍🍳"][i]||"💡"}</span>
+                              <p style={{ margin: 0, fontSize: 8, fontWeight: 700, color: "#fff", textAlign: "center", lineHeight: 1.3 }}>{idea}</p>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Treat */}
+                      {profileTab === "treat" && (
+                        <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", display: "flex", gap: 8, alignItems: "stretch", height: "100%" } as React.CSSProperties}>
+                          {[{emoji:"💆",label:"Massage",sub:"Rp 250k",img:"https://ik.imagekit.io/7grri5v7d/massage%20therapsy.png"},{emoji:"💅",label:"Beautician",sub:"Rp 200k",img:"https://ik.imagekit.io/7grri5v7d/beauty%20woman.png"},{emoji:"💐",label:"Flowers",sub:"Rp 350k",img:"https://ik.imagekit.io/7grri5v7d/flowers%20nice.png"},{emoji:"💎",label:"Jewelry",sub:"Rp 250k",img:"https://ik.imagekit.io/7grri5v7d/jewerlysss.png"},{emoji:"🍷",label:"Wine Night",sub:"Rp 300k",img:"https://ik.imagekit.io/7grri5v7d/flowers%20nice.png"},{emoji:"🎁",label:"Surprise",sub:"Rp 400k",img:"https://ik.imagekit.io/7grri5v7d/jewerlysss.png"}].map((t, i) => (
+                            <motion.div key={i} whileTap={{ scale: 0.93 }}
+                              style={{ flexShrink: 0, width: 80, borderRadius: 14, overflow: "hidden", border: "1px solid rgba(212,175,55,0.22)", background: "rgba(0,0,0,0.65)", display: "flex", flexDirection: "column" }}>
+                              <img src={t.img} alt={t.label} style={{ width: "100%", flex: 1, objectFit: "cover", display: "block", minHeight: 0 }} onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
+                              <div style={{ padding: "5px 7px", flexShrink: 0 }}>
+                                <p style={{ margin: 0, fontSize: 9, fontWeight: 700, color: "#fff" }}>{t.emoji} {t.label}</p>
+                                <p style={{ margin: "1px 0 0", fontSize: 7, color: "rgba(212,175,55,0.7)" }}>{t.sub}</p>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Gifts */}
+                      {profileTab === "gifts" && (
+                        <div className="c-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", display: "flex", gap: 8, alignItems: "stretch", height: "100%" } as React.CSSProperties}>
+                          {GIFT_OPTIONS.map((gift, i) => (
+                            <motion.div key={i} whileTap={{ scale: 0.93 }}
+                              onClick={() => requireAuth(() => { if (coinBalance < gift.coins) { setShowCoinShop(true); return; } handleSendGift(gift.emoji, gift.coins); setShowLikeRain(true); setTimeout(() => setShowLikeRain(false), 2500); })}
+                              style={{ flexShrink: 0, width: 80, borderRadius: 14, background: "rgba(0,0,0,0.65)", border: `1px solid ${coinBalance >= gift.coins ? "rgba(212,175,55,0.3)" : "rgba(212,175,55,0.12)"}`, padding: "8px 6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, cursor: "pointer" }}>
+                              <span style={{ fontSize: 24 }}>{gift.emoji}</span>
+                              <p style={{ margin: 0, fontSize: 9, fontWeight: 700, color: "#fff", textAlign: "center" }}>{gift.label}</p>
+                              <div style={{ background: "rgba(44,62,102,0.9)", padding: "1px 6px", borderRadius: 20, fontSize: 7, fontWeight: 700, color: coinBalance >= gift.coins ? "#ffd966" : "rgba(255,100,100,0.8)" }}>🪙 {gift.coins}</div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+
+                    </div>
+                  </>
+                );
+              })()
+            ) : isBottomPackageView && selectedPackage ? (
+              /* ── Package detail view ── */
+              <>
+                {/* Back button */}
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={e => { e.stopPropagation(); setIsBottomPackageView(false); setSelectedPackage(null); }}
+                  style={{
+                    position: "absolute", top: 10, left: 10, zIndex: 20,
+                    width: 32, height: 32, borderRadius: "50%", border: "none",
+                    background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)",
+                    color: "#fff", fontSize: 14, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    touchAction: "manipulation",
+                  }}
+                >←</motion.button>
+
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", padding: "16px 16px 16px 16px", gap: 6 }}>
+                  <div style={{ fontSize: 42, lineHeight: 1 }}>{selectedPackage.emoji}</div>
+                  <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#fff" }}>{selectedPackage.label}</p>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.55)" }}>{selectedPackage.sub}</p>
+                  <div style={{ background: "rgba(44,62,102,0.9)", padding: "3px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, color: "#ffd966", marginTop: 2 }}>
+                    💰 {selectedPackage.coins > 0 ? `${selectedPackage.coins} coins` : "Free"}
+                  </div>
+                  {selectedPackage.locked ? (
+                    <p style={{ margin: 0, fontSize: 10, color: "rgba(255,100,100,0.8)", textAlign: "center" }}>
+                      Need {selectedPackage.coins - coinBalance} more coins
+                    </p>
+                  ) : null}
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={e => { e.stopPropagation(); navigate(selectedPackage.path); }}
+                    style={{
+                      marginTop: 6, padding: "7px 24px", borderRadius: 40, border: "none",
+                      background: selectedPackage.locked ? "rgba(255,255,255,0.1)" : "#3b4bff",
+                      color: selectedPackage.locked ? "rgba(255,255,255,0.4)" : "#fff",
+                      fontSize: 12, fontWeight: 800, cursor: "pointer", touchAction: "manipulation",
+                      boxShadow: selectedPackage.locked ? "none" : "0 4px 14px rgba(59,75,255,0.45)",
+                    }}
+                  >
+                    {selectedPackage.locked ? "🔒 Get More Coins" : "Purchase →"}
+                  </motion.button>
+                </div>
+              </>
+            ) : profiles.length > 0 ? (
+              /* ── Normal profile view ── */
+              (() => {
+                const profile = profiles[bottomCardIdx % profiles.length];
+                const online = isOnline(profile.last_seen_at);
+                const isLiked = likedIds.has(profile.id);
+                return (<>
+                  {/* Full-bleed image */}
+                  <img
+                    src={profile.image} alt=""
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
+                    onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                  />
+                  {/* Gradient overlay */}
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)" }} />
+
+                  {/* Distance badge — top-left */}
+                  <div style={{ position: "absolute", top: 14, left: 14, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>
+                    📍 {profile.distanceKm !== undefined ? `${profile.distanceKm < 1 ? "<1" : Math.round(profile.distanceKm)} km` : "Nearby"}
+                  </div>
+
+                  {/* Info overlay — bottom-left */}
+                  <div style={{ position: "absolute", bottom: 14, left: 14, display: "flex", flexDirection: "column", gap: 3 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                      <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{toGhostId(profile.id)}</p>
+                      <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.4, repeat: Infinity }}
+                        style={{ width: 8, height: 8, borderRadius: "50%", background: online ? "#22c55e" : "#f59e0b", boxShadow: online ? "0 0 6px rgba(34,197,94,0.9)" : "0 0 6px rgba(245,158,11,0.9)", flexShrink: 0 }} />
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      {profile.isVerified && <span style={{ fontSize: 13, lineHeight: 1 }}>✅</span>}
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{profile.age}</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.6)" }}>{profile.city.split(",")[0]}</p>
+                  </div>
+
+                  {/* Heart button — bottom-right */}
+                  <motion.button
+                    whileTap={{ scale: 0.84 }}
+                    onClick={e => { e.stopPropagation(); handleLike(profile); }}
+                    style={{
+                      position: "absolute", bottom: 14, right: 14,
+                      width: 44, height: 44, borderRadius: "50%",
+                      border: "1.5px solid rgba(255,255,255,0.22)",
+                      background: "rgba(0,0,0,0.45)",
+                      backdropFilter: "blur(8px)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer", touchAction: "manipulation", fontSize: 21,
+                      transition: "none",
+                    }}
+                  >
+                    {isLiked ? "❤️" : "🤍"}
+                  </motion.button>
+
+                  {/* Fingerprint button — bottom-right (next profile) */}
+                  <motion.button
+                    whileTap={{ scale: 0.84 }}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setBottomCardDir("left");
+                      setBottomCardIdx(cur => {
+                        const n = profiles.length;
+                        if (n <= 1) return cur;
+                        let next = (cur + 1) % n;
+                        if (next === topCardIdx) next = (next + 1) % n;
+                        return next;
+                      });
+                    }}
+                    style={{
+                      position: "absolute", top: 14, right: 14,
+                      width: 48, height: 48, borderRadius: "50%",
+                      border: "1.5px solid rgba(255,255,255,0.22)",
+                      background: "rgba(0,0,0,0.55)",
+                      backdropFilter: "blur(8px)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer", touchAction: "manipulation",
+                    }}
+                  >
+                    <Fingerprint size={24} color="rgba(255,255,255,0.75)" />
+                  </motion.button>
+
+                  {/* Swipe hint */}
+                  <div style={{ position: "absolute", top: 14, left: 14, fontSize: 9, color: "rgba(255,255,255,0.4)", background: "rgba(0,0,0,0.38)", padding: "2px 8px", borderRadius: 20 }}>
+                    ↔ swipe · ↑ profile
+                  </div>
+                </>);
+              })()
+            ) : null}
+          </motion.div>
+
         </div>
       )}
 
@@ -2105,8 +2630,6 @@ export default function GhostModePage() {
         setShowLateNight={setShowLateNight}
         showButlerWelcome={showButlerWelcome}
         setShowButlerWelcome={setShowButlerWelcome}
-        showPushPrompt={showPushPrompt}
-        setShowPushPrompt={setShowPushPrompt}
         showCheckout={showCheckout}
         setShowCheckout={setShowCheckout}
         showFloorChat={showFloorChat}
@@ -2158,6 +2681,16 @@ export default function GhostModePage() {
       <AnimatePresence>
         {showDateIdeas && (
           <DateIdeasFeed key="date-ideas" onBack={() => setShowDateIdeas(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* Profile detail overlay — opened from About Me container */}
+      <AnimatePresence>
+        {showProfileDetail && ghostProfileView && (
+          <GhostProfileDetailOverlay
+            profile={ghostProfileView}
+            onClose={() => setShowProfileDetail(false)}
+          />
         )}
       </AnimatePresence>
 

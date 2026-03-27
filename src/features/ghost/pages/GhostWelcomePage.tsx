@@ -12,7 +12,8 @@ function getDailyGuestCount(): number {
   return Math.floor(470 + (x - Math.floor(x)) * 171); // 470 + 0..170
 }
 
-const MR_BUTLAS_IMG = "https://ik.imagekit.io/7grri5v7d/sfsadfasdf.png?updatedAt=1774389915762";
+const BG_VIDEO_URL    = "https://ik.imagekit.io/7grri5v7d/video%20intro.mp4";
+const BG_FALLBACK_IMG = "https://ik.imagekit.io/7grri5v7d/sfsadfasdf.png?updatedAt=1774389915762";
 
 const JUST_JOINED = [
   { id: "j1",  name: "Sari",      flag: "🇮🇩", img: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=80&q=80" },
@@ -35,6 +36,17 @@ export default function GhostWelcomePage() {
   const [showRefBanner, setShowRefBanner] = useState(false);
   const [hearts, setHearts] = useState<Heart[]>([]);
   const heartIdRef = useRef(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoReady, setVideoReady] = useState(false);
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    const onReady = () => { setVideoReady(true); vid.play().catch(() => {}); };
+    vid.addEventListener("canplay", onReady, { once: true });
+    vid.load();
+    return () => vid.removeEventListener("canplay", onReady);
+  }, []);
 
   // Ambient hearts floating up from the button every 550ms
   useEffect(() => {
@@ -97,16 +109,32 @@ export default function GhostWelcomePage() {
         )}
       </AnimatePresence>
 
-      {/* Full-screen background image */}
+      {/* Fallback image — visible instantly while video loads */}
       <img
-        src={MR_BUTLAS_IMG}
-        alt="Mr. Butlas"
+        src={BG_FALLBACK_IMG}
+        alt=""
         style={{
           position: "absolute", inset: 0,
           width: "100%", height: "100%",
-          objectFit: "cover",
-          objectPosition: "center center",
-          display: "block",
+          objectFit: "cover", objectPosition: "center center",
+          opacity: videoReady ? 0 : 1,
+          transition: "opacity 0.8s",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Background video — fades in once first frame is ready */}
+      <video
+        ref={videoRef}
+        src={BG_VIDEO_URL}
+        muted loop playsInline preload="auto"
+        style={{
+          position: "absolute", inset: 0,
+          width: "100%", height: "100%",
+          objectFit: "cover", objectPosition: "calc(50% + 15px) center",
+          opacity: videoReady ? 1 : 0,
+          transition: "opacity 0.8s",
+          pointerEvents: "none",
         }}
       />
 
