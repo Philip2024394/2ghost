@@ -379,7 +379,6 @@ export default function GhostProfileSetupPage() {
                       onChange={e => setName(e.target.value)}
                       placeholder="Your name or alias…"
                       maxLength={32}
-                      autoFocus
                       style={{ width: "100%", height: 50, borderRadius: 14,
                         padding: "0 14px", boxSizing: "border-box",
                         background: "rgba(220,20,20,0.07)",
