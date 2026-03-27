@@ -48,7 +48,7 @@ export default function FoundBooBanner({
           <img src={GHOST_LOGO} alt="ghost" style={{ position: "absolute", bottom: -4, right: -4, width: 54, height: 54, objectFit: "contain" }} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>Found Boo</p>
+          <p style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>Ghost Match</p>
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 6px", lineHeight: 1.4 }}>
             Your profile is paused — giving your new connection space
           </p>

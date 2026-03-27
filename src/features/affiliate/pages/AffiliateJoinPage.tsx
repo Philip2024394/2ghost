@@ -9,22 +9,22 @@ const LOGO = "https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfas
 const TERMS = `AFFILIATE PROGRAMME — TERMS & CONDITIONS
 Last updated: March 2026
 
-By joining the 2Ghost Affiliate Programme, you ("Affiliate") agree to the following terms in full. Please read carefully before proceeding.
+By joining the Mr Butlas Affiliate Programme, you ("Affiliate") agree to the following terms in full. Please read carefully before proceeding.
 
 1. PROMOTIONAL CONTENT
-All images, videos, creative assets, and written content used to promote 2Ghost.com must either originate from the official Affiliate Resource Library provided in your dashboard or receive prior written approval from 2Ghost.com. Publishing or distributing promotional material that misrepresents 2Ghost.com, infringes third-party intellectual property rights, or has not been approved will result in immediate and permanent termination of your affiliate account, forfeiture of any accrued commissions, and may result in legal action.
+All images, videos, creative assets, and written content used to promote Mr Butlas.com must either originate from the official Affiliate Resource Library provided in your dashboard or receive prior written approval from Mr Butlas.com. Publishing or distributing promotional material that misrepresents Mr Butlas.com, infringes third-party intellectual property rights, or has not been approved will result in immediate and permanent termination of your affiliate account, forfeiture of any accrued commissions, and may result in legal action.
 
 2. IDENTITY VERIFICATION & COMMISSION PAYMENTS
 Commission payments are processed within thirty (30) calendar days following the end of each payment period. Before your first commission payment is released, you are required to submit: (a) a valid government-issued identity document — Indonesian KTP or international passport — and (b) verified bank account details including account holder name, bank name, and account number. Failure to provide complete and accurate documentation within sixty (60) days of your first confirmed conversion will result in forfeiture of any accrued commissions for that period.
 
 3. TAX & GOVERNMENT OBLIGATIONS
-You are solely responsible for declaring, calculating, and paying all applicable taxes, levies, withholding taxes, and any other government-mandated duties arising from commissions earned through the 2Ghost Affiliate Programme. 2Ghost.com does not withhold tax on affiliate payments and will not be held liable for any tax obligations on your behalf.
+You are solely responsible for declaring, calculating, and paying all applicable taxes, levies, withholding taxes, and any other government-mandated duties arising from commissions earned through the Mr Butlas Affiliate Programme. Mr Butlas.com does not withhold tax on affiliate payments and will not be held liable for any tax obligations on your behalf.
 
 4. INDEPENDENT CONTRACTOR STATUS
-Participation in the 2Ghost Affiliate Programme does not constitute, and shall not be construed as, a contract of employment, agency relationship, partnership, franchise, or joint venture between you and 2Ghost.com or any of its affiliated entities. You have no authority to enter into agreements or incur obligations on behalf of 2Ghost.com.
+Participation in the Mr Butlas Affiliate Programme does not constitute, and shall not be construed as, a contract of employment, agency relationship, partnership, franchise, or joint venture between you and Mr Butlas.com or any of its affiliated entities. You have no authority to enter into agreements or incur obligations on behalf of Mr Butlas.com.
 
 5. PROGRAMME TERMINATION
-2Ghost.com reserves the right to modify, suspend, or permanently terminate your affiliate account or the programme itself at any time, with or without prior notice, at its sole discretion. Grounds for termination include but are not limited to: breach of these terms, fraudulent activity, misrepresentation, or conduct deemed harmful to the reputation of 2Ghost.com.
+Mr Butlas.com reserves the right to modify, suspend, or permanently terminate your affiliate account or the programme itself at any time, with or without prior notice, at its sole discretion. Grounds for termination include but are not limited to: breach of these terms, fraudulent activity, misrepresentation, or conduct deemed harmful to the reputation of Mr Butlas.com.
 
 6. GOVERNING LAW
 These terms shall be governed by and construed in accordance with applicable law. Any disputes arising from this agreement shall be resolved through good-faith negotiation before any formal proceedings.`;
@@ -106,7 +106,7 @@ export default function AffiliateJoinPage() {
           {!done ? (
             <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                <img src={LOGO} alt="2Ghost" style={{ width: 46, height: 46, objectFit: "contain" }} />
+                <img src={LOGO} alt="Mr Butlas" style={{ width: 46, height: 46, objectFit: "contain" }} />
                 <div>
                   <h1 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0 }}>Become an Affiliate</h1>
                   <p style={{ fontSize: 11, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600 }}>Active instantly · Earn 25% per sale</p>
@@ -183,7 +183,7 @@ export default function AffiliateJoinPage() {
                   {agreed && <span style={{ fontSize: 12, color: "#4ade80", fontWeight: 900, lineHeight: 1 }}>✓</span>}
                 </div>
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
-                  I have read and agree to the 2Ghost Affiliate Terms & Conditions, including identity verification requirements and my responsibility for personal tax obligations.
+                  I have read and agree to the Mr Butlas Affiliate Terms & Conditions, including identity verification requirements and my responsibility for personal tax obligations.
                 </span>
               </label>
 

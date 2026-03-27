@@ -139,7 +139,7 @@ export default function AdminLayout() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <img src={LOGO} alt="" style={{ width: 34, height: 34, objectFit: "contain" }} />
             <div>
-              <p style={{ fontSize: 9, fontWeight: 700, color: "rgba(74,222,128,0.7)", letterSpacing: "0.16em", textTransform: "uppercase", margin: 0 }}>2Ghost</p>
+              <p style={{ fontSize: 9, fontWeight: 700, color: "rgba(74,222,128,0.7)", letterSpacing: "0.16em", textTransform: "uppercase", margin: 0 }}>Mr Butlas</p>
               <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: 0 }}>Admin Console</p>
             </div>
           </div>

@@ -216,7 +216,7 @@ export default function GhostPaymentSuccessPage() {
             {meta.icon}
           </div>
           <div>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: meta.color }}>2Ghost Hotel</p>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, color: meta.color }}>Mr Butlas Hotel</p>
             <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Guest Services · {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</p>
           </div>
         </div>
@@ -225,13 +225,13 @@ export default function GhostPaymentSuccessPage() {
           Dear <span style={{ color: meta.color, fontWeight: 800 }}>Ghost-{ghostIdSuffix}</span>,
         </p>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.62)", lineHeight: 1.75, margin: "0 0 14px" }}>
-          On behalf of the entire 2Ghost Hotel, thank you for your reservation. {meta.welcome}
+          On behalf of the entire Mr Butlas Hotel, thank you for your reservation. {meta.welcome}
         </p>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.62)", lineHeight: 1.75, margin: "0 0 14px" }}>
           The floors are alive with guests. The Ghost Radio is broadcasting. The Séance rooms are open. Your story begins now — and we are honoured to host it.
         </p>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, margin: 0 }}>
-          We wish you a <span style={{ color: "#fff", fontWeight: 700 }}>pleasant stay</span> — and as always at 2Ghost...
+          We wish you a <span style={{ color: "#fff", fontWeight: 700 }}>pleasant stay</span> — and as always at Mr Butlas...
         </p>
         <p style={{ fontSize: 16, fontWeight: 900, color: meta.color, margin: "10px 0 0", letterSpacing: "0.04em" }}>
           Happy Haunting. 👻
@@ -241,7 +241,7 @@ export default function GhostPaymentSuccessPage() {
         <div style={{ marginTop: 16, paddingTop: 12, borderTop: `1px solid ${meta.color}1a`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: "rgba(255,255,255,0.45)" }}>The Management</p>
-            <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.2)" }}>2Ghost Hotel · Est. 2025</p>
+            <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.2)" }}>Mr Butlas Hotel · Est. 2025</p>
           </div>
           <img src={GHOST_LOGO} alt="" style={{ width: 28, height: 28, objectFit: "contain", opacity: 0.6 }} />
         </div>

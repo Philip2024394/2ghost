@@ -78,7 +78,7 @@ export default function AdminLoginPage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 16 }}>
             <img src={LOGO} alt="" style={{ width: 48, height: 48, objectFit: "contain" }} />
             <div style={{ textAlign: "left" }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: "#4ade80", letterSpacing: "0.16em", textTransform: "uppercase", margin: 0 }}>2Ghost</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: "#4ade80", letterSpacing: "0.16em", textTransform: "uppercase", margin: 0 }}>Mr Butlas</p>
               <h1 style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: 0, lineHeight: 1 }}>Admin Console</h1>
             </div>
           </div>

@@ -66,7 +66,7 @@ export default function GhostReferralSheet({ onClose }: Props) {
 
   const shareLink = async () => {
     const shareData = {
-      title: "Join me on 2Ghost 👻",
+      title: "Join me on Mr Butlas 👻",
       text: "Anonymous dating done right — no noise, just real connections. Join with my link:",
       url: link,
     };

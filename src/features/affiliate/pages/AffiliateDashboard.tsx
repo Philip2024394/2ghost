@@ -99,7 +99,7 @@ export default function AffiliateDashboard() {
         >
           <div style={{ height: 3, background: `linear-gradient(90deg,#16a34a,${a.accent})`, borderRadius: "3px 3px 0 0", margin: "-28px -22px 22px" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-            <img src={LOGO} alt="2Ghost" style={{ width: 40, height: 40, objectFit: "contain" }} />
+            <img src={LOGO} alt="Mr Butlas" style={{ width: 40, height: 40, objectFit: "contain" }} />
             <div>
               <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Affiliate Dashboard</p>
               <p style={{ fontSize: 10, color: a.glow(0.7), margin: 0 }}>Enter your code to continue</p>
@@ -177,7 +177,7 @@ export default function AffiliateDashboard() {
           <div style={{ height: 3, background: `linear-gradient(90deg,#16a34a,${a.accent})`, margin: "-16px -18px 14px" }} />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <img src={LOGO} alt="2Ghost" style={{ width: 32, height: 32, objectFit: "contain" }} />
+              <img src={LOGO} alt="Mr Butlas" style={{ width: 32, height: 32, objectFit: "contain" }} />
               <div>
                 <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", margin: 0 }}>{affiliate.name}</p>
                 <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: 0 }}>
@@ -300,13 +300,13 @@ export default function AffiliateDashboard() {
                     <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 10, padding: "10px 12px", marginBottom: 10 }}>
                       <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: 0, lineHeight: 1.7 }}>
                         🏨 Guys, this app changed how I meet people in {affiliate.city}.<br />
-                        2Ghost Hotel — anonymous, private rooms, real vibes.<br />
+                        Mr Butlas Hotel — anonymous, private rooms, real vibes.<br />
                         Try it free 👇<br />
                         <span style={{ color: a.accent }}>{shareLink}</span>
                       </p>
                     </div>
                     <button
-                      onClick={() => copy(`🏨 Guys, this app changed how I meet people in ${affiliate.city}.\n2Ghost Hotel — anonymous, private rooms, real vibes.\nTry it free 👇\n${shareLink}`, "caption")}
+                      onClick={() => copy(`🏨 Guys, this app changed how I meet people in ${affiliate.city}.\nMr Butlas Hotel — anonymous, private rooms, real vibes.\nTry it free 👇\n${shareLink}`, "caption")}
                       style={{
                         width: "100%", background: copied === "caption" ? "${a.glow(0.1)}" : "rgba(255,255,255,0.05)",
                         border: `1px solid ${copied === "caption" ? "${a.glow(0.25)}" : "rgba(255,255,255,0.1)"}`,

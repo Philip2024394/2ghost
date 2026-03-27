@@ -236,7 +236,7 @@ const SLIDES = [
     emoji:    "👻",
     tag:      "Ghost Mode",
     heading:  "Privacy From\nthe first Second",
-    body:     "2Ghost will never display your real name to anyone searching unless your connection is real. You control your privacy until you decide when to share. Total privacy from the first second.",
+    body:     "Mr Butlas will never display your real name to anyone searching unless your connection is real. You control your privacy until you decide when to share. Total privacy from the first second.",
     accent:   "#4ade80",
     accentBg: "rgba(74,222,128,0.1)",
     accentBorder: "rgba(74,222,128,0.25)",

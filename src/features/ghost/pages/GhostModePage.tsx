@@ -1816,7 +1816,7 @@ export default function GhostModePage() {
             onClick={() => {
               const url = `https://2ghost.app?ref=${getMyGhostId()}`;
               if (navigator.share) {
-                navigator.share({ title: "Join 2Ghost", text: "Join me on 2Ghost — anonymous dating done right 👻", url });
+                navigator.share({ title: "Join Mr Butlas", text: "Join me on Mr Butlas — anonymous dating done right 👻", url });
               } else {
                 try { navigator.clipboard.writeText(url); } catch {}
                 setReferralCopied(true);

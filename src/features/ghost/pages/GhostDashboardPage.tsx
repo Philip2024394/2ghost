@@ -443,9 +443,9 @@ export default function GhostDashboardPage() {
         style={{ padding: "16px 14px", display: "flex", flexDirection: "column", gap: 16 }}
       >
 
-        {/* Found Boo */}
+        {/* Ghost Match */}
         <div>
-          <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>Found Boo Status</p>
+          <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>Ghost Match Status</p>
           <AnimatePresence mode="wait">
             {isBooActive && foundBoo ? (
               <motion.div key="active" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -457,7 +457,7 @@ export default function GhostDashboardPage() {
                     <img src={GHOST_LOGO} alt="ghost" style={{ position: "absolute", bottom: -4, right: -4, width: 54, height: 54, objectFit: "contain" }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: "0 0 3px" }}>Found Boo</p>
+                    <p style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: "0 0 3px" }}>Ghost Match</p>
                     <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 5px" }}>Connected with {foundBoo.matchName}</p>
                     <p style={{ fontSize: 12, color: a.accent, fontWeight: 700, margin: 0 }}>Resumes in {fmtCountdown(foundBoo.pausedUntil - Date.now())}</p>
                   </div>
@@ -474,7 +474,7 @@ export default function GhostDashboardPage() {
                     <img src={GHOST_LOGO} alt="ghost" style={{ width: 78, height: 78, objectFit: "contain" }} />
                   </div>
                   <div>
-                    <p style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: "0 0 4px" }}>No active Boo yet</p>
+                    <p style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: "0 0 4px" }}>No active match yet</p>
                     <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0, lineHeight: 1.4 }}>Your next connection will appear here</p>
                   </div>
                 </div>
@@ -1018,7 +1018,7 @@ export default function GhostDashboardPage() {
 
     const FAQ = [
       { category: "Getting Started", emoji: "👻", items: [
-        { q: "What is 2Ghost?", a: "2Ghost is an anonymous connection platform. You appear as a Ghost — no real name, no photo shown to the public." },
+        { q: "What is Mr Butlas?", a: "Mr Butlas is an anonymous connection platform. You appear as a Ghost — no real name, no photo shown to the public." },
         { q: "Is my real identity ever shown?", a: "Never automatically. Your real name, phone, and social links stay hidden until both people agree to exchange contact details inside a private Vault chat." },
       ]},
       { category: "Rooms & Access", emoji: "🚪", items: [
@@ -1039,20 +1039,20 @@ export default function GhostDashboardPage() {
       <motion.div key="info" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}
         style={{ padding: "16px 14px", display: "flex", flexDirection: "column", gap: 16 }}
       >
-        {/* Why 2Ghost */}
+        {/* Why Mr Butlas */}
         <div style={{ borderRadius: 16, background: "linear-gradient(135deg, rgba(5,46,22,0.8) 0%, rgba(2,15,10,0.9) 100%)", border: `1px solid ${a.glow(0.15)}`, padding: "22px 18px" }}>
           <p style={{ fontSize: 20, fontWeight: 900, color: "#fff", margin: "0 0 12px", lineHeight: 1.3, letterSpacing: "-0.02em" }}>
             "Tomorrow's dating app isn't louder — it's quieter."
           </p>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: "0 0 12px", lineHeight: 1.65 }}>
-            2Ghost was built for people tired of performative dating. No followers, no stories, no dopamine loops. Just two people, a mutual choice, and a private conversation on the app you already use.
+            Mr Butlas was built for people tired of performative dating. No followers, no stories, no dopamine loops. Just two people, a mutual choice, and a private conversation on the app you already use.
           </p>
-          <p style={{ fontSize: 11, color: a.glow(0.6), margin: 0, fontWeight: 700 }}>— 2Ghost.com</p>
+          <p style={{ fontSize: 11, color: a.glow(0.6), margin: 0, fontWeight: 700 }}>— MrButlas.com</p>
         </div>
 
         {/* How it works */}
         <div>
-          <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>How 2Ghost Works</p>
+          <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px" }}>How Mr Butlas Works</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {FEATURES.map((f) => {
               const badgeStyle = BADGE_STYLES[f.badge] ?? BADGE_STYLES["ACTIVE"];
@@ -1162,7 +1162,7 @@ export default function GhostDashboardPage() {
 
           <div style={{ flex: 1 }}>
             <h1 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>{t("dash.title")}</h1>
-            <p style={{ fontSize: 11, color: a.glow(0.7), margin: 0, fontWeight: 600 }}>2Ghost.com</p>
+            <p style={{ fontSize: 11, color: a.glow(0.7), margin: 0, fontWeight: 600 }}>MrButlas.com</p>
           </div>
 
           {/* Coin chip in header */}
@@ -1255,7 +1255,7 @@ export default function GhostDashboardPage() {
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <img src={GHOST_LOGO} alt="ghost" style={{ width: 36, height: 36, objectFit: "contain" }} />
                     <div>
-                      <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: 0 }}>2Ghost</p>
+                      <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: 0 }}>Mr Butlas</p>
                       <p style={{ fontSize: 10, color: a.glow(0.6), margin: 0, fontWeight: 700 }}>Navigate</p>
                     </div>
                   </div>
@@ -1358,10 +1358,10 @@ export default function GhostDashboardPage() {
                   <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }} />
                 </div>
                 <h2 style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.2, letterSpacing: "-0.02em", margin: "0 0 6px" }}>Your Ghost Dashboard</h2>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, margin: "0 0 18px" }}>Everything about your 2Ghost life in one quiet place — with tabs for Home, Profile, Coins, Safety and Info.</p>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, margin: "0 0 18px" }}>Everything about your Mr Butlas life in one quiet place — with tabs for Home, Profile, Coins, Safety and Info.</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
                   {[
-                    { icon: "🏠", text: "Home — activity stats, Found Boo, floor rank, Ghost Stars" },
+                    { icon: "🏠", text: "Home — activity stats, Ghost Match, floor rank, Ghost Stars" },
                     { icon: "👤", text: "Profile — connect settings, date ideas, badges with modern dropdowns" },
                     { icon: "🪙", text: "Coins — balance, transaction history, quick top-up" },
                     { icon: "🛡️", text: "Safety — face verify, referrals, blocked profiles" },

@@ -174,7 +174,7 @@ export default function GhostAuthPage() {
       const m = today.getMonth() - dob.getMonth();
       if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
       if (isNaN(age) || age < 0) { setDobError("Please enter a valid date of birth."); return; }
-      if (age < 18) { setDobError("You must be 18 or older to join 2Ghost."); return; }
+      if (age < 18) { setDobError("You must be 18 or older to join Mr Butlas."); return; }
       const iso = `${dobYear}-${dobMonth.padStart(2, "0")}-${dobDay.padStart(2, "0")}`;
       try { localStorage.setItem("ghost_dob", iso); } catch {}
       setDobError("");
@@ -197,9 +197,9 @@ export default function GhostAuthPage() {
       }}>
         <div style={{ width: "100%", maxWidth: 360 }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <img src="https://ik.imagekit.io/7grri5v7d/Untitledsfasdfasdf.png" alt="2Ghost" style={{ width: 120, height: 120, objectFit: "contain", display: "block", margin: "0 auto 14px" }} />
+            <img src="https://ik.imagekit.io/7grri5v7d/Untitledsfasdfasdf.png" alt="Mr Butlas" style={{ width: 120, height: 120, objectFit: "contain", display: "block", margin: "0 auto 14px" }} />
             <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 8px", lineHeight: 1.2 }}>
-              Welcome to 2Ghost
+              Welcome to Mr Butlas
             </h1>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.65, maxWidth: 280, marginInline: "auto" }}>
               This platform is exclusively for adults aged <strong style={{ color: "#fff" }}>18 and over</strong>. Please enter your date of birth to continue.

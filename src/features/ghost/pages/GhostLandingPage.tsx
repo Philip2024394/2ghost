@@ -644,7 +644,7 @@ export default function GhostLandingPage() {
                   fontSize: 26, boxShadow: `0 0 16px ${a.glow(0.3)}`,
                 }}>👻</div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>Add 2Ghost to your Home Screen</p>
+                  <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", margin: "0 0 2px" }}>Add Mr Butlas to your Home Screen</p>
                   <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0 }}>One tap to open — always ready when you are</p>
                 </div>
                 <button onClick={dismissA2HS} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 18, cursor: "pointer", padding: "4px", lineHeight: 1, flexShrink: 0 }}>✕</button>

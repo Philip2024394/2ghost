@@ -478,7 +478,7 @@ export default function GhostSettingsDrawer({
                 </div>
               </motion.button>
               <p style={{ fontSize: 10, color: "rgba(255,255,255,0.12)", margin: "8px 0 0", textAlign: "center" }}>
-                Heartsway Hotel · 2Ghost
+                Heartsway Hotel · Mr Butlas
               </p>
             </div>
           </motion.div>

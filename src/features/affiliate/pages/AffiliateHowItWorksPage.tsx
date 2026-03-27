@@ -33,9 +33,9 @@ export default function AffiliateHowItWorksPage() {
           borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <img src={LOGO} alt="2Ghost" style={{ width: 34, height: 34, objectFit: "contain" }} />
+            <img src={LOGO} alt="Mr Butlas" style={{ width: 34, height: 34, objectFit: "contain" }} />
             <div>
-              <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", margin: 0 }}>2Ghost Affiliate</p>
+              <p style={{ fontSize: 14, fontWeight: 900, color: "#fff", margin: 0 }}>Mr Butlas Affiliate</p>
               <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0 }}>How It Works</p>
             </div>
           </div>
@@ -56,7 +56,7 @@ export default function AffiliateHowItWorksPage() {
             <div style={{ fontSize: 52, marginBottom: 12 }}>💸</div>
             <h1 style={{ fontSize: 24, fontWeight: 900, color: "#fff", margin: "0 0 10px", lineHeight: 1.2 }}>
               Earn Money Promoting<br />
-              <span style={{ color: "#4ade80" }}>2Ghost Hotel</span>
+              <span style={{ color: "#4ade80" }}>Mr Butlas Hotel</span>
             </h1>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7 }}>
               Share your unique link. Every time someone pays for a membership through your link, you earn 25% commission — paid directly to your bank account.
@@ -230,7 +230,7 @@ export default function AffiliateHowItWorksPage() {
             {[
               {
                 q: "Is it free to join?",
-                a: "Yes. There is no cost to become a 2Ghost affiliate. You earn commission, you never pay anything.",
+                a: "Yes. There is no cost to become a Mr Butlas affiliate. You earn commission, you never pay anything.",
               },
               {
                 q: "Do I need followers or a website?",
@@ -246,7 +246,7 @@ export default function AffiliateHowItWorksPage() {
               },
               {
                 q: "Do I pay tax on my earnings?",
-                a: "You are responsible for declaring your own income and paying applicable taxes in your jurisdiction. 2Ghost does not deduct tax from payments. Please consult a local tax advisor if unsure.",
+                a: "You are responsible for declaring your own income and paying applicable taxes in your jurisdiction. Mr Butlas does not deduct tax from payments. Please consult a local tax advisor if unsure.",
               },
               {
                 q: "What if I don't submit my payout details?",
@@ -277,7 +277,7 @@ export default function AffiliateHowItWorksPage() {
                 boxShadow: "0 0 30px rgba(74,222,128,0.2)",
               }}
             >
-              Join the 2Ghost Affiliate Programme →
+              Join the Mr Butlas Affiliate Programme →
             </button>
             <div style={{ display: "flex", justifyContent: "center", gap: 20, marginTop: 14 }}>
               <button onClick={() => navigate("/affiliate/dashboard")}

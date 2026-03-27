@@ -54,10 +54,10 @@ function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
       }}>
         <div style={{ height: 3, background: "linear-gradient(90deg,#16a34a,#4ade80)", borderRadius: "3px 3px 0 0", margin: "-28px -22px 22px" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
-          <img src={LOGO} alt="2Ghost" style={{ width: 38, height: 38, objectFit: "contain" }} />
+          <img src={LOGO} alt="Mr Butlas" style={{ width: 38, height: 38, objectFit: "contain" }} />
           <div>
             <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0 }}>Affiliate Admin</p>
-            <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0 }}>2Ghost internal panel</p>
+            <p style={{ fontSize: 10, color: "rgba(74,222,128,0.7)", margin: 0 }}>Mr Butlas internal panel</p>
           </div>
         </div>
         <input type="password" value={pw}
@@ -202,7 +202,7 @@ export default function AffiliateAdminPage() {
           <div style={{ height: 3, background: "linear-gradient(90deg,#16a34a,#4ade80)", margin: "-16px -18px 14px" }} />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <img src={LOGO} alt="2Ghost" style={{ width: 32, height: 32, objectFit: "contain" }} />
+              <img src={LOGO} alt="Mr Butlas" style={{ width: 32, height: 32, objectFit: "contain" }} />
               <div>
                 <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0 }}>Affiliate Admin</p>
                 <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>{active} active · {affiliates.length} total</p>
