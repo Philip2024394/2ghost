@@ -55,6 +55,11 @@ import GhostButlerSheet from "../components/GhostButlerSheet";
 import { isCitySupported } from "../data/butlerProviders";
 import MatchActionPopup, { type MatchActionContext } from "../components/MatchActionPopup";
 import GhostCoinShop from "../components/GhostCoinShop";
+import JokerInviteSheet, { shouldShowJoker } from "../components/JokerInviteSheet";
+import { readCoins } from "../utils/featureGating";
+import BreakfastChefInviteSheet from "../components/BreakfastChefInviteSheet";
+import MaidUpgradeSheet from "../components/MaidUpgradeSheet";
+import GamesRoomInviteSheet from "../components/GamesRoomInviteSheet";
 import ButlerGameChallengeSheet from "../components/ButlerGameChallengeSheet";
 import DateIdeasFeed from "../components/DateIdeasFeed";
 import { useDateInvites } from "../hooks/useDateInvites";
@@ -436,6 +441,10 @@ export default function GhostModePage() {
   const isProfileView = ghostProfileView !== null;
   useEffect(() => { setPvImageIdx(0); }, [ghostProfileView?.id]);
   const [showProfileDetail, setShowProfileDetail] = useState(false);
+  const [showJokerSheet, setShowJokerSheet] = useState(false);
+  const [showChefSheet, setShowChefSheet] = useState(false);
+  const [showMaidSheet, setShowMaidSheet] = useState(false);
+  const [showGamesSheet, setShowGamesSheet] = useState(false);
 
   // Ghost Flash — 60-minute live pool
   const FLASH_CONTACT_LIMIT = 3;
@@ -1791,6 +1800,33 @@ export default function GhostModePage() {
             const profile = profiles[topCardIdx % profiles.length];
             const online = isOnline(profile.last_seen_at);
             const isLiked = likedIds.has(profile.id);
+            // Persona logic — same rules as GhostCard
+            function _idHash(id: string): number { let h = 0; for (let i = 0; i < id.length; i++) h = Math.imul(37, h) + id.charCodeAt(i) | 0; return Math.abs(h); }
+            const _isVerified = profile.isVerified || profile.faceVerified || profile.badge === "Verified";
+            const _isMaleUnverified = !_isVerified && profile.gender !== "Female";
+            const _isChef   = _isMaleUnverified && (_idHash(profile.id + "persona") % 2 === 0);
+            const _isGames  = _isMaleUnverified && !_isChef;
+            const _isJoker  = !_isVerified && profile.gender === "Female" && shouldShowJoker(profile.id, readCoins());
+            const _isMaid   = !_isVerified && profile.gender === "Female" && !_isJoker;
+            const PERSONA_JOKER = "https://ik.imagekit.io/7grri5v7d/Untitleddsfsdfsdf.png";
+            const PERSONA_CHEF  = "https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdfasdasd.png";
+            const PERSONA_MAID  = "https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdfasdasddsds.png";
+            const PERSONA_GAMES = "https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdfasdasddsdssdfs.png?updatedAt=1774487538945";
+            const cardImg = _isVerified ? profile.image
+              : _isJoker ? PERSONA_JOKER : _isChef ? PERSONA_CHEF
+              : _isMaid  ? PERSONA_MAID  : _isGames ? PERSONA_GAMES : profile.image;
+            const personaFrame = _isChef  ? "rgba(249,115,22,0.7)"
+              : _isGames ? "rgba(34,211,238,0.7)"
+              : _isMaid  ? "rgba(192,132,252,0.7)"
+              : _isJoker ? "rgba(236,72,153,0.7)" : null;
+            function handleCardTap(e: React.MouseEvent) {
+              e.stopPropagation();
+              if (_isJoker) { setShowJokerSheet(true); return; }
+              if (_isChef)  { setShowChefSheet(true);  return; }
+              if (_isMaid)  { setShowMaidSheet(true);  return; }
+              if (_isGames) { setShowGamesSheet(true); return; }
+              requireAuth(() => setGhostProfileView(profile));
+            }
             return (
               <motion.div
                 key={`top-${profile.id}`}
@@ -1818,14 +1854,15 @@ export default function GhostModePage() {
                 style={{
                   flex: "0 0 0px", flexGrow: 1.8, minHeight: 150,
                   position: "relative", borderRadius: 28, overflow: "hidden",
-                  boxShadow: "0 14px 36px rgba(0,0,0,0.5)",
                   cursor: "pointer", touchAction: "pan-y",
+                  border: personaFrame ? `2px solid ${personaFrame}` : undefined,
+                  boxShadow: personaFrame ? `0 14px 36px rgba(0,0,0,0.5), 0 0 0 2px ${personaFrame}` : "0 14px 36px rgba(0,0,0,0.5)",
                 }}
-                onClick={() => requireAuth(() => setGhostProfileView(profile))}
+                onClick={handleCardTap}
               >
                 {/* Full-bleed image */}
                 <img
-                  src={profile.image} alt=""
+                  src={cardImg} alt=""
                   style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
                   onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
                 />
@@ -1840,7 +1877,9 @@ export default function GhostModePage() {
                 {/* Info overlay — bottom-left */}
                 <div style={{ position: "absolute", bottom: 14, left: 14, display: "flex", flexDirection: "column", gap: 3 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                    <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{toGhostId(profile.id)}</p>
+                    <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: personaFrame ? "#d4af37" : "#fff", lineHeight: 1 }}>
+                      {_isChef ? "👨‍🍳 Chef Armand" : _isGames ? "🎮 Games Boy" : _isMaid ? "🧹 Maid Eloise" : _isJoker ? "🃏 The Joker" : toGhostId(profile.id)}
+                    </p>
                     <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.4, repeat: Infinity }}
                       style={{ width: 8, height: 8, borderRadius: "50%", background: online ? "#22c55e" : "#f59e0b", boxShadow: online ? "0 0 6px rgba(34,197,94,0.9)" : "0 0 6px rgba(245,158,11,0.9)", flexShrink: 0 }} />
                   </div>
@@ -2136,6 +2175,74 @@ export default function GhostModePage() {
                     </div>
                   </div>
 
+                  {/* Joker */}
+                  <motion.div
+                    whileTap={{ scale: 0.93 }}
+                    onClick={e => { e.stopPropagation(); setShowJokerSheet(true); }}
+                    style={{ flexShrink: 0, width: 100, borderRadius: 18, overflow: "hidden", border: "1px solid rgba(212,175,55,0.35)", cursor: "pointer", position: "relative", touchAction: "manipulation" }}
+                  >
+                    <img src="https://ik.imagekit.io/7grri5v7d/Untitleddsfsdfsdf.png" alt="Joker"
+                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%)" }} />
+                    <div style={{ position: "absolute", bottom: 10, left: 0, right: 0, textAlign: "center" }}>
+                      <p style={{ margin: 0, fontSize: 9, fontWeight: 900, color: "#d4af37", letterSpacing: "0.1em", textTransform: "uppercase" }}>🃏 Joker</p>
+                      <p style={{ margin: "2px 0 0", fontSize: 8, color: "rgba(255,255,255,0.45)" }}>Tap to collect</p>
+                    </div>
+                    <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.8, repeat: Infinity }}
+                      style={{ position: "absolute", inset: 0, borderRadius: 18, border: "1.5px solid rgba(212,175,55,0.6)", pointerEvents: "none" }} />
+                  </motion.div>
+
+                  {/* Chef Armand */}
+                  <motion.div
+                    whileTap={{ scale: 0.93 }}
+                    onClick={e => { e.stopPropagation(); setShowChefSheet(true); }}
+                    style={{ flexShrink: 0, width: 100, borderRadius: 18, overflow: "hidden", border: "1px solid rgba(249,115,22,0.35)", cursor: "pointer", position: "relative", touchAction: "manipulation" }}
+                  >
+                    <img src="https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdfasdasd.png" alt="Chef"
+                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%)" }} />
+                    <div style={{ position: "absolute", bottom: 10, left: 0, right: 0, textAlign: "center" }}>
+                      <p style={{ margin: 0, fontSize: 9, fontWeight: 900, color: "#f97316", letterSpacing: "0.1em", textTransform: "uppercase" }}>👨‍🍳 Chef</p>
+                      <p style={{ margin: "2px 0 0", fontSize: 8, color: "rgba(255,255,255,0.45)" }}>Breakfast lounge</p>
+                    </div>
+                    <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.8, repeat: Infinity, delay: 0.6 }}
+                      style={{ position: "absolute", inset: 0, borderRadius: 18, border: "1.5px solid rgba(249,115,22,0.6)", pointerEvents: "none" }} />
+                  </motion.div>
+
+                  {/* Maid Eloise */}
+                  <motion.div
+                    whileTap={{ scale: 0.93 }}
+                    onClick={e => { e.stopPropagation(); setShowMaidSheet(true); }}
+                    style={{ flexShrink: 0, width: 100, borderRadius: 18, overflow: "hidden", border: "1px solid rgba(192,132,252,0.35)", cursor: "pointer", position: "relative", touchAction: "manipulation" }}
+                  >
+                    <img src="https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdfasdasddsds.png" alt="Maid"
+                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%)" }} />
+                    <div style={{ position: "absolute", bottom: 10, left: 0, right: 0, textAlign: "center" }}>
+                      <p style={{ margin: 0, fontSize: 9, fontWeight: 900, color: "#c084fc", letterSpacing: "0.1em", textTransform: "uppercase" }}>🧹 Maid</p>
+                      <p style={{ margin: "2px 0 0", fontSize: 8, color: "rgba(255,255,255,0.45)" }}>Room service</p>
+                    </div>
+                    <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.8, repeat: Infinity, delay: 1.2 }}
+                      style={{ position: "absolute", inset: 0, borderRadius: 18, border: "1.5px solid rgba(192,132,252,0.6)", pointerEvents: "none" }} />
+                  </motion.div>
+
+                  {/* Games Boy */}
+                  <motion.div
+                    whileTap={{ scale: 0.93 }}
+                    onClick={e => { e.stopPropagation(); setShowGamesSheet(true); }}
+                    style={{ flexShrink: 0, width: 100, borderRadius: 18, overflow: "hidden", border: "1px solid rgba(34,211,238,0.35)", cursor: "pointer", position: "relative", touchAction: "manipulation" }}
+                  >
+                    <img src="https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdfasdasddsdssdfs.png?updatedAt=1774487538945" alt="Games Boy"
+                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%)" }} />
+                    <div style={{ position: "absolute", bottom: 10, left: 0, right: 0, textAlign: "center" }}>
+                      <p style={{ margin: 0, fontSize: 9, fontWeight: 900, color: "#22d3ee", letterSpacing: "0.1em", textTransform: "uppercase" }}>🎮 Games</p>
+                      <p style={{ margin: "2px 0 0", fontSize: 8, color: "rgba(255,255,255,0.45)" }}>Games room</p>
+                    </div>
+                    <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.8, repeat: Infinity, delay: 1.8 }}
+                      style={{ position: "absolute", inset: 0, borderRadius: 18, border: "1.5px solid rgba(34,211,238,0.6)", pointerEvents: "none" }} />
+                  </motion.div>
+
               </div>
             )}
 
@@ -2383,13 +2490,35 @@ export default function GhostModePage() {
                 const profile = profiles[bottomCardIdx % profiles.length];
                 const online = isOnline(profile.last_seen_at);
                 const isLiked = likedIds.has(profile.id);
+                // Persona logic — mirrors GhostCard
+                function _bHash(id: string): number { let h = 0; for (let i = 0; i < id.length; i++) h = Math.imul(37, h) + id.charCodeAt(i) | 0; return Math.abs(h); }
+                const _bVerified = profile.isVerified || profile.faceVerified || profile.badge === "Verified";
+                const _bMaleUnver = !_bVerified && profile.gender !== "Female";
+                const _bChef   = _bMaleUnver && (_bHash(profile.id + "persona") % 2 === 0);
+                const _bGames  = _bMaleUnver && !_bChef;
+                const _bJoker  = !_bVerified && profile.gender === "Female" && shouldShowJoker(profile.id, readCoins());
+                const _bMaid   = !_bVerified && profile.gender === "Female" && !_bJoker;
+                const B_JOKER = "https://ik.imagekit.io/7grri5v7d/Untitleddsfsdfsdf.png";
+                const B_CHEF  = "https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdfasdasd.png";
+                const B_MAID  = "https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdfasdasddsds.png";
+                const B_GAMES = "https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdfasdasddsdssdfs.png?updatedAt=1774487538945";
+                const bCardImg = _bVerified ? profile.image
+                  : _bJoker ? B_JOKER : _bChef ? B_CHEF
+                  : _bMaid  ? B_MAID  : _bGames ? B_GAMES : profile.image;
+                const bFrame = _bChef  ? "rgba(249,115,22,0.7)"
+                  : _bGames ? "rgba(34,211,238,0.7)"
+                  : _bMaid  ? "rgba(192,132,252,0.7)"
+                  : _bJoker ? "rgba(236,72,153,0.7)" : null;
                 return (<>
                   {/* Full-bleed image */}
                   <img
-                    src={profile.image} alt=""
-                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
+                    src={bCardImg} alt=""
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block", cursor: bFrame ? "pointer" : "inherit" }}
                     onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+                    onClick={bFrame ? (e => { e.stopPropagation(); if (_bJoker) setShowJokerSheet(true); else if (_bChef) setShowChefSheet(true); else if (_bMaid) setShowMaidSheet(true); else if (_bGames) setShowGamesSheet(true); }) : undefined}
                   />
+                  {/* Persona glow border */}
+                  {bFrame && <div style={{ position: "absolute", inset: 0, borderRadius: 28, border: `2px solid ${bFrame}`, pointerEvents: "none", zIndex: 5 }} />}
                   {/* Gradient overlay */}
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)" }} />
 
@@ -2399,9 +2528,11 @@ export default function GhostModePage() {
                   </div>
 
                   {/* Info overlay — bottom-left */}
-                  <div style={{ position: "absolute", bottom: 14, left: 14, display: "flex", flexDirection: "column", gap: 3 }}>
+                  <div style={{ position: "absolute", bottom: 14, left: 14, display: "flex", flexDirection: "column", gap: 3, zIndex: 6 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                      <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{toGhostId(profile.id)}</p>
+                      <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: bFrame ? "#d4af37" : "#fff", lineHeight: 1 }}>
+                        {_bChef ? "👨‍🍳 Chef Armand" : _bGames ? "🎮 Games Boy" : _bMaid ? "🧹 Maid Eloise" : _bJoker ? "🃏 The Joker" : toGhostId(profile.id)}
+                      </p>
                       <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.4, repeat: Infinity }}
                         style={{ width: 8, height: 8, borderRadius: "50%", background: online ? "#22c55e" : "#f59e0b", boxShadow: online ? "0 0 6px rgba(34,197,94,0.9)" : "0 0 6px rgba(245,158,11,0.9)", flexShrink: 0 }} />
                     </div>
@@ -2691,6 +2822,31 @@ export default function GhostModePage() {
             profile={ghostProfileView}
             onClose={() => setShowProfileDetail(false)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Joker sheet — opened from Joker card in profile tab */}
+      <AnimatePresence>
+        {showJokerSheet && (
+          <JokerInviteSheet onClose={() => setShowJokerSheet(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showChefSheet && (
+          <BreakfastChefInviteSheet onClose={() => setShowChefSheet(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showMaidSheet && (
+          <MaidUpgradeSheet onClose={() => setShowMaidSheet(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showGamesSheet && (
+          <GamesRoomInviteSheet onClose={() => setShowGamesSheet(false)} />
         )}
       </AnimatePresence>
 

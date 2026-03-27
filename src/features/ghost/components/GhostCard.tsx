@@ -1093,12 +1093,12 @@ export default function GhostCard({
   const roomsDiscovered  = (() => { try { return localStorage.getItem("rooms_unlocked") === "true"; } catch { return false; } })();
 
   const isMaleUnverified = !isVerified && profile.gender !== "Female";
-  // Once a persona's feature is discovered, that persona no longer appears in the feed
-  const isChefProfile  = isMaleUnverified && !loungeDiscovered && (idHash(profile.id + "persona") % 2 === 0);
-  const isGamesProfile = isMaleUnverified && !gamesDiscovered  && !isChefProfile;
+  // Always show personas — discovery flags no longer suppress them
+  const isChefProfile  = isMaleUnverified && (idHash(profile.id + "persona") % 2 === 0);
+  const isGamesProfile = isMaleUnverified && !isChefProfile;
   // Joker: female unverified, timing/balance based — takes priority over Maid
   const isJokerProfile = !isVerified && profile.gender === "Female" && shouldShowJoker(profile.id, readCoins());
-  const isMaidProfile  = !isVerified && profile.gender === "Female" && !isJokerProfile && !roomsDiscovered;
+  const isMaidProfile  = !isVerified && profile.gender === "Female" && !isJokerProfile;
 
   const GAMES_BOY_IMG = "https://ik.imagekit.io/7grri5v7d/jjjhfghfgsdasdasdsfasdfasdasddsdssdfs.png?updatedAt=1774487538945";
   const JOKER_CARD_IMG = "https://ik.imagekit.io/7grri5v7d/Untitleddsfsdfsdf.png";

@@ -2,12 +2,13 @@
 // First encounter: 20 coins flat.
 // Subsequent: 8% cashback on total coins ever spent (min 5, max 100).
 // Timing: min 6h between appearances, returns sooner when balance runs low.
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCoins } from "../hooks/useCoins";
 import { readTransactions } from "../hooks/useCoins";
 
-const JOKER_IMG = "https://ik.imagekit.io/7grri5v7d/Untitleddsfsdfsdf.png";
+const JOKER_IMG       = "https://ik.imagekit.io/7grri5v7d/Untitleddsfsdfsdf.png";
+const JOKER_VIDEO_URL = "https://ik.imagekit.io/7grri5v7d/joker%20woman.mp4";
 const JOKER_LAST_KEY = "joker_last_shown";
 
 // ── Coin reward helpers ──────────────────────────────────────────────────────
@@ -75,11 +76,23 @@ export default function JokerInviteSheet({ onClose }: Props) {
   const [collected, setCollected] = useState(false);
   const [showCoins, setShowCoins] = useState(false);
   const particles = useMemo(() => generateCoins(18), []);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoReady, setVideoReady] = useState(false);
 
   // Start coin rain after a short entrance delay
   useEffect(() => {
     const t = setTimeout(() => setShowCoins(true), 600);
     return () => clearTimeout(t);
+  }, []);
+
+  // Preload video — fade in once first frame is ready
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    const onReady = () => { setVideoReady(true); vid.play().catch(() => {}); };
+    vid.addEventListener("canplay", onReady, { once: true });
+    vid.load();
+    return () => vid.removeEventListener("canplay", onReady);
   }, []);
 
   function collect() {
@@ -103,12 +116,30 @@ export default function JokerInviteSheet({ onClose }: Props) {
         overflow: "hidden",
       }}
     >
-      {/* Full-screen Joker background */}
-      <div style={{
-        position: "absolute", inset: 0,
-        backgroundImage: `url(${JOKER_IMG})`,
-        backgroundSize: "cover", backgroundPosition: "center top",
-      }} />
+      {/* Fallback image — visible instantly while video loads */}
+      <img
+        src={JOKER_IMG}
+        alt=""
+        style={{
+          position: "absolute", inset: 0, width: "100%", height: "100%",
+          objectFit: "cover", objectPosition: "center top",
+          opacity: videoReady ? 0 : 1, transition: "opacity 0.8s",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Background video — fades in once first frame is ready */}
+      <video
+        ref={videoRef}
+        src={JOKER_VIDEO_URL}
+        muted loop playsInline preload="auto"
+        style={{
+          position: "absolute", inset: 0, width: "100%", height: "100%",
+          objectFit: "cover", objectPosition: "center top",
+          opacity: videoReady ? 1 : 0, transition: "opacity 0.8s",
+          pointerEvents: "none",
+        }}
+      />
       {/* Dark vignette */}
       <div style={{
         position: "absolute", inset: 0,
