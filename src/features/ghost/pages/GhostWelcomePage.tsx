@@ -1,6 +1,8 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+
+type Heart = { id: number; x: number; size: number; dur: number; drift: number };
 
 // Deterministic daily count 470–640 (changes each calendar day)
 function getDailyGuestCount(): number {
@@ -31,6 +33,26 @@ export default function GhostWelcomePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [showRefBanner, setShowRefBanner] = useState(false);
+  const [hearts, setHearts] = useState<Heart[]>([]);
+  const heartIdRef = useRef(0);
+
+  // Ambient hearts floating up from the button every 550ms
+  useEffect(() => {
+    const t = setInterval(() => {
+      const id = heartIdRef.current++;
+      setHearts(h => [
+        ...h.slice(-18), // cap at 18 particles
+        {
+          id,
+          x: (Math.random() - 0.5) * 180,
+          size: 10 + Math.random() * 11,
+          dur: 2.0 + Math.random() * 1.4,
+          drift: (Math.random() - 0.5) * 55,
+        },
+      ]);
+    }, 550);
+    return () => clearInterval(t);
+  }, []);
 
   // Capture referral code from URL and persist for signup
   useEffect(() => {
@@ -133,34 +155,6 @@ export default function GhostWelcomePage() {
         </p>
       </motion.div>
 
-      {/* Top-right — affiliate pill */}
-      <motion.a
-        href="/affiliate/join"
-        initial={{ opacity: 0, x: 12 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.7, delay: 0.5 }}
-        style={{
-          position: "absolute",
-          top: "max(44px, env(safe-area-inset-top, 44px))",
-          right: 20,
-          zIndex: 10,
-          display: "flex", alignItems: "center", gap: 5,
-          padding: "7px 13px",
-          borderRadius: 50,
-          background: "rgba(0,0,0,0.45)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255,255,255,0.15)",
-          color: "rgba(255,255,255,0.65)",
-          fontSize: 11,
-          fontWeight: 700,
-          textDecoration: "none",
-          letterSpacing: "0.04em",
-          fontFamily: "'Georgia', serif",
-        }}
-      >
-        <span style={{ fontSize: 13 }}>💼</span> Earn
-      </motion.a>
-
       {/* "with..." centered */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -255,28 +249,58 @@ export default function GhostWelcomePage() {
           </motion.div>
         </div>
 
-        {/* Find Now button */}
-        <button
-          onClick={() => navigate("/auth")}
-          style={{
-            width: "100%",
-            maxWidth: 400,
-            height: 58,
-            borderRadius: 50,
-            border: "none",
-            background: "linear-gradient(to bottom, #ff3b3b 0%, #e01010 40%, #b80000 100%)",
-            color: "#fff",
-            fontSize: 18,
-            fontWeight: 900,
-            letterSpacing: "0.06em",
-            cursor: "pointer",
-            textTransform: "uppercase",
-            boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px rgba(220,20,20,0.55), 0 2px 8px rgba(0,0,0,0.5)",
-            fontFamily: "'Georgia', serif",
-          }}
-        >
-          Find Now
-        </button>
+        {/* Find Now button + floating hearts */}
+        <div style={{ position: "relative", width: "100%", maxWidth: 400 }}>
+          {/* Hearts layer — rendered above the button, pointer-events off */}
+          <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible", zIndex: 20 }}>
+            <AnimatePresence>
+              {hearts.map((h) => (
+                <motion.span
+                  key={h.id}
+                  initial={{ opacity: 0.9, y: 0, x: h.x, scale: 1 }}
+                  animate={{ opacity: 0, y: -240, x: h.x + h.drift, scale: 0.6 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: h.dur, ease: "easeOut" }}
+                  onAnimationComplete={() =>
+                    setHearts(prev => prev.filter(p => p.id !== h.id))
+                  }
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    bottom: "50%",
+                    fontSize: h.size,
+                    lineHeight: 1,
+                    userSelect: "none",
+                  }}
+                >
+                  ❤️
+                </motion.span>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          <button
+            onClick={() => navigate("/auth")}
+            style={{
+              width: "100%",
+              height: 58,
+              borderRadius: 50,
+              border: "none",
+              background: "linear-gradient(to bottom, #ff3b3b 0%, #e01010 40%, #b80000 100%)",
+              color: "#fff",
+              fontSize: 18,
+              fontWeight: 900,
+              letterSpacing: "0.06em",
+              cursor: "pointer",
+              textTransform: "uppercase",
+              boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 32px rgba(220,20,20,0.55), 0 2px 8px rgba(0,0,0,0.5)",
+              fontFamily: "'Georgia', serif",
+              position: "relative", zIndex: 1,
+            }}
+          >
+            Find Now
+          </button>
+        </div>
       </motion.div>
     </div>
   );
