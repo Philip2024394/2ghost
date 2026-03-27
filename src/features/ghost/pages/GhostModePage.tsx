@@ -450,6 +450,7 @@ export default function GhostModePage() {
   useEffect(() => {
     const CHAR_VIDEOS = [
       "https://ik.imagekit.io/7grri5v7d/joker%20woman.mp4",
+      "https://ik.imagekit.io/7grri5v7d/maid%20with%20key.mp4",
     ];
     const els = CHAR_VIDEOS.map(url => {
       const v = document.createElement("video");

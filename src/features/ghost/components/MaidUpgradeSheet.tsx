@@ -1,9 +1,10 @@
 // MaidUpgradeSheet — full-screen layout matching JokerInviteSheet
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-const MAID_IMG = "https://ik.imagekit.io/7grri5v7d/UntitledfsdfsdfsdfsdfDSFSDFSdssdf.png";
+const MAID_IMG       = "https://ik.imagekit.io/7grri5v7d/UntitledfsdfsdfsdfsdfDSFSDFSdssdf.png";
+const MAID_VIDEO_URL = "https://ik.imagekit.io/7grri5v7d/maid%20with%20key.mp4";
 
 interface Props {
   onClose: () => void;
@@ -12,6 +13,17 @@ interface Props {
 export default function MaidUpgradeSheet({ onClose }: Props) {
   const navigate = useNavigate();
   const [confirmed, setConfirmed] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoReady, setVideoReady] = useState(false);
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    const onReady = () => { setVideoReady(true); vid.play().catch(() => {}); };
+    if (vid.readyState >= 3) { onReady(); }
+    else { vid.addEventListener("canplay", onReady, { once: true }); vid.load(); }
+    return () => vid.removeEventListener("canplay", onReady);
+  }, []);
 
   function accept() {
     if (confirmed) return;
@@ -34,13 +46,27 @@ export default function MaidUpgradeSheet({ onClose }: Props) {
         overflow: "hidden",
       }}
     >
-      {/* Full-bleed character image */}
+      {/* Fallback image — visible instantly while video loads */}
       <img
         src={MAID_IMG}
         alt=""
         style={{
           position: "absolute", inset: 0, width: "100%", height: "100%",
           objectFit: "cover", objectPosition: "center top",
+          opacity: videoReady ? 0 : 1, transition: "opacity 0.8s",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Background video — fades in once first frame is ready */}
+      <video
+        ref={videoRef}
+        src={MAID_VIDEO_URL}
+        muted loop playsInline preload="auto"
+        style={{
+          position: "absolute", inset: 0, width: "100%", height: "100%",
+          objectFit: "cover", objectPosition: "center top",
+          opacity: videoReady ? 1 : 0, transition: "opacity 0.8s",
           pointerEvents: "none",
         }}
       />
