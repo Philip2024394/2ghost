@@ -106,7 +106,7 @@ export default function App() {
       <Suspense fallback={null}>
         <Routes>
           <Route path="/" element={
-            localStorage.getItem("ghost_profile_setup_done")
+            localStorage.getItem("ghost_profile_setup_done") && localStorage.getItem("ghost_email")
               ? <Navigate to="/mode" replace />
               : <Navigate to="/welcome" replace />
           } />

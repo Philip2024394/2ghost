@@ -7,8 +7,8 @@ import {
 } from "../affiliateStorage";
 
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
-const BG   = "https://ik.imagekit.io/7grri5v7d/ghost%20roomssadasdasdfasdfasdf.png";
-const LOGO = "https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasd.png?updatedAt=1773948067293";
+const BG           = "https://ik.imagekit.io/7grri5v7d/ghost%20roomssadasdasdfasdfasdf.png";
+const SKELETON_IMG = "https://ik.imagekit.io/7grri5v7d/Skeleton%20in%20tuxedo%20flips%20Connect%204%20disc.png?updatedAt=1774279388822";
 
 const S = {
   card: {
@@ -54,6 +54,11 @@ export default function AffiliateDashboard() {
     if (params.get("code")) setCode(params.get("code")!.toUpperCase());
   }, [params]);
 
+  useEffect(() => {
+    document.body.classList.add("affiliate-mode");
+    return () => { document.body.classList.remove("affiliate-mode"); };
+  }, []);
+
   const affiliate = code ? getAffiliate(code) : null;
   const stats     = code ? getAffiliateStats(code) : null;
   const banners   = loadBanners();
@@ -92,14 +97,14 @@ export default function AffiliateDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           style={{
-            position: "relative", zIndex: 1, width: "100%", maxWidth: 380,
-            background: "rgba(4,6,4,0.97)", border: `1px solid ${a.glow(0.2)}`,
+            position: "relative", zIndex: 1, width: "100%",
+            background: "rgba(8,2,2,0.97)", border: `1px solid ${a.glow(0.2)}`,
             borderRadius: 24, padding: "28px 22px", backdropFilter: "blur(20px)",
           }}
         >
-          <div style={{ height: 3, background: `linear-gradient(90deg,#16a34a,${a.accent})`, borderRadius: "3px 3px 0 0", margin: "-28px -22px 22px" }} />
+          <div style={{ height: 3, background: `linear-gradient(90deg,#b91c1c,${a.accent})`, borderRadius: "3px 3px 0 0", margin: "-28px -22px 22px" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-            <img src={LOGO} alt="Mr Butlas" style={{ width: 40, height: 40, objectFit: "contain" }} />
+            <img src={SKELETON_IMG} alt="Mr Butlas" style={{ width: 50, height: 50, objectFit: "contain" }} />
             <div>
               <p style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0 }}>Affiliate Dashboard</p>
               <p style={{ fontSize: 10, color: a.glow(0.7), margin: 0 }}>Enter your code to continue</p>
@@ -115,9 +120,9 @@ export default function AffiliateDashboard() {
           {error && <p style={{ fontSize: 11, color: "#f87171", margin: "6px 0 0" }}>{error}</p>}
           <button onClick={login} style={{
             width: "100%", marginTop: 12,
-            background: `linear-gradient(135deg,#16a34a,${a.accent})`,
+            background: `linear-gradient(135deg,#dc2626,${a.accent})`,
             border: "none", borderRadius: 12, padding: "12px 0",
-            fontSize: 13, fontWeight: 900, color: "#000", cursor: "pointer",
+            fontSize: 13, fontWeight: 900, color: "#fff", cursor: "pointer",
           }}>View My Dashboard →</button>
           <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", textAlign: "center", margin: "12px 0 0" }}>
             Not signed up yet?{" "}
@@ -166,7 +171,7 @@ export default function AffiliateDashboard() {
     }}>
       <div style={{ position: "fixed", inset: 0, background: "rgba(4,5,8,0.88)", zIndex: 0 }} />
 
-      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 480 }}>
+      <div style={{ position: "relative", zIndex: 1, width: "100%" }}>
 
         {/* Header */}
         <div style={{
@@ -174,7 +179,7 @@ export default function AffiliateDashboard() {
           padding: "max(16px, env(safe-area-inset-top, 16px)) 18px 0",
           position: "sticky", top: 0, zIndex: 10,
         }}>
-          <div style={{ height: 3, background: `linear-gradient(90deg,#16a34a,${a.accent})`, margin: "-16px -18px 14px" }} />
+          <div style={{ height: 3, background: `linear-gradient(90deg,#b91c1c,${a.accent})`, margin: "-16px -18px 14px" }} />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <img src={LOGO} alt="Mr Butlas" style={{ width: 32, height: 32, objectFit: "contain" }} />

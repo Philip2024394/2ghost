@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useGenderAccent } from "@/shared/hooks/useGenderAccent";
-const GHOST_LOGO = "https://ik.imagekit.io/7grri5v7d/weqweqwsdfsdf.png";
+const APP_ICON = "https://ik.imagekit.io/7grri5v7d/Untitleddgsdg.png";
 const MAX_DISMISSALS = 5;
 const REPEAT_MS = 3 * 60 * 1000; // 3 min repeat within same session
 const FIRST_SHOW_MS = 3000;       // 3s after page load — always, every visit
@@ -23,9 +23,6 @@ function getDismissCount(): number {
 }
 function setDismissCount(n: number) {
   try { localStorage.setItem("ghost_install_dismissals", String(n)); } catch {}
-}
-function getLastDismissed(): number {
-  try { return Number(localStorage.getItem("ghost_install_last_dismissed") || 0); } catch { return 0; }
 }
 function setLastDismissed() {
   try { localStorage.setItem("ghost_install_last_dismissed", String(Date.now())); } catch {}
@@ -138,7 +135,7 @@ export default function GhostInstallBanner() {
                 background: a.glow(0.1), border: `1px solid ${a.glow(0.25)}`,
                 display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
               }}>
-                <img src={GHOST_LOGO} alt="2Ghost" style={{ width: 60, height: 60, objectFit: "contain" }} />
+                <img src={APP_ICON} alt="2Ghost" style={{ width: 60, height: 60, objectFit: "contain" }} />
               </div>
 
               {/* Text */}
@@ -207,7 +204,7 @@ export default function GhostInstallBanner() {
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <img src={GHOST_LOGO} alt="ghost" style={{ width: 44, height: 44, objectFit: "contain" }} />
+                  <img src={APP_ICON} alt="ghost" style={{ width: 44, height: 44, objectFit: "contain" }} />
                   <div>
                     <p style={{ fontSize: 15, fontWeight: 900, color: "#fff", margin: 0 }}>Add to Home Screen</p>
                     <p style={{ fontSize: 10, color: a.glow(0.6), margin: 0 }}>3 quick steps</p>

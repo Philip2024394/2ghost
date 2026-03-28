@@ -59,7 +59,6 @@ import GhostViewedMeSheet from "../components/GhostViewedMeSheet";
 import GhostLobbySheet from "../components/GhostLobbySheet";
 import LateNightButlerPopup from "../components/LateNightButlerPopup";
 import ButlerWelcomePopup from "../components/ButlerWelcomePopup";
-import PushPermissionPrompt from "../components/PushPermissionPrompt";
 import CheckoutReminderPopup from "../components/CheckoutReminderPopup";
 import FloorChatPopup from "../components/FloorChatPopup";
 import GhostFlashPaywallSheet from "../components/GhostFlashPaywallSheet";
@@ -332,10 +331,6 @@ export interface GhostModePopupsProps {
   showButlerWelcome: boolean;
   setShowButlerWelcome: (v: boolean) => void;
 
-  // Push prompt
-  showPushPrompt: boolean;
-  setShowPushPrompt: (v: boolean) => void;
-
   // Checkout
   showCheckout: boolean;
   setShowCheckout: (v: boolean) => void;
@@ -537,8 +532,6 @@ export default function GhostModePopups({
   setShowLateNight,
   showButlerWelcome,
   setShowButlerWelcome,
-  showPushPrompt,
-  setShowPushPrompt,
   showCheckout,
   setShowCheckout,
   showFloorChat,
@@ -1274,9 +1267,6 @@ export default function GhostModePopups({
           />
         )}
 
-        {showPushPrompt && (
-          <PushPermissionPrompt onDone={() => setShowPushPrompt(false)} />
-        )}
       </AnimatePresence>
 
       {/* ── Checkout reminder ── */}

@@ -1313,7 +1313,7 @@ export default function GhostModePage() {
   }
 
   return (
-    <div translate="no" style={{ minHeight: "100dvh", background: "#08060a", display: "flex", justifyContent: "center" }}>
+    <div translate="no" style={{ minHeight: "100dvh", background: "#000", display: "flex", justifyContent: "center" }}>
 
       {/* DEV — reset to start page */}
       <button
@@ -1350,7 +1350,7 @@ export default function GhostModePage() {
       </button>
 
     <div
-      style={{ width: "100%", maxWidth: 480, minHeight: "100dvh", background: "#08060a", color: "#fff", display: "flex", flexDirection: "column", position: "relative" }}
+      style={{ width: "100%", maxWidth: 480, minHeight: "100dvh", background: "#000", color: "#fff", display: "flex", flexDirection: "column", position: "relative" }}
     >
       {/* Blocking overlay — sits above cards/content but below house rules modal and install banner */}
       {!houseRulesAgreed && (
@@ -1364,8 +1364,7 @@ export default function GhostModePage() {
       {/* Header */}
       <div style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(5,5,8,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        background: "#000", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
         paddingTop: `max(12px, env(safe-area-inset-top, 12px))`,
       }}>
         {/* Top row: title + primary actions */}
@@ -1732,6 +1731,7 @@ export default function GhostModePage() {
           paddingBottom: `max(16px, env(safe-area-inset-bottom, 16px))`,
           gap: 10,
           position: "relative",
+          background: "#000",
         }}>
           {/* Ambient glow behind cards */}
           <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 45%, rgba(212,175,55,0.07) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
@@ -1876,8 +1876,7 @@ export default function GhostModePage() {
                   flex: "0 0 0px", flexGrow: 1.8, minHeight: 150,
                   position: "relative", borderRadius: 28, overflow: "hidden",
                   cursor: "pointer", touchAction: "pan-y",
-                  border: personaFrame ? `2px solid ${personaFrame}` : "1px solid rgba(212,175,55,0.18)",
-                  boxShadow: personaFrame ? `0 14px 36px rgba(0,0,0,0.5), 0 0 0 2px ${personaFrame}` : "0 14px 36px rgba(0,0,0,0.6), 0 0 24px rgba(212,175,55,0.06)",
+                  boxShadow: "0 14px 36px rgba(0,0,0,0.6)",
                 }}
                 onClick={handleCardTap}
               >
@@ -2356,8 +2355,7 @@ export default function GhostModePage() {
               flex: "0 0 0px", flexGrow: 1.8, minHeight: 150,
               position: "relative",
               borderRadius: 28, overflow: "hidden",
-              border: "1px solid rgba(212,175,55,0.18)",
-              boxShadow: "0 14px 36px rgba(0,0,0,0.6), 0 0 24px rgba(212,175,55,0.06)",
+              boxShadow: "0 14px 36px rgba(0,0,0,0.6)",
               cursor: isProfileView || isBottomPackageView ? "default" : "grab",
               touchAction: isProfileView || isBottomPackageView ? "manipulation" : "pan-y",
             }}
@@ -2539,8 +2537,6 @@ export default function GhostModePage() {
                     onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
                     onClick={bFrame ? (e => { e.stopPropagation(); if (_bJoker) setShowJokerSheet(true); else if (_bChef) setShowChefSheet(true); else if (_bMaid) setShowMaidSheet(true); else if (_bGames) setShowGamesSheet(true); }) : undefined}
                   />
-                  {/* Persona glow border */}
-                  {bFrame && <div style={{ position: "absolute", inset: 0, borderRadius: 28, border: `2px solid ${bFrame}`, pointerEvents: "none", zIndex: 5 }} />}
                   {/* Gradient overlay */}
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 38%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.5) 100%)" }} />
 

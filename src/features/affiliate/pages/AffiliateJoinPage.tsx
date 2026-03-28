@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { generateCode, upsertAffiliate } from "../affiliateStorage";
 
-const BG   = "https://ik.imagekit.io/7grri5v7d/ghost%20roomssadasdasdfasdfasdf.png";
-const LOGO = "https://ik.imagekit.io/7grri5v7d/sdfasdfasdfsdfasdfasdfsdfdfasdfasasdasdasd.png?updatedAt=1773948067293";
+const BG           = "https://ik.imagekit.io/7grri5v7d/ghost%20roomssadasdasdfasdfasdf.png";
+const SKELETON_IMG = "https://ik.imagekit.io/7grri5v7d/Skeleton%20in%20tuxedo%20flips%20Connect%204%20disc.png?updatedAt=1774279388822";
 
 const TERMS = `AFFILIATE PROGRAMME — TERMS & CONDITIONS
 Last updated: March 2026
@@ -31,6 +31,11 @@ These terms shall be governed by and construed in accordance with applicable law
 
 export default function AffiliateJoinPage() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.body.classList.add("affiliate-mode");
+    return () => { document.body.classList.remove("affiliate-mode"); };
+  }, []);
   const [name, setName]     = useState("");
   const [email, setEmail]   = useState("");
   const [wa, setWa]         = useState("");
@@ -92,29 +97,29 @@ export default function AffiliateJoinPage() {
         transition={{ duration: 0.45 }}
         style={{
           position: "relative", zIndex: 1,
-          width: "100%", maxWidth: 440,
-          background: "rgba(4,6,4,0.97)",
-          border: "1px solid rgba(74,222,128,0.2)",
+          width: "100%",
+          background: "rgba(8,2,2,0.97)",
+          border: "1px solid rgba(239,68,68,0.2)",
           borderRadius: 24, padding: "28px 22px 24px",
           backdropFilter: "blur(20px)",
-          boxShadow: "0 0 60px rgba(74,222,128,0.08)",
+          boxShadow: "0 0 60px rgba(239,68,68,0.08)",
         }}
       >
-        <div style={{ height: 3, background: "linear-gradient(90deg,#16a34a,#4ade80,#22c55e)", borderRadius: "4px 4px 0 0", margin: "-28px -22px 24px" }} />
+        <div style={{ height: 3, background: "linear-gradient(90deg,#b91c1c,#f87171,#ef4444)", borderRadius: "4px 4px 0 0", margin: "-28px -22px 24px" }} />
 
         <AnimatePresence mode="wait">
           {!done ? (
             <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                <img src={LOGO} alt="Mr Butlas" style={{ width: 46, height: 46, objectFit: "contain" }} />
+                <img src={SKELETON_IMG} alt="Mr Butlas" style={{ width: 50, height: 50, objectFit: "contain" }} />
                 <div>
                   <h1 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0 }}>Become an Affiliate</h1>
-                  <p style={{ fontSize: 11, color: "rgba(74,222,128,0.7)", margin: 0, fontWeight: 600 }}>Active instantly · Earn 25% per sale</p>
+                  <p style={{ fontSize: 11, color: "rgba(239,68,68,0.7)", margin: 0, fontWeight: 600 }}>Active instantly · Earn 25% per sale</p>
                 </div>
               </div>
 
               {/* What you get */}
-              <div style={{ background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.12)", borderRadius: 12, padding: "12px 14px", marginBottom: 18 }}>
+              <div style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.12)", borderRadius: 12, padding: "12px 14px", marginBottom: 18 }}>
                 {[
                   ["🔗", "Your own share link — live the moment you sign up"],
                   ["🖼️", "Ready-made banners + promo videos to post"],
@@ -174,13 +179,13 @@ export default function AffiliateJoinPage() {
                   onClick={() => { setAgreed((a) => !a); setError(""); }}
                   style={{
                     width: 20, height: 20, borderRadius: 5, flexShrink: 0, marginTop: 1,
-                    border: `2px solid ${agreed ? "#4ade80" : "rgba(255,255,255,0.2)"}`,
-                    background: agreed ? "rgba(74,222,128,0.15)" : "transparent",
+                    border: `2px solid ${agreed ? "#f87171" : "rgba(255,255,255,0.2)"}`,
+                    background: agreed ? "rgba(239,68,68,0.15)" : "transparent",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     transition: "all 0.15s",
                   }}
                 >
-                  {agreed && <span style={{ fontSize: 12, color: "#4ade80", fontWeight: 900, lineHeight: 1 }}>✓</span>}
+                  {agreed && <span style={{ fontSize: 12, color: "#f87171", fontWeight: 900, lineHeight: 1 }}>✓</span>}
                 </div>
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
                   I have read and agree to the Mr Butlas Affiliate Terms & Conditions, including identity verification requirements and my responsibility for personal tax obligations.
@@ -196,12 +201,12 @@ export default function AffiliateJoinPage() {
                 style={{
                   width: "100%",
                   background: agreed
-                    ? "linear-gradient(135deg,#16a34a,#4ade80)"
+                    ? "linear-gradient(135deg,#dc2626,#f87171)"
                     : "rgba(255,255,255,0.05)",
                   border: agreed ? "none" : "1px solid rgba(255,255,255,0.08)",
                   borderRadius: 12, padding: "13px 0",
                   fontSize: 14, fontWeight: 900,
-                  color: agreed ? "#000" : "rgba(255,255,255,0.25)",
+                  color: agreed ? "#fff" : "rgba(255,255,255,0.25)",
                   cursor: agreed ? "pointer" : "not-allowed",
                   transition: "all 0.2s",
                 }}
@@ -211,10 +216,10 @@ export default function AffiliateJoinPage() {
 
               <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", margin: "12px 0 0", textAlign: "center", lineHeight: 1.9 }}>
                 Not sure yet?{" "}
-                <a href="/affiliate/how-it-works" style={{ color: "#4ade80", textDecoration: "none", fontWeight: 700 }}>See how it works →</a>
+                <a href="/affiliate/how-it-works" style={{ color: "#f87171", textDecoration: "none", fontWeight: 700 }}>See how it works →</a>
                 <br />
                 Already have an account?{" "}
-                <a href="/affiliate/dashboard" style={{ color: "#4ade80", textDecoration: "none", fontWeight: 700 }}>Log in →</a>
+                <a href="/affiliate/dashboard" style={{ color: "#f87171", textDecoration: "none", fontWeight: 700 }}>Log in →</a>
               </p>
             </motion.div>
           ) : (
@@ -222,13 +227,13 @@ export default function AffiliateJoinPage() {
             <motion.div key="success" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: "center" }}>
               {/* Flashing green dot + live badge */}
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.25)", borderRadius: 20, padding: "8px 18px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 20, padding: "8px 18px" }}>
                   <motion.div
                     animate={{ opacity: [1, 0.2, 1] }}
                     transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
-                    style={{ width: 9, height: 9, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 8px #4ade80" }}
+                    style={{ width: 9, height: 9, borderRadius: "50%", background: "#f87171", boxShadow: "0 0 8px #f87171" }}
                   />
-                  <span style={{ fontSize: 12, fontWeight: 800, color: "#4ade80" }}>LIVE — Account Active</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: "#f87171" }}>LIVE — Account Active</span>
                 </div>
               </div>
 
@@ -239,16 +244,16 @@ export default function AffiliateJoinPage() {
               </p>
 
               {/* Code + link */}
-              <div style={{ background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.22)", borderRadius: 14, padding: "16px 14px", marginBottom: 14, textAlign: "left" }}>
+              <div style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.22)", borderRadius: 14, padding: "16px 14px", marginBottom: 14, textAlign: "left" }}>
                 <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "0 0 5px", fontWeight: 700, letterSpacing: 1 }}>YOUR AFFILIATE CODE</p>
-                <p style={{ fontSize: 26, fontWeight: 900, color: "#4ade80", margin: "0 0 10px", letterSpacing: 4 }}>{code}</p>
+                <p style={{ fontSize: 26, fontWeight: 900, color: "#f87171", margin: "0 0 10px", letterSpacing: 4 }}>{code}</p>
                 <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: "0 0 10px", wordBreak: "break-all", lineHeight: 1.5 }}>{shareLink}</p>
                 <button onClick={copy} style={{
                   width: "100%",
-                  background: copied ? "rgba(74,222,128,0.14)" : "rgba(255,255,255,0.06)",
-                  border: `1px solid ${copied ? "rgba(74,222,128,0.3)" : "rgba(255,255,255,0.1)"}`,
+                  background: copied ? "rgba(239,68,68,0.14)" : "rgba(255,255,255,0.06)",
+                  border: `1px solid ${copied ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.1)"}`,
                   borderRadius: 9, padding: "9px 0",
-                  color: copied ? "#4ade80" : "#fff",
+                  color: copied ? "#f87171" : "#fff",
                   fontSize: 12, fontWeight: 700, cursor: "pointer",
                 }}>{copied ? "✓ Copied!" : "📋 Copy My Link"}</button>
               </div>
@@ -264,9 +269,9 @@ export default function AffiliateJoinPage() {
               <button
                 onClick={() => navigate(`/affiliate/dashboard?code=${code}`)}
                 style={{
-                  width: "100%", background: "linear-gradient(135deg,#16a34a,#4ade80)",
+                  width: "100%", background: "linear-gradient(135deg,#dc2626,#f87171)",
                   border: "none", borderRadius: 12, padding: "13px 0",
-                  fontSize: 14, fontWeight: 900, color: "#000", cursor: "pointer",
+                  fontSize: 14, fontWeight: 900, color: "#fff", cursor: "pointer",
                 }}
               >
                 Open My Dashboard →
