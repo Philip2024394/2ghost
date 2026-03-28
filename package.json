@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@capacitor/android": "^8.2.0",
@@ -78,6 +79,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.2.0",
+    "@cloudflare/vite-plugin": "^1.30.2",
     "@eslint/js": "^9.32.0",
     "@parcel/transformer-jsonld": "^2.16.4",
     "@parcel/transformer-typescript-tsc": "^2.16.4",
@@ -93,6 +95,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "vite": "^8.0.0",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "wrangler": "^4.78.0"
   }
 }
