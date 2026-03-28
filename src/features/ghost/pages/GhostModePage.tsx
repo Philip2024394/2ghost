@@ -1885,7 +1885,7 @@ export default function GhostModePage() {
                   onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
                 />
                 {/* Gradient overlay */}
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 38%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.5) 100%)" }} />
 
                 {/* Distance badge — top-left */}
                 <div style={{ position: "absolute", top: 14, left: 14, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>
@@ -2538,7 +2538,7 @@ export default function GhostModePage() {
                   {/* Persona glow border */}
                   {bFrame && <div style={{ position: "absolute", inset: 0, borderRadius: 28, border: `2px solid ${bFrame}`, pointerEvents: "none", zIndex: 5 }} />}
                   {/* Gradient overlay */}
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 38%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.5) 100%)" }} />
 
                   {/* Distance badge — top-left */}
                   <div style={{ position: "absolute", top: 14, left: 14, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>
