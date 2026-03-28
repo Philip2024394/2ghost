@@ -1313,7 +1313,7 @@ export default function GhostModePage() {
   }
 
   return (
-    <div translate="no" style={{ minHeight: "100dvh", background: "#050508", display: "flex", justifyContent: "center" }}>
+    <div translate="no" style={{ minHeight: "100dvh", background: "#08060a", display: "flex", justifyContent: "center" }}>
 
       {/* DEV — reset to start page */}
       <button
@@ -1350,7 +1350,7 @@ export default function GhostModePage() {
       </button>
 
     <div
-      style={{ width: "100%", maxWidth: 480, minHeight: "100dvh", background: "#000", color: "#fff", display: "flex", flexDirection: "column", position: "relative" }}
+      style={{ width: "100%", maxWidth: 480, minHeight: "100dvh", background: "#08060a", color: "#fff", display: "flex", flexDirection: "column", position: "relative" }}
     >
       {/* Blocking overlay — sits above cards/content but below house rules modal and install banner */}
       {!houseRulesAgreed && (
@@ -1731,7 +1731,10 @@ export default function GhostModePage() {
           padding: "6px 16px",
           paddingBottom: `max(16px, env(safe-area-inset-bottom, 16px))`,
           gap: 10,
+          position: "relative",
         }}>
+          {/* Ambient glow behind cards */}
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 45%, rgba(212,175,55,0.07) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
 
           {/* ── Profile view top card ── */}
           {isProfileView && ghostProfileView && (() => {
@@ -1873,8 +1876,8 @@ export default function GhostModePage() {
                   flex: "0 0 0px", flexGrow: 1.8, minHeight: 150,
                   position: "relative", borderRadius: 28, overflow: "hidden",
                   cursor: "pointer", touchAction: "pan-y",
-                  border: personaFrame ? `2px solid ${personaFrame}` : undefined,
-                  boxShadow: personaFrame ? `0 14px 36px rgba(0,0,0,0.5), 0 0 0 2px ${personaFrame}` : "0 14px 36px rgba(0,0,0,0.5)",
+                  border: personaFrame ? `2px solid ${personaFrame}` : "1px solid rgba(212,175,55,0.18)",
+                  boxShadow: personaFrame ? `0 14px 36px rgba(0,0,0,0.5), 0 0 0 2px ${personaFrame}` : "0 14px 36px rgba(0,0,0,0.6), 0 0 24px rgba(212,175,55,0.06)",
                 }}
                 onClick={handleCardTap}
               >
@@ -2353,7 +2356,8 @@ export default function GhostModePage() {
               flex: "0 0 0px", flexGrow: 1.8, minHeight: 150,
               position: "relative",
               borderRadius: 28, overflow: "hidden",
-              boxShadow: "0 14px 36px rgba(0,0,0,0.5)",
+              border: "1px solid rgba(212,175,55,0.18)",
+              boxShadow: "0 14px 36px rgba(0,0,0,0.6), 0 0 24px rgba(212,175,55,0.06)",
               cursor: isProfileView || isBottomPackageView ? "default" : "grab",
               touchAction: isProfileView || isBottomPackageView ? "manipulation" : "pan-y",
             }}
