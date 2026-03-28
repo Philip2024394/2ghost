@@ -360,14 +360,12 @@ export default function GhostSettingsDrawer({
                 dim={!casinoEnabled}
                 right={<Toggle on={casinoEnabled} onFlip={() => onToggleCasino?.()} />}
               />
-              {gamesUnlocked && (
-                <Row
-                  icon={<span style={{ fontSize: 17 }}>🎮</span>}
-                  label="Games Room"
-                  desc="Connect 4 & memory games"
-                  onClick={() => go("/games")}
-                />
-              )}
+              <Row
+                icon={<span style={{ fontSize: 17 }}>🎮</span>}
+                label="Games Room"
+                desc="Connect 4 & memory games"
+                onClick={() => go("/games")}
+              />
 
               {/* HOTEL SERVICES */}
               <Section label="HOTEL SERVICES" />
